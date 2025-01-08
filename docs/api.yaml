@@ -1,0 +1,27 @@
+openapi: 3.0.0
+info:
+  title: Cifra SSO REST API
+  description: SSO REST API for Cifra app
+  version: 0.0.1
+
+paths:
+  /users/create:
+    post:
+      summary: Test
+      operationId: Test
+      responses:
+        '201':
+          description: Created
+
+components:
+  schemas:
+    ApproveOperation:
+      $ref: './spec/components/schemas/ApproveOperation.yaml'
+    TokensPair:
+      $ref: './spec/components/schemas/TokensPair.yaml'
+    RefreshToken:
+      $ref: './spec/components/schemas/RefreshToken.yaml'
+    UserSessions:
+      $ref: './spec/components/schemas/SessionsCollection.yaml'
+    Session:
+      $ref: './spec/components/schemas/Session.yaml'

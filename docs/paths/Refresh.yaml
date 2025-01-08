@@ -1,0 +1,32 @@
+#post:
+#  tags:
+#    - Login
+#  summary: Refresh Access Token
+#  description: Endpoint to refresh an expired access token using a valid refresh token.
+#  requestBody:
+#    required: true
+#    content:
+#      application/vnd.api+json:
+#        schema:
+#          $ref: '../spec/components/schemas/RefreshToken.yaml'
+#  responses:
+#    '200':
+#      description: Access token successfully refreshed.
+#      content:
+#        application/vnd.api+json:
+#          schema:
+#            $ref: '../spec/components/schemas/RefreshResp.yaml'
+#    '400':
+#      $ref: '../spec/components/responses/invalidParameter.yaml'
+#    '401':
+#        $ref: '../spec/components/responses/invalidAuth.yaml'
+#    '409':
+#      description: Refresh token is invalid or expired.
+#      content:
+#        application/vnd.api+json:
+#          schema:
+#            $ref: '../spec/components/responses/conflict.yaml'
+#    '429':
+#      $ref: '../spec/components/responses/tooManyRequests.yaml'
+#    '500':
+#      $ref: '../spec/components/responses/internalError.yaml'

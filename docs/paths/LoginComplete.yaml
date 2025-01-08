@@ -1,0 +1,36 @@
+post:
+  tags:
+    - Login
+  summary: Confirm login
+  description: Endpoint to login a new user with email, username, and password
+  requestBody:
+    required: true
+    content:
+      application/vnd.api+json:
+        schema:
+          $ref: '../spec/components/schemas/LoginComplete.yaml'
+  responses:
+    '201':
+      description: User successfully login
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '../spec/components/schemas/TokensPair.yaml'
+    '400':
+      $ref: '../spec/components/responses/invalidParameter.yaml'
+    '403':
+      description: Metadata is not valid
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '../spec/components/responses/forbidden.yaml'
+    '404':
+      description: Email not found in request pool
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '../spec/components/responses/forbidden.yaml'
+    '429':
+      $ref: '../spec/components/responses/tooManyRequests.yaml'
+    '500':
+      $ref: '../spec/components/responses/internalError.yaml'

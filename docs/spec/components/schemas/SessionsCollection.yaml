@@ -1,0 +1,24 @@
+type: object
+required:
+  - data
+properties:
+  data:
+    type: object
+    required:
+      - type
+      - attributes
+    properties:
+      type:
+        type: string
+        enum: [ users_sessions ]
+      attributes:
+        type: object
+        required:
+          - devices
+        properties:
+          devices:
+            type: array
+            items:
+              type: array
+              items:
+                $ref: './Session.yaml'

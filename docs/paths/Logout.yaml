@@ -1,0 +1,14 @@
+post:
+  tags:
+    - Login
+  summary: Logout user
+  description: Endpoint to logout user
+  responses:
+    '201':
+      description: User successfully logout
+    '401':
+      $ref: '../spec/components/responses/invalidAuth.yaml'
+    '429':
+      $ref: '../spec/components/responses/tooManyRequests.yaml'
+    '500':
+      $ref: '../spec/components/responses/internalError.yaml'

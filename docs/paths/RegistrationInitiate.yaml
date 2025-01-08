@@ -1,0 +1,24 @@
+post:
+  tags:
+    - Registration
+  summary: Send a request to register a new user
+  description: Send code to email for user to initiate registration
+  requestBody:
+    required: true
+    content:
+      application/vnd.api+json:
+        schema:
+          $ref: '../spec/components/schemas/Email.yaml'
+  responses:
+    '202':
+      description: Successfully initiated registration
+    '400':
+      $ref: '../spec/components/responses/invalidParameter.yaml'
+    '409':
+      description: Username or email is already taken
+      content:
+        application/json:
+          schema:
+            $ref: '../spec/components/responses/conflict.yaml'
+    '500':
+      $ref: '../spec/components/responses/internalError.yaml'

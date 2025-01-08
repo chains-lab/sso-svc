@@ -1,0 +1,25 @@
+type: object
+required:
+  - id
+  - device_name
+  - client
+  - location
+  - last_used
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "session id"
+  device_name:
+    type: string
+    description: "device name"
+  client:
+    type: string
+    description: "client name and version"
+  location:
+    type: string
+    description: "location"
+  last_used:
+    type: string
+    format: date-time
+    description: "last used date"

@@ -1,0 +1,42 @@
+database:
+  url: "postgresql://postgres:postgres@db:5432/postgres?sslmode=disable"
+
+server:
+  port: ":8001"
+  base_path: "/api/v1"
+
+jwt:
+  access_token:
+    secret_key: "supersecretkey"    # Secret encryption key
+    token_lifetime: 900
+  refresh_token:
+    secret_key: "refreshsuperkey"  # Secret encryption key
+    encryption_key: "f6tD7wVYNvXMm4MwqivfpB9Gf+HYz8a3"  # Key for decrypting Refresh Token in the database
+    token_lifetime: 604800
+
+logging:
+  level: "debug"                 # Levels: "debug", "info", "warn", "error".
+  format: "text"                 # Format: "json" or "text".
+
+oauth:
+  google:
+    client_id: "example"
+    client_secret: "example"
+
+email:
+  password: "example"
+  address: "example@gmail.com"
+  smtp_host: "smtp.gmail.com"
+  smtp_port: "587"
+  key: "example"
+  off: true # disabling email access verification to the operation is necessary for testing purposes
+
+swagger:
+  enabled: true
+  url: "/swagger"
+  port: "8080"
+
+cors:
+  allowed_origins: ["*"]
+  allowed_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+  allowed_headers: ["Authorization", "Content-Type"]

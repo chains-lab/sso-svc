@@ -1,0 +1,175 @@
+openapi: 3.0.0
+info:
+  description: SSO REST API for Cifra app
+  title: Cifra SSO REST API
+  version: 0.0.1
+servers:
+- url: /
+paths:
+  /users/create:
+    post:
+      operationId: Test
+      responses:
+        "201":
+          description: Created
+      summary: Test
+components:
+  schemas:
+    ApproveOperation:
+      properties:
+        data:
+          $ref: '#/components/schemas/ApproveOperation_data'
+      required:
+      - data
+      type: object
+    TokensPair:
+      properties:
+        data:
+          $ref: '#/components/schemas/TokensPair_data'
+      required:
+      - data
+      type: object
+    RefreshToken:
+      properties:
+        data:
+          $ref: '#/components/schemas/RefreshToken_data'
+      required:
+      - data
+      type: object
+    UserSessions:
+      properties:
+        data:
+          $ref: '#/components/schemas/UserSessions_data'
+      required:
+      - data
+      type: object
+    Session:
+      properties:
+        id:
+          description: session id
+          format: uuid
+          type: string
+        device_name:
+          description: device name
+          type: string
+        client:
+          description: client name and version
+          type: string
+        location:
+          description: location
+          type: string
+        last_used:
+          description: last used date
+          format: date-time
+          type: string
+      required:
+      - client
+      - device_name
+      - id
+      - last_used
+      - location
+      type: object
+    SessionsCollection:
+      properties:
+        data:
+          $ref: '#/components/schemas/UserSessions_data'
+      required:
+      - data
+      type: object
+    ApproveOperation_data_attributes:
+      properties:
+        email:
+          description: New email
+          type: string
+        code:
+          description: User code
+          type: string
+        operation:
+          description: Type of operation
+          example: reset_password
+          type: string
+      required:
+      - code
+      - email
+      - operation
+      type: object
+    ApproveOperation_data:
+      properties:
+        type:
+          enum:
+          - approve_operation
+          type: string
+        attributes:
+          $ref: '#/components/schemas/ApproveOperation_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
+    TokensPair_data_attributes:
+      properties:
+        access_token:
+          description: Access Token
+          type: string
+        refresh_token:
+          description: Refresh Token
+          type: string
+      required:
+      - access_token
+      - refresh_token
+      type: object
+    TokensPair_data:
+      properties:
+        type:
+          enum:
+          - tokens_pair
+          type: string
+        attributes:
+          $ref: '#/components/schemas/TokensPair_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
+    RefreshToken_data_attributes:
+      properties:
+        refresh_token:
+          description: The refresh token to generate a new access token.
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+          type: string
+      required:
+      - refresh_token
+      type: object
+    RefreshToken_data:
+      properties:
+        type:
+          enum:
+          - refresh
+          type: string
+        attributes:
+          $ref: '#/components/schemas/RefreshToken_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
+    UserSessions_data_attributes:
+      properties:
+        devices:
+          items:
+            items:
+              $ref: '#/components/schemas/Session'
+            type: array
+          type: array
+      required:
+      - devices
+      type: object
+    UserSessions_data:
+      properties:
+        type:
+          enum:
+          - users_sessions
+          type: string
+        attributes:
+          $ref: '#/components/schemas/UserSessions_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
