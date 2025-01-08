@@ -1,0 +1,47 @@
+type: object
+required:
+  - data
+properties:
+  data:
+    type: object
+    required:
+      - id
+      - type
+      - attributes
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: "session id"
+      type:
+        type: string
+        enum: [ users_session_collection ]
+      attributes:
+        required:
+          - user_id
+          - device_name
+          - client
+          - Ip_first
+          - Ip_last
+          - last_used
+          - created_at
+        properties:
+          client:
+            type: string
+            description: "client name and version"
+          Ip_first:
+            type: string
+            description: "IP address"
+          Ip_last:
+            type: string
+            description: "IP address"
+          last_used:
+            type: string
+            format: date-time
+            description: "last used date"
+          created_at:
+            type: string
+            format: date-time
+            description: "session creation date"
+
+

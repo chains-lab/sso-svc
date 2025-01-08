@@ -12,18 +12,18 @@ import (
 )
 
 const createSession = `-- name: CreateSession :one
-INSERT INTO sessions (id, user_id, token, device_name, client, IP)
-VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, user_id, token, device_name, client, ip, created_at, last_used
+INSERT INTO sessions (id, user_id, token, client, IP_first, IP_last)
+VALUES ($1, $2, $3, $4 , $5, $6)
+RETURNING id, user_id, token, client, ip_first, ip_last, created_at, last_used
 `
 
 type CreateSessionParams struct {
-	ID         uuid.UUID
-	UserID     uuid.UUID
-	Token      string
-	DeviceName string
-	Client     string
-	Ip         string
+	ID      uuid.UUID
+	UserID  uuid.UUID
+	Token   string
+	Client  string
+	IpFirst string
+	IpLast  string
 }
 
 func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error) {
@@ -31,18 +31,18 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 		arg.ID,
 		arg.UserID,
 		arg.Token,
-		arg.DeviceName,
 		arg.Client,
-		arg.Ip,
+		arg.IpFirst,
+		arg.IpLast,
 	)
 	var i Session
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
 		&i.Token,
-		&i.DeviceName,
 		&i.Client,
-		&i.Ip,
+		&i.IpFirst,
+		&i.IpLast,
 		&i.CreatedAt,
 		&i.LastUsed,
 	)
@@ -85,7 +85,7 @@ func (q *Queries) DeleteUserSessions(ctx context.Context, userID uuid.UUID) erro
 }
 
 const getSession = `-- name: GetSession :one
-SELECT id, user_id, token, device_name, client, ip, created_at, last_used FROM sessions
+SELECT id, user_id, token, client, ip_first, ip_last, created_at, last_used FROM sessions
 WHERE id = $1
 `
 
@@ -96,9 +96,9 @@ func (q *Queries) GetSession(ctx context.Context, id uuid.UUID) (Session, error)
 		&i.ID,
 		&i.UserID,
 		&i.Token,
-		&i.DeviceName,
 		&i.Client,
-		&i.Ip,
+		&i.IpFirst,
+		&i.IpLast,
 		&i.CreatedAt,
 		&i.LastUsed,
 	)
@@ -123,7 +123,7 @@ func (q *Queries) GetSessionToken(ctx context.Context, arg GetSessionTokenParams
 }
 
 const getSessionsByUserID = `-- name: GetSessionsByUserID :many
-SELECT id, user_id, token, device_name, client, ip, created_at, last_used FROM sessions
+SELECT id, user_id, token, client, ip_first, ip_last, created_at, last_used FROM sessions
 WHERE user_id = $1
 `
 
@@ -140,9 +140,9 @@ func (q *Queries) GetSessionsByUserID(ctx context.Context, userID uuid.UUID) ([]
 			&i.ID,
 			&i.UserID,
 			&i.Token,
-			&i.DeviceName,
 			&i.Client,
-			&i.Ip,
+			&i.IpFirst,
+			&i.IpLast,
 			&i.CreatedAt,
 			&i.LastUsed,
 		); err != nil {
@@ -160,7 +160,7 @@ func (q *Queries) GetSessionsByUserID(ctx context.Context, userID uuid.UUID) ([]
 }
 
 const getUserSession = `-- name: GetUserSession :one
-SELECT id, user_id, token, device_name, client, ip, created_at, last_used FROM sessions
+SELECT id, user_id, token, client, ip_first, ip_last, created_at, last_used FROM sessions
 WHERE id = $1 AND user_id = $2
 `
 
@@ -176,9 +176,9 @@ func (q *Queries) GetUserSession(ctx context.Context, arg GetUserSessionParams) 
 		&i.ID,
 		&i.UserID,
 		&i.Token,
-		&i.DeviceName,
 		&i.Client,
-		&i.Ip,
+		&i.IpFirst,
+		&i.IpLast,
 		&i.CreatedAt,
 		&i.LastUsed,
 	)
@@ -189,6 +189,7 @@ const updateSessionToken = `-- name: UpdateSessionToken :exec
 UPDATE sessions
 SET
     token = $3,
+    IP_last = $4,
     last_used = now()
 WHERE id = $1 AND user_id = $2
 `
@@ -197,9 +198,15 @@ type UpdateSessionTokenParams struct {
 	ID     uuid.UUID
 	UserID uuid.UUID
 	Token  string
+	IpLast string
 }
 
 func (q *Queries) UpdateSessionToken(ctx context.Context, arg UpdateSessionTokenParams) error {
-	_, err := q.db.ExecContext(ctx, updateSessionToken, arg.ID, arg.UserID, arg.Token)
+	_, err := q.db.ExecContext(ctx, updateSessionToken,
+		arg.ID,
+		arg.UserID,
+		arg.Token,
+		arg.IpLast,
+	)
 	return err
 }

@@ -43,33 +43,47 @@ components:
       required:
       - data
       type: object
+    UserSession:
+      properties:
+        data:
+          $ref: '#/components/schemas/UserSession_data'
+      required:
+      - data
+      type: object
     Session:
       properties:
         id:
           description: session id
           format: uuid
           type: string
-        device_name:
-          description: device name
-          type: string
         client:
           description: client name and version
           type: string
-        location:
-          description: location
+        Ip_first:
+          description: IP address
+          type: string
+        Ip_last:
+          description: IP address
           type: string
         last_used:
           description: last used date
           format: date-time
           type: string
+        created_at:
+          description: session creation date
+          format: date-time
+          type: string
       required:
+      - Ip_first
+      - Ip_last
       - client
+      - created_at
       - device_name
       - id
       - last_used
-      - location
+      - user_id
       type: object
-    SessionsCollection:
+    UserSessionCollection:
       properties:
         data:
           $ref: '#/components/schemas/UserSessions_data'
@@ -154,9 +168,7 @@ components:
       properties:
         devices:
           items:
-            items:
-              $ref: '#/components/schemas/Session'
-            type: array
+            $ref: '#/components/schemas/Session'
           type: array
       required:
       - devices
@@ -165,11 +177,56 @@ components:
       properties:
         type:
           enum:
-          - users_sessions
+          - users_session_collection
           type: string
         attributes:
           $ref: '#/components/schemas/UserSessions_data_attributes'
       required:
       - attributes
+      - type
+      type: object
+    UserSession_data_attributes:
+      properties:
+        client:
+          description: client name and version
+          type: string
+        Ip_first:
+          description: IP address
+          type: string
+        Ip_last:
+          description: IP address
+          type: string
+        last_used:
+          description: last used date
+          format: date-time
+          type: string
+        created_at:
+          description: session creation date
+          format: date-time
+          type: string
+      required:
+      - Ip_first
+      - Ip_last
+      - client
+      - created_at
+      - device_name
+      - last_used
+      - user_id
+      type: object
+    UserSession_data:
+      properties:
+        id:
+          description: session id
+          format: uuid
+          type: string
+        type:
+          enum:
+          - users_session_collection
+          type: string
+        attributes:
+          $ref: '#/components/schemas/UserSession_data_attributes'
+      required:
+      - attributes
+      - id
       - type
       type: object

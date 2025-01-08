@@ -9,6 +9,7 @@ import (
 	"github.com/cifra-city/comtools/httpkit"
 	"github.com/cifra-city/comtools/httpkit/problems"
 	"github.com/cifra-city/sso-oauth/internal/config"
+	"github.com/cifra-city/sso-oauth/internal/sectools"
 	"github.com/cifra-city/sso-oauth/internal/service/utils"
 	"github.com/cifra-city/sso-oauth/resources"
 	"github.com/google/uuid"
@@ -60,10 +61,9 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	account, err := Server.Databaser.Accounts.GetByEmail(r, userInfo.Email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			log.Debugf("user not found for email: %v", userInfo.Email)
-			account, err = Server.Databaser.Accounts.Create(r, userInfo.Email, "")
+			account, err = Server.Databaser.Accounts.Create(r, userInfo.Email)
 			if err != nil {
-				log.Errorf("failed to create account: %v", err)
+				log.Errorf("error creating user: %v", err)
 				httpkit.RenderErr(w, problems.InternalError())
 				return
 			}
@@ -75,9 +75,24 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	deviceID := uuid.New()
+
 	tokenAccess, tokenRefresh, err := utils.GenerateTokens(*Server, account, deviceID)
 	if err != nil {
 		log.Errorf("error generating tokens: %v", err)
+		httpkit.RenderErr(w, problems.InternalError())
+		return
+	}
+
+	tokenCrypto, err := sectools.EncryptToken(tokenRefresh, Server.Config.JWT.RefreshToken.EncryptionKey)
+	if err != nil {
+		log.Errorf("error encrypting token: %v", err)
+		httpkit.RenderErr(w, problems.InternalError())
+		return
+	}
+
+	_, err = Server.Databaser.Sessions.Create(r, account.ID, deviceID, tokenCrypto)
+	if err != nil {
+		log.Errorf("error creating session: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}

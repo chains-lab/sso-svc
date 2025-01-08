@@ -21,7 +21,7 @@ var _ MappedNullable = &UserSessionsDataAttributes{}
 
 // UserSessionsDataAttributes struct for UserSessionsDataAttributes
 type UserSessionsDataAttributes struct {
-	Devices [][]Session `json:"devices"`
+	Devices []Session `json:"devices"`
 }
 
 type _UserSessionsDataAttributes UserSessionsDataAttributes
@@ -30,7 +30,7 @@ type _UserSessionsDataAttributes UserSessionsDataAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewUserSessionsDataAttributes(devices [][]Session) *UserSessionsDataAttributes {
+func NewUserSessionsDataAttributes(devices []Session) *UserSessionsDataAttributes {
 	this := UserSessionsDataAttributes{}
 	this.Devices = devices
 	return &this
@@ -45,9 +45,9 @@ func NewUserSessionsDataAttributesWithDefaults() *UserSessionsDataAttributes {
 }
 
 // GetDevices returns the Devices field value
-func (o *UserSessionsDataAttributes) GetDevices() [][]Session {
+func (o *UserSessionsDataAttributes) GetDevices() []Session {
 	if o == nil {
-		var ret [][]Session
+		var ret []Session
 		return ret
 	}
 
@@ -56,7 +56,7 @@ func (o *UserSessionsDataAttributes) GetDevices() [][]Session {
 
 // GetDevicesOk returns a tuple with the Devices field value
 // and a boolean to check if the value has been set.
-func (o *UserSessionsDataAttributes) GetDevicesOk() ([][]Session, bool) {
+func (o *UserSessionsDataAttributes) GetDevicesOk() ([]Session, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -64,7 +64,7 @@ func (o *UserSessionsDataAttributes) GetDevicesOk() ([][]Session, bool) {
 }
 
 // SetDevices sets field value
-func (o *UserSessionsDataAttributes) SetDevices(v [][]Session) {
+func (o *UserSessionsDataAttributes) SetDevices(v []Session) {
 	o.Devices = v
 }
 

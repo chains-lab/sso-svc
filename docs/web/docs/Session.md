@@ -5,16 +5,17 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Id** | **string** | session id | 
-**DeviceName** | **string** | device name | 
 **Client** | **string** | client name and version | 
-**Location** | **string** | location | 
+**IpFirst** | **string** | IP address | 
+**IpLast** | **string** | IP address | 
 **LastUsed** | **time.Time** | last used date | 
+**CreatedAt** | **time.Time** | session creation date | 
 
 ## Methods
 
 ### NewSession
 
-`func NewSession(id string, deviceName string, client string, location string, lastUsed time.Time, ) *Session`
+`func NewSession(id string, client string, ipFirst string, ipLast string, lastUsed time.Time, createdAt time.Time, ) *Session`
 
 NewSession instantiates a new Session object
 This constructor will assign default values to properties that have it defined,
@@ -49,26 +50,6 @@ and a boolean to check if the value has been set.
 SetId sets Id field to given value.
 
 
-### GetDeviceName
-
-`func (o *Session) GetDeviceName() string`
-
-GetDeviceName returns the DeviceName field if non-nil, zero value otherwise.
-
-### GetDeviceNameOk
-
-`func (o *Session) GetDeviceNameOk() (*string, bool)`
-
-GetDeviceNameOk returns a tuple with the DeviceName field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetDeviceName
-
-`func (o *Session) SetDeviceName(v string)`
-
-SetDeviceName sets DeviceName field to given value.
-
-
 ### GetClient
 
 `func (o *Session) GetClient() string`
@@ -89,24 +70,44 @@ and a boolean to check if the value has been set.
 SetClient sets Client field to given value.
 
 
-### GetLocation
+### GetIpFirst
 
-`func (o *Session) GetLocation() string`
+`func (o *Session) GetIpFirst() string`
 
-GetLocation returns the Location field if non-nil, zero value otherwise.
+GetIpFirst returns the IpFirst field if non-nil, zero value otherwise.
 
-### GetLocationOk
+### GetIpFirstOk
 
-`func (o *Session) GetLocationOk() (*string, bool)`
+`func (o *Session) GetIpFirstOk() (*string, bool)`
 
-GetLocationOk returns a tuple with the Location field if it's non-nil, zero value otherwise
+GetIpFirstOk returns a tuple with the IpFirst field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
-### SetLocation
+### SetIpFirst
 
-`func (o *Session) SetLocation(v string)`
+`func (o *Session) SetIpFirst(v string)`
 
-SetLocation sets Location field to given value.
+SetIpFirst sets IpFirst field to given value.
+
+
+### GetIpLast
+
+`func (o *Session) GetIpLast() string`
+
+GetIpLast returns the IpLast field if non-nil, zero value otherwise.
+
+### GetIpLastOk
+
+`func (o *Session) GetIpLastOk() (*string, bool)`
+
+GetIpLastOk returns a tuple with the IpLast field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetIpLast
+
+`func (o *Session) SetIpLast(v string)`
+
+SetIpLast sets IpLast field to given value.
 
 
 ### GetLastUsed
@@ -127,6 +128,26 @@ and a boolean to check if the value has been set.
 `func (o *Session) SetLastUsed(v time.Time)`
 
 SetLastUsed sets LastUsed field to given value.
+
+
+### GetCreatedAt
+
+`func (o *Session) GetCreatedAt() time.Time`
+
+GetCreatedAt returns the CreatedAt field if non-nil, zero value otherwise.
+
+### GetCreatedAtOk
+
+`func (o *Session) GetCreatedAtOk() (*time.Time, bool)`
+
+GetCreatedAtOk returns a tuple with the CreatedAt field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetCreatedAt
+
+`func (o *Session) SetCreatedAt(v time.Time)`
+
+SetCreatedAt sets CreatedAt field to given value.
 
 
 

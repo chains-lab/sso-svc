@@ -42,8 +42,11 @@ func Run(ctx context.Context) {
 				r.Route("/user", func(r chi.Router) {
 					r.Use(authMW)
 					r.Route("/sessions", func(r chi.Router) {
+						r.Route("/{session_id}", func(r chi.Router) {
+							r.Get("/", handlers.GetSessions)
+							r.Delete("/", handlers.DeleteSession)
+						})
 						r.Get("/", handlers.GetSessions)
-						r.Delete("/", handlers.DeleteSession)
 						r.Delete("/terminate", handlers.TerminateSessions)
 					})
 					r.Post("/logout", handlers.Logout)

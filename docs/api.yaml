@@ -22,6 +22,8 @@ components:
     RefreshToken:
       $ref: './spec/components/schemas/RefreshToken.yaml'
     UserSessions:
-      $ref: './spec/components/schemas/SessionsCollection.yaml'
+      $ref: './spec/components/schemas/UserSessionCollection.yaml'
+    UserSession:
+      $ref: './spec/components/schemas/UserSession.yaml'
     Session:
       $ref: './spec/components/schemas/Session.yaml'

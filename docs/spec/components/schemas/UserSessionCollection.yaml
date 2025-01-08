@@ -10,7 +10,7 @@ properties:
     properties:
       type:
         type: string
-        enum: [ users_sessions ]
+        enum: [ users_session_collection ]
       attributes:
         type: object
         required:
@@ -19,6 +19,4 @@ properties:
           devices:
             type: array
             items:
-              type: array
-              items:
-                $ref: './Session.yaml'
+              $ref: './Session.yaml'

@@ -1,25 +1,33 @@
 type: object
 required:
   - id
+  - user_id
   - device_name
   - client
-  - location
+  - Ip_first
+  - Ip_last
   - last_used
+  - created_at
 properties:
   id:
     type: string
     format: uuid
     description: "session id"
-  device_name:
-    type: string
-    description: "device name"
   client:
     type: string
     description: "client name and version"
-  location:
+  Ip_first:
     type: string
-    description: "location"
+    description: "IP address"
+  Ip_last:
+    type: string
+    description: "IP address"
   last_used:
     type: string
     format: date-time
     description: "last used date"
+  created_at:
+    type: string
+    format: date-time
+    description: "session creation date"
+

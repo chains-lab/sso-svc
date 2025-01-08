@@ -17,13 +17,11 @@ import (
 	"fmt"
 )
 
-// checks if the Session type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &Session{}
+// checks if the UserSessionDataAttributes type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &UserSessionDataAttributes{}
 
-// Session struct for Session
-type Session struct {
-	// session id
-	Id string `json:"id"`
+// UserSessionDataAttributes struct for UserSessionDataAttributes
+type UserSessionDataAttributes struct {
 	// client name and version
 	Client string `json:"client"`
 	// IP address
@@ -36,15 +34,14 @@ type Session struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type _Session Session
+type _UserSessionDataAttributes UserSessionDataAttributes
 
-// NewSession instantiates a new Session object
+// NewUserSessionDataAttributes instantiates a new UserSessionDataAttributes object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewSession(id string, client string, ipFirst string, ipLast string, lastUsed time.Time, createdAt time.Time) *Session {
-	this := Session{}
-	this.Id = id
+func NewUserSessionDataAttributes(client string, ipFirst string, ipLast string, lastUsed time.Time, createdAt time.Time) *UserSessionDataAttributes {
+	this := UserSessionDataAttributes{}
 	this.Client = client
 	this.IpFirst = ipFirst
 	this.IpLast = ipLast
@@ -53,40 +50,16 @@ func NewSession(id string, client string, ipFirst string, ipLast string, lastUse
 	return &this
 }
 
-// NewSessionWithDefaults instantiates a new Session object
+// NewUserSessionDataAttributesWithDefaults instantiates a new UserSessionDataAttributes object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewSessionWithDefaults() *Session {
-	this := Session{}
+func NewUserSessionDataAttributesWithDefaults() *UserSessionDataAttributes {
+	this := UserSessionDataAttributes{}
 	return &this
 }
 
-// GetId returns the Id field value
-func (o *Session) GetId() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Id
-}
-
-// GetIdOk returns a tuple with the Id field value
-// and a boolean to check if the value has been set.
-func (o *Session) GetIdOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Id, true
-}
-
-// SetId sets field value
-func (o *Session) SetId(v string) {
-	o.Id = v
-}
-
 // GetClient returns the Client field value
-func (o *Session) GetClient() string {
+func (o *UserSessionDataAttributes) GetClient() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -97,7 +70,7 @@ func (o *Session) GetClient() string {
 
 // GetClientOk returns a tuple with the Client field value
 // and a boolean to check if the value has been set.
-func (o *Session) GetClientOk() (*string, bool) {
+func (o *UserSessionDataAttributes) GetClientOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -105,12 +78,12 @@ func (o *Session) GetClientOk() (*string, bool) {
 }
 
 // SetClient sets field value
-func (o *Session) SetClient(v string) {
+func (o *UserSessionDataAttributes) SetClient(v string) {
 	o.Client = v
 }
 
 // GetIpFirst returns the IpFirst field value
-func (o *Session) GetIpFirst() string {
+func (o *UserSessionDataAttributes) GetIpFirst() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -121,7 +94,7 @@ func (o *Session) GetIpFirst() string {
 
 // GetIpFirstOk returns a tuple with the IpFirst field value
 // and a boolean to check if the value has been set.
-func (o *Session) GetIpFirstOk() (*string, bool) {
+func (o *UserSessionDataAttributes) GetIpFirstOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -129,12 +102,12 @@ func (o *Session) GetIpFirstOk() (*string, bool) {
 }
 
 // SetIpFirst sets field value
-func (o *Session) SetIpFirst(v string) {
+func (o *UserSessionDataAttributes) SetIpFirst(v string) {
 	o.IpFirst = v
 }
 
 // GetIpLast returns the IpLast field value
-func (o *Session) GetIpLast() string {
+func (o *UserSessionDataAttributes) GetIpLast() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -145,7 +118,7 @@ func (o *Session) GetIpLast() string {
 
 // GetIpLastOk returns a tuple with the IpLast field value
 // and a boolean to check if the value has been set.
-func (o *Session) GetIpLastOk() (*string, bool) {
+func (o *UserSessionDataAttributes) GetIpLastOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -153,12 +126,12 @@ func (o *Session) GetIpLastOk() (*string, bool) {
 }
 
 // SetIpLast sets field value
-func (o *Session) SetIpLast(v string) {
+func (o *UserSessionDataAttributes) SetIpLast(v string) {
 	o.IpLast = v
 }
 
 // GetLastUsed returns the LastUsed field value
-func (o *Session) GetLastUsed() time.Time {
+func (o *UserSessionDataAttributes) GetLastUsed() time.Time {
 	if o == nil {
 		var ret time.Time
 		return ret
@@ -169,7 +142,7 @@ func (o *Session) GetLastUsed() time.Time {
 
 // GetLastUsedOk returns a tuple with the LastUsed field value
 // and a boolean to check if the value has been set.
-func (o *Session) GetLastUsedOk() (*time.Time, bool) {
+func (o *UserSessionDataAttributes) GetLastUsedOk() (*time.Time, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -177,12 +150,12 @@ func (o *Session) GetLastUsedOk() (*time.Time, bool) {
 }
 
 // SetLastUsed sets field value
-func (o *Session) SetLastUsed(v time.Time) {
+func (o *UserSessionDataAttributes) SetLastUsed(v time.Time) {
 	o.LastUsed = v
 }
 
 // GetCreatedAt returns the CreatedAt field value
-func (o *Session) GetCreatedAt() time.Time {
+func (o *UserSessionDataAttributes) GetCreatedAt() time.Time {
 	if o == nil {
 		var ret time.Time
 		return ret
@@ -193,7 +166,7 @@ func (o *Session) GetCreatedAt() time.Time {
 
 // GetCreatedAtOk returns a tuple with the CreatedAt field value
 // and a boolean to check if the value has been set.
-func (o *Session) GetCreatedAtOk() (*time.Time, bool) {
+func (o *UserSessionDataAttributes) GetCreatedAtOk() (*time.Time, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -201,11 +174,11 @@ func (o *Session) GetCreatedAtOk() (*time.Time, bool) {
 }
 
 // SetCreatedAt sets field value
-func (o *Session) SetCreatedAt(v time.Time) {
+func (o *UserSessionDataAttributes) SetCreatedAt(v time.Time) {
 	o.CreatedAt = v
 }
 
-func (o Session) MarshalJSON() ([]byte, error) {
+func (o UserSessionDataAttributes) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -213,9 +186,8 @@ func (o Session) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o Session) ToMap() (map[string]interface{}, error) {
+func (o UserSessionDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["id"] = o.Id
 	toSerialize["client"] = o.Client
 	toSerialize["Ip_first"] = o.IpFirst
 	toSerialize["Ip_last"] = o.IpLast
@@ -224,12 +196,11 @@ func (o Session) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-func (o *Session) UnmarshalJSON(data []byte) (err error) {
+func (o *UserSessionDataAttributes) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"id",
 		"client",
 		"Ip_first",
 		"Ip_last",
@@ -251,53 +222,53 @@ func (o *Session) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varSession := _Session{}
+	varUserSessionDataAttributes := _UserSessionDataAttributes{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varSession)
+	err = decoder.Decode(&varUserSessionDataAttributes)
 
 	if err != nil {
 		return err
 	}
 
-	*o = Session(varSession)
+	*o = UserSessionDataAttributes(varUserSessionDataAttributes)
 
 	return err
 }
 
-type NullableSession struct {
-	value *Session
+type NullableUserSessionDataAttributes struct {
+	value *UserSessionDataAttributes
 	isSet bool
 }
 
-func (v NullableSession) Get() *Session {
+func (v NullableUserSessionDataAttributes) Get() *UserSessionDataAttributes {
 	return v.value
 }
 
-func (v *NullableSession) Set(val *Session) {
+func (v *NullableUserSessionDataAttributes) Set(val *UserSessionDataAttributes) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableSession) IsSet() bool {
+func (v NullableUserSessionDataAttributes) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableSession) Unset() {
+func (v *NullableUserSessionDataAttributes) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableSession(val *Session) *NullableSession {
-	return &NullableSession{value: val, isSet: true}
+func NewNullableUserSessionDataAttributes(val *UserSessionDataAttributes) *NullableUserSessionDataAttributes {
+	return &NullableUserSessionDataAttributes{value: val, isSet: true}
 }
 
-func (v NullableSession) MarshalJSON() ([]byte, error) {
+func (v NullableUserSessionDataAttributes) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableSession) UnmarshalJSON(src []byte) error {
+func (v *NullableUserSessionDataAttributes) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

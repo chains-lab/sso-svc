@@ -69,19 +69,16 @@ func (t *transaction) LoginTxn(
 	}()
 
 	client := httpkit.GetUserAgent(r)
-	IP := httpkit.GetClientIP(r)
 
 	if err != nil {
 		return nil, err
 	}
 
 	session, err := queries.CreateSession(ctx, sqlcore.CreateSessionParams{
-		ID:         deviceID,
-		UserID:     userID,
-		Token:      Token,
-		DeviceName: deviceName,
-		Ip:         IP,
-		Client:     client,
+		ID:     deviceID,
+		UserID: userID,
+		Token:  Token,
+		Client: client,
 	})
 	if err != nil {
 		return nil, err

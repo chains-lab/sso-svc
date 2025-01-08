@@ -1,6 +1,6 @@
 -- name: CreateSession :one
-INSERT INTO sessions (id, user_id, token, device_name, client, IP)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO sessions (id, user_id, token, client, IP_first, IP_last)
+VALUES ($1, $2, $3, $4 , $5, $6)
 RETURNING *;
 
 -- name: GetSession :one
@@ -23,6 +23,7 @@ WHERE id = $1 AND user_id = $2;
 UPDATE sessions
 SET
     token = $3,
+    IP_last = $4,
     last_used = now()
 WHERE id = $1 AND user_id = $2;
 

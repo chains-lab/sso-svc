@@ -4,14 +4,15 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/cifra-city/comtools/cifractx"
 	"github.com/cifra-city/comtools/httpkit"
 	"github.com/cifra-city/comtools/httpkit/problems"
 	"github.com/cifra-city/sso-oauth/internal/config"
-	"github.com/cifra-city/sso-oauth/internal/service/requests"
 	"github.com/cifra-city/sso-oauth/resources"
 	"github.com/cifra-city/tokens"
+	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
@@ -25,15 +26,7 @@ func DeleteSession(w http.ResponseWriter, r *http.Request) {
 	}
 	log := Server.Logger
 
-	req, err := requests.NewDeleteSession(r)
-	if err != nil {
-		httpkit.RenderErr(w, problems.BadRequest(err)...)
-		return
-	}
-
-	sessionIdStr := req.Data.Attributes.SessionId
-
-	sessionForDelete, err := uuid.Parse(sessionIdStr)
+	sessionForDeleteId, err := uuid.Parse(chi.URLParam(r, "session_id"))
 	if err != nil {
 		httpkit.RenderErr(w, problems.BadRequest(err)...)
 		return
@@ -53,13 +46,13 @@ func DeleteSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if sessionID == sessionForDelete {
+	if sessionID == sessionForDeleteId {
 		log.Debugf("Session can't be current")
 		httpkit.RenderErr(w, problems.BadRequest(errors.New("session can't be current"))...)
 		return
 	}
 
-	err = Server.Databaser.Sessions.Delete(r, sessionForDelete, userID)
+	err = Server.Databaser.Sessions.Delete(r, sessionForDeleteId, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())
@@ -70,7 +63,7 @@ func DeleteSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = Server.TokenManager.Bin.Add(userID.String(), sessionForDelete.String())
+	err = Server.TokenManager.Bin.Add(userID.String(), sessionForDeleteId.String())
 	if err != nil {
 		log.Errorf("Failed to add token to bin: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
@@ -84,23 +77,32 @@ func DeleteSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var userSessions []resources.UserSessionsDataAttributesDevicesInner
+	var userSessions []resources.Session
 	for _, device := range sessions {
-		userSessions = append(userSessions, resources.UserSessionsDataAttributesDevicesInner{
-			Id:         device.ID.String(),
-			DeviceName: "TODO",
-			Client:     "TODO",
-
-			LastUsed: device.LastUsed,
-		})
+		userSessions = append(userSessions, NewSession(r, device.ID.String()))
 	}
 
-	httpkit.Render(w, resources.UserSessions{
+	httpkit.Render(w, NewSessionList(userSessions))
+}
+
+func NewSessionList(sessions []resources.Session) resources.UserSessions {
+	return resources.UserSessions{
 		Data: resources.UserSessionsData{
 			Type: resources.UserSessionsType,
 			Attributes: resources.UserSessionsDataAttributes{
-				Devices: userSessions,
+				Devices: sessions,
 			},
 		},
-	})
+	}
+}
+
+func NewSession(r *http.Request, Id string) resources.Session {
+	return resources.Session{
+		Id:        Id,
+		Client:    httpkit.GetUserAgent(r),
+		IpFirst:   httpkit.GetClientIP(r),
+		IpLast:    httpkit.GetClientIP(r),
+		LastUsed:  time.Now().UTC(),
+		CreatedAt: time.Now().UTC(),
+	}
 }

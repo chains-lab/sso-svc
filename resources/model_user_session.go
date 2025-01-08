@@ -16,38 +16,38 @@ import (
 	"fmt"
 )
 
-// checks if the SessionsCollection type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &SessionsCollection{}
+// checks if the UserSession type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &UserSession{}
 
-// SessionsCollection struct for SessionsCollection
-type SessionsCollection struct {
-	Data UserSessionsData `json:"data"`
+// UserSession struct for UserSession
+type UserSession struct {
+	Data UserSessionData `json:"data"`
 }
 
-type _SessionsCollection SessionsCollection
+type _UserSession UserSession
 
-// NewSessionsCollection instantiates a new SessionsCollection object
+// NewUserSession instantiates a new UserSession object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewSessionsCollection(data UserSessionsData) *SessionsCollection {
-	this := SessionsCollection{}
+func NewUserSession(data UserSessionData) *UserSession {
+	this := UserSession{}
 	this.Data = data
 	return &this
 }
 
-// NewSessionsCollectionWithDefaults instantiates a new SessionsCollection object
+// NewUserSessionWithDefaults instantiates a new UserSession object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewSessionsCollectionWithDefaults() *SessionsCollection {
-	this := SessionsCollection{}
+func NewUserSessionWithDefaults() *UserSession {
+	this := UserSession{}
 	return &this
 }
 
 // GetData returns the Data field value
-func (o *SessionsCollection) GetData() UserSessionsData {
+func (o *UserSession) GetData() UserSessionData {
 	if o == nil {
-		var ret UserSessionsData
+		var ret UserSessionData
 		return ret
 	}
 
@@ -56,7 +56,7 @@ func (o *SessionsCollection) GetData() UserSessionsData {
 
 // GetDataOk returns a tuple with the Data field value
 // and a boolean to check if the value has been set.
-func (o *SessionsCollection) GetDataOk() (*UserSessionsData, bool) {
+func (o *UserSession) GetDataOk() (*UserSessionData, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -64,11 +64,11 @@ func (o *SessionsCollection) GetDataOk() (*UserSessionsData, bool) {
 }
 
 // SetData sets field value
-func (o *SessionsCollection) SetData(v UserSessionsData) {
+func (o *UserSession) SetData(v UserSessionData) {
 	o.Data = v
 }
 
-func (o SessionsCollection) MarshalJSON() ([]byte, error) {
+func (o UserSession) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -76,13 +76,13 @@ func (o SessionsCollection) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o SessionsCollection) ToMap() (map[string]interface{}, error) {
+func (o UserSession) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["data"] = o.Data
 	return toSerialize, nil
 }
 
-func (o *SessionsCollection) UnmarshalJSON(data []byte) (err error) {
+func (o *UserSession) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
@@ -104,53 +104,53 @@ func (o *SessionsCollection) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varSessionsCollection := _SessionsCollection{}
+	varUserSession := _UserSession{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varSessionsCollection)
+	err = decoder.Decode(&varUserSession)
 
 	if err != nil {
 		return err
 	}
 
-	*o = SessionsCollection(varSessionsCollection)
+	*o = UserSession(varUserSession)
 
 	return err
 }
 
-type NullableSessionsCollection struct {
-	value *SessionsCollection
+type NullableUserSession struct {
+	value *UserSession
 	isSet bool
 }
 
-func (v NullableSessionsCollection) Get() *SessionsCollection {
+func (v NullableUserSession) Get() *UserSession {
 	return v.value
 }
 
-func (v *NullableSessionsCollection) Set(val *SessionsCollection) {
+func (v *NullableUserSession) Set(val *UserSession) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableSessionsCollection) IsSet() bool {
+func (v NullableUserSession) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableSessionsCollection) Unset() {
+func (v *NullableUserSession) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableSessionsCollection(val *SessionsCollection) *NullableSessionsCollection {
-	return &NullableSessionsCollection{value: val, isSet: true}
+func NewNullableUserSession(val *UserSession) *NullableUserSession {
+	return &NullableUserSession{value: val, isSet: true}
 }
 
-func (v NullableSessionsCollection) MarshalJSON() ([]byte, error) {
+func (v NullableUserSession) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableSessionsCollection) UnmarshalJSON(src []byte) error {
+func (v *NullableUserSession) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

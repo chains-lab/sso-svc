@@ -1,7 +1,6 @@
 package db
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/cifra-city/comtools/httpkit"
@@ -10,7 +9,7 @@ import (
 )
 
 type Sessions interface {
-	Create(r *http.Request, userID uuid.UUID, token string, deviceName string, deviceData json.RawMessage) (sqlcore.Session, error)
+	Create(r *http.Request, userID uuid.UUID, deviceId uuid.UUID, token string) (sqlcore.Session, error)
 
 	GetByID(r *http.Request, id uuid.UUID) (sqlcore.Session, error)
 	GetSession(r *http.Request, id uuid.UUID, userID uuid.UUID) (sqlcore.Session, error)
@@ -31,15 +30,14 @@ func NewSession(queries *sqlcore.Queries) Sessions {
 	return &sessions{queries: queries}
 }
 
-func (s *sessions) Create(r *http.Request, userID uuid.UUID, token string, deviceName string, deviceData json.RawMessage) (sqlcore.Session, error) {
-	client := httpkit.GetUserAgent(r)
-	IP := httpkit.GetClientIP(r)
+func (s *sessions) Create(r *http.Request, userID uuid.UUID, deviceId uuid.UUID, token string) (sqlcore.Session, error) {
 	return s.queries.CreateSession(r.Context(), sqlcore.CreateSessionParams{
-		UserID:     userID,
-		Token:      token,
-		DeviceName: deviceName,
-		Client:     client,
-		Ip:         IP,
+		ID:      deviceId,
+		UserID:  userID,
+		Token:   token,
+		Client:  httpkit.GetUserAgent(r),
+		IpFirst: httpkit.GetClientIP(r),
+		IpLast:  httpkit.GetClientIP(r),
 	})
 }
 
@@ -67,8 +65,9 @@ func (s *sessions) GetToken(r *http.Request, id uuid.UUID, userID uuid.UUID) (st
 
 func (s *sessions) UpdateToken(r *http.Request, id uuid.UUID, token string) error {
 	return s.queries.UpdateSessionToken(r.Context(), sqlcore.UpdateSessionTokenParams{
-		ID:    id,
-		Token: token,
+		ID:     id,
+		Token:  token,
+		IpLast: httpkit.GetClientIP(r),
 	})
 }
 

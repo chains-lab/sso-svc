@@ -62,55 +62,6 @@ func (ns NullFailureReason) Value() (driver.Value, error) {
 	return string(ns.FailureReason), nil
 }
 
-type OperationType string
-
-const (
-	OperationTypeLogin            OperationType = "login"
-	OperationTypeRefreshToken     OperationType = "refresh_token"
-	OperationTypeChangeUsername   OperationType = "change_username"
-	OperationTypeChangePassword   OperationType = "change_password"
-	OperationTypeResetPassword    OperationType = "reset_password"
-	OperationTypeChangeEmail      OperationType = "change_email"
-	OperationTypeDeleteAccount    OperationType = "delete_account"
-	OperationTypeDeleteSession    OperationType = "delete_session"
-	OperationTypeTerminateSession OperationType = "terminate_session"
-)
-
-func (e *OperationType) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = OperationType(s)
-	case string:
-		*e = OperationType(s)
-	default:
-		return fmt.Errorf("unsupported scan type for OperationType: %T", src)
-	}
-	return nil
-}
-
-type NullOperationType struct {
-	OperationType OperationType
-	Valid         bool // Valid is true if OperationType is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullOperationType) Scan(value interface{}) error {
-	if value == nil {
-		ns.OperationType, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.OperationType.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullOperationType) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.OperationType), nil
-}
-
 type RoleType string
 
 const (
@@ -163,12 +114,12 @@ type Account struct {
 }
 
 type Session struct {
-	ID         uuid.UUID
-	UserID     uuid.UUID
-	Token      string
-	DeviceName string
-	Client     string
-	Ip         string
-	CreatedAt  time.Time
-	LastUsed   time.Time
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	Token     string
+	Client    string
+	IpFirst   string
+	IpLast    string
+	CreatedAt time.Time
+	LastUsed  time.Time
 }

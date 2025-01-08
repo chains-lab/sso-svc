@@ -81,6 +81,8 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Debugf("Session token: %s \n EncryptionKey: %s`", session.Token, Server.Config.JWT.RefreshToken.EncryptionKey)
+
 	decryptedToken, err := sectools.DecryptToken(session.Token, Server.Config.JWT.RefreshToken.EncryptionKey)
 	if err != nil {
 		log.Errorf("Failed to decrypt refresh token: %v", err)
