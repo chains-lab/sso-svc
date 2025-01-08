@@ -17,7 +17,7 @@ type Server struct {
 	Databaser    *db.Databaser
 	Logger       *logrus.Logger
 	Mailman      *mailman.Mailman
-	TokenManager *tokens.TokenManager
+	TokenManager tokens.TokenManager
 	Broker       *Broker
 	GoogleOAuth  oauth2.Config
 }

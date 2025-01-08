@@ -20,6 +20,10 @@ github.com/cifra-city/mailman v0.0.3 h1:WNFJ7UMvJkl67mfMsTVduntNLAGTeoOvNMbXJ31S
 github.com/cifra-city/mailman v0.0.3/go.mod h1:3lQz400RyFVlW7RWTbCLn757ERNLCib7fxczKCkv9vk=
 github.com/cifra-city/tokens v0.0.21 h1:A8xTXHthB7ZY/ZO28zpz+4H3XSBC6sdUJAZBmP3bjts=
 github.com/cifra-city/tokens v0.0.21/go.mod h1:jyIDF+u6u4yFM5g/YaDB7xvkLhmDuZdMeyJEzzwFJWk=
+github.com/cifra-city/tokens v0.1.0 h1:6KZx7mtnI12UZGbDmUam+SMGNP8hJqayzlJu4esMkTA=
+github.com/cifra-city/tokens v0.1.0/go.mod h1:jyIDF+u6u4yFM5g/YaDB7xvkLhmDuZdMeyJEzzwFJWk=
+github.com/cifra-city/tokens v0.1.11 h1:noxO5aGlGVIbiOI9YD8qwR+qCi2EsvSI+V5kaHUqOjM=
+github.com/cifra-city/tokens v0.1.11/go.mod h1:QTNWjYPc0QU7Dwm8zzsWYmLguwwovAaumsiD3zS2QxQ=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
