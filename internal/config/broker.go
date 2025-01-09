@@ -55,7 +55,7 @@ func NewBroker(url, exchange string) (*Broker, error) {
 	}, nil
 }
 
-func (b *Broker) Publish(exchangeName string, routingKey string, qName string, body []byte) error {
+func (b *Broker) Publish(exchangeName string, qName string, routingKey string, body []byte) error {
 	err := setupQueue(b.channel, exchangeName, qName, routingKey)
 	if err != nil {
 		return err
@@ -82,7 +82,7 @@ func (b *Broker) Close() {
 	}
 }
 
-func setupQueue(channel *amqp.Channel, exchangeName string, qName string, keyName string) error {
+func setupQueue(channel *amqp.Channel, exchangeName string, qName string, routingKey string) error {
 	_, err := channel.QueueDeclare(
 		exchangeName,
 		true,
@@ -96,8 +96,8 @@ func setupQueue(channel *amqp.Channel, exchangeName string, qName string, keyNam
 	}
 
 	return channel.QueueBind(
-		qName,   //"account.create"
-		keyName, //"account.create"
+		qName,
+		routingKey,
 		exchangeName,
 		false,
 		nil,

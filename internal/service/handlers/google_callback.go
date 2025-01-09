@@ -4,12 +4,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/cifra-city/comtools/cifractx"
 	"github.com/cifra-city/comtools/httpkit"
 	"github.com/cifra-city/comtools/httpkit/problems"
 	"github.com/cifra-city/sso-oauth/internal/config"
 	"github.com/cifra-city/sso-oauth/internal/sectools"
+	"github.com/cifra-city/sso-oauth/internal/service/events"
 	"github.com/cifra-city/sso-oauth/internal/service/utils"
 	"github.com/cifra-city/sso-oauth/resources"
 	"github.com/google/uuid"
@@ -64,6 +66,29 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 			account, err = Server.Databaser.Accounts.Create(r, userInfo.Email)
 			if err != nil {
 				log.Errorf("error creating user: %v", err)
+				httpkit.RenderErr(w, problems.InternalError())
+				return
+			}
+			event := events.AccountCreated{
+				Event:     "AccountCreate",
+				UserID:    account.ID.String(),
+				Email:     userInfo.Email,
+				Timestamp: time.Now().UTC(),
+			}
+
+			body, err := json.Marshal(event)
+			if err != nil {
+				log.Errorf("error serializing event: %v", err)
+				httpkit.RenderErr(w, problems.InternalError())
+				return
+			}
+			err = Server.Broker.Publish(
+				Server.Config.Rabbit.Exchange,
+				"account",
+				"account.create",
+				body)
+			if err != nil {
+				log.Errorf("error publishing event: %v", err)
 				httpkit.RenderErr(w, problems.InternalError())
 				return
 			}
