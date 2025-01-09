@@ -1,9 +1,9 @@
-package db
+package repositories
 
 import (
 	"net/http"
 
-	"github.com/cifra-city/sso-oauth/internal/data/db/sqlcore"
+	"github.com/cifra-city/sso-oauth/internal/data/sql/repositories/sqlcore"
 	"github.com/google/uuid"
 )
 

@@ -60,10 +60,10 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	account, err := Server.Databaser.Accounts.GetByEmail(r, userInfo.Email)
+	account, err := Server.SqlDB.Accounts.GetByEmail(r, userInfo.Email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			account, err = Server.Databaser.Accounts.Create(r, userInfo.Email)
+			account, err = Server.SqlDB.Accounts.Create(r, userInfo.Email)
 			if err != nil {
 				log.Errorf("error creating user: %v", err)
 				httpkit.RenderErr(w, problems.InternalError())
@@ -115,7 +115,7 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = Server.Databaser.Sessions.Create(r, account.ID, deviceID, tokenCrypto)
+	_, err = Server.SqlDB.Sessions.Create(r, account.ID, deviceID, tokenCrypto)
 	if err != nil {
 		log.Errorf("error creating session: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())

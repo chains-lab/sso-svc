@@ -41,7 +41,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = Server.Databaser.Sessions.Delete(r, sessionID, userID)
+	err = Server.SqlDB.Sessions.Delete(r, sessionID, userID)
 	if err != nil {
 		log.Errorf("Failed to delete session: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())

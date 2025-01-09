@@ -36,7 +36,7 @@ func TerminateSessions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessions, err := Server.Databaser.Sessions.GetSessions(r, userID)
+	sessions, err := Server.SqlDB.Sessions.GetSessions(r, userID)
 
 	for _, ses := range sessions {
 		err = Server.TokenManager.Bin.Add(userID.String(), ses.ID.String())
@@ -47,7 +47,7 @@ func TerminateSessions(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = Server.Databaser.TerminateSessionsTxn(r, userID, sessionID)
+	err = Server.SqlDB.Sessions.TerminateSessions(r, userID, sessionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())

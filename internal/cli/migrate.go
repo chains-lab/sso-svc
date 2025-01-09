@@ -18,7 +18,7 @@ func runMigration(ctx context.Context, direction string) error {
 
 	cmd := exec.Command(
 		"migrate",
-		"-path", "internal/data/migration",
+		"-path", "internal/data/sql/repositories/migration",
 		"-database", service.Config.Database.URL,
 		"-verbose", direction,
 	)

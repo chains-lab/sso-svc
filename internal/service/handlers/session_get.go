@@ -29,7 +29,7 @@ func GetSessions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessions, err := Server.Databaser.Sessions.GetSessions(r, userID)
+	sessions, err := Server.SqlDB.Sessions.GetSessions(r, userID)
 	if err != nil {
 		log.Errorf("Failed to retrieve user sessions: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())

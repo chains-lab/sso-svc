@@ -1,10 +1,10 @@
-package db
+package repositories
 
 import (
 	"net/http"
 
 	"github.com/cifra-city/comtools/httpkit"
-	"github.com/cifra-city/sso-oauth/internal/data/db/sqlcore"
+	"github.com/cifra-city/sso-oauth/internal/data/sql/repositories/sqlcore"
 	"github.com/google/uuid"
 )
 
@@ -20,6 +20,12 @@ type Sessions interface {
 
 	DeleteAll(r *http.Request, id uuid.UUID) error
 	Delete(r *http.Request, id uuid.UUID, userID uuid.UUID) error
+
+	TerminateSessions(
+		r *http.Request,
+		userId uuid.UUID,
+		curDevId uuid.UUID,
+	) error
 }
 
 type sessions struct {
@@ -69,6 +75,46 @@ func (s *sessions) UpdateToken(r *http.Request, id uuid.UUID, token string) erro
 		Token:  token,
 		IpLast: httpkit.GetClientIP(r),
 	})
+}
+
+func (s *sessions) TerminateSessions(
+	r *http.Request,
+	userId uuid.UUID,
+	curDevId uuid.UUID,
+) error {
+	ctx := r.Context()
+	queries, tx, err := s.queries.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		err = HandleTransactionRollback(tx, err)
+	}()
+
+	if err != nil {
+		return err
+	}
+
+	userSessions, err := queries.GetSessionsByUserID(ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	for _, dev := range userSessions {
+		if dev.ID == curDevId {
+			continue
+		}
+		err = queries.DeleteUserSession(ctx, sqlcore.DeleteUserSessionParams{
+			ID:     dev.ID,
+			UserID: userId,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
 }
 
 func (s *sessions) DeleteAll(r *http.Request, id uuid.UUID) error {

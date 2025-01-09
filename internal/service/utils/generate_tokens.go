@@ -2,7 +2,7 @@ package utils
 
 import (
 	"github.com/cifra-city/sso-oauth/internal/config"
-	"github.com/cifra-city/sso-oauth/internal/data/db/sqlcore"
+	"github.com/cifra-city/sso-oauth/internal/data/sql/repositories/sqlcore"
 	"github.com/google/uuid"
 )
 

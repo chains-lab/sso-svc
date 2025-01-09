@@ -59,7 +59,7 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 	userID := userData.ID
 	sessionID := userData.DevID
 
-	user, err := Server.Databaser.Accounts.GetById(r, userID)
+	user, err := Server.SqlDB.Accounts.GetById(r, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.Unauthorized())
@@ -70,7 +70,7 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := Server.Databaser.Sessions.GetByID(r, sessionID)
+	session, err := Server.SqlDB.Sessions.GetByID(r, sessionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.Unauthorized("session not found"))
@@ -117,7 +117,7 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = Server.Databaser.UpdateRefreshTokenTrx(r, userID, sessionID, encryptedToken)
+	err = Server.SqlDB.Sessions.UpdateToken(r, userID, encryptedToken)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.Unauthorized())
