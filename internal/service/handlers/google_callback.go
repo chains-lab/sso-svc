@@ -6,16 +6,16 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cifra-city/comtools/cifractx"
-	"github.com/cifra-city/comtools/httpkit"
-	"github.com/cifra-city/comtools/httpkit/problems"
-	"github.com/cifra-city/sso-oauth/internal/config"
-	"github.com/cifra-city/sso-oauth/internal/sectools"
-	"github.com/cifra-city/sso-oauth/internal/service/events"
-	"github.com/cifra-city/sso-oauth/internal/service/utils"
-	"github.com/cifra-city/sso-oauth/resources"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"github.com/recovery-flow/comtools/cifractx"
+	"github.com/recovery-flow/comtools/httpkit"
+	"github.com/recovery-flow/comtools/httpkit/problems"
+	"github.com/recovery-flow/sso-oauth/internal/config"
+	"github.com/recovery-flow/sso-oauth/internal/sectools"
+	"github.com/recovery-flow/sso-oauth/internal/service/events"
+	"github.com/recovery-flow/sso-oauth/internal/service/utils"
+	"github.com/recovery-flow/sso-oauth/resources"
 )
 
 func GoogleCallback(w http.ResponseWriter, r *http.Request) {

@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"github.com/cifra-city/sso-oauth/internal/config"
-	"github.com/cifra-city/sso-oauth/internal/data/sql/repositories/sqlcore"
 	"github.com/google/uuid"
+	"github.com/recovery-flow/sso-oauth/internal/config"
+	"github.com/recovery-flow/sso-oauth/internal/data/sql/repositories/sqlcore"
 )
 
 func GenerateTokens(service config.Server, account sqlcore.Account, deviceID uuid.UUID) (tokenAccess string, tokenRefresh string, err error) {

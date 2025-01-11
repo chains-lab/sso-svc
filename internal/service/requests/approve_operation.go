@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/cifra-city/sso-oauth/resources"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/recovery-flow/sso-oauth/resources"
 )
 
 func newDecodeError(what string, err error) error {

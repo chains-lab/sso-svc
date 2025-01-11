@@ -1,22 +1,20 @@
-module github.com/cifra-city/sso-oauth
+module github.com/recovery-flow/sso-oauth
 
 go 1.23.1
 
 require (
 	github.com/alecthomas/kingpin v2.2.6+incompatible
-	github.com/cifra-city/comtools v0.0.31
-	github.com/cifra-city/mailman v0.0.3
-	github.com/cifra-city/tokens v0.1.11
 	github.com/go-chi/chi v1.5.5
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
 	github.com/pkg/errors v0.9.1
+	github.com/recovery-flow/comtools v0.0.41
+	github.com/recovery-flow/tokens v0.1.2
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.19.0
 	github.com/streadway/amqp v1.1.0
-	golang.org/x/crypto v0.32.0
 	golang.org/x/oauth2 v0.25.0
 )
 
@@ -45,8 +43,6 @@ require (
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
-	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
-	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

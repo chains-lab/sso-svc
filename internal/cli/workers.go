@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/cifra-city/sso-oauth/internal/service"
+	"github.com/recovery-flow/sso-oauth/internal/service"
 )
 
 func runServices(ctx context.Context, wg *sync.WaitGroup) {

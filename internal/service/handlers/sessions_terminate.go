@@ -5,12 +5,12 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/cifra-city/comtools/cifractx"
-	"github.com/cifra-city/comtools/httpkit"
-	"github.com/cifra-city/comtools/httpkit/problems"
-	"github.com/cifra-city/sso-oauth/internal/config"
-	"github.com/cifra-city/tokens"
 	"github.com/google/uuid"
+	"github.com/recovery-flow/comtools/cifractx"
+	"github.com/recovery-flow/comtools/httpkit"
+	"github.com/recovery-flow/comtools/httpkit/problems"
+	"github.com/recovery-flow/sso-oauth/internal/config"
+	"github.com/recovery-flow/tokens"
 )
 
 func TerminateSessions(w http.ResponseWriter, r *http.Request) {

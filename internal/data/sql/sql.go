@@ -3,8 +3,8 @@ package sql
 import (
 	"database/sql"
 
-	"github.com/cifra-city/sso-oauth/internal/data/sql/repositories"
-	"github.com/cifra-city/sso-oauth/internal/data/sql/repositories/sqlcore"
+	"github.com/recovery-flow/sso-oauth/internal/data/sql/repositories"
+	"github.com/recovery-flow/sso-oauth/internal/data/sql/repositories/sqlcore"
 )
 
 type Repo struct {

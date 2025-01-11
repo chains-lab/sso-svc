@@ -6,14 +6,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cifra-city/comtools/cifractx"
-	"github.com/cifra-city/comtools/httpkit"
-	"github.com/cifra-city/comtools/httpkit/problems"
-	"github.com/cifra-city/sso-oauth/internal/config"
-	"github.com/cifra-city/sso-oauth/resources"
-	"github.com/cifra-city/tokens"
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
+	"github.com/recovery-flow/comtools/cifractx"
+	"github.com/recovery-flow/comtools/httpkit"
+	"github.com/recovery-flow/comtools/httpkit/problems"
+	"github.com/recovery-flow/sso-oauth/internal/config"
+	"github.com/recovery-flow/sso-oauth/resources"
+	"github.com/recovery-flow/tokens"
 	"github.com/sirupsen/logrus"
 )
 

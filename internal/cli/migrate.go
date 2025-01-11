@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os/exec"
 
-	"github.com/cifra-city/comtools/cifractx"
-	"github.com/cifra-city/sso-oauth/internal/config"
+	"github.com/recovery-flow/comtools/cifractx"
+	"github.com/recovery-flow/sso-oauth/internal/config"
 	"github.com/sirupsen/logrus"
 )
 

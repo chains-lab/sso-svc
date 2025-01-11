@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/cifra-city/comtools/cifractx"
-	"github.com/cifra-city/comtools/httpkit"
-	"github.com/cifra-city/sso-oauth/internal/config"
-	"github.com/cifra-city/sso-oauth/internal/service/handlers"
 	"github.com/go-chi/chi"
+	"github.com/recovery-flow/comtools/cifractx"
+	"github.com/recovery-flow/comtools/httpkit"
+	"github.com/recovery-flow/sso-oauth/internal/config"
+	"github.com/recovery-flow/sso-oauth/internal/service/handlers"
 	"github.com/sirupsen/logrus"
 )
 
@@ -23,7 +23,7 @@ func Run(ctx context.Context) {
 	r.Use(cifractx.MiddlewareWithContext(config.SERVER, service))
 	authMW := service.TokenManager.AuthMdl(service.Config.JWT.AccessToken.SecretKey)
 	rateLimiter := httpkit.NewRateLimiter(15, 10*time.Second, 5*time.Minute)
-	r.Route("/cifra-sso", func(r chi.Router) {
+	r.Route("/re-flow", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Use(rateLimiter.Middleware)
 			r.Route("/public", func(r chi.Router) {

@@ -9,7 +9,7 @@ oauth:
   google:
     client_id: "client_id"
     client_secret: "megasupersecret"
-    redirect_url: "http://localhost:8001/cifra-sso/v1/public/oauth/google/callback"
+    redirect_url: "http://localhost:8001/re-flow/v1/public/oauth/google/callback"
 
 jwt:
   access_token:

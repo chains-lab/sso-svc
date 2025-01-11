@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/cifra-city/sso-oauth/internal/cli"
+	"github.com/recovery-flow/sso-oauth/internal/cli"
 )
 
 func main() {
