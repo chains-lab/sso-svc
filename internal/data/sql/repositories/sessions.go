@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"database/sql"
+	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -115,6 +117,16 @@ func (s *sessions) TerminateSessions(
 	}
 
 	return tx.Commit()
+}
+
+func HandleTransactionRollback(tx *sql.Tx, originalErr error) error {
+	if originalErr != nil {
+		rbErr := tx.Rollback()
+		if rbErr != nil {
+			return fmt.Errorf("transaction error: %v, rollback error: %v", originalErr, rbErr)
+		}
+	}
+	return originalErr
 }
 
 func (s *sessions) DeleteAll(r *http.Request, id uuid.UUID) error {

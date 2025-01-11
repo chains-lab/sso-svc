@@ -27,7 +27,6 @@ func Run(ctx context.Context) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Use(rateLimiter.Middleware)
 			r.Route("/public", func(r chi.Router) {
-				r.Post("/approve-operation", handlers.ApproveOperation)
 				r.Post("/refresh", handlers.Refresh)
 
 				r.Route("/oauth", func(r chi.Router) {

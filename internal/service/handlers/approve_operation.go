@@ -1,17 +1,5 @@
 package handlers
 
-import (
-	"errors"
-	"net/http"
-
-	"github.com/recovery-flow/comtools/cifractx"
-	"github.com/recovery-flow/comtools/httpkit"
-	"github.com/recovery-flow/comtools/httpkit/problems"
-	"github.com/recovery-flow/sso-oauth/internal/config"
-	"github.com/recovery-flow/sso-oauth/internal/service/requests"
-	"github.com/sirupsen/logrus"
-)
-
 type OperationType string
 
 const (
