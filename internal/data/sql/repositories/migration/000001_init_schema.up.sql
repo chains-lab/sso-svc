@@ -6,19 +6,6 @@ CREATE TYPE role_type AS ENUM (
     'verify_user'
 );
 
-CREATE TYPE failure_reason AS ENUM (
-    'invalid_password',
-    'account_locked',
-    'expired_token',
-    'invalid_device_id',
-    'invalid_refresh_token',
-    'invalid_device_factory_id',
-    'invalid_user_id',
-    'too_many_attempts',
-    'no_access',
-    'success'
-);
-
 CREATE TABLE accounts (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     email TEXT NOT NULL UNIQUE,
