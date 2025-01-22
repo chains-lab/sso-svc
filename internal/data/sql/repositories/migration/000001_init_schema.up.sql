@@ -1,9 +1,10 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TYPE role_type AS ENUM (
-    'admin',
+    'user_admin',
+    'user_gov',
+    'user_verify',
     'user',
-    'verify_user'
 );
 
 CREATE TYPE failure_reason AS ENUM (

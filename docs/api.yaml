@@ -27,3 +27,5 @@ components:
       $ref: './spec/components/schemas/UserSession.yaml'
     Session:
       $ref: './spec/components/schemas/Session.yaml'
+    RegSimple:
+      $ref: './spec/components/schemas/RegSimple.yaml'

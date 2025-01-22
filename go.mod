@@ -10,8 +10,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
 	github.com/pkg/errors v0.9.1
-	github.com/recovery-flow/comtools v0.0.41
-	github.com/recovery-flow/tokens v0.1.2
+	github.com/recovery-flow/comtools v0.0.53
+	github.com/recovery-flow/tokens v0.2.12
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.19.0
 	github.com/streadway/amqp v1.1.0

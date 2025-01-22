@@ -83,6 +83,13 @@ components:
       - last_used
       - user_id
       type: object
+    RegSimple:
+      properties:
+        data:
+          $ref: '#/components/schemas/RegSimple_data'
+      required:
+      - data
+      type: object
     UserSessionCollection:
       properties:
         data:
@@ -228,5 +235,26 @@ components:
       required:
       - attributes
       - id
+      - type
+      type: object
+    RegSimple_data_attributes:
+      properties:
+        email:
+          description: User email
+          format: email
+          type: string
+      required:
+      - email
+      type: object
+    RegSimple_data:
+      properties:
+        type:
+          enum:
+          - reg_simple
+          type: string
+        attributes:
+          $ref: '#/components/schemas/RegSimple_data_attributes'
+      required:
+      - attributes
       - type
       type: object

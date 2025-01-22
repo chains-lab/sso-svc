@@ -55,10 +55,10 @@ github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINE
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 h1:Jamvg5psRIccs7FGNTlIRMkT8wgtp5eCXdBlqhYGL6U=
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/recovery-flow/comtools v0.0.41 h1:t1dDUbdmSQYp6JPRkRSEN3cwXesqhVLnH+R7p8j4/Vo=
-github.com/recovery-flow/comtools v0.0.41/go.mod h1:D6bETGGIlML4oHMvL40qkFYB6hmyn0Zc1b/i9cw5CMc=
-github.com/recovery-flow/tokens v0.1.2 h1:C5ONgW2hTgjhrMsDaD/RiUaK8Iu6xiiLpE/sG8cEuNg=
-github.com/recovery-flow/tokens v0.1.2/go.mod h1:UNGi44scHOt0bUSltUJAk7LOZPI3OTidBQb+RbrUooY=
+github.com/recovery-flow/comtools v0.0.53 h1:k/8gV9sOu78E5UAMmcJ9m83wUXFA3OSFP/d9F+j6hXU=
+github.com/recovery-flow/comtools v0.0.53/go.mod h1:D6bETGGIlML4oHMvL40qkFYB6hmyn0Zc1b/i9cw5CMc=
+github.com/recovery-flow/tokens v0.2.12 h1:5RWwjJsx6auK/Dn8hqtjf6O2xRyJDehZcECURJOhLRw=
+github.com/recovery-flow/tokens v0.2.12/go.mod h1:yTomIzwOFyaefn2ZD2JiDSEX+sElBLJ6NOwp8K9YVYg=
 github.com/redis/go-redis/v9 v9.7.0 h1:HhLSs+B6O021gwzl+locl0zEDnyNkxMtf/Z3NNBMa9E=
 github.com/redis/go-redis/v9 v9.7.0/go.mod h1:f6zhXITC7JUJIlPEiBOTXxJgPLdZcA93GewI7inzyWw=
 github.com/rogpeppe/go-internal v1.9.0 h1:73kH8U+JUqXU8lRuOHeVHaa/SZPifC7BkcraZVejAe8=

@@ -1,0 +1,22 @@
+type: object
+required:
+  - data
+properties:
+  data:
+    type: object
+    required:
+      - type
+      - attributes
+    properties:
+      type:
+        type: string
+        enum: [ reg_simple ]
+      attributes:
+        type: object
+        required:
+         - email
+        properties:
+          email:
+            type: string
+            format: email
+            description: "User email"

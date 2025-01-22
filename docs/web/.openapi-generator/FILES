@@ -12,6 +12,9 @@ docs/DefaultAPI.md
 docs/RefreshToken.md
 docs/RefreshTokenData.md
 docs/RefreshTokenDataAttributes.md
+docs/RegSimple.md
+docs/RegSimpleData.md
+docs/RegSimpleDataAttributes.md
 docs/Session.md
 docs/TokensPair.md
 docs/TokensPairData.md
@@ -32,6 +35,9 @@ model_approve_operation_data_attributes.go
 model_refresh_token.go
 model_refresh_token_data.go
 model_refresh_token_data_attributes.go
+model_reg_simple.go
+model_reg_simple_data.go
+model_reg_simple_data_attributes.go
 model_session.go
 model_tokens_pair.go
 model_tokens_pair_data.go

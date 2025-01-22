@@ -28,6 +28,7 @@ func Run(ctx context.Context) {
 			r.Use(rateLimiter.Middleware)
 			r.Route("/public", func(r chi.Router) {
 				r.Post("/refresh", handlers.Refresh)
+				r.Post("/login", handlers.LogSimple)
 
 				r.Route("/oauth", func(r chi.Router) {
 					r.Route("/google", func(r chi.Router) {
