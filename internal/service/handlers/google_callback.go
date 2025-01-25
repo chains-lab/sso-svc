@@ -63,7 +63,7 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	account, err := Server.SqlDB.Accounts.GetByEmail(r, userInfo.Email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			account, err = Server.SqlDB.Accounts.Create(r, userInfo.Email)
+			account, err = Server.SqlDB.Accounts.Create(r, userInfo.Email, "user")
 			if err != nil {
 				log.Errorf("error creating user: %v", err)
 				httpkit.RenderErr(w, problems.InternalError())
@@ -73,6 +73,7 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 				Event:     "AccountCreate",
 				UserID:    account.ID.String(),
 				Email:     userInfo.Email,
+				Role:      "user",
 				Timestamp: time.Now().UTC(),
 			}
 

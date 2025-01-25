@@ -8,7 +8,7 @@ import (
 )
 
 type Accounts interface {
-	Create(r *http.Request, email string) (sqlcore.Account, error)
+	Create(r *http.Request, email string, role sqlcore.RoleType) (sqlcore.Account, error)
 
 	GetById(r *http.Request, id uuid.UUID) (sqlcore.Account, error)
 	GetByEmail(r *http.Request, email string) (sqlcore.Account, error)
@@ -22,8 +22,11 @@ func NewAccount(queries *sqlcore.Queries) Accounts {
 	return &accounts{queries: queries}
 }
 
-func (a *accounts) Create(r *http.Request, email string) (sqlcore.Account, error) {
-	return a.queries.CreateAccount(r.Context(), email)
+func (a *accounts) Create(r *http.Request, email string, role sqlcore.RoleType) (sqlcore.Account, error) {
+	return a.queries.CreateAccount(r.Context(), sqlcore.CreateAccountParams{
+		Email: email,
+		Role:  role,
+	})
 }
 
 func (a *accounts) GetById(r *http.Request, id uuid.UUID) (sqlcore.Account, error) {

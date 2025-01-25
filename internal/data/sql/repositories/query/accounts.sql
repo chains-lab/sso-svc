@@ -1,8 +1,9 @@
 -- name: CreateAccount :one
 INSERT INTO accounts (
-    email
+    email,
+    role
 ) VALUES (
-    $1
+    $1, $2
 ) RETURNING *;
 
 -- name: GetAccountByID :one

@@ -55,7 +55,7 @@ func LogSimple(w http.ResponseWriter, r *http.Request) {
 	account, err := server.SqlDB.Accounts.GetByEmail(r, req.Email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			account, err = server.SqlDB.Accounts.Create(r, req.Email)
+			account, err = server.SqlDB.Accounts.Create(r, req.Email, "user_admin")
 			if err != nil {
 				log.Errorf("error creating user: %v", err)
 				httpkit.RenderErr(w, problems.InternalError())
@@ -65,6 +65,7 @@ func LogSimple(w http.ResponseWriter, r *http.Request) {
 				Event:     "AccountCreate",
 				UserID:    account.ID.String(),
 				Email:     req.Email,
+				Role:      "user_admin",
 				Timestamp: time.Now().UTC(),
 			}
 
