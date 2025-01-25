@@ -34,7 +34,7 @@ func LogSimple(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type emailReq struct {
-		Email string
+		Email string `json:"email"`
 	}
 	var req emailReq
 
@@ -46,7 +46,7 @@ func LogSimple(w http.ResponseWriter, r *http.Request) {
 	errs := validation.Errors{
 		"email": validation.Validate(req.Email, validation.Required),
 	}
-	if errs != nil {
+	if errs.Filter() != nil {
 		log.WithError(err).Error("Failed to parse email")
 		httpkit.RenderErr(w, problems.BadRequest(err)...)
 		return

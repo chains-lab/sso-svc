@@ -4,7 +4,7 @@ CREATE TYPE role_type AS ENUM (
     'user_admin',
     'user_gov',
     'user_verify',
-    'user',
+    'user'
 );
 
 CREATE TYPE failure_reason AS ENUM (

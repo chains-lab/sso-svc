@@ -1,6 +1,6 @@
 version: "2"
 sql:
-  - schema: internal/data/sql/repositories/migration
+  - schema: internal/data/sql/repositories/migrations
     queries: internal/data/sql/repositories/query
     engine: postgresql
     gen:

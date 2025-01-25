@@ -20,7 +20,7 @@ migrate-up:
 	KV_VIPER_FILE=$(CONFIG_FILE) ./main migrate up
 
 migrate-down:
-	migrate -path internal/data/migration -database $(DB_URL) -verbose down
+	migrate -path internal/data/sql/repositories/migrations -database $(DB_URL) -verbose down
 
 run-server:
 	KV_VIPER_FILE=$(CONFIG_FILE) go build -o main main.go

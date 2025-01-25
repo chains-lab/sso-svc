@@ -96,6 +96,8 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//TODO send request to user-storage for checking user ban status
+
 	tokenAccess, err := Server.TokenManager.GenerateJWT(user.ID, sessionID, string(user.Role), Server.Config.JWT.AccessToken.TokenLifetime, Server.Config.JWT.AccessToken.SecretKey)
 	if err != nil {
 		Server.Logger.Errorf("Error generating access token: %v", err)

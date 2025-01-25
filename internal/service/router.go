@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/recovery-flow/comtools/cifractx"
@@ -22,13 +21,10 @@ func Run(ctx context.Context) {
 
 	r.Use(cifractx.MiddlewareWithContext(config.SERVER, service))
 	authMW := service.TokenManager.AuthMdl(service.Config.JWT.AccessToken.SecretKey)
-	rateLimiter := httpkit.NewRateLimiter(15, 10*time.Second, 5*time.Minute)
 	r.Route("/re-flow", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
-			r.Use(rateLimiter.Middleware)
 			r.Route("/public", func(r chi.Router) {
 				r.Post("/refresh", handlers.Refresh)
-				r.Post("/login", handlers.LogSimple)
 
 				r.Route("/oauth", func(r chi.Router) {
 					r.Route("/google", func(r chi.Router) {
@@ -52,6 +48,8 @@ func Run(ctx context.Context) {
 					r.Post("/logout", handlers.Logout)
 				})
 			})
+
+			r.Post("/test/login", handlers.LogSimple)
 		})
 	})
 
