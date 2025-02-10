@@ -10,13 +10,13 @@ properties:
     properties:
       type:
         type: string
-        enum: [ reg_simple ]
+        enum: [ users_session_collection ]
       attributes:
         type: object
         required:
-         - email
+          - sessions
         properties:
-          email:
-            type: string
-            format: email
-            description: "User email"
+          sessions:
+            type: array
+            items:
+              $ref: './SessionData.yaml'

@@ -17,7 +17,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func DeleteSession(w http.ResponseWriter, r *http.Request) {
+func SessionDelete(w http.ResponseWriter, r *http.Request) {
 	Server, err := cifractx.GetValue[*config.Server](r.Context(), config.SERVER)
 	if err != nil {
 		logrus.Errorf("Failed to retrieve service configuration %s", err)

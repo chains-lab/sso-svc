@@ -15,11 +15,10 @@ import (
 	"github.com/recovery-flow/comtools/jsonkit"
 	"github.com/recovery-flow/roles"
 	"github.com/recovery-flow/sso-oauth/internal/config"
-	"github.com/recovery-flow/sso-oauth/internal/data/sql/repositories/sqlcore"
 	"github.com/recovery-flow/sso-oauth/internal/sectools"
 	"github.com/recovery-flow/sso-oauth/internal/service/events"
+	"github.com/recovery-flow/sso-oauth/internal/service/responses"
 	"github.com/recovery-flow/sso-oauth/internal/service/utils"
-	"github.com/recovery-flow/sso-oauth/resources"
 )
 
 func LogSimple(w http.ResponseWriter, r *http.Request) {
@@ -65,25 +64,8 @@ func LogSimple(w http.ResponseWriter, r *http.Request) {
 				httpkit.RenderErr(w, problems.InternalError())
 				return
 			}
-			var roleBd sqlcore.RoleType
-			switch role {
-			case roles.RoleUserAdmin:
-				roleBd = sqlcore.RoleTypeUserAdmin
-			case roles.RoleUserSimple:
-				roleBd = sqlcore.RoleTypeUser
-			case roles.RoleUserGov:
-				roleBd = sqlcore.RoleTypeUserGov
-			case roles.RoleUserVerify:
-				roleBd = sqlcore.RoleTypeUserVerify
-			default:
-				log.Errorf("error getting role: %v", err)
-				httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
-					"role": validation.NewError("role", "invalid role"),
-				})...)
-				return
-			}
 
-			account, err = server.SqlDB.Accounts.Create(r, req.Email, roleBd)
+			account, err = server.SqlDB.Accounts.Create(r, req.Email, role)
 			if err != nil {
 				log.Errorf("error creating user: %v", err)
 				httpkit.RenderErr(w, problems.InternalError())
@@ -144,13 +126,5 @@ func LogSimple(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpkit.Render(w, resources.TokensPair{
-		Data: resources.TokensPairData{
-			Type: resources.TokensPairType,
-			Attributes: resources.TokensPairDataAttributes{
-				AccessToken:  tokenAccess,
-				RefreshToken: tokenRefresh,
-			},
-		},
-	})
+	httpkit.Render(w, responses.TokensPair(tokenAccess, tokenRefresh))
 }

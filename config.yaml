@@ -22,9 +22,9 @@ jwt:
 
 rabbit:
   url: "amqp://localhost:5672/"
-  user: "cifra-app"
+  user: "re-news-app"
   password: "Test@1234"
-  exchange: "cifra.sso"
+  exchange: "re-news.sso"
 
 logging:
   level: "debug"                 # Levels: "debug", "info", "warn", "error".

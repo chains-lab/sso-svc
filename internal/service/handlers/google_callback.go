@@ -14,8 +14,8 @@ import (
 	"github.com/recovery-flow/sso-oauth/internal/config"
 	"github.com/recovery-flow/sso-oauth/internal/sectools"
 	"github.com/recovery-flow/sso-oauth/internal/service/events"
+	"github.com/recovery-flow/sso-oauth/internal/service/responses"
 	"github.com/recovery-flow/sso-oauth/internal/service/utils"
-	"github.com/recovery-flow/sso-oauth/resources"
 )
 
 func GoogleCallback(w http.ResponseWriter, r *http.Request) {
@@ -123,13 +123,5 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpkit.Render(w, resources.TokensPair{
-		Data: resources.TokensPairData{
-			Type: resources.TokensPairType,
-			Attributes: resources.TokensPairDataAttributes{
-				AccessToken:  tokenAccess,
-				RefreshToken: tokenRefresh,
-			},
-		},
-	})
+	httpkit.Render(w, responses.TokensPair(tokenAccess, tokenRefresh))
 }

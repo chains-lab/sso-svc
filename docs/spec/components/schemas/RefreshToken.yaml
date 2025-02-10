@@ -10,7 +10,7 @@ properties:
     properties:
       type:
         type: string
-        enum: [ refresh ]
+        enum: [ refresh_token ]
       attributes:
         type: object
         required:

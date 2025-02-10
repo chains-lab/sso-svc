@@ -1,16 +1,9 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE TYPE role_type AS ENUM (
-    'user_admin',
-    'user_gov',
-    'user_verify',
-    'user'
-);
-
 CREATE TABLE accounts (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     email TEXT NOT NULL UNIQUE,
-    role role_type DEFAULT 'user' NOT NULL,
+    role VARCHAR(255) DEFAULT 'user' NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     updated_at TIMESTAMP NOT NULL DEFAULT now()
 );
@@ -20,8 +13,7 @@ CREATE TABLE sessions (
     user_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
     token TEXT NOT NULL,
     client TEXT NOT NULL,
-    IP_first TEXT NOT NULL,
-    IP_last TEXT NOT NULL,
+    IP TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     last_used TIMESTAMP NOT NULL DEFAULT now()
 );

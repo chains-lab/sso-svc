@@ -4,14 +4,16 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/recovery-flow/roles"
 	"github.com/recovery-flow/sso-oauth/internal/data/sql/repositories/sqlcore"
 )
 
 type Accounts interface {
-	Create(r *http.Request, email string, role sqlcore.RoleType) (sqlcore.Account, error)
+	Create(r *http.Request, email string, role roles.UserRole) (sqlcore.Account, error)
 
 	GetById(r *http.Request, id uuid.UUID) (sqlcore.Account, error)
 	GetByEmail(r *http.Request, email string) (sqlcore.Account, error)
+	UpdateRole(r *http.Request, id uuid.UUID, role roles.UserRole) (sqlcore.Account, error)
 }
 
 type accounts struct {
@@ -22,10 +24,10 @@ func NewAccount(queries *sqlcore.Queries) Accounts {
 	return &accounts{queries: queries}
 }
 
-func (a *accounts) Create(r *http.Request, email string, role sqlcore.RoleType) (sqlcore.Account, error) {
+func (a *accounts) Create(r *http.Request, email string, role roles.UserRole) (sqlcore.Account, error) {
 	return a.queries.CreateAccount(r.Context(), sqlcore.CreateAccountParams{
 		Email: email,
-		Role:  role,
+		Role:  string(role),
 	})
 }
 
@@ -35,4 +37,11 @@ func (a *accounts) GetById(r *http.Request, id uuid.UUID) (sqlcore.Account, erro
 
 func (a *accounts) GetByEmail(r *http.Request, email string) (sqlcore.Account, error) {
 	return a.queries.GetAccountByEmail(r.Context(), email)
+}
+
+func (a *accounts) UpdateRole(r *http.Request, id uuid.UUID, role roles.UserRole) (sqlcore.Account, error) {
+	return a.queries.UpdateAccountRole(r.Context(), sqlcore.UpdateAccountRoleParams{
+		ID:   id,
+		Role: string(role),
+	})
 }

@@ -59,6 +59,8 @@ github.com/recovery-flow/comtools v0.0.53 h1:k/8gV9sOu78E5UAMmcJ9m83wUXFA3OSFP/d
 github.com/recovery-flow/comtools v0.0.53/go.mod h1:D6bETGGIlML4oHMvL40qkFYB6hmyn0Zc1b/i9cw5CMc=
 github.com/recovery-flow/roles v0.0.1 h1:MsopL/4FPKNDpkVjeIe/DcsMxZsQSenVbwxiEjdjuTg=
 github.com/recovery-flow/roles v0.0.1/go.mod h1:ubYw4AF6+txcT4hDJxvSREOqYER1LibwGcOABjkeSyk=
+github.com/recovery-flow/roles v0.0.2 h1:U8S4WBhOFGK0fcO4SM3L2CF+ExFd/oYmCiDcVSskAEQ=
+github.com/recovery-flow/roles v0.0.2/go.mod h1:ubYw4AF6+txcT4hDJxvSREOqYER1LibwGcOABjkeSyk=
 github.com/recovery-flow/tokens v0.2.2 h1:PVyWMZ8AHP4pXYgZVfAyXoOTTfFtPdK+KFKTHuT9twA=
 github.com/recovery-flow/tokens v0.2.2/go.mod h1:AAMEtBpFCQWuNg58ijlAGWVjUbhX8JAgTphp9y9Pj2M=
 github.com/recovery-flow/tokens v0.2.12 h1:5RWwjJsx6auK/Dn8hqtjf6O2xRyJDehZcECURJOhLRw=

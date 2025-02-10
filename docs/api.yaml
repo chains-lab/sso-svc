@@ -22,10 +22,10 @@ components:
     RefreshToken:
       $ref: './spec/components/schemas/RefreshToken.yaml'
     UserSessions:
-      $ref: './spec/components/schemas/UserSessionCollection.yaml'
+      $ref: './spec/components/schemas/SessionsCollection.yaml'
     UserSession:
-      $ref: './spec/components/schemas/UserSession.yaml'
-    Session:
       $ref: './spec/components/schemas/Session.yaml'
+    Session:
+      $ref: './spec/components/schemas/SessionAttributes.yaml'
     RegSimple:
       $ref: './spec/components/schemas/RegSimple.yaml'

@@ -35,17 +35,34 @@ func Run(ctx context.Context) {
 			})
 
 			r.Route("/private", func(r chi.Router) {
+				r.Use(authMW)
 				r.Route("/user", func(r chi.Router) {
-					r.Use(authMW)
 					r.Route("/sessions", func(r chi.Router) {
 						r.Route("/{session_id}", func(r chi.Router) {
-							r.Get("/", handlers.GetSessions)
-							r.Delete("/", handlers.DeleteSession)
+							r.Get("/", handlers.GetSession)
+							r.Delete("/", handlers.SessionDelete)
 						})
-						r.Get("/", handlers.GetSessions)
-						r.Delete("/terminate", handlers.TerminateSessions)
+
+						r.Get("/", handlers.SessionsGet)
+						r.Delete("/terminate", handlers.SessionsTerminate)
 					})
 					r.Post("/logout", handlers.Logout)
+				})
+
+				r.Route("/admin", func(r chi.Router) {
+					r.Route("/{user_id}", func(r chi.Router) {
+						r.Route("/sessions", func(r chi.Router) {
+							r.Route("/{session_id}", func(r chi.Router) {
+								r.Get("/", handlers.AdminSessionGet)
+								r.Delete("/", handlers.AdminSessionDelete)
+							})
+
+							r.Get("/", handlers.AdminSessionsGet)
+							r.Delete("/terminate", handlers.AdminSessionsTerminate)
+						})
+
+						r.Patch("/role/{role}", handlers.AdminRoleUpdate)
+					})
 				})
 			})
 

@@ -22,7 +22,7 @@ INSERT INTO accounts (
 
 type CreateAccountParams struct {
 	Email string
-	Role  RoleType
+	Role  string
 }
 
 func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error) {
@@ -63,6 +63,30 @@ WHERE id = $1 LIMIT 1
 
 func (q *Queries) GetAccountByID(ctx context.Context, id uuid.UUID) (Account, error) {
 	row := q.db.QueryRowContext(ctx, getAccountByID, id)
+	var i Account
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateAccountRole = `-- name: UpdateAccountRole :one
+UPDATE accounts SET
+    role = $2
+WHERE id = $1 RETURNING id, email, role, created_at, updated_at
+`
+
+type UpdateAccountRoleParams struct {
+	ID   uuid.UUID
+	Role string
+}
+
+func (q *Queries) UpdateAccountRole(ctx context.Context, arg UpdateAccountRoleParams) (Account, error) {
+	row := q.db.QueryRowContext(ctx, updateAccountRole, arg.ID, arg.Role)
 	var i Account
 	err := row.Scan(
 		&i.ID,
