@@ -1,9 +1,10 @@
 package resources
 
 const (
-	ApproveOperationType = "approve_operation"
-	RefreshType          = "refresh"
-	TokensPairType       = "tokens_pair"
-	UserSessionsType     = "user_sessions"
-	UserSessionType      = "user_session"
+	RefreshType      = "refresh"
+	TokensPairType   = "tokens_pair"
+	AccessTokenType  = "access_token"
+	RefreshTokenType = "refresh_token"
+	UserSessionsType = "user_sessions"
+	UserSessionType  = "user_session"
 )

@@ -1,6 +1,10 @@
 DB_URL=postgresql://postgres:postgres@localhost:5555/postgres?sslmode=disable
-OPENAPI_GENERATOR := java -jar ./openapi-generator-cli.jar
+OPENAPI_GENERATOR := java -jar ~/openapi-generator-cli.jar
 CONFIG_FILE := ./config_local.yaml
+API_SRC := ./docs/api.yaml
+API_BUNDLED := ./docs/api-bundled.yaml
+OUTPUT_DIR := ./docs/web
+RESOURCES_DIR := ./resources
 
 generate-models:
 	find $(RESOURCES_DIR) -type f ! \( -name "resources_types.go" -o -name "links.go" \) -delete

@@ -12,7 +12,6 @@ package resources
 
 import (
 	"encoding/json"
-	"time"
 	"bytes"
 	"fmt"
 )
@@ -22,18 +21,7 @@ var _ MappedNullable = &Session{}
 
 // Session struct for Session
 type Session struct {
-	// session id
-	Id string `json:"id"`
-	// client name and version
-	Client string `json:"client"`
-	// IP address
-	IpFirst string `json:"Ip_first"`
-	// IP address
-	IpLast string `json:"Ip_last"`
-	// last used date
-	LastUsed time.Time `json:"last_used"`
-	// session creation date
-	CreatedAt time.Time `json:"created_at"`
+	Data SessionData `json:"data"`
 }
 
 type _Session Session
@@ -42,14 +30,9 @@ type _Session Session
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewSession(id string, client string, ipFirst string, ipLast string, lastUsed time.Time, createdAt time.Time) *Session {
+func NewSession(data SessionData) *Session {
 	this := Session{}
-	this.Id = id
-	this.Client = client
-	this.IpFirst = ipFirst
-	this.IpLast = ipLast
-	this.LastUsed = lastUsed
-	this.CreatedAt = createdAt
+	this.Data = data
 	return &this
 }
 
@@ -61,148 +44,28 @@ func NewSessionWithDefaults() *Session {
 	return &this
 }
 
-// GetId returns the Id field value
-func (o *Session) GetId() string {
+// GetData returns the Data field value
+func (o *Session) GetData() SessionData {
 	if o == nil {
-		var ret string
+		var ret SessionData
 		return ret
 	}
 
-	return o.Id
+	return o.Data
 }
 
-// GetIdOk returns a tuple with the Id field value
+// GetDataOk returns a tuple with the Data field value
 // and a boolean to check if the value has been set.
-func (o *Session) GetIdOk() (*string, bool) {
+func (o *Session) GetDataOk() (*SessionData, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Id, true
+	return &o.Data, true
 }
 
-// SetId sets field value
-func (o *Session) SetId(v string) {
-	o.Id = v
-}
-
-// GetClient returns the Client field value
-func (o *Session) GetClient() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Client
-}
-
-// GetClientOk returns a tuple with the Client field value
-// and a boolean to check if the value has been set.
-func (o *Session) GetClientOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Client, true
-}
-
-// SetClient sets field value
-func (o *Session) SetClient(v string) {
-	o.Client = v
-}
-
-// GetIpFirst returns the IpFirst field value
-func (o *Session) GetIpFirst() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.IpFirst
-}
-
-// GetIpFirstOk returns a tuple with the IpFirst field value
-// and a boolean to check if the value has been set.
-func (o *Session) GetIpFirstOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.IpFirst, true
-}
-
-// SetIpFirst sets field value
-func (o *Session) SetIpFirst(v string) {
-	o.IpFirst = v
-}
-
-// GetIpLast returns the IpLast field value
-func (o *Session) GetIpLast() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.IpLast
-}
-
-// GetIpLastOk returns a tuple with the IpLast field value
-// and a boolean to check if the value has been set.
-func (o *Session) GetIpLastOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.IpLast, true
-}
-
-// SetIpLast sets field value
-func (o *Session) SetIpLast(v string) {
-	o.IpLast = v
-}
-
-// GetLastUsed returns the LastUsed field value
-func (o *Session) GetLastUsed() time.Time {
-	if o == nil {
-		var ret time.Time
-		return ret
-	}
-
-	return o.LastUsed
-}
-
-// GetLastUsedOk returns a tuple with the LastUsed field value
-// and a boolean to check if the value has been set.
-func (o *Session) GetLastUsedOk() (*time.Time, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.LastUsed, true
-}
-
-// SetLastUsed sets field value
-func (o *Session) SetLastUsed(v time.Time) {
-	o.LastUsed = v
-}
-
-// GetCreatedAt returns the CreatedAt field value
-func (o *Session) GetCreatedAt() time.Time {
-	if o == nil {
-		var ret time.Time
-		return ret
-	}
-
-	return o.CreatedAt
-}
-
-// GetCreatedAtOk returns a tuple with the CreatedAt field value
-// and a boolean to check if the value has been set.
-func (o *Session) GetCreatedAtOk() (*time.Time, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.CreatedAt, true
-}
-
-// SetCreatedAt sets field value
-func (o *Session) SetCreatedAt(v time.Time) {
-	o.CreatedAt = v
+// SetData sets field value
+func (o *Session) SetData(v SessionData) {
+	o.Data = v
 }
 
 func (o Session) MarshalJSON() ([]byte, error) {
@@ -215,12 +78,7 @@ func (o Session) MarshalJSON() ([]byte, error) {
 
 func (o Session) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["id"] = o.Id
-	toSerialize["client"] = o.Client
-	toSerialize["Ip_first"] = o.IpFirst
-	toSerialize["Ip_last"] = o.IpLast
-	toSerialize["last_used"] = o.LastUsed
-	toSerialize["created_at"] = o.CreatedAt
+	toSerialize["data"] = o.Data
 	return toSerialize, nil
 }
 
@@ -229,12 +87,7 @@ func (o *Session) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"id",
-		"client",
-		"Ip_first",
-		"Ip_last",
-		"last_used",
-		"created_at",
+		"data",
 	}
 
 	allProperties := make(map[string]interface{})

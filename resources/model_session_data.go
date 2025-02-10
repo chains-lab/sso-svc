@@ -16,41 +16,41 @@ import (
 	"fmt"
 )
 
-// checks if the UserSessionData type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &UserSessionData{}
+// checks if the SessionData type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &SessionData{}
 
-// UserSessionData struct for UserSessionData
-type UserSessionData struct {
+// SessionData struct for SessionData
+type SessionData struct {
 	// session id
 	Id string `json:"id"`
 	Type string `json:"type"`
-	Attributes UserSessionDataAttributes `json:"attributes"`
+	Attributes SessionAttributes `json:"attributes"`
 }
 
-type _UserSessionData UserSessionData
+type _SessionData SessionData
 
-// NewUserSessionData instantiates a new UserSessionData object
+// NewSessionData instantiates a new SessionData object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewUserSessionData(id string, type_ string, attributes UserSessionDataAttributes) *UserSessionData {
-	this := UserSessionData{}
+func NewSessionData(id string, type_ string, attributes SessionAttributes) *SessionData {
+	this := SessionData{}
 	this.Id = id
 	this.Type = type_
 	this.Attributes = attributes
 	return &this
 }
 
-// NewUserSessionDataWithDefaults instantiates a new UserSessionData object
+// NewSessionDataWithDefaults instantiates a new SessionData object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewUserSessionDataWithDefaults() *UserSessionData {
-	this := UserSessionData{}
+func NewSessionDataWithDefaults() *SessionData {
+	this := SessionData{}
 	return &this
 }
 
 // GetId returns the Id field value
-func (o *UserSessionData) GetId() string {
+func (o *SessionData) GetId() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -61,7 +61,7 @@ func (o *UserSessionData) GetId() string {
 
 // GetIdOk returns a tuple with the Id field value
 // and a boolean to check if the value has been set.
-func (o *UserSessionData) GetIdOk() (*string, bool) {
+func (o *SessionData) GetIdOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -69,12 +69,12 @@ func (o *UserSessionData) GetIdOk() (*string, bool) {
 }
 
 // SetId sets field value
-func (o *UserSessionData) SetId(v string) {
+func (o *SessionData) SetId(v string) {
 	o.Id = v
 }
 
 // GetType returns the Type field value
-func (o *UserSessionData) GetType() string {
+func (o *SessionData) GetType() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -85,7 +85,7 @@ func (o *UserSessionData) GetType() string {
 
 // GetTypeOk returns a tuple with the Type field value
 // and a boolean to check if the value has been set.
-func (o *UserSessionData) GetTypeOk() (*string, bool) {
+func (o *SessionData) GetTypeOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -93,14 +93,14 @@ func (o *UserSessionData) GetTypeOk() (*string, bool) {
 }
 
 // SetType sets field value
-func (o *UserSessionData) SetType(v string) {
+func (o *SessionData) SetType(v string) {
 	o.Type = v
 }
 
 // GetAttributes returns the Attributes field value
-func (o *UserSessionData) GetAttributes() UserSessionDataAttributes {
+func (o *SessionData) GetAttributes() SessionAttributes {
 	if o == nil {
-		var ret UserSessionDataAttributes
+		var ret SessionAttributes
 		return ret
 	}
 
@@ -109,7 +109,7 @@ func (o *UserSessionData) GetAttributes() UserSessionDataAttributes {
 
 // GetAttributesOk returns a tuple with the Attributes field value
 // and a boolean to check if the value has been set.
-func (o *UserSessionData) GetAttributesOk() (*UserSessionDataAttributes, bool) {
+func (o *SessionData) GetAttributesOk() (*SessionAttributes, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -117,11 +117,11 @@ func (o *UserSessionData) GetAttributesOk() (*UserSessionDataAttributes, bool) {
 }
 
 // SetAttributes sets field value
-func (o *UserSessionData) SetAttributes(v UserSessionDataAttributes) {
+func (o *SessionData) SetAttributes(v SessionAttributes) {
 	o.Attributes = v
 }
 
-func (o UserSessionData) MarshalJSON() ([]byte, error) {
+func (o SessionData) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -129,7 +129,7 @@ func (o UserSessionData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o UserSessionData) ToMap() (map[string]interface{}, error) {
+func (o SessionData) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["id"] = o.Id
 	toSerialize["type"] = o.Type
@@ -137,7 +137,7 @@ func (o UserSessionData) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-func (o *UserSessionData) UnmarshalJSON(data []byte) (err error) {
+func (o *SessionData) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
@@ -161,53 +161,53 @@ func (o *UserSessionData) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varUserSessionData := _UserSessionData{}
+	varSessionData := _SessionData{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varUserSessionData)
+	err = decoder.Decode(&varSessionData)
 
 	if err != nil {
 		return err
 	}
 
-	*o = UserSessionData(varUserSessionData)
+	*o = SessionData(varSessionData)
 
 	return err
 }
 
-type NullableUserSessionData struct {
-	value *UserSessionData
+type NullableSessionData struct {
+	value *SessionData
 	isSet bool
 }
 
-func (v NullableUserSessionData) Get() *UserSessionData {
+func (v NullableSessionData) Get() *SessionData {
 	return v.value
 }
 
-func (v *NullableUserSessionData) Set(val *UserSessionData) {
+func (v *NullableSessionData) Set(val *SessionData) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableUserSessionData) IsSet() bool {
+func (v NullableSessionData) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableUserSessionData) Unset() {
+func (v *NullableSessionData) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableUserSessionData(val *UserSessionData) *NullableUserSessionData {
-	return &NullableUserSessionData{value: val, isSet: true}
+func NewNullableSessionData(val *SessionData) *NullableSessionData {
+	return &NullableSessionData{value: val, isSet: true}
 }
 
-func (v NullableUserSessionData) MarshalJSON() ([]byte, error) {
+func (v NullableSessionData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableUserSessionData) UnmarshalJSON(src []byte) error {
+func (v *NullableSessionData) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

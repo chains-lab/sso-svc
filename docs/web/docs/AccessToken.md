@@ -1,46 +1,46 @@
-# SessionsCollection
+# AccessToken
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Data** | [**SessionsCollectionData**](SessionsCollectionData.md) |  | 
+**Data** | [**AccessTokenData**](AccessTokenData.md) |  | 
 
 ## Methods
 
-### NewSessionsCollection
+### NewAccessToken
 
-`func NewSessionsCollection(data SessionsCollectionData, ) *SessionsCollection`
+`func NewAccessToken(data AccessTokenData, ) *AccessToken`
 
-NewSessionsCollection instantiates a new SessionsCollection object
+NewAccessToken instantiates a new AccessToken object
 This constructor will assign default values to properties that have it defined,
 and makes sure properties required by API are set, but the set of arguments
 will change when the set of required properties is changed
 
-### NewSessionsCollectionWithDefaults
+### NewAccessTokenWithDefaults
 
-`func NewSessionsCollectionWithDefaults() *SessionsCollection`
+`func NewAccessTokenWithDefaults() *AccessToken`
 
-NewSessionsCollectionWithDefaults instantiates a new SessionsCollection object
+NewAccessTokenWithDefaults instantiates a new AccessToken object
 This constructor will only assign default values to properties that have it defined,
 but it doesn't guarantee that properties required by API are set
 
 ### GetData
 
-`func (o *SessionsCollection) GetData() SessionsCollectionData`
+`func (o *AccessToken) GetData() AccessTokenData`
 
 GetData returns the Data field if non-nil, zero value otherwise.
 
 ### GetDataOk
 
-`func (o *SessionsCollection) GetDataOk() (*SessionsCollectionData, bool)`
+`func (o *AccessToken) GetDataOk() (*AccessTokenData, bool)`
 
 GetDataOk returns a tuple with the Data field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetData
 
-`func (o *SessionsCollection) SetData(v SessionsCollectionData)`
+`func (o *AccessToken) SetData(v AccessTokenData)`
 
 SetData sets Data field to given value.
 

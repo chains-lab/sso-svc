@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/recovery-flow/comtools/cifractx"
 	"github.com/recovery-flow/comtools/httpkit"
+	"github.com/recovery-flow/roles"
 	"github.com/recovery-flow/sso-oauth/internal/config"
 	"github.com/recovery-flow/sso-oauth/internal/service/handlers"
 	"github.com/sirupsen/logrus"
@@ -21,6 +22,8 @@ func Run(ctx context.Context) {
 
 	r.Use(cifractx.MiddlewareWithContext(config.SERVER, service))
 	authMW := service.TokenManager.AuthMdl(service.Config.JWT.AccessToken.SecretKey)
+	adminGrant := service.TokenManager.RoleGrant(string(roles.RoleUserAdmin), string(roles.RoleUserSuperAdmin))
+
 	r.Route("/re-flow", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/public", func(r chi.Router) {
@@ -39,7 +42,7 @@ func Run(ctx context.Context) {
 				r.Route("/user", func(r chi.Router) {
 					r.Route("/sessions", func(r chi.Router) {
 						r.Route("/{session_id}", func(r chi.Router) {
-							r.Get("/", handlers.GetSession)
+							r.Get("/", handlers.SessionGet)
 							r.Delete("/", handlers.SessionDelete)
 						})
 
@@ -48,21 +51,22 @@ func Run(ctx context.Context) {
 					})
 					r.Post("/logout", handlers.Logout)
 				})
+			})
 
-				r.Route("/admin", func(r chi.Router) {
-					r.Route("/{user_id}", func(r chi.Router) {
-						r.Route("/sessions", func(r chi.Router) {
-							r.Route("/{session_id}", func(r chi.Router) {
-								r.Get("/", handlers.AdminSessionGet)
-								r.Delete("/", handlers.AdminSessionDelete)
-							})
-
-							r.Get("/", handlers.AdminSessionsGet)
-							r.Delete("/terminate", handlers.AdminSessionsTerminate)
+			r.Route("/admin", func(r chi.Router) {
+				r.Use(adminGrant)
+				r.Route("/{user_id}", func(r chi.Router) {
+					r.Route("/sessions", func(r chi.Router) {
+						r.Route("/{session_id}", func(r chi.Router) {
+							r.Get("/", handlers.AdminSessionGet)
+							r.Delete("/", handlers.AdminSessionDelete)
 						})
 
-						r.Patch("/role/{role}", handlers.AdminRoleUpdate)
+						r.Get("/", handlers.AdminSessionsGet)
+						r.Delete("/terminate", handlers.AdminSessionsTerminate)
 					})
+
+					r.Patch("/role/{role}", handlers.AdminRoleUpdate)
 				})
 			})
 

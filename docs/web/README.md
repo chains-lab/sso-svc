@@ -83,26 +83,21 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
- - [ApproveOperation](docs/ApproveOperation.md)
- - [ApproveOperationData](docs/ApproveOperationData.md)
- - [ApproveOperationDataAttributes](docs/ApproveOperationDataAttributes.md)
+ - [AccessToken](docs/AccessToken.md)
+ - [AccessTokenData](docs/AccessTokenData.md)
+ - [AccessTokenDataAttributes](docs/AccessTokenDataAttributes.md)
  - [RefreshToken](docs/RefreshToken.md)
  - [RefreshTokenData](docs/RefreshTokenData.md)
  - [RefreshTokenDataAttributes](docs/RefreshTokenDataAttributes.md)
- - [RegSimple](docs/RegSimple.md)
- - [RegSimpleData](docs/RegSimpleData.md)
- - [RegSimpleDataAttributes](docs/RegSimpleDataAttributes.md)
  - [Session](docs/Session.md)
+ - [SessionAttributes](docs/SessionAttributes.md)
+ - [SessionData](docs/SessionData.md)
+ - [SessionsCollection](docs/SessionsCollection.md)
+ - [SessionsCollectionData](docs/SessionsCollectionData.md)
+ - [SessionsCollectionDataAttributes](docs/SessionsCollectionDataAttributes.md)
  - [TokensPair](docs/TokensPair.md)
  - [TokensPairData](docs/TokensPairData.md)
  - [TokensPairDataAttributes](docs/TokensPairDataAttributes.md)
- - [UserSession](docs/UserSession.md)
- - [UserSessionCollection](docs/UserSessionCollection.md)
- - [UserSessionData](docs/UserSessionData.md)
- - [UserSessionDataAttributes](docs/UserSessionDataAttributes.md)
- - [UserSessions](docs/UserSessions.md)
- - [UserSessionsData](docs/UserSessionsData.md)
- - [UserSessionsDataAttributes](docs/UserSessionsDataAttributes.md)
 
 
 ## Documentation For Authorization

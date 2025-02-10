@@ -16,38 +16,38 @@ import (
 	"fmt"
 )
 
-// checks if the RegSimple type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &RegSimple{}
+// checks if the AccessToken type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &AccessToken{}
 
-// RegSimple struct for RegSimple
-type RegSimple struct {
-	Data RegSimpleData `json:"data"`
+// AccessToken struct for AccessToken
+type AccessToken struct {
+	Data AccessTokenData `json:"data"`
 }
 
-type _RegSimple RegSimple
+type _AccessToken AccessToken
 
-// NewRegSimple instantiates a new RegSimple object
+// NewAccessToken instantiates a new AccessToken object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewRegSimple(data RegSimpleData) *RegSimple {
-	this := RegSimple{}
+func NewAccessToken(data AccessTokenData) *AccessToken {
+	this := AccessToken{}
 	this.Data = data
 	return &this
 }
 
-// NewRegSimpleWithDefaults instantiates a new RegSimple object
+// NewAccessTokenWithDefaults instantiates a new AccessToken object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewRegSimpleWithDefaults() *RegSimple {
-	this := RegSimple{}
+func NewAccessTokenWithDefaults() *AccessToken {
+	this := AccessToken{}
 	return &this
 }
 
 // GetData returns the Data field value
-func (o *RegSimple) GetData() RegSimpleData {
+func (o *AccessToken) GetData() AccessTokenData {
 	if o == nil {
-		var ret RegSimpleData
+		var ret AccessTokenData
 		return ret
 	}
 
@@ -56,7 +56,7 @@ func (o *RegSimple) GetData() RegSimpleData {
 
 // GetDataOk returns a tuple with the Data field value
 // and a boolean to check if the value has been set.
-func (o *RegSimple) GetDataOk() (*RegSimpleData, bool) {
+func (o *AccessToken) GetDataOk() (*AccessTokenData, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -64,11 +64,11 @@ func (o *RegSimple) GetDataOk() (*RegSimpleData, bool) {
 }
 
 // SetData sets field value
-func (o *RegSimple) SetData(v RegSimpleData) {
+func (o *AccessToken) SetData(v AccessTokenData) {
 	o.Data = v
 }
 
-func (o RegSimple) MarshalJSON() ([]byte, error) {
+func (o AccessToken) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -76,13 +76,13 @@ func (o RegSimple) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o RegSimple) ToMap() (map[string]interface{}, error) {
+func (o AccessToken) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["data"] = o.Data
 	return toSerialize, nil
 }
 
-func (o *RegSimple) UnmarshalJSON(data []byte) (err error) {
+func (o *AccessToken) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
@@ -104,53 +104,53 @@ func (o *RegSimple) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varRegSimple := _RegSimple{}
+	varAccessToken := _AccessToken{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varRegSimple)
+	err = decoder.Decode(&varAccessToken)
 
 	if err != nil {
 		return err
 	}
 
-	*o = RegSimple(varRegSimple)
+	*o = AccessToken(varAccessToken)
 
 	return err
 }
 
-type NullableRegSimple struct {
-	value *RegSimple
+type NullableAccessToken struct {
+	value *AccessToken
 	isSet bool
 }
 
-func (v NullableRegSimple) Get() *RegSimple {
+func (v NullableAccessToken) Get() *AccessToken {
 	return v.value
 }
 
-func (v *NullableRegSimple) Set(val *RegSimple) {
+func (v *NullableAccessToken) Set(val *AccessToken) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableRegSimple) IsSet() bool {
+func (v NullableAccessToken) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableRegSimple) Unset() {
+func (v *NullableAccessToken) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableRegSimple(val *RegSimple) *NullableRegSimple {
-	return &NullableRegSimple{value: val, isSet: true}
+func NewNullableAccessToken(val *AccessToken) *NullableAccessToken {
+	return &NullableAccessToken{value: val, isSet: true}
 }
 
-func (v NullableRegSimple) MarshalJSON() ([]byte, error) {
+func (v NullableAccessToken) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableRegSimple) UnmarshalJSON(src []byte) error {
+func (v *NullableAccessToken) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

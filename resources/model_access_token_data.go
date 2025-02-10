@@ -16,38 +16,38 @@ import (
 	"fmt"
 )
 
-// checks if the ApproveOperationData type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &ApproveOperationData{}
+// checks if the AccessTokenData type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &AccessTokenData{}
 
-// ApproveOperationData struct for ApproveOperationData
-type ApproveOperationData struct {
+// AccessTokenData struct for AccessTokenData
+type AccessTokenData struct {
 	Type string `json:"type"`
-	Attributes ApproveOperationDataAttributes `json:"attributes"`
+	Attributes AccessTokenDataAttributes `json:"attributes"`
 }
 
-type _ApproveOperationData ApproveOperationData
+type _AccessTokenData AccessTokenData
 
-// NewApproveOperationData instantiates a new ApproveOperationData object
+// NewAccessTokenData instantiates a new AccessTokenData object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewApproveOperationData(type_ string, attributes ApproveOperationDataAttributes) *ApproveOperationData {
-	this := ApproveOperationData{}
+func NewAccessTokenData(type_ string, attributes AccessTokenDataAttributes) *AccessTokenData {
+	this := AccessTokenData{}
 	this.Type = type_
 	this.Attributes = attributes
 	return &this
 }
 
-// NewApproveOperationDataWithDefaults instantiates a new ApproveOperationData object
+// NewAccessTokenDataWithDefaults instantiates a new AccessTokenData object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewApproveOperationDataWithDefaults() *ApproveOperationData {
-	this := ApproveOperationData{}
+func NewAccessTokenDataWithDefaults() *AccessTokenData {
+	this := AccessTokenData{}
 	return &this
 }
 
 // GetType returns the Type field value
-func (o *ApproveOperationData) GetType() string {
+func (o *AccessTokenData) GetType() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -58,7 +58,7 @@ func (o *ApproveOperationData) GetType() string {
 
 // GetTypeOk returns a tuple with the Type field value
 // and a boolean to check if the value has been set.
-func (o *ApproveOperationData) GetTypeOk() (*string, bool) {
+func (o *AccessTokenData) GetTypeOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -66,14 +66,14 @@ func (o *ApproveOperationData) GetTypeOk() (*string, bool) {
 }
 
 // SetType sets field value
-func (o *ApproveOperationData) SetType(v string) {
+func (o *AccessTokenData) SetType(v string) {
 	o.Type = v
 }
 
 // GetAttributes returns the Attributes field value
-func (o *ApproveOperationData) GetAttributes() ApproveOperationDataAttributes {
+func (o *AccessTokenData) GetAttributes() AccessTokenDataAttributes {
 	if o == nil {
-		var ret ApproveOperationDataAttributes
+		var ret AccessTokenDataAttributes
 		return ret
 	}
 
@@ -82,7 +82,7 @@ func (o *ApproveOperationData) GetAttributes() ApproveOperationDataAttributes {
 
 // GetAttributesOk returns a tuple with the Attributes field value
 // and a boolean to check if the value has been set.
-func (o *ApproveOperationData) GetAttributesOk() (*ApproveOperationDataAttributes, bool) {
+func (o *AccessTokenData) GetAttributesOk() (*AccessTokenDataAttributes, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -90,11 +90,11 @@ func (o *ApproveOperationData) GetAttributesOk() (*ApproveOperationDataAttribute
 }
 
 // SetAttributes sets field value
-func (o *ApproveOperationData) SetAttributes(v ApproveOperationDataAttributes) {
+func (o *AccessTokenData) SetAttributes(v AccessTokenDataAttributes) {
 	o.Attributes = v
 }
 
-func (o ApproveOperationData) MarshalJSON() ([]byte, error) {
+func (o AccessTokenData) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -102,14 +102,14 @@ func (o ApproveOperationData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o ApproveOperationData) ToMap() (map[string]interface{}, error) {
+func (o AccessTokenData) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["type"] = o.Type
 	toSerialize["attributes"] = o.Attributes
 	return toSerialize, nil
 }
 
-func (o *ApproveOperationData) UnmarshalJSON(data []byte) (err error) {
+func (o *AccessTokenData) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
@@ -132,53 +132,53 @@ func (o *ApproveOperationData) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varApproveOperationData := _ApproveOperationData{}
+	varAccessTokenData := _AccessTokenData{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varApproveOperationData)
+	err = decoder.Decode(&varAccessTokenData)
 
 	if err != nil {
 		return err
 	}
 
-	*o = ApproveOperationData(varApproveOperationData)
+	*o = AccessTokenData(varAccessTokenData)
 
 	return err
 }
 
-type NullableApproveOperationData struct {
-	value *ApproveOperationData
+type NullableAccessTokenData struct {
+	value *AccessTokenData
 	isSet bool
 }
 
-func (v NullableApproveOperationData) Get() *ApproveOperationData {
+func (v NullableAccessTokenData) Get() *AccessTokenData {
 	return v.value
 }
 
-func (v *NullableApproveOperationData) Set(val *ApproveOperationData) {
+func (v *NullableAccessTokenData) Set(val *AccessTokenData) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableApproveOperationData) IsSet() bool {
+func (v NullableAccessTokenData) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableApproveOperationData) Unset() {
+func (v *NullableAccessTokenData) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableApproveOperationData(val *ApproveOperationData) *NullableApproveOperationData {
-	return &NullableApproveOperationData{value: val, isSet: true}
+func NewNullableAccessTokenData(val *AccessTokenData) *NullableAccessTokenData {
+	return &NullableAccessTokenData{value: val, isSet: true}
 }
 
-func (v NullableApproveOperationData) MarshalJSON() ([]byte, error) {
+func (v NullableAccessTokenData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableApproveOperationData) UnmarshalJSON(src []byte) error {
+func (v *NullableAccessTokenData) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

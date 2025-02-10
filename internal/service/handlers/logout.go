@@ -12,13 +12,13 @@ import (
 )
 
 func Logout(w http.ResponseWriter, r *http.Request) {
-	Server, err := cifractx.GetValue[*config.Server](r.Context(), config.SERVER)
+	server, err := cifractx.GetValue[*config.Server](r.Context(), config.SERVER)
 	if err != nil {
 		httpkit.RenderErr(w, problems.InternalError("Failed to retrieve service configuration"))
 		return
 	}
 
-	log := Server.Logger
+	log := server.Logger
 
 	sessionID, ok := r.Context().Value(tokens.DeviceIDKey).(uuid.UUID)
 	if !ok {
@@ -34,14 +34,14 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = Server.TokenManager.Bin.Add(userID.String(), sessionID.String())
+	err = server.TokenManager.Bin.Add(userID.String(), sessionID.String())
 	if err != nil {
 		log.Errorf("Failed to add token to bin: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	err = Server.SqlDB.Sessions.Delete(r, sessionID, userID)
+	err = server.SqlDB.Sessions.Delete(r, sessionID, userID)
 	if err != nil {
 		log.Errorf("Failed to delete session: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())

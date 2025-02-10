@@ -13,18 +13,18 @@ import (
 	"github.com/recovery-flow/sso-oauth/internal/config"
 	"github.com/recovery-flow/sso-oauth/internal/sectools"
 	"github.com/recovery-flow/sso-oauth/internal/service/requests"
-	"github.com/recovery-flow/sso-oauth/resources"
+	"github.com/recovery-flow/sso-oauth/internal/service/responses"
 	"github.com/sirupsen/logrus"
 )
 
 func Refresh(w http.ResponseWriter, r *http.Request) {
-	Server, err := cifractx.GetValue[*config.Server](r.Context(), config.SERVER)
+	server, err := cifractx.GetValue[*config.Server](r.Context(), config.SERVER)
 	if err != nil {
 		logrus.Errorf("Failed to retrieve service configuration %s", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
-	log := Server.Logger
+	log := server.Logger
 
 	req, err := requests.NewRefresh(r)
 	if err != nil {
@@ -49,7 +49,7 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 	}
 	tokenString := parts[1]
 
-	userData, err := Server.TokenManager.VerifyJWTAndExtractClaims(tokenString, Server.Config.JWT.AccessToken.SecretKey)
+	userData, err := server.TokenManager.VerifyJWTAndExtractClaims(tokenString, server.Config.JWT.AccessToken.SecretKey)
 	if err != nil && !errors.Is(err, jwt.ErrTokenExpired) {
 		log.Warnf("Token validation failed: %v", err)
 		httpkit.RenderErr(w, problems.Unauthorized())
@@ -59,7 +59,7 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 	userID := userData.ID
 	sessionID := userData.DevID
 
-	user, err := Server.SqlDB.Accounts.GetById(r, userID)
+	user, err := server.SqlDB.Accounts.GetById(r, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.Unauthorized())
@@ -70,7 +70,7 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := Server.SqlDB.Sessions.GetByID(r, sessionID)
+	session, err := server.SqlDB.Sessions.GetByID(r, sessionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.Unauthorized("session not found"))
@@ -81,9 +81,9 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Debugf("Session token: %s \n EncryptionKey: %s`", session.Token, Server.Config.JWT.RefreshToken.EncryptionKey)
+	log.Debugf("Session token: %s \n EncryptionKey: %s`", session.Token, server.Config.JWT.RefreshToken.EncryptionKey)
 
-	decryptedToken, err := sectools.DecryptToken(session.Token, Server.Config.JWT.RefreshToken.EncryptionKey)
+	decryptedToken, err := sectools.DecryptToken(session.Token, server.Config.JWT.RefreshToken.EncryptionKey)
 	if err != nil {
 		log.Errorf("Failed to decrypt refresh token: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
@@ -91,35 +91,33 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if decryptedToken != refreshToken {
-		Server.Logger.Warn("Provided refresh token does not match the stored token")
+		server.Logger.Warn("Provided refresh token does not match the stored token")
 		httpkit.RenderErr(w, problems.Conflict())
 		return
 	}
 
-	//TODO send request to user-storage for checking user ban status
-
-	tokenAccess, err := Server.TokenManager.GenerateJWT(user.ID, sessionID, string(user.Role), Server.Config.JWT.AccessToken.TokenLifetime, Server.Config.JWT.AccessToken.SecretKey)
+	tokenAccess, err := server.TokenManager.GenerateJWT(user.ID, sessionID, user.Role, server.Config.JWT.AccessToken.TokenLifetime, server.Config.JWT.AccessToken.SecretKey)
 	if err != nil {
-		Server.Logger.Errorf("Error generating access token: %v", err)
+		server.Logger.Errorf("Error generating access token: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	tokenRefresh, err := Server.TokenManager.GenerateJWT(user.ID, sessionID, string(user.Role), Server.Config.JWT.RefreshToken.TokenLifetime, Server.Config.JWT.RefreshToken.SecretKey)
+	tokenRefresh, err := server.TokenManager.GenerateJWT(user.ID, sessionID, user.Role, server.Config.JWT.RefreshToken.TokenLifetime, server.Config.JWT.RefreshToken.SecretKey)
 	if err != nil {
-		Server.Logger.Errorf("Error generating refresh token: %v", err)
+		server.Logger.Errorf("Error generating refresh token: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	encryptedToken, err := sectools.EncryptToken(tokenRefresh, Server.Config.JWT.RefreshToken.EncryptionKey)
+	encryptedToken, err := sectools.EncryptToken(tokenRefresh, server.Config.JWT.RefreshToken.EncryptionKey)
 	if err != nil {
 		log.Errorf("Failed to encrypt refresh token: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	err = Server.SqlDB.Sessions.UpdateToken(r, userID, encryptedToken)
+	err = server.SqlDB.Sessions.UpdateToken(r, userID, encryptedToken)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.Unauthorized())
@@ -130,13 +128,5 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpkit.Render(w, resources.TokensPair{
-		Data: resources.TokensPairData{
-			Type: resources.TokensPairType,
-			Attributes: resources.TokensPairDataAttributes{
-				AccessToken:  tokenAccess,
-				RefreshToken: tokenRefresh,
-			},
-		},
-	})
+	httpkit.Render(w, responses.TokensPair(tokenAccess, tokenRefresh))
 }

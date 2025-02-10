@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
@@ -12,7 +11,7 @@ import (
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
 	"github.com/recovery-flow/sso-oauth/internal/config"
-	"github.com/recovery-flow/sso-oauth/resources"
+	"github.com/recovery-flow/sso-oauth/internal/service/responses"
 	"github.com/recovery-flow/tokens"
 	"github.com/sirupsen/logrus"
 )
@@ -77,32 +76,5 @@ func SessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var userSessions []resources.Session
-	for _, device := range sessions {
-		userSessions = append(userSessions, NewSession(r, device.ID.String()))
-	}
-
-	httpkit.Render(w, NewSessionList(userSessions))
-}
-
-func NewSessionList(sessions []resources.Session) resources.UserSessions {
-	return resources.UserSessions{
-		Data: resources.UserSessionsData{
-			Type: resources.UserSessionsType,
-			Attributes: resources.UserSessionsDataAttributes{
-				Devices: sessions,
-			},
-		},
-	}
-}
-
-func NewSession(r *http.Request, Id string) resources.Session {
-	return resources.Session{
-		Id:        Id,
-		Client:    httpkit.GetUserAgent(r),
-		IpFirst:   httpkit.GetClientIP(r),
-		IpLast:    httpkit.GetClientIP(r),
-		LastUsed:  time.Now().UTC(),
-		CreatedAt: time.Now().UTC(),
-	}
+	httpkit.Render(w, responses.SessionCollection(sessions))
 }

@@ -19,12 +19,12 @@ import (
 )
 
 func GoogleCallback(w http.ResponseWriter, r *http.Request) {
-	Server, err := cifractx.GetValue[*config.Server](r.Context(), config.SERVER)
+	server, err := cifractx.GetValue[*config.Server](r.Context(), config.SERVER)
 	if err != nil {
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
-	log := Server.Logger
+	log := server.Logger
 
 	code := r.URL.Query().Get("code")
 	if code == "" {
@@ -33,14 +33,14 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := Server.GoogleOAuth.Exchange(r.Context(), code)
+	token, err := server.GoogleOAuth.Exchange(r.Context(), code)
 	if err != nil {
 		log.Errorf("failed to exchange code for token: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	client := Server.GoogleOAuth.Client(r.Context(), token)
+	client := server.GoogleOAuth.Client(r.Context(), token)
 	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
 	if err != nil {
 		log.Errorf("failed to get user info: %v", err)
@@ -60,10 +60,10 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	account, err := Server.SqlDB.Accounts.GetByEmail(r, userInfo.Email)
+	account, err := server.SqlDB.Accounts.GetByEmail(r, userInfo.Email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			account, err = Server.SqlDB.Accounts.Create(r, userInfo.Email, "user")
+			account, err = server.SqlDB.Accounts.Create(r, userInfo.Email, "user")
 			if err != nil {
 				log.Errorf("error creating user: %v", err)
 				httpkit.RenderErr(w, problems.InternalError())
@@ -83,8 +83,8 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 				httpkit.RenderErr(w, problems.InternalError())
 				return
 			}
-			err = Server.Broker.Publish(
-				Server.Config.Rabbit.Exchange,
+			err = server.Broker.Publish(
+				server.Config.Rabbit.Exchange,
 				"account",
 				"account.create",
 				body)
@@ -102,21 +102,21 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 
 	deviceID := uuid.New()
 
-	tokenAccess, tokenRefresh, err := utils.GenerateTokens(*Server, account, deviceID)
+	tokenAccess, tokenRefresh, err := utils.GenerateTokens(*server, account, deviceID)
 	if err != nil {
 		log.Errorf("error generating tokens: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	tokenCrypto, err := sectools.EncryptToken(tokenRefresh, Server.Config.JWT.RefreshToken.EncryptionKey)
+	tokenCrypto, err := sectools.EncryptToken(tokenRefresh, server.Config.JWT.RefreshToken.EncryptionKey)
 	if err != nil {
 		log.Errorf("error encrypting token: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	_, err = Server.SqlDB.Sessions.Create(r, account.ID, deviceID, tokenCrypto)
+	_, err = server.SqlDB.Sessions.Create(r, account.ID, deviceID, tokenCrypto)
 	if err != nil {
 		log.Errorf("error creating session: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())

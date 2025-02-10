@@ -23,8 +23,7 @@ type Session struct {
 	UserID    uuid.UUID
 	Token     string
 	Client    string
-	IpFirst   string
-	IpLast    string
+	Ip        string
 	CreatedAt time.Time
 	LastUsed  time.Time
 }

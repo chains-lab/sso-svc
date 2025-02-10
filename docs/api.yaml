@@ -15,17 +15,17 @@ paths:
 
 components:
   schemas:
-    ApproveOperation:
-      $ref: './spec/components/schemas/ApproveOperation.yaml'
     TokensPair:
       $ref: './spec/components/schemas/TokensPair.yaml'
     RefreshToken:
       $ref: './spec/components/schemas/RefreshToken.yaml'
-    UserSessions:
-      $ref: './spec/components/schemas/SessionsCollection.yaml'
-    UserSession:
-      $ref: './spec/components/schemas/Session.yaml'
+    AccessToken:
+      $ref: './spec/components/schemas/AccessToken.yaml'
     Session:
+      $ref: './spec/components/schemas/Session.yaml'
+    SessionData:
+      $ref: './spec/components/schemas/SessionData.yaml'
+    SessionAttributes:
       $ref: './spec/components/schemas/SessionAttributes.yaml'
-    RegSimple:
-      $ref: './spec/components/schemas/RegSimple.yaml'
+    SessionsCollection:
+      $ref: './spec/components/schemas/SessionsCollection.yaml'

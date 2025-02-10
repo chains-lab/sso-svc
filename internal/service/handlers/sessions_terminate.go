@@ -47,7 +47,7 @@ func SessionsTerminate(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = Server.SqlDB.Sessions.TerminateSessions(r, userID, sessionID)
+	err = Server.SqlDB.Sessions.TerminateSessions(r, userID, &sessionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())

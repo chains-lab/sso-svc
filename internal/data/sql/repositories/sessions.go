@@ -26,7 +26,7 @@ type Sessions interface {
 	TerminateSessions(
 		r *http.Request,
 		userId uuid.UUID,
-		curDevId uuid.UUID,
+		curDevId *uuid.UUID,
 	) error
 }
 
@@ -40,12 +40,11 @@ func NewSession(queries *sqlcore.Queries) Sessions {
 
 func (s *sessions) Create(r *http.Request, userID uuid.UUID, deviceId uuid.UUID, token string) (sqlcore.Session, error) {
 	return s.queries.CreateSession(r.Context(), sqlcore.CreateSessionParams{
-		ID:      deviceId,
-		UserID:  userID,
-		Token:   token,
-		Client:  httpkit.GetUserAgent(r),
-		IpFirst: httpkit.GetClientIP(r),
-		IpLast:  httpkit.GetClientIP(r),
+		ID:     deviceId,
+		UserID: userID,
+		Token:  token,
+		Client: httpkit.GetUserAgent(r),
+		Ip:     httpkit.GetClientIP(r),
 	})
 }
 
@@ -73,16 +72,16 @@ func (s *sessions) GetToken(r *http.Request, id uuid.UUID, userID uuid.UUID) (st
 
 func (s *sessions) UpdateToken(r *http.Request, id uuid.UUID, token string) error {
 	return s.queries.UpdateSessionToken(r.Context(), sqlcore.UpdateSessionTokenParams{
-		ID:     id,
-		Token:  token,
-		IpLast: httpkit.GetClientIP(r),
+		ID:    id,
+		Token: token,
+		Ip:    httpkit.GetClientIP(r),
 	})
 }
 
 func (s *sessions) TerminateSessions(
 	r *http.Request,
 	userId uuid.UUID,
-	curDevId uuid.UUID,
+	curDevId *uuid.UUID,
 ) error {
 	ctx := r.Context()
 	queries, tx, err := s.queries.BeginTx(ctx)
@@ -104,7 +103,7 @@ func (s *sessions) TerminateSessions(
 	}
 
 	for _, dev := range userSessions {
-		if dev.ID == curDevId {
+		if dev.ID == *curDevId {
 			continue
 		}
 		err = queries.DeleteUserSession(ctx, sqlcore.DeleteUserSessionParams{

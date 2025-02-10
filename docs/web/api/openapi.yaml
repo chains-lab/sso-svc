@@ -15,13 +15,6 @@ paths:
       summary: Test
 components:
   schemas:
-    ApproveOperation:
-      properties:
-        data:
-          $ref: '#/components/schemas/ApproveOperation_data'
-      required:
-      - data
-      type: object
     TokensPair:
       properties:
         data:
@@ -36,95 +29,70 @@ components:
       required:
       - data
       type: object
-    UserSessions:
+    AccessToken:
       properties:
         data:
-          $ref: '#/components/schemas/UserSessions_data'
-      required:
-      - data
-      type: object
-    UserSession:
-      properties:
-        data:
-          $ref: '#/components/schemas/UserSession_data'
+          $ref: '#/components/schemas/AccessToken_data'
       required:
       - data
       type: object
     Session:
       properties:
+        data:
+          $ref: '#/components/schemas/SessionData'
+      required:
+      - data
+      type: object
+    SessionData:
+      properties:
         id:
           description: session id
+          format: uuid
+          type: string
+        type:
+          enum:
+          - users_session
+          type: string
+        attributes:
+          $ref: '#/components/schemas/SessionAttributes'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+    SessionAttributes:
+      properties:
+        user_id:
+          description: user id
           format: uuid
           type: string
         client:
           description: client name and version
           type: string
-        Ip_first:
+        ip:
           description: IP address
-          type: string
-        Ip_last:
-          description: IP address
-          type: string
-        last_used:
-          description: last used date
-          format: date-time
           type: string
         created_at:
           description: session creation date
           format: date-time
           type: string
+        last_used:
+          description: last used date
+          format: date-time
+          type: string
       required:
-      - Ip_first
-      - Ip_last
       - client
       - created_at
-      - device_name
-      - id
+      - ip
       - last_used
       - user_id
       type: object
-    RegSimple:
+    SessionsCollection:
       properties:
         data:
-          $ref: '#/components/schemas/RegSimple_data'
+          $ref: '#/components/schemas/SessionsCollection_data'
       required:
       - data
-      type: object
-    UserSessionCollection:
-      properties:
-        data:
-          $ref: '#/components/schemas/UserSessions_data'
-      required:
-      - data
-      type: object
-    ApproveOperation_data_attributes:
-      properties:
-        email:
-          description: New email
-          type: string
-        code:
-          description: User code
-          type: string
-        operation:
-          description: Type of operation
-          example: reset_password
-          type: string
-      required:
-      - code
-      - email
-      - operation
-      type: object
-    ApproveOperation_data:
-      properties:
-        type:
-          enum:
-          - approve_operation
-          type: string
-        attributes:
-          $ref: '#/components/schemas/ApproveOperation_data_attributes'
-      required:
-      - attributes
-      - type
       type: object
     TokensPair_data_attributes:
       properties:
@@ -148,6 +116,7 @@ components:
           $ref: '#/components/schemas/TokensPair_data_attributes'
       required:
       - attributes
+      - relationships
       - type
       type: object
     RefreshToken_data_attributes:
@@ -163,7 +132,7 @@ components:
       properties:
         type:
           enum:
-          - refresh
+          - refresh_token
           type: string
         attributes:
           $ref: '#/components/schemas/RefreshToken_data_attributes'
@@ -171,89 +140,44 @@ components:
       - attributes
       - type
       type: object
-    UserSessions_data_attributes:
+    AccessToken_data_attributes:
       properties:
-        devices:
+        refresh_token:
+          description: The access token to generate a new access token.
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+          type: string
+      required:
+      - access_token
+      type: object
+    AccessToken_data:
+      properties:
+        type:
+          enum:
+          - access_token
+          type: string
+        attributes:
+          $ref: '#/components/schemas/AccessToken_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
+    SessionsCollection_data_attributes:
+      properties:
+        sessions:
           items:
-            $ref: '#/components/schemas/Session'
+            $ref: '#/components/schemas/SessionData'
           type: array
       required:
-      - devices
+      - sessions
       type: object
-    UserSessions_data:
+    SessionsCollection_data:
       properties:
         type:
           enum:
           - users_session_collection
           type: string
         attributes:
-          $ref: '#/components/schemas/UserSessions_data_attributes'
-      required:
-      - attributes
-      - type
-      type: object
-    UserSession_data_attributes:
-      properties:
-        client:
-          description: client name and version
-          type: string
-        Ip_first:
-          description: IP address
-          type: string
-        Ip_last:
-          description: IP address
-          type: string
-        last_used:
-          description: last used date
-          format: date-time
-          type: string
-        created_at:
-          description: session creation date
-          format: date-time
-          type: string
-      required:
-      - Ip_first
-      - Ip_last
-      - client
-      - created_at
-      - device_name
-      - last_used
-      - user_id
-      type: object
-    UserSession_data:
-      properties:
-        id:
-          description: session id
-          format: uuid
-          type: string
-        type:
-          enum:
-          - users_session_collection
-          type: string
-        attributes:
-          $ref: '#/components/schemas/UserSession_data_attributes'
-      required:
-      - attributes
-      - id
-      - type
-      type: object
-    RegSimple_data_attributes:
-      properties:
-        email:
-          description: User email
-          format: email
-          type: string
-      required:
-      - email
-      type: object
-    RegSimple_data:
-      properties:
-        type:
-          enum:
-          - reg_simple
-          type: string
-        attributes:
-          $ref: '#/components/schemas/RegSimple_data_attributes'
+          $ref: '#/components/schemas/SessionsCollection_data_attributes'
       required:
       - attributes
       - type

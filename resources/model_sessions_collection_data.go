@@ -16,38 +16,38 @@ import (
 	"fmt"
 )
 
-// checks if the RegSimpleData type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &RegSimpleData{}
+// checks if the SessionsCollectionData type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &SessionsCollectionData{}
 
-// RegSimpleData struct for RegSimpleData
-type RegSimpleData struct {
+// SessionsCollectionData struct for SessionsCollectionData
+type SessionsCollectionData struct {
 	Type string `json:"type"`
-	Attributes RegSimpleDataAttributes `json:"attributes"`
+	Attributes SessionsCollectionDataAttributes `json:"attributes"`
 }
 
-type _RegSimpleData RegSimpleData
+type _SessionsCollectionData SessionsCollectionData
 
-// NewRegSimpleData instantiates a new RegSimpleData object
+// NewSessionsCollectionData instantiates a new SessionsCollectionData object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewRegSimpleData(type_ string, attributes RegSimpleDataAttributes) *RegSimpleData {
-	this := RegSimpleData{}
+func NewSessionsCollectionData(type_ string, attributes SessionsCollectionDataAttributes) *SessionsCollectionData {
+	this := SessionsCollectionData{}
 	this.Type = type_
 	this.Attributes = attributes
 	return &this
 }
 
-// NewRegSimpleDataWithDefaults instantiates a new RegSimpleData object
+// NewSessionsCollectionDataWithDefaults instantiates a new SessionsCollectionData object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewRegSimpleDataWithDefaults() *RegSimpleData {
-	this := RegSimpleData{}
+func NewSessionsCollectionDataWithDefaults() *SessionsCollectionData {
+	this := SessionsCollectionData{}
 	return &this
 }
 
 // GetType returns the Type field value
-func (o *RegSimpleData) GetType() string {
+func (o *SessionsCollectionData) GetType() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -58,7 +58,7 @@ func (o *RegSimpleData) GetType() string {
 
 // GetTypeOk returns a tuple with the Type field value
 // and a boolean to check if the value has been set.
-func (o *RegSimpleData) GetTypeOk() (*string, bool) {
+func (o *SessionsCollectionData) GetTypeOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -66,14 +66,14 @@ func (o *RegSimpleData) GetTypeOk() (*string, bool) {
 }
 
 // SetType sets field value
-func (o *RegSimpleData) SetType(v string) {
+func (o *SessionsCollectionData) SetType(v string) {
 	o.Type = v
 }
 
 // GetAttributes returns the Attributes field value
-func (o *RegSimpleData) GetAttributes() RegSimpleDataAttributes {
+func (o *SessionsCollectionData) GetAttributes() SessionsCollectionDataAttributes {
 	if o == nil {
-		var ret RegSimpleDataAttributes
+		var ret SessionsCollectionDataAttributes
 		return ret
 	}
 
@@ -82,7 +82,7 @@ func (o *RegSimpleData) GetAttributes() RegSimpleDataAttributes {
 
 // GetAttributesOk returns a tuple with the Attributes field value
 // and a boolean to check if the value has been set.
-func (o *RegSimpleData) GetAttributesOk() (*RegSimpleDataAttributes, bool) {
+func (o *SessionsCollectionData) GetAttributesOk() (*SessionsCollectionDataAttributes, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -90,11 +90,11 @@ func (o *RegSimpleData) GetAttributesOk() (*RegSimpleDataAttributes, bool) {
 }
 
 // SetAttributes sets field value
-func (o *RegSimpleData) SetAttributes(v RegSimpleDataAttributes) {
+func (o *SessionsCollectionData) SetAttributes(v SessionsCollectionDataAttributes) {
 	o.Attributes = v
 }
 
-func (o RegSimpleData) MarshalJSON() ([]byte, error) {
+func (o SessionsCollectionData) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -102,14 +102,14 @@ func (o RegSimpleData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o RegSimpleData) ToMap() (map[string]interface{}, error) {
+func (o SessionsCollectionData) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["type"] = o.Type
 	toSerialize["attributes"] = o.Attributes
 	return toSerialize, nil
 }
 
-func (o *RegSimpleData) UnmarshalJSON(data []byte) (err error) {
+func (o *SessionsCollectionData) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
@@ -132,53 +132,53 @@ func (o *RegSimpleData) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varRegSimpleData := _RegSimpleData{}
+	varSessionsCollectionData := _SessionsCollectionData{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varRegSimpleData)
+	err = decoder.Decode(&varSessionsCollectionData)
 
 	if err != nil {
 		return err
 	}
 
-	*o = RegSimpleData(varRegSimpleData)
+	*o = SessionsCollectionData(varSessionsCollectionData)
 
 	return err
 }
 
-type NullableRegSimpleData struct {
-	value *RegSimpleData
+type NullableSessionsCollectionData struct {
+	value *SessionsCollectionData
 	isSet bool
 }
 
-func (v NullableRegSimpleData) Get() *RegSimpleData {
+func (v NullableSessionsCollectionData) Get() *SessionsCollectionData {
 	return v.value
 }
 
-func (v *NullableRegSimpleData) Set(val *RegSimpleData) {
+func (v *NullableSessionsCollectionData) Set(val *SessionsCollectionData) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableRegSimpleData) IsSet() bool {
+func (v NullableSessionsCollectionData) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableRegSimpleData) Unset() {
+func (v *NullableSessionsCollectionData) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableRegSimpleData(val *RegSimpleData) *NullableRegSimpleData {
-	return &NullableRegSimpleData{value: val, isSet: true}
+func NewNullableSessionsCollectionData(val *SessionsCollectionData) *NullableSessionsCollectionData {
+	return &NullableSessionsCollectionData{value: val, isSet: true}
 }
 
-func (v NullableRegSimpleData) MarshalJSON() ([]byte, error) {
+func (v NullableSessionsCollectionData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableRegSimpleData) UnmarshalJSON(src []byte) error {
+func (v *NullableSessionsCollectionData) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
