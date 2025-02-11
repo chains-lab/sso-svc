@@ -4,21 +4,14 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/recovery-flow/comtools/cifractx"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
-	"github.com/recovery-flow/sso-oauth/internal/config"
 	"github.com/recovery-flow/tokens"
 )
 
-func Logout(w http.ResponseWriter, r *http.Request) {
-	server, err := cifractx.GetValue[*config.Server](r.Context(), config.SERVER)
-	if err != nil {
-		httpkit.RenderErr(w, problems.InternalError("Failed to retrieve service configuration"))
-		return
-	}
-
-	log := server.Logger
+func (h *Handlers) Logout(w http.ResponseWriter, r *http.Request) {
+	svc := h.svc
+	log := svc.Logger
 
 	sessionID, ok := r.Context().Value(tokens.DeviceIDKey).(uuid.UUID)
 	if !ok {
@@ -34,14 +27,14 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = server.TokenManager.Bin.Add(userID.String(), sessionID.String())
+	err := svc.TokenManager.Bin.Add(userID.String(), sessionID.String())
 	if err != nil {
 		log.Errorf("Failed to add token to bin: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	err = server.SqlDB.Sessions.Delete(r, sessionID, userID)
+	err = svc.SqlDB.Sessions.Delete(r, sessionID, userID)
 	if err != nil {
 		log.Errorf("Failed to delete session: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())

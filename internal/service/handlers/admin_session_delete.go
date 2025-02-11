@@ -7,24 +7,16 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
-	"github.com/recovery-flow/comtools/cifractx"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
 	"github.com/recovery-flow/roles"
-	"github.com/recovery-flow/sso-oauth/internal/config"
 	"github.com/recovery-flow/sso-oauth/internal/service/responses"
 	"github.com/recovery-flow/tokens"
-	"github.com/sirupsen/logrus"
 )
 
-func AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
-	server, err := cifractx.GetValue[*config.Server](r.Context(), config.SERVER)
-	if err != nil {
-		logrus.Errorf("Failed to retrieve service configuration %s", err)
-		httpkit.RenderErr(w, problems.InternalError())
-		return
-	}
-	log := server.Logger
+func (h *Handlers) AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
+	svc := h.svc
+	log := svc.Logger
 
 	initiatorID, ok := r.Context().Value(tokens.UserIDKey).(uuid.UUID)
 	if !ok {
@@ -72,7 +64,7 @@ func AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := server.SqlDB.Accounts.GetById(r, userID)
+	user, err := svc.SqlDB.Accounts.GetById(r, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())
@@ -96,7 +88,7 @@ func AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = server.SqlDB.Sessions.Delete(r, sessionID, userID)
+	err = svc.SqlDB.Sessions.Delete(r, sessionID, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())
@@ -107,14 +99,14 @@ func AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = server.TokenManager.Bin.Add(userID.String(), sessionID.String())
+	err = svc.TokenManager.Bin.Add(userID.String(), sessionID.String())
 	if err != nil {
 		log.Errorf("Failed to add token to bin: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	sessions, err := server.SqlDB.Sessions.GetSessions(r, userID)
+	sessions, err := svc.SqlDB.Sessions.GetSessions(r, userID)
 	if err != nil {
 		log.Errorf("Failed to retrieve user sessions: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())

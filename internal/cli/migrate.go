@@ -11,7 +11,7 @@ import (
 )
 
 func runMigration(ctx context.Context, direction string) error {
-	service, err := cifractx.GetValue[*config.Server](ctx, config.SERVER)
+	service, err := cifractx.GetValue[*config.Service](ctx, config.SERVICE)
 	if err != nil {
 		return fmt.Errorf("failed to get server from context: %v", err)
 	}

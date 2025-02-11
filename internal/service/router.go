@@ -9,30 +9,25 @@ import (
 	"github.com/recovery-flow/roles"
 	"github.com/recovery-flow/sso-oauth/internal/config"
 	"github.com/recovery-flow/sso-oauth/internal/service/handlers"
-	"github.com/sirupsen/logrus"
 )
 
-func Run(ctx context.Context) {
+func Run(ctx context.Context, svc *config.Service) {
 	r := chi.NewRouter()
+	h := handlers.NewHandlers(svc)
 
-	service, err := cifractx.GetValue[*config.Server](ctx, config.SERVER)
-	if err != nil {
-		logrus.Fatalf("failed to get server from context: %v", err)
-	}
-
-	r.Use(cifractx.MiddlewareWithContext(config.SERVER, service))
-	authMW := service.TokenManager.AuthMdl(service.Config.JWT.AccessToken.SecretKey)
-	adminGrant := service.TokenManager.RoleGrant(string(roles.RoleUserAdmin), string(roles.RoleUserSuperAdmin))
+	r.Use(cifractx.MiddlewareWithContext(config.SERVICE, svc))
+	authMW := svc.TokenManager.AuthMdl(svc.Config.JWT.AccessToken.SecretKey)
+	adminGrant := svc.TokenManager.RoleGrant(svc.Config.JWT.AccessToken.SecretKey, string(roles.RoleUserAdmin), string(roles.RoleUserSuperAdmin))
 
 	r.Route("/re-flow", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/public", func(r chi.Router) {
-				r.Post("/refresh", handlers.Refresh)
+				r.Post("/refresh", h.Refresh)
 
 				r.Route("/oauth", func(r chi.Router) {
 					r.Route("/google", func(r chi.Router) {
-						r.Get("/login", handlers.GoogleLogin)
-						r.Get("/callback", handlers.GoogleCallback)
+						r.Get("/login", h.GoogleLogin)
+						r.Get("/callback", h.GoogleCallback)
 					})
 				})
 			})
@@ -42,14 +37,14 @@ func Run(ctx context.Context) {
 				r.Route("/user", func(r chi.Router) {
 					r.Route("/sessions", func(r chi.Router) {
 						r.Route("/{session_id}", func(r chi.Router) {
-							r.Get("/", handlers.SessionGet)
-							r.Delete("/", handlers.SessionDelete)
+							r.Get("/", h.SessionGet)
+							r.Delete("/", h.SessionDelete)
 						})
 
-						r.Get("/", handlers.SessionsGet)
-						r.Delete("/terminate", handlers.SessionsTerminate)
+						r.Get("/", h.SessionsGet)
+						r.Delete("/", h.SessionsTerminate)
 					})
-					r.Post("/logout", handlers.Logout)
+					r.Post("/logout", h.Logout)
 				})
 			})
 
@@ -58,24 +53,24 @@ func Run(ctx context.Context) {
 				r.Route("/{user_id}", func(r chi.Router) {
 					r.Route("/sessions", func(r chi.Router) {
 						r.Route("/{session_id}", func(r chi.Router) {
-							r.Get("/", handlers.AdminSessionGet)
-							r.Delete("/", handlers.AdminSessionDelete)
+							r.Get("/", h.AdminSessionGet)
+							r.Delete("/", h.AdminSessionDelete)
 						})
 
-						r.Get("/", handlers.AdminSessionsGet)
-						r.Delete("/terminate", handlers.AdminSessionsTerminate)
+						r.Get("/", h.AdminSessionsGet)
+						r.Delete("/", h.AdminSessionsTerminate)
 					})
 
-					r.Patch("/role/{role}", handlers.AdminRoleUpdate)
+					r.Patch("/role/{role}", h.AdminRoleUpdate)
 				})
 			})
 
-			r.Post("/test/login", handlers.LogSimple)
+			r.Post("/test/login", h.LogSimple)
 		})
 	})
 
-	server := httpkit.StartServer(ctx, service.Config.Server.Port, r, service.Logger)
+	server := httpkit.StartServer(ctx, svc.Config.Server.Port, r, svc.Logger)
 
 	<-ctx.Done()
-	httpkit.StopServer(context.Background(), server, service.Logger)
+	httpkit.StopServer(context.Background(), server, svc.Logger)
 }

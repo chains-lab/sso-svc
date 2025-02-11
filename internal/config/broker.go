@@ -6,6 +6,8 @@ import (
 	"github.com/streadway/amqp"
 )
 
+//TODO CREATE A lIb for this
+
 type Broker struct {
 	connection *amqp.Connection
 	channel    *amqp.Channel

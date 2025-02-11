@@ -8,24 +8,16 @@ import (
 	"github.com/go-chi/chi"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/google/uuid"
-	"github.com/recovery-flow/comtools/cifractx"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
 	"github.com/recovery-flow/roles"
-	"github.com/recovery-flow/sso-oauth/internal/config"
-	"github.com/recovery-flow/sso-oauth/internal/service/events"
+	"github.com/recovery-flow/sso-oauth/internal/service/events/entities"
 	"github.com/recovery-flow/tokens"
-	"github.com/sirupsen/logrus"
 )
 
-func AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
-	server, err := cifractx.GetValue[*config.Server](r.Context(), config.SERVER)
-	if err != nil {
-		logrus.Errorf("Failed to retrieve service configuration %s", err)
-		httpkit.RenderErr(w, problems.InternalError())
-		return
-	}
-	log := server.Logger
+func (h *Handlers) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
+	svc := h.svc
+	log := svc.Logger
 
 	initiatorID, ok := r.Context().Value(tokens.UserIDKey).(uuid.UUID)
 	if !ok {
@@ -72,7 +64,7 @@ func AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := server.SqlDB.Accounts.GetById(r, updatedUserID)
+	user, err := svc.SqlDB.Accounts.GetById(r, updatedUserID)
 	if err != nil {
 		log.Errorf("Failed to get user: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
@@ -91,14 +83,14 @@ func AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := server.SqlDB.Accounts.UpdateRole(r, updatedUserID, updatedRole)
+	res, err := svc.SqlDB.Accounts.UpdateRole(r, updatedUserID, updatedRole)
 	if err != nil {
 		log.Errorf("Failed to update role: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	event := events.RoleUpdated{
+	event := entities.RoleUpdated{
 		Event:     "RoleUpdated",
 		UserID:    res.ID.String(),
 		Role:      res.Role,
@@ -111,8 +103,8 @@ func AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
-	err = server.Broker.Publish(
-		server.Config.Rabbit.Exchange,
+	err = svc.Rabbit.Publish(
+		svc.Config.Rabbit.Exchange,
 		"account",
 		"account.role_updated",
 		body)

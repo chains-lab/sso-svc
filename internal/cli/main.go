@@ -9,7 +9,6 @@ import (
 	"syscall"
 
 	"github.com/alecthomas/kingpin"
-	"github.com/recovery-flow/comtools/cifractx"
 	"github.com/recovery-flow/sso-oauth/internal/config"
 )
 
@@ -34,13 +33,12 @@ func Run(args []string) bool {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	service, err := config.NewServer(cfg)
+	service, err := config.NewService(cfg)
 	if err != nil {
 		logger.Fatalf("failed to create server: %v", err)
 		return false
 	}
-
-	ctx = cifractx.WithValue(ctx, config.SERVER, service)
+	//ctx = cifractx.WithValue(ctx, config.SERVICE, service)
 
 	var wg sync.WaitGroup
 
@@ -52,7 +50,7 @@ func Run(args []string) bool {
 
 	switch cmd {
 	case serviceCmd.FullCommand():
-		runServices(ctx, &wg)
+		runServices(ctx, &wg, service)
 	case migrateUpCmd.FullCommand():
 		err = MigrateUp(ctx)
 	case migrateDownCmd.FullCommand():

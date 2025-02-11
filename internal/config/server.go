@@ -8,19 +8,19 @@ import (
 )
 
 const (
-	SERVER = "service"
+	SERVICE = "service"
 )
 
-type Server struct {
+type Service struct {
 	Config       *Config
 	SqlDB        *sql.Repo
 	Logger       *logrus.Logger
 	TokenManager tokens.TokenManager
-	Broker       *Broker
+	Rabbit       *Broker
 	GoogleOAuth  oauth2.Config
 }
 
-func NewServer(cfg *Config) (*Server, error) {
+func NewService(cfg *Config) (*Service, error) {
 	logger := SetupLogger(cfg.Logging.Level, cfg.Logging.Format)
 	queries, err := sql.NewRepoSQL(cfg.Database.URL)
 	tokenManager := tokens.NewTokenManager(cfg.Redis.Addr, cfg.Redis.Password, cfg.Redis.DB, logger, cfg.JWT.AccessToken.TokenLifetime)
@@ -30,12 +30,12 @@ func NewServer(cfg *Config) (*Server, error) {
 	}
 	googleOAuth := InitGoogleOAuth(cfg.OAuth.Google.ClientID, cfg.OAuth.Google.ClientSecret, cfg.OAuth.Google.RedirectURL)
 
-	return &Server{
+	return &Service{
 		Config:       cfg,
 		SqlDB:        queries,
 		Logger:       logger,
 		TokenManager: tokenManager,
-		Broker:       broker,
+		Rabbit:       broker,
 		GoogleOAuth:  googleOAuth,
 	}, nil
 }

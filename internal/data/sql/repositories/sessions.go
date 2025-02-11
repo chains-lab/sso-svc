@@ -103,7 +103,7 @@ func (s *sessions) TerminateSessions(
 	}
 
 	for _, dev := range userSessions {
-		if dev.ID == *curDevId {
+		if curDevId != nil && dev.ID == *curDevId {
 			continue
 		}
 		err = queries.DeleteUserSession(ctx, sqlcore.DeleteUserSessionParams{

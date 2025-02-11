@@ -4,10 +4,11 @@ import (
 	"context"
 	"sync"
 
+	"github.com/recovery-flow/sso-oauth/internal/config"
 	"github.com/recovery-flow/sso-oauth/internal/service"
 )
 
-func runServices(ctx context.Context, wg *sync.WaitGroup) {
+func runServices(ctx context.Context, wg *sync.WaitGroup, srv *config.Service) {
 	var (
 	// signals indicate the finished initialization of each worker
 	)
@@ -20,5 +21,5 @@ func runServices(ctx context.Context, wg *sync.WaitGroup) {
 		}()
 	}
 
-	run(func() { service.Run(ctx) })
+	run(func() { service.Run(ctx, srv) })
 }
