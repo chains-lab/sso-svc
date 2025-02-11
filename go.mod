@@ -1,6 +1,6 @@
 module github.com/recovery-flow/sso-oauth
 
-go 1.23.1
+go 1.23.4
 
 require (
 	github.com/alecthomas/kingpin v2.2.6+incompatible
@@ -11,11 +11,11 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/pkg/errors v0.9.1
 	github.com/recovery-flow/comtools v0.0.53
+	github.com/recovery-flow/rerabbit v0.1.1
 	github.com/recovery-flow/roles v0.0.3
 	github.com/recovery-flow/tokens v0.2.2
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.19.0
-	github.com/streadway/amqp v1.1.0
 	golang.org/x/oauth2 v0.25.0
 )
 
@@ -38,6 +38,7 @@ require (
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/streadway/amqp v1.1.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect

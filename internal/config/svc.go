@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/recovery-flow/rerabbit"
 	"github.com/recovery-flow/sso-oauth/internal/data/sql"
 	"github.com/recovery-flow/tokens"
 	"github.com/sirupsen/logrus"
@@ -16,7 +17,7 @@ type Service struct {
 	SqlDB        *sql.Repo
 	Logger       *logrus.Logger
 	TokenManager tokens.TokenManager
-	Rabbit       *Broker
+	Rabbit       rerabbit.RabbitBroker
 	GoogleOAuth  oauth2.Config
 }
 
@@ -24,7 +25,7 @@ func NewService(cfg *Config) (*Service, error) {
 	logger := SetupLogger(cfg.Logging.Level, cfg.Logging.Format)
 	queries, err := sql.NewRepoSQL(cfg.Database.URL)
 	tokenManager := tokens.NewTokenManager(cfg.Redis.Addr, cfg.Redis.Password, cfg.Redis.DB, logger, cfg.JWT.AccessToken.TokenLifetime)
-	broker, err := NewBroker(cfg.Rabbit.URL, cfg.Rabbit.Exchange)
+	broker, err := rerabbit.NewBroker(cfg.Rabbit.URL)
 	if err != nil {
 		return nil, err
 	}

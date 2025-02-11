@@ -57,6 +57,10 @@ github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 h1:Jamvg5psRI
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/recovery-flow/comtools v0.0.53 h1:k/8gV9sOu78E5UAMmcJ9m83wUXFA3OSFP/d9F+j6hXU=
 github.com/recovery-flow/comtools v0.0.53/go.mod h1:D6bETGGIlML4oHMvL40qkFYB6hmyn0Zc1b/i9cw5CMc=
+github.com/recovery-flow/rerabbit v0.1.0 h1:ACMan1//6+WN3NLrNbNjYekWxjXw+AwA4IOFevShnY0=
+github.com/recovery-flow/rerabbit v0.1.0/go.mod h1:SSAO2aK2mH27ib1n0PiJH0YBbQq4JtWMLVxYsoGUw94=
+github.com/recovery-flow/rerabbit v0.1.1 h1:jVhvv3KKnLepA305HXxRiWFoAs2PlNJ5GeAei6ZULcQ=
+github.com/recovery-flow/rerabbit v0.1.1/go.mod h1:SSAO2aK2mH27ib1n0PiJH0YBbQq4JtWMLVxYsoGUw94=
 github.com/recovery-flow/roles v0.0.3 h1:1M82ChPXB1Tm3E6+cKpESuP5afs4SZsfkdHnAAghlNw=
 github.com/recovery-flow/roles v0.0.3/go.mod h1:ubYw4AF6+txcT4hDJxvSREOqYER1LibwGcOABjkeSyk=
 github.com/recovery-flow/tokens v0.2.2 h1:PVyWMZ8AHP4pXYgZVfAyXoOTTfFtPdK+KFKTHuT9twA=

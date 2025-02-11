@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
+	"github.com/recovery-flow/rerabbit"
 	"github.com/recovery-flow/sso-oauth/internal/sectools"
 	"github.com/recovery-flow/sso-oauth/internal/service/events/entities"
 	"github.com/recovery-flow/sso-oauth/internal/service/responses"
@@ -76,11 +77,10 @@ func (h *Handlers) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 				httpkit.RenderErr(w, problems.InternalError())
 				return
 			}
-			err = svc.Rabbit.Publish(
-				svc.Config.Rabbit.Exchange,
-				"account",
-				"account.create",
-				body)
+			err = svc.Rabbit.PublishJSON(r.Context(), body, rerabbit.PublishOptions{
+				Exchange:   "re-news.sso",
+				RoutingKey: "account.created",
+			})
 			if err != nil {
 				log.Errorf("error publishing event: %v", err)
 				httpkit.RenderErr(w, problems.InternalError())

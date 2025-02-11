@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
+	"github.com/recovery-flow/rerabbit"
 	"github.com/recovery-flow/roles"
 	"github.com/recovery-flow/sso-oauth/internal/service/events/entities"
 	"github.com/recovery-flow/tokens"
@@ -49,7 +50,7 @@ func (h *Handlers) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedRole, err := roles.StringToRoleUser(chi.URLParam(r, "updatedRole"))
+	updatedRole, err := roles.StringToRoleUser(chi.URLParam(r, "role"))
 	if err != nil {
 		log.Errorf("Failed to parse role: %v", err)
 		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
@@ -103,11 +104,11 @@ func (h *Handlers) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
-	err = svc.Rabbit.Publish(
-		svc.Config.Rabbit.Exchange,
-		"account",
-		"account.role_updated",
-		body)
+
+	err = svc.Rabbit.PublishJSON(r.Context(), body, rerabbit.PublishOptions{
+		Exchange:   "re-news.sso",
+		RoutingKey: "account.role_updated",
+	})
 	if err != nil {
 		log.Errorf("error publishing event: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
