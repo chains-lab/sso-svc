@@ -43,7 +43,7 @@ func (a *accounts) Add(ctx context.Context, account models.Account, ttl time.Dur
 		return fmt.Errorf("error adding user to Redis: %w", err)
 	}
 
-	err = a.client.Set(ctx, emailKey, account.ID, 0).Err()
+	err = a.client.Set(ctx, emailKey, account.ID.String(), 0).Err()
 	if err != nil {
 		return fmt.Errorf("error creating email index: %w", err)
 	}

@@ -54,20 +54,22 @@ func Run(ctx context.Context, svc *config.Service) {
 				r.Use(adminGrant)
 				r.Route("/{account_id}", func(r chi.Router) {
 					r.Route("/sessions", func(r chi.Router) {
-						r.Route("/{session_id}", func(r chi.Router) {
-							r.Get("/", h.AdminSessionGet)
-							r.Delete("/", h.AdminSessionDelete)
-						})
-
 						r.Get("/", h.AdminSessionsGet)
 						r.Delete("/", h.AdminSessionsTerminate)
 					})
 
 					r.Patch("/role/{role}", h.AdminRoleUpdate)
 				})
+
+				r.Route("/sessions", func(r chi.Router) {
+					r.Route("/{session_id}", func(r chi.Router) {
+						r.Get("/", h.AdminSessionsGet)
+						r.Delete("/", h.AdminSessionsTerminate)
+					})
+				})
 			})
 
-			r.Post("/test/login", h.LogSimple)
+			r.Post("/test/login", h.LoginSimple)
 		})
 	})
 

@@ -19,7 +19,7 @@ import (
 	"github.com/recovery-flow/sso-oauth/internal/service/responses"
 )
 
-func (h *Handlers) LogSimple(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) LoginSimple(w http.ResponseWriter, r *http.Request) {
 	svc := h.svc
 	log := svc.Logger
 
