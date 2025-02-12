@@ -10,23 +10,22 @@ import (
 	"github.com/recovery-flow/tokens"
 )
 
-func (h *Handlers) SessionsGet(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) AccountGet(w http.ResponseWriter, r *http.Request) {
 	svc := h.svc
 	log := svc.Logger
 
 	userID, ok := r.Context().Value(tokens.UserIDKey).(uuid.UUID)
 	if !ok {
 		log.Warn("UserID not found in context")
-		httpkit.RenderErr(w, problems.Unauthorized("User not authenticated"))
+		httpkit.RenderErr(w, problems.Unauthorized("Accounts not authenticated"))
 		return
 	}
 
-	sessions, err := svc.DB.Sessions.SelectByUserID(r, userID)
+	user, err := svc.DB.Accounts.GetByID(r, userID)
 	if err != nil {
-		log.Errorf("Failed to retrieve user sessions: %v", err)
+		log.Errorf("Failed to retrieve user: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
-
-	httpkit.Render(w, responses.SessionCollection(sessions))
+	httpkit.Render(w, responses.Account(*user))
 }

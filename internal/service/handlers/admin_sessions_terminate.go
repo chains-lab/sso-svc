@@ -44,7 +44,7 @@ func (h *Handlers) AdminSessionsTerminate(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	user, err := svc.SqlDB.Accounts.GetById(r, userID)
+	user, err := svc.DB.Accounts.GetByID(r, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())
@@ -68,7 +68,7 @@ func (h *Handlers) AdminSessionsTerminate(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err = svc.SqlDB.Sessions.TerminateSessions(r, userID, nil)
+	err = svc.DB.Sessions.Terminate(r, userID, nil)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())
@@ -78,6 +78,6 @@ func (h *Handlers) AdminSessionsTerminate(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	log.Infof("Session terminated for user %s by user %s", userID, initiatorID)
+	log.Infof("Sessions terminated for user %s by user %s", userID, initiatorID)
 	httpkit.Render(w, http.StatusOK)
 }

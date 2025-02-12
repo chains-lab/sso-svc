@@ -1,11 +1,11 @@
 package responses
 
 import (
-	"github.com/recovery-flow/sso-oauth/internal/data/sql/repositories/sqlcore"
+	"github.com/recovery-flow/sso-oauth/internal/data/models"
 	"github.com/recovery-flow/sso-oauth/resources"
 )
 
-func SessionCollection(sessions []sqlcore.Session) resources.SessionsCollection {
+func SessionCollection(sessions []models.Session) resources.SessionsCollection {
 	var data []resources.SessionData
 	for _, session := range sessions {
 		data = append(data, Session(session).Data)

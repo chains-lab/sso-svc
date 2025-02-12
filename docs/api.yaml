@@ -29,3 +29,5 @@ components:
       $ref: './spec/components/schemas/SessionAttributes.yaml'
     SessionsCollection:
       $ref: './spec/components/schemas/SessionsCollection.yaml'
+    Account:
+      $ref: './spec/components/schemas/Account.yaml'

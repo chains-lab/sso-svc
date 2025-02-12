@@ -56,21 +56,6 @@ func (q *Queries) DeleteSession(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
-const deleteUserSession = `-- name: DeleteUserSession :exec
-DELETE FROM sessions
-WHERE id = $1 AND user_id = $2
-`
-
-type DeleteUserSessionParams struct {
-	ID     uuid.UUID
-	UserID uuid.UUID
-}
-
-func (q *Queries) DeleteUserSession(ctx context.Context, arg DeleteUserSessionParams) error {
-	_, err := q.db.ExecContext(ctx, deleteUserSession, arg.ID, arg.UserID)
-	return err
-}
-
 const deleteUserSessions = `-- name: DeleteUserSessions :exec
 DELETE FROM sessions
 WHERE user_id = $1
@@ -99,23 +84,6 @@ func (q *Queries) GetSession(ctx context.Context, id uuid.UUID) (Session, error)
 		&i.LastUsed,
 	)
 	return i, err
-}
-
-const getSessionToken = `-- name: GetSessionToken :one
-SELECT token FROM sessions
-WHERE id = $1 AND user_id = $2
-`
-
-type GetSessionTokenParams struct {
-	ID     uuid.UUID
-	UserID uuid.UUID
-}
-
-func (q *Queries) GetSessionToken(ctx context.Context, arg GetSessionTokenParams) (string, error) {
-	row := q.db.QueryRowContext(ctx, getSessionToken, arg.ID, arg.UserID)
-	var token string
-	err := row.Scan(&token)
-	return token, err
 }
 
 const getSessionsByUserID = `-- name: GetSessionsByUserID :many
@@ -154,18 +122,30 @@ func (q *Queries) GetSessionsByUserID(ctx context.Context, userID uuid.UUID) ([]
 	return items, nil
 }
 
-const getUserSession = `-- name: GetUserSession :one
-SELECT id, user_id, token, client, ip, created_at, last_used FROM sessions
+const updateSessionToken = `-- name: UpdateSessionToken :one
+UPDATE sessions
+SET
+    token = $3,
+    IP = $4,
+    last_used = now()
 WHERE id = $1 AND user_id = $2
+RETURNING id, user_id, token, client, ip, created_at, last_used
 `
 
-type GetUserSessionParams struct {
+type UpdateSessionTokenParams struct {
 	ID     uuid.UUID
 	UserID uuid.UUID
+	Token  string
+	Ip     string
 }
 
-func (q *Queries) GetUserSession(ctx context.Context, arg GetUserSessionParams) (Session, error) {
-	row := q.db.QueryRowContext(ctx, getUserSession, arg.ID, arg.UserID)
+func (q *Queries) UpdateSessionToken(ctx context.Context, arg UpdateSessionTokenParams) (Session, error) {
+	row := q.db.QueryRowContext(ctx, updateSessionToken,
+		arg.ID,
+		arg.UserID,
+		arg.Token,
+		arg.Ip,
+	)
 	var i Session
 	err := row.Scan(
 		&i.ID,
@@ -177,30 +157,4 @@ func (q *Queries) GetUserSession(ctx context.Context, arg GetUserSessionParams) 
 		&i.LastUsed,
 	)
 	return i, err
-}
-
-const updateSessionToken = `-- name: UpdateSessionToken :exec
-UPDATE sessions
-SET
-    token = $3,
-    IP = $4,
-    last_used = now()
-WHERE id = $1 AND user_id = $2
-`
-
-type UpdateSessionTokenParams struct {
-	ID     uuid.UUID
-	UserID uuid.UUID
-	Token  string
-	Ip     string
-}
-
-func (q *Queries) UpdateSessionToken(ctx context.Context, arg UpdateSessionTokenParams) error {
-	_, err := q.db.ExecContext(ctx, updateSessionToken,
-		arg.ID,
-		arg.UserID,
-		arg.Token,
-		arg.Ip,
-	)
-	return err
 }

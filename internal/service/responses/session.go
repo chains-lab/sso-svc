@@ -1,11 +1,11 @@
 package responses
 
 import (
-	"github.com/recovery-flow/sso-oauth/internal/data/sql/repositories/sqlcore"
+	"github.com/recovery-flow/sso-oauth/internal/data/models"
 	"github.com/recovery-flow/sso-oauth/resources"
 )
 
-func Session(session sqlcore.Session) resources.Session {
+func Session(session models.Session) resources.Session {
 	return resources.Session{
 		Data: resources.SessionData{
 			Type: resources.UserSessionType,
@@ -13,7 +13,7 @@ func Session(session sqlcore.Session) resources.Session {
 			Attributes: resources.SessionAttributes{
 				UserId:    session.UserID.String(),
 				Client:    session.Client,
-				Ip:        session.Ip,
+				Ip:        session.IP,
 				CreatedAt: session.CreatedAt,
 				LastUsed:  session.LastUsed,
 			},

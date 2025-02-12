@@ -49,7 +49,7 @@ func (h *Handlers) LogSimple(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	account, err := svc.SqlDB.Accounts.GetByEmail(r, req.Email)
+	account, err := svc.DB.Accounts.GetByEmail(r, req.Email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			role, err := roles.StringToRoleUser(req.Role)
@@ -59,7 +59,7 @@ func (h *Handlers) LogSimple(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			account, err = svc.SqlDB.Accounts.Create(r, req.Email, role)
+			account, err = svc.DB.Accounts.Create(r, req.Email, role)
 			if err != nil {
 				log.Errorf("error creating user: %v", err)
 				httpkit.RenderErr(w, problems.InternalError())
@@ -101,7 +101,7 @@ func (h *Handlers) LogSimple(w http.ResponseWriter, r *http.Request) {
 
 	deviceID := uuid.New()
 
-	tokenAccess, tokenRefresh, err := sectools.GenerateTokens(*svc, account, deviceID)
+	tokenAccess, tokenRefresh, err := sectools.GenerateTokens(*svc, *account, deviceID)
 	if err != nil {
 		log.Errorf("error generating tokens: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
@@ -115,7 +115,7 @@ func (h *Handlers) LogSimple(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = svc.SqlDB.Sessions.Create(r, account.ID, deviceID, tokenCrypto)
+	_, err = svc.DB.Sessions.Create(r, account.ID, deviceID, tokenCrypto)
 	if err != nil {
 		log.Errorf("error creating session: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())

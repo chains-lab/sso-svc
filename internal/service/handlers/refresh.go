@@ -8,7 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
-	"github.com/recovery-flow/sso-oauth/internal/data/sql/sqlerr"
+	"github.com/recovery-flow/sso-oauth/internal/data/dbx/sql/repositories/sqlerr"
 	"github.com/recovery-flow/sso-oauth/internal/sectools"
 	"github.com/recovery-flow/sso-oauth/internal/service/requests"
 	"github.com/recovery-flow/sso-oauth/internal/service/responses"
@@ -58,13 +58,13 @@ func (h *Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
 	userID := userData.ID
 	sessionID := userData.DevID
 
-	user, err := svc.SqlDB.Accounts.GetById(r, userID)
+	user, err := svc.DB.Accounts.GetByID(r, userID)
 	if err != nil {
 		sqlerr.RenderSelectErr(w, log, err, "Failed to get user")
 		return
 	}
 
-	session, err := svc.SqlDB.Sessions.GetByID(r, sessionID)
+	session, err := svc.DB.Sessions.GetByID(r, sessionID)
 	if err != nil {
 		sqlerr.RenderSelectErr(w, log, err, "Failed to get session")
 		return
@@ -104,7 +104,7 @@ func (h *Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = svc.SqlDB.Sessions.UpdateToken(r, userID, encryptedToken)
+	_, err = svc.DB.Sessions.UpdateToken(r, userID, encryptedToken)
 	if err != nil {
 		sqlerr.RenderSelectErr(w, log, err, "Failed to update session token")
 		return

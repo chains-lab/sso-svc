@@ -3,13 +3,13 @@ package sql
 import (
 	"database/sql"
 
-	"github.com/recovery-flow/sso-oauth/internal/data/sql/repositories"
-	"github.com/recovery-flow/sso-oauth/internal/data/sql/repositories/sqlcore"
+	repositories2 "github.com/recovery-flow/sso-oauth/internal/data/dbx/sql/repositories"
+	"github.com/recovery-flow/sso-oauth/internal/data/dbx/sql/repositories/sqlcore"
 )
 
 type Repo struct {
-	Accounts repositories.Accounts
-	Sessions repositories.Sessions
+	Accounts repositories2.Accounts
+	Sessions repositories2.Sessions
 }
 
 func NewDBConnection(url string) (*sql.DB, error) {
@@ -32,7 +32,7 @@ func NewRepoSQL(url string) (*Repo, error) {
 	}
 	queries := sqlcore.New(db)
 	return &Repo{
-		Accounts: repositories.NewAccount(queries),
-		Sessions: repositories.NewSession(queries),
+		Accounts: repositories2.NewAccount(queries),
+		Sessions: repositories2.NewSession(queries),
 	}, nil
 }

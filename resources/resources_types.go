@@ -7,4 +7,5 @@ const (
 	RefreshTokenType = "refresh_token"
 	UserSessionsType = "user_sessions"
 	UserSessionType  = "user_session"
+	AccountType      = "account"
 )

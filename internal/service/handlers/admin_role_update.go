@@ -65,7 +65,7 @@ func (h *Handlers) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := svc.SqlDB.Accounts.GetById(r, updatedUserID)
+	user, err := svc.DB.Accounts.GetByID(r, updatedUserID)
 	if err != nil {
 		log.Errorf("Failed to get user: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
@@ -84,7 +84,7 @@ func (h *Handlers) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := svc.SqlDB.Accounts.UpdateRole(r, updatedUserID, updatedRole)
+	res, err := svc.DB.Accounts.UpdateRole(r, updatedUserID, updatedRole)
 	if err != nil {
 		log.Errorf("Failed to update role: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())

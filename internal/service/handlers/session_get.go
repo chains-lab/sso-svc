@@ -32,12 +32,18 @@ func (h *Handlers) SessionGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := svc.SqlDB.Sessions.GetSession(r, sessionID, userID)
+	session, err := svc.DB.Sessions.GetByID(r, sessionID)
 	if err != nil {
 		log.Errorf("Failed to retrieve user session: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	httpkit.Render(w, responses.Session(session))
+	if session.UserID != userID {
+		log.Debugf("Session doesn't belong to user")
+		httpkit.RenderErr(w, problems.Forbidden("Session doesn't belong to user"))
+		return
+	}
+
+	httpkit.Render(w, responses.Session(*session))
 }

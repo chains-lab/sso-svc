@@ -53,7 +53,7 @@ func (h *Handlers) AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if initiatorSessionID == sessionID {
-		log.Debugf("Session can't be current")
+		log.Debugf("Sessions can't be current")
 		httpkit.RenderErr(w, problems.BadRequest(errors.New("session can't be current"))...)
 		return
 	}
@@ -64,7 +64,7 @@ func (h *Handlers) AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := svc.SqlDB.Accounts.GetById(r, userID)
+	user, err := svc.DB.Accounts.GetByID(r, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())
@@ -88,7 +88,7 @@ func (h *Handlers) AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = svc.SqlDB.Sessions.Delete(r, sessionID, userID)
+	err = svc.DB.Sessions.Delete(r, sessionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())
@@ -106,13 +106,13 @@ func (h *Handlers) AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessions, err := svc.SqlDB.Sessions.GetSessions(r, userID)
+	sessions, err := svc.DB.Sessions.SelectByUserID(r, userID)
 	if err != nil {
 		log.Errorf("Failed to retrieve user sessions: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	log.Infof("Session Dleted %s for user %s by user %s", sessionID, userID, initiatorID)
+	log.Infof("Sessions Dleted %s for user %s by user %s", sessionID, userID, initiatorID)
 	httpkit.Render(w, responses.SessionCollection(sessions))
 }

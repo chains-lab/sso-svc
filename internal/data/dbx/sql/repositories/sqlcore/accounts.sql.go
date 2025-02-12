@@ -77,7 +77,8 @@ func (q *Queries) GetAccountByID(ctx context.Context, id uuid.UUID) (Account, er
 const updateAccountRole = `-- name: UpdateAccountRole :one
 UPDATE accounts SET
     role = $2
-WHERE id = $1 RETURNING id, email, role, created_at, updated_at
+WHERE id = $1
+RETURNING id, email, role, created_at, updated_at
 `
 
 type UpdateAccountRoleParams struct {

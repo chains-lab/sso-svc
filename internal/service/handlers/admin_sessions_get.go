@@ -24,7 +24,7 @@ func (h *Handlers) AdminSessionsGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessions, err := svc.SqlDB.Sessions.GetSessions(r, userID)
+	sessions, err := svc.DB.Sessions.SelectByUserID(r, userID)
 	if err != nil {
 		log.Errorf("Failed to retrieve user session: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())

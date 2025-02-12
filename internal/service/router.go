@@ -34,7 +34,9 @@ func Run(ctx context.Context, svc *config.Service) {
 
 			r.Route("/private", func(r chi.Router) {
 				r.Use(authMW)
-				r.Route("/user", func(r chi.Router) {
+				r.Route("/account", func(r chi.Router) {
+					r.Get("/", h.AccountGet)
+
 					r.Route("/sessions", func(r chi.Router) {
 						r.Route("/{session_id}", func(r chi.Router) {
 							r.Get("/", h.SessionGet)
@@ -50,7 +52,7 @@ func Run(ctx context.Context, svc *config.Service) {
 
 			r.Route("/admin", func(r chi.Router) {
 				r.Use(adminGrant)
-				r.Route("/{user_id}", func(r chi.Router) {
+				r.Route("/{account_id}", func(r chi.Router) {
 					r.Route("/sessions", func(r chi.Router) {
 						r.Route("/{session_id}", func(r chi.Router) {
 							r.Get("/", h.AdminSessionGet)

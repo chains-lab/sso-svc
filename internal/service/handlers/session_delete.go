@@ -38,12 +38,12 @@ func (h *Handlers) SessionDelete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sessionID == sessionForDeleteId {
-		log.Debugf("Session can't be current")
+		log.Debugf("Sessions can't be current")
 		httpkit.RenderErr(w, problems.BadRequest(errors.New("session can't be current"))...)
 		return
 	}
 
-	err = svc.SqlDB.Sessions.Delete(r, sessionForDeleteId, userID)
+	err = svc.DB.Sessions.Delete(r, sessionForDeleteId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())
@@ -61,7 +61,7 @@ func (h *Handlers) SessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessions, err := svc.SqlDB.Sessions.GetSessions(r, userID)
+	sessions, err := svc.DB.Sessions.SelectByUserID(r, userID)
 	if err != nil {
 		log.Errorf("Failed to retrieve user sessions: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())

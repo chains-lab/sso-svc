@@ -94,6 +94,13 @@ components:
       required:
       - data
       type: object
+    Account:
+      properties:
+        data:
+          $ref: '#/components/schemas/Account_data'
+      required:
+      - data
+      type: object
     TokensPair_data_attributes:
       properties:
         access_token:
@@ -174,11 +181,49 @@ components:
       properties:
         type:
           enum:
-          - users_session_collection
+          - users_sessions
           type: string
         attributes:
           $ref: '#/components/schemas/SessionsCollection_data_attributes'
       required:
       - attributes
+      - type
+      type: object
+    Account_data_attributes:
+      properties:
+        email:
+          description: Email
+          type: string
+        role:
+          description: Role
+          type: string
+        created_at:
+          description: Created At
+          format: date-time
+          type: string
+        updated_at:
+          description: Updated At
+          format: date-time
+          type: string
+      required:
+      - created_at
+      - email
+      - role
+      - updated_at
+      type: object
+    Account_data:
+      properties:
+        id:
+          description: Account ID
+          type: string
+        type:
+          enum:
+          - account
+          type: string
+        attributes:
+          $ref: '#/components/schemas/Account_data_attributes'
+      required:
+      - attributes
+      - id
       - type
       type: object

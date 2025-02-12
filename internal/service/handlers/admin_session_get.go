@@ -14,7 +14,7 @@ import (
 func (h *Handlers) AdminSessionGet(w http.ResponseWriter, r *http.Request) {
 	svc := h.svc
 	log := svc.Logger
-	
+
 	sessionID, err := uuid.Parse(chi.URLParam(r, "session_id"))
 	if err != nil {
 		log.Errorf("Failed to parse session_id: %v", err)
@@ -24,21 +24,12 @@ func (h *Handlers) AdminSessionGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := uuid.Parse(chi.URLParam(r, "user_id"))
-	if err != nil {
-		log.Errorf("Failed to parse user_id: %v", err)
-		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
-			"user_id": validation.NewError("user_id", "Invalid user_id"),
-		})...)
-		return
-	}
-
-	session, err := svc.SqlDB.Sessions.GetSession(r, sessionID, userID)
+	session, err := svc.DB.Sessions.GetByID(r, sessionID)
 	if err != nil {
 		log.Errorf("Failed to retrieve user session: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	httpkit.Render(w, responses.Session(session))
+	httpkit.Render(w, responses.Session(*session))
 }

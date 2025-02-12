@@ -29,7 +29,7 @@ func (h *Handlers) SessionsTerminate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessions, err := svc.SqlDB.Sessions.GetSessions(r, userID)
+	sessions, err := svc.DB.Sessions.SelectByUserID(r, userID)
 
 	for _, ses := range sessions {
 		err = svc.TokenManager.Bin.Add(userID.String(), ses.ID.String())
@@ -40,7 +40,7 @@ func (h *Handlers) SessionsTerminate(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = svc.SqlDB.Sessions.TerminateSessions(r, userID, &sessionID)
+	err = svc.DB.Sessions.Terminate(r, userID, &sessionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())
