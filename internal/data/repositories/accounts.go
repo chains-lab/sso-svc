@@ -14,6 +14,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const (
+	ttlAccounts = 15 * time.Minute
+)
+
 type Accounts interface {
 	Create(r *http.Request, email string, role roles.UserRole) (*models.Account, error)
 
@@ -49,7 +53,7 @@ func (a *accounts) Create(r *http.Request, email string, role roles.UserRole) (*
 		CreatedAt: acc.CreatedAt,
 		UpdatedAt: acc.UpdatedAt,
 	}
-	err = a.redis.Add(r.Context(), res, 15*time.Minute)
+	err = a.redis.Add(r.Context(), res, ttlAccounts)
 	if err != nil {
 		a.log.Errorf("error adding user to redis: %v", err)
 	}
@@ -80,7 +84,7 @@ func (a *accounts) GetByEmail(r *http.Request, email string) (*models.Account, e
 		UpdatedAt: acc.UpdatedAt,
 		CreatedAt: acc.CreatedAt,
 	}
-	err = a.redis.Add(r.Context(), res, 15*time.Minute)
+	err = a.redis.Add(r.Context(), res, ttlAccounts)
 	if err != nil {
 		a.log.Errorf("error adding user to redis: %v", err)
 	}
@@ -114,7 +118,7 @@ func (a *accounts) GetByID(r *http.Request, id uuid.UUID) (*models.Account, erro
 		UpdatedAt: acc.UpdatedAt,
 		CreatedAt: acc.CreatedAt,
 	}
-	err = a.redis.Add(r.Context(), res, 15*time.Minute)
+	err = a.redis.Add(r.Context(), res, ttlAccounts)
 	if err != nil {
 		a.log.Errorf("error adding user to redis: %v", err)
 	}
@@ -135,7 +139,7 @@ func (a *accounts) UpdateRole(r *http.Request, id uuid.UUID, role roles.UserRole
 		CreatedAt: acc.CreatedAt,
 		UpdatedAt: acc.UpdatedAt,
 	}
-	err = a.redis.Add(r.Context(), res, 15*time.Minute)
+	err = a.redis.Add(r.Context(), res, ttlAccounts)
 	if err != nil {
 		a.log.Errorf("error adding user to redis: %v", err)
 	}

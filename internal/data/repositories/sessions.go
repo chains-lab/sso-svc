@@ -13,6 +13,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const (
+	ttlSessions = 15 * time.Minute
+)
+
 type Sessions interface {
 	Create(r *http.Request, userID, sessionID uuid.UUID, token string) (*models.Session, error)
 
@@ -55,7 +59,7 @@ func (s *sessions) Create(r *http.Request, userID, sessionID uuid.UUID, token st
 		CreatedAt: session.CreatedAt,
 	}
 
-	err = s.redis.Add(r.Context(), res, 15*time.Minute)
+	err = s.redis.Add(r.Context(), res, ttlSessions)
 	if err != nil {
 		s.log.Errorf("error adding session to redis: %v", err)
 	}
@@ -88,7 +92,7 @@ func (s *sessions) GetByID(r *http.Request, sessionID uuid.UUID) (*models.Sessio
 		LastUsed:  session.LastUsed,
 		CreatedAt: session.CreatedAt,
 	}
-	err = s.redis.Add(r.Context(), res, 15*time.Minute)
+	err = s.redis.Add(r.Context(), res, ttlSessions)
 	if err != nil {
 		s.log.Errorf("error adding session to redis: %v", err)
 	}
@@ -125,7 +129,7 @@ func (s *sessions) SelectByUserID(r *http.Request, userID uuid.UUID) ([]models.S
 		}
 		res = append(res, curSes)
 
-		err = s.redis.Add(r.Context(), curSes, 15*time.Minute)
+		err = s.redis.Add(r.Context(), curSes, ttlSessions)
 		if err != nil {
 			s.log.Errorf("error adding session to redis: %v", err)
 		}
@@ -150,7 +154,7 @@ func (s *sessions) UpdateToken(r *http.Request, sessionID uuid.UUID, token strin
 		LastUsed:  ses.LastUsed,
 	}
 
-	err = s.redis.Add(r.Context(), res, 15*time.Minute)
+	err = s.redis.Add(r.Context(), res, ttlSessions)
 	if err != nil {
 		s.log.Errorf("error adding session to redis: %v", err)
 	}
