@@ -2,20 +2,20 @@ package data
 
 import (
 	"github.com/recovery-flow/sso-oauth/internal/config"
-	"github.com/recovery-flow/sso-oauth/internal/service/data/repositories"
+	"github.com/recovery-flow/sso-oauth/internal/service/data/dbx"
 )
 
 type Data struct {
-	Accounts repositories.Accounts
-	Sessions repositories.Sessions
+	Accounts dbx.Accounts
+	Sessions dbx.Sessions
 }
 
 func NewDataBase(cfg *config.Config) (*Data, error) {
-	acc, err := repositories.NewAccounts(cfg)
+	acc, err := dbx.NewAccounts(cfg)
 	if err != nil {
 		return nil, err
 	}
-	sess, err := repositories.NewSessions(cfg)
+	sess, err := dbx.NewSessions(cfg)
 	if err != nil {
 		return nil, err
 	}

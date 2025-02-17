@@ -14,7 +14,7 @@ import (
 	"github.com/recovery-flow/comtools/jsonkit"
 	"github.com/recovery-flow/rerabbit"
 	"github.com/recovery-flow/roles"
-	sectools2 "github.com/recovery-flow/sso-oauth/internal/service/domain/sectools"
+	"github.com/recovery-flow/sso-oauth/internal/service/domain/core/sectools"
 	"github.com/recovery-flow/sso-oauth/internal/service/transport/events/entities"
 	"github.com/recovery-flow/sso-oauth/internal/service/transport/rest/responses"
 )
@@ -102,14 +102,14 @@ func (h *Handlers) LoginSimple(w http.ResponseWriter, r *http.Request) {
 	deviceID := uuid.New()
 	devIdStr := deviceID.String()
 
-	tokenAccess, tokenRefresh, err := sectools2.GenerateUserPairTokens(svc, account, &devIdStr)
+	tokenAccess, tokenRefresh, err := tools.GenerateUserPairTokens(svc, account, &devIdStr)
 	if err != nil {
 		log.Errorf("error generating tokens: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	tokenCrypto, err := sectools2.EncryptToken(*tokenRefresh, svc.Config.JWT.RefreshToken.EncryptionKey)
+	tokenCrypto, err := tools.EncryptToken(*tokenRefresh, svc.Config.JWT.RefreshToken.EncryptionKey)
 	if err != nil {
 		log.Errorf("error encrypting token: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())

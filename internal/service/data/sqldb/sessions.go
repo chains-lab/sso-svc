@@ -1,29 +1,28 @@
 package sqldb
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
-	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/recovery-flow/comtools/httpkit"
-	"github.com/recovery-flow/sso-oauth/internal/service/data/dbx/sqldb/core"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
+	"github.com/recovery-flow/sso-oauth/internal/service/data/sqldb/core"
+	"github.com/recovery-flow/sso-oauth/internal/service/domain/core/models"
 )
 
 type Sessions interface {
-	Create(r *http.Request, userID uuid.UUID, deviceId uuid.UUID, token string) (*models.Session, error)
+	Create(ctx context.Context, session models.Session) (*models.Session, error)
 
-	GetByID(r *http.Request, id uuid.UUID) (*models.Session, error)
-	SelectByUserID(r *http.Request, userID uuid.UUID) ([]models.Session, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*models.Session, error)
+	SelectByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error)
 
-	UpdateToken(r *http.Request, id uuid.UUID, token string) (*models.Session, error)
+	UpdateToken(ctx context.Context, id uuid.UUID, token string, IP string) (*models.Session, error)
 
-	DeleteAll(r *http.Request, userID uuid.UUID) error
-	Delete(r *http.Request, id uuid.UUID) error
+	DeleteAll(ctx context.Context, userID uuid.UUID) error
+	Delete(ctx context.Context, id uuid.UUID) error
 
 	TerminateSessions(
-		r *http.Request,
+		ctx context.Context,
 		userId uuid.UUID,
 		curDevId *uuid.UUID,
 	) error
@@ -46,13 +45,13 @@ func NewSession(url string) (Sessions, error) {
 	return &sessions{queries: core.New(db)}, nil
 }
 
-func (s *sessions) Create(r *http.Request, userID uuid.UUID, deviceId uuid.UUID, token string) (*models.Session, error) {
-	res, err := s.queries.CreateSession(r.Context(), core.CreateSessionParams{
-		ID:     deviceId,
-		UserID: userID,
-		Token:  token,
-		Client: httpkit.GetUserAgent(r),
-		Ip:     httpkit.GetClientIP(r),
+func (s *sessions) Create(ctx context.Context, session models.Session) (*models.Session, error) {
+	res, err := s.queries.CreateSession(ctx, core.CreateSessionParams{
+		ID:     session.ID,
+		UserID: session.UserID,
+		Token:  session.Token,
+		Client: session.Client,
+		Ip:     session.IP,
 	})
 	if err != nil {
 		return nil, err
@@ -61,8 +60,8 @@ func (s *sessions) Create(r *http.Request, userID uuid.UUID, deviceId uuid.UUID,
 	return parseSession(res), nil
 }
 
-func (s *sessions) GetByID(r *http.Request, id uuid.UUID) (*models.Session, error) {
-	res, err := s.queries.GetSession(r.Context(), id)
+func (s *sessions) GetByID(ctx context.Context, id uuid.UUID) (*models.Session, error) {
+	res, err := s.queries.GetSession(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -70,8 +69,8 @@ func (s *sessions) GetByID(r *http.Request, id uuid.UUID) (*models.Session, erro
 	return parseSession(res), nil
 }
 
-func (s *sessions) SelectByUserID(r *http.Request, userID uuid.UUID) ([]models.Session, error) {
-	arr, err := s.queries.GetSessionsByUserID(r.Context(), userID)
+func (s *sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error) {
+	arr, err := s.queries.GetSessionsByUserID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -84,11 +83,11 @@ func (s *sessions) SelectByUserID(r *http.Request, userID uuid.UUID) ([]models.S
 	return res, nil
 }
 
-func (s *sessions) UpdateToken(r *http.Request, id uuid.UUID, token string) (*models.Session, error) {
-	res, err := s.queries.UpdateSessionToken(r.Context(), core.UpdateSessionTokenParams{
+func (s *sessions) UpdateToken(ctx context.Context, id uuid.UUID, token string, IP string) (*models.Session, error) {
+	res, err := s.queries.UpdateSessionToken(ctx, core.UpdateSessionTokenParams{
 		ID:    id,
 		Token: token,
-		Ip:    httpkit.GetClientIP(r),
+		Ip:    IP,
 	})
 	if err != nil {
 		return nil, err
@@ -98,11 +97,10 @@ func (s *sessions) UpdateToken(r *http.Request, id uuid.UUID, token string) (*mo
 }
 
 func (s *sessions) TerminateSessions(
-	r *http.Request,
+	ctx context.Context,
 	userId uuid.UUID,
 	curDevId *uuid.UUID,
 ) error {
-	ctx := r.Context()
 	queries, tx, err := s.queries.BeginTx(ctx)
 	if err != nil {
 		return err
@@ -144,12 +142,12 @@ func HandleTransactionRollback(tx *sql.Tx, originalErr error) error {
 	return originalErr
 }
 
-func (s *sessions) DeleteAll(r *http.Request, userID uuid.UUID) error {
-	return s.queries.DeleteUserSessions(r.Context(), userID)
+func (s *sessions) DeleteAll(ctx context.Context, userID uuid.UUID) error {
+	return s.queries.DeleteUserSessions(ctx, userID)
 }
 
-func (s *sessions) Delete(r *http.Request, id uuid.UUID) error {
-	return s.queries.DeleteSession(r.Context(), id)
+func (s *sessions) Delete(ctx context.Context, id uuid.UUID) error {
+	return s.queries.DeleteSession(ctx, id)
 }
 
 func parseSession(session core.Session) *models.Session {

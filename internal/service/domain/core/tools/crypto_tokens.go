@@ -1,4 +1,4 @@
-package sectools
+package tools
 
 import (
 	"crypto/aes"

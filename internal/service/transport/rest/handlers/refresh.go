@@ -9,8 +9,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/sectools"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/sqlerr"
+	"github.com/recovery-flow/sso-oauth/internal/service/domain/core/sectools"
+	"github.com/recovery-flow/sso-oauth/internal/service/domain/core/sqlerr"
 	"github.com/recovery-flow/sso-oauth/internal/service/transport/rest/requests"
 	"github.com/recovery-flow/sso-oauth/internal/service/transport/rest/responses"
 )
@@ -70,17 +70,17 @@ func (h *Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
 
 	user, err := svc.DB.Accounts.GetByID(r, userID)
 	if err != nil {
-		sqlerr.RenderSelectErr(w, log, err, "Failed to get user")
+		render.RenderSelectErr(w, log, err, "Failed to get user")
 		return
 	}
 
 	session, err := svc.DB.Sessions.GetByID(r, sessionID)
 	if err != nil {
-		sqlerr.RenderSelectErr(w, log, err, "Failed to get session")
+		render.RenderSelectErr(w, log, err, "Failed to get session")
 		return
 	}
 
-	decryptedToken, err := sectools.DecryptToken(session.Token, svc.Config.JWT.RefreshToken.EncryptionKey)
+	decryptedToken, err := tools.DecryptToken(session.Token, svc.Config.JWT.RefreshToken.EncryptionKey)
 	if err != nil {
 		log.Errorf("Failed to decrypt refresh token: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
@@ -122,7 +122,7 @@ func (h *Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	encryptedToken, err := sectools.EncryptToken(tokenRefresh, svc.Config.JWT.RefreshToken.EncryptionKey)
+	encryptedToken, err := tools.EncryptToken(tokenRefresh, svc.Config.JWT.RefreshToken.EncryptionKey)
 	if err != nil {
 		log.Errorf("Failed to encrypt refresh token: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
@@ -131,7 +131,7 @@ func (h *Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
 
 	_, err = svc.DB.Sessions.UpdateToken(r, userID, encryptedToken)
 	if err != nil {
-		sqlerr.RenderSelectErr(w, log, err, "Failed to update session token")
+		render.RenderSelectErr(w, log, err, "Failed to update session token")
 		return
 	}
 

@@ -1,7 +1,7 @@
 package responses
 
 import (
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
+	"github.com/recovery-flow/sso-oauth/internal/service/domain/core/models"
 	"github.com/recovery-flow/sso-oauth/resources"
 )
 

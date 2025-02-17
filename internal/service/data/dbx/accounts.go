@@ -1,16 +1,16 @@
-package repositories
+package dbx
 
 import (
+	"context"
 	"errors"
-	"net/http"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/recovery-flow/roles"
 	"github.com/recovery-flow/sso-oauth/internal/config"
-	"github.com/recovery-flow/sso-oauth/internal/service/data/dbx/cache"
-	"github.com/recovery-flow/sso-oauth/internal/service/data/dbx/sqldb"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
+	"github.com/recovery-flow/sso-oauth/internal/service/data/cache"
+	"github.com/recovery-flow/sso-oauth/internal/service/data/sqldb"
+	"github.com/recovery-flow/sso-oauth/internal/service/domain/core/models"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -19,12 +19,12 @@ const (
 )
 
 type Accounts interface {
-	Create(r *http.Request, email string, role roles.UserRole) (*models.Account, error)
+	Create(ctx context.Context, email string, role roles.UserRole) (*models.Account, error)
 
-	GetByID(r *http.Request, id uuid.UUID) (*models.Account, error)
-	GetByEmail(r *http.Request, email string) (*models.Account, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*models.Account, error)
+	GetByEmail(ctx context.Context, email string) (*models.Account, error)
 
-	UpdateRole(r *http.Request, id uuid.UUID, role roles.UserRole) (*models.Account, error)
+	UpdateRole(ctx context.Context, id uuid.UUID, role roles.UserRole) (*models.Account, error)
 }
 
 type accounts struct {
@@ -51,8 +51,8 @@ func NewAccounts(cfg *config.Config) (Accounts, error) {
 	}, nil
 }
 
-func (a *accounts) Create(r *http.Request, email string, role roles.UserRole) (*models.Account, error) {
-	acc, err := a.sql.Create(r, email, role)
+func (a *accounts) Create(ctx context.Context, email string, role roles.UserRole) (*models.Account, error) {
+	acc, err := a.sql.Create(ctx, email, role)
 	if err != nil {
 		return nil, err
 	}
@@ -64,13 +64,13 @@ func (a *accounts) Create(r *http.Request, email string, role roles.UserRole) (*
 		CreatedAt: acc.CreatedAt,
 		UpdatedAt: acc.UpdatedAt,
 	}
-	err = a.redis.Add(r.Context(), res, ttlAccounts)
+	err = a.redis.Add(ctx, res, ttlAccounts)
 
 	return &res, nil
 }
 
-func (a *accounts) GetByEmail(r *http.Request, email string) (*models.Account, error) {
-	user, err := a.redis.GetByEmail(r.Context(), email)
+func (a *accounts) GetByEmail(ctx context.Context, email string) (*models.Account, error) {
+	user, err := a.redis.GetByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			user = nil
@@ -82,7 +82,7 @@ func (a *accounts) GetByEmail(r *http.Request, email string) (*models.Account, e
 		return user, nil
 	}
 
-	acc, err := a.sql.GetByEmail(r, email)
+	acc, err := a.sql.GetByEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (a *accounts) GetByEmail(r *http.Request, email string) (*models.Account, e
 		UpdatedAt: acc.UpdatedAt,
 		CreatedAt: acc.CreatedAt,
 	}
-	err = a.redis.Add(r.Context(), res, ttlAccounts)
+	err = a.redis.Add(ctx, res, ttlAccounts)
 	if err != nil {
 		//todo error
 	}
@@ -101,8 +101,8 @@ func (a *accounts) GetByEmail(r *http.Request, email string) (*models.Account, e
 	return &res, nil
 }
 
-func (a *accounts) GetByID(r *http.Request, id uuid.UUID) (*models.Account, error) {
-	user, err := a.redis.GetByID(r.Context(), id.String())
+func (a *accounts) GetByID(ctx context.Context, id uuid.UUID) (*models.Account, error) {
+	user, err := a.redis.GetByID(ctx, id.String())
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			user = nil
@@ -116,7 +116,7 @@ func (a *accounts) GetByID(r *http.Request, id uuid.UUID) (*models.Account, erro
 		return user, nil
 	}
 
-	acc, err := a.sql.GetByID(r, id)
+	acc, err := a.sql.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (a *accounts) GetByID(r *http.Request, id uuid.UUID) (*models.Account, erro
 		UpdatedAt: acc.UpdatedAt,
 		CreatedAt: acc.CreatedAt,
 	}
-	err = a.redis.Add(r.Context(), res, ttlAccounts)
+	err = a.redis.Add(ctx, res, ttlAccounts)
 	if err != nil {
 		//todo error
 	}
@@ -135,8 +135,8 @@ func (a *accounts) GetByID(r *http.Request, id uuid.UUID) (*models.Account, erro
 	return &res, nil
 }
 
-func (a *accounts) UpdateRole(r *http.Request, id uuid.UUID, role roles.UserRole) (*models.Account, error) {
-	acc, err := a.sql.UpdateRole(r, id, role)
+func (a *accounts) UpdateRole(ctx context.Context, id uuid.UUID, role roles.UserRole) (*models.Account, error) {
+	acc, err := a.sql.UpdateRole(ctx, id, role)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func (a *accounts) UpdateRole(r *http.Request, id uuid.UUID, role roles.UserRole
 		CreatedAt: acc.CreatedAt,
 		UpdatedAt: acc.UpdatedAt,
 	}
-	err = a.redis.Add(r.Context(), res, ttlAccounts)
+	err = a.redis.Add(ctx, res, ttlAccounts)
 	if err != nil {
 		//todo error
 	}

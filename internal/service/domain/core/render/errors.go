@@ -1,4 +1,4 @@
-package sqlerr
+package render
 
 import (
 	"database/sql"

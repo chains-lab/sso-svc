@@ -1,8 +1,8 @@
-package sectools
+package tools
 
 import (
 	"github.com/recovery-flow/sso-oauth/internal/service"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
+	"github.com/recovery-flow/sso-oauth/internal/service/domain/core/models"
 )
 
 func GenerateUserPairTokens(svc *service.Service, account *models.Account, deviceID *string) (*string, *string, error) {

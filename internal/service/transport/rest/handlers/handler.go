@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"github.com/recovery-flow/sso-oauth/internal/service"
+	"github.com/recovery-flow/sso-oauth/internal/service/transport"
 )
 
 type Handlers struct {
-	svc *service.Service
+	svc *transport.Transport
 }
 
-func NewHandlers(svc *service.Service) *Handlers {
+func NewHandlers(svc *transport.Transport) *Handlers {
 	return &Handlers{svc: svc}
 }

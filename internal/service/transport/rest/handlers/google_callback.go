@@ -11,14 +11,12 @@ import (
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
 	"github.com/recovery-flow/rerabbit"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/sectools"
 	"github.com/recovery-flow/sso-oauth/internal/service/transport/events/entities"
 	"github.com/recovery-flow/sso-oauth/internal/service/transport/rest/responses"
 )
 
 func (h *Handlers) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	svc := h.svc
-	log := svc.Logger
 
 	code := r.URL.Query().Get("code")
 	if code == "" {
@@ -96,14 +94,14 @@ func (h *Handlers) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	deviceID := uuid.New()
 	devIdStr := deviceID.String()
 
-	tokenAccess, tokenRefresh, err := sectools.GenerateUserPairTokens(svc, account, &devIdStr)
+	tokenAccess, tokenRefresh, err := sectools2.GenerateUserPairTokens(svc, account, &devIdStr)
 	if err != nil {
 		log.Errorf("error generating tokens: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	tokenCrypto, err := sectools.EncryptToken(*tokenRefresh, svc.Config.JWT.RefreshToken.EncryptionKey)
+	tokenCrypto, err := sectools2.EncryptToken(*tokenRefresh, svc.Config.JWT.RefreshToken.EncryptionKey)
 	if err != nil {
 		log.Errorf("error encrypting token: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())

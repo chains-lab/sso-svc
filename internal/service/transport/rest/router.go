@@ -6,7 +6,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/roles"
-	"github.com/recovery-flow/sso-oauth/internal/service"
 	"github.com/recovery-flow/sso-oauth/internal/service/transport/rest/handlers"
 )
 
