@@ -67,6 +67,14 @@ github.com/recovery-flow/roles v0.0.3 h1:1M82ChPXB1Tm3E6+cKpESuP5afs4SZsfkdHnAAg
 github.com/recovery-flow/roles v0.0.3/go.mod h1:ubYw4AF6+txcT4hDJxvSREOqYER1LibwGcOABjkeSyk=
 github.com/recovery-flow/tokens v0.2.2 h1:PVyWMZ8AHP4pXYgZVfAyXoOTTfFtPdK+KFKTHuT9twA=
 github.com/recovery-flow/tokens v0.2.2/go.mod h1:AAMEtBpFCQWuNg58ijlAGWVjUbhX8JAgTphp9y9Pj2M=
+github.com/recovery-flow/tokens v0.3.0 h1:QcNsTtOA+X83a96DoDYJ422AdT5jCXMQjqSmYh9/3dE=
+github.com/recovery-flow/tokens v0.3.0/go.mod h1:46FnnGiqLXR+OliVJdDfS/y2+qdtWd2Y2rBumlB0D+o=
+github.com/recovery-flow/tokens v0.3.1 h1:1rXicEahXkvXU1f+eFyD1umzblgIEoOur5BnSOdud4c=
+github.com/recovery-flow/tokens v0.3.1/go.mod h1:46FnnGiqLXR+OliVJdDfS/y2+qdtWd2Y2rBumlB0D+o=
+github.com/recovery-flow/tokens v0.3.11 h1:sVomPf5bkKT5cNL7TFrLXgllqn8y2q2QfK2xenlRTa4=
+github.com/recovery-flow/tokens v0.3.11/go.mod h1:46FnnGiqLXR+OliVJdDfS/y2+qdtWd2Y2rBumlB0D+o=
+github.com/recovery-flow/tokens v0.3.12 h1:F5n8/Xh4s7wSkwX/w27dMWk/b8K9xuk1tWAzMAvtYCM=
+github.com/recovery-flow/tokens v0.3.12/go.mod h1:46FnnGiqLXR+OliVJdDfS/y2+qdtWd2Y2rBumlB0D+o=
 github.com/redis/go-redis/v9 v9.7.0 h1:HhLSs+B6O021gwzl+locl0zEDnyNkxMtf/Z3NNBMa9E=
 github.com/redis/go-redis/v9 v9.7.0/go.mod h1:f6zhXITC7JUJIlPEiBOTXxJgPLdZcA93GewI7inzyWw=
 github.com/rogpeppe/go-internal v1.9.0 h1:73kH8U+JUqXU8lRuOHeVHaa/SZPifC7BkcraZVejAe8=

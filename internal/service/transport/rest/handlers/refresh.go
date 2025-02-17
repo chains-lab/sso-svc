@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
 	"github.com/recovery-flow/sso-oauth/internal/service/domain/sectools"
@@ -43,7 +44,7 @@ func (h *Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
 
 	log.Debugf("Token received: %s", tokenString)
 
-	userData, err := svc.TokenManager.VerifyJWTAndExtractClaims(tokenString, svc.Config.JWT.AccessToken.SecretKey)
+	userData, err := svc.TokenManager.VerifyJWT(r.Context(), tokenString)
 	if err != nil && !errors.Is(err, jwt.ErrTokenExpired) {
 		log.Warnf("Token validation failed: %v", err)
 		httpkit.RenderErr(w, problems.Unauthorized())
@@ -55,8 +56,17 @@ func (h *Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := userData.ID
-	sessionID := userData.DevID
+	userID, err := uuid.Parse(userData.ID)
+	if err != nil {
+		httpkit.RenderErr(w, problems.BadRequest(err)...)
+		return
+	}
+
+	sessionID, err := uuid.Parse(*userData.SessionID)
+	if err != nil {
+		httpkit.RenderErr(w, problems.BadRequest(err)...)
+		return
+	}
 
 	user, err := svc.DB.Accounts.GetByID(r, userID)
 	if err != nil {
@@ -83,14 +93,29 @@ func (h *Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenAccess, err := svc.TokenManager.GenerateJWT(user.ID, sessionID, user.Role, svc.Config.JWT.AccessToken.TokenLifetime, svc.Config.JWT.AccessToken.SecretKey)
+	sesIDStr := sessionID.String()
+	tokenAccess, err := svc.TokenManager.GenerateJWT(
+		svc.Config.Server.Name,
+		userID.String(),
+		svc.Config.JWT.AccessToken.TokenLifetime,
+		nil,
+		&user.Role,
+		&sesIDStr,
+	)
 	if err != nil {
 		svc.Logger.Errorf("Error generating access token: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	tokenRefresh, err := svc.TokenManager.GenerateJWT(user.ID, sessionID, user.Role, svc.Config.JWT.RefreshToken.TokenLifetime, svc.Config.JWT.RefreshToken.SecretKey)
+	tokenRefresh, err := svc.TokenManager.GenerateJWT(
+		svc.Config.Server.Name,
+		userID.String(),
+		svc.Config.JWT.RefreshToken.TokenLifetime,
+		nil,
+		&user.Role,
+		&sesIDStr,
+	)
 	if err != nil {
 		svc.Logger.Errorf("Error generating refresh token: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())

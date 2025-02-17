@@ -1,21 +1,34 @@
 package sectools
 
 import (
-	"github.com/google/uuid"
 	"github.com/recovery-flow/sso-oauth/internal/service"
 	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
 )
 
-func GenerateTokens(service service.Service, account models.Account, deviceID uuid.UUID) (tokenAccess string, tokenRefresh string, err error) {
-	tokenAccess, err = service.TokenManager.GenerateJWT(account.ID, deviceID, account.Role, service.Config.JWT.AccessToken.TokenLifetime, service.Config.JWT.AccessToken.SecretKey)
+func GenerateUserPairTokens(svc *service.Service, account *models.Account, deviceID *string) (*string, *string, error) {
+	tokenAccess, err := svc.TokenManager.GenerateJWT(
+		svc.Config.Server.Name,
+		account.ID.String(),
+		svc.Config.JWT.AccessToken.TokenLifetime,
+		nil,
+		&account.Role,
+		deviceID,
+	)
 	if err != nil {
-		return "", "", err
+		return nil, nil, err
 	}
 
-	tokenRefresh, err = service.TokenManager.GenerateJWT(account.ID, deviceID, account.Role, service.Config.JWT.RefreshToken.TokenLifetime, service.Config.JWT.RefreshToken.SecretKey)
+	tokenRefresh, err := svc.TokenManager.GenerateJWT(
+		svc.Config.Server.Name,
+		account.ID.String(),
+		svc.Config.JWT.RefreshToken.TokenLifetime,
+		nil,
+		&account.Role,
+		deviceID,
+	)
 	if err != nil {
-		return "", "", err
+		return nil, nil, err
 	}
 
-	return tokenAccess, tokenRefresh, nil
+	return &tokenAccess, &tokenRefresh, nil
 }

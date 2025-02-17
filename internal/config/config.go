@@ -10,6 +10,7 @@ import (
 )
 
 type ServerConfig struct {
+	Name     string `mapstructure:"name"`
 	Port     string `mapstructure:"port"`
 	BasePath string `mapstructure:"base_path"`
 	TestMode bool   `mapstructure:"test_mode"`
@@ -50,6 +51,12 @@ type JWTConfig struct {
 		EncryptionKey string        `mapstructure:"encryption_key"`
 		TokenLifetime time.Duration `mapstructure:"token_lifetime"`
 	} `mapstructure:"refresh_token"`
+	Bin struct {
+		Addr     string `mapstructure:"addr"`
+		Password string `mapstructure:"password"`
+		DB       int    `mapstructure:"db"`
+		Lifetime int    `mapstructure:"lifetime"`
+	} `mapstructure:"bin"`
 }
 
 type RabbitConfig struct {

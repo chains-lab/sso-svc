@@ -54,7 +54,7 @@ func (h *Handlers) SessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = svc.TokenManager.Bin.Add(userID.String(), sessionForDeleteId.String())
+	err = svc.TokenManager.AddToBlackList(r.Context(), userID.String(), sessionForDeleteId.String())
 	if err != nil {
 		log.Errorf("Failed to add token to bin: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())

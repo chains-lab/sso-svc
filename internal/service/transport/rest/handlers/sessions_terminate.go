@@ -32,7 +32,7 @@ func (h *Handlers) SessionsTerminate(w http.ResponseWriter, r *http.Request) {
 	sessions, err := svc.DB.Sessions.SelectByUserID(r, userID)
 
 	for _, ses := range sessions {
-		err = svc.TokenManager.Bin.Add(userID.String(), ses.ID.String())
+		err = svc.TokenManager.AddToBlackList(r.Context(), userID.String(), ses.ID.String())
 		if err != nil {
 			log.Errorf("Failed to add token to bin: %v", err)
 			httpkit.RenderErr(w, problems.InternalError())

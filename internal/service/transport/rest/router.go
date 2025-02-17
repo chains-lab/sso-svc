@@ -14,8 +14,8 @@ func Run(ctx context.Context, svc *service.Service) {
 	r := chi.NewRouter()
 	h := handlers.NewHandlers(svc)
 
-	authMW := svc.TokenManager.AuthMdl(svc.Config.JWT.AccessToken.SecretKey)
-	adminGrant := svc.TokenManager.RoleGrant(svc.Config.JWT.AccessToken.SecretKey, string(roles.RoleUserAdmin), string(roles.RoleUserSuperAdmin))
+	authMW := svc.TokenManager.AuthMdl(ctx)
+	adminGrant := svc.TokenManager.RoleMdl(ctx, string(roles.RoleUserAdmin), string(roles.RoleUserSuperAdmin))
 
 	r.Route("/sso", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {

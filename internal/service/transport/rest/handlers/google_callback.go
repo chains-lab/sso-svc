@@ -11,7 +11,7 @@ import (
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
 	"github.com/recovery-flow/rerabbit"
-	sectools2 "github.com/recovery-flow/sso-oauth/internal/service/domain/sectools"
+	"github.com/recovery-flow/sso-oauth/internal/service/domain/sectools"
 	"github.com/recovery-flow/sso-oauth/internal/service/transport/events/entities"
 	"github.com/recovery-flow/sso-oauth/internal/service/transport/rest/responses"
 )
@@ -94,15 +94,16 @@ func (h *Handlers) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	deviceID := uuid.New()
+	devIdStr := deviceID.String()
 
-	tokenAccess, tokenRefresh, err := sectools2.GenerateTokens(*svc, *account, deviceID)
+	tokenAccess, tokenRefresh, err := sectools.GenerateUserPairTokens(svc, account, &devIdStr)
 	if err != nil {
 		log.Errorf("error generating tokens: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	tokenCrypto, err := sectools2.EncryptToken(tokenRefresh, svc.Config.JWT.RefreshToken.EncryptionKey)
+	tokenCrypto, err := sectools.EncryptToken(*tokenRefresh, svc.Config.JWT.RefreshToken.EncryptionKey)
 	if err != nil {
 		log.Errorf("error encrypting token: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
@@ -116,5 +117,5 @@ func (h *Handlers) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpkit.Render(w, responses.TokensPair(tokenAccess, tokenRefresh))
+	httpkit.Render(w, responses.TokensPair(*tokenAccess, *tokenRefresh))
 }
