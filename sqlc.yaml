@@ -1,9 +1,9 @@
 version: "2"
 sql:
-  - schema:  internal/data/dbx/sql/migrations
-    queries: internal/data/dbx/sql/query
+  - schema:  internal/service/data/dbx/sqldb/migrations
+    queries: internal/service/data/dbx/sqldb/query
     engine: postgresql
     gen:
       go:
-        package: sqlcore
-        out: internal/data/dbx/sql/repositories/sqlcore
+        package: core
+        out: internal/service/data/dbx/sqldb/core

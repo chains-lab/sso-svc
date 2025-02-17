@@ -9,7 +9,9 @@ import (
 	"syscall"
 
 	"github.com/alecthomas/kingpin"
+	"github.com/recovery-flow/comtools/logkit"
 	"github.com/recovery-flow/sso-oauth/internal/config"
+	"github.com/recovery-flow/sso-oauth/internal/service"
 )
 
 func Run(args []string) bool {
@@ -18,7 +20,7 @@ func Run(args []string) bool {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
-	logger := config.SetupLogger(cfg.Logging.Level, cfg.Logging.Format)
+	logger := logkit.SetupLogger(cfg.Server.Log.Level, cfg.Server.Log.Format)
 	logger.Info("Starting server...")
 
 	var (
@@ -33,12 +35,11 @@ func Run(args []string) bool {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	service, err := config.NewService(cfg)
+	srv, err := service.NewService(cfg, logger)
 	if err != nil {
 		logger.Fatalf("failed to create server: %v", err)
 		return false
 	}
-	//ctx = cifractx.WithValue(ctx, config.SERVICE, service)
 
 	var wg sync.WaitGroup
 
@@ -50,7 +51,7 @@ func Run(args []string) bool {
 
 	switch cmd {
 	case serviceCmd.FullCommand():
-		runServices(ctx, &wg, service)
+		runServices(ctx, &wg, srv)
 	case migrateUpCmd.FullCommand():
 		err = MigrateUp(ctx)
 	case migrateDownCmd.FullCommand():

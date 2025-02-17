@@ -5,15 +5,17 @@ go 1.23.4
 require (
 	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/go-chi/chi v1.5.5
+	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
 	github.com/pkg/errors v0.9.1
-	github.com/recovery-flow/comtools v0.0.53
+	github.com/recovery-flow/comtools v0.1.0
 	github.com/recovery-flow/rerabbit v0.1.1
 	github.com/recovery-flow/roles v0.0.3
 	github.com/recovery-flow/tokens v0.2.2
+	github.com/redis/go-redis/v9 v9.7.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.19.0
 	golang.org/x/oauth2 v0.25.0
@@ -31,7 +33,6 @@ require (
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
-	github.com/redis/go-redis/v9 v9.7.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect

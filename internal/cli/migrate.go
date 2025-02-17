@@ -6,12 +6,13 @@ import (
 	"os/exec"
 
 	"github.com/recovery-flow/comtools/cifractx"
-	"github.com/recovery-flow/sso-oauth/internal/config"
+	"github.com/recovery-flow/sso-oauth/internal/service"
 	"github.com/sirupsen/logrus"
 )
 
+// TODO FIX NOT WORKING
 func runMigration(ctx context.Context, direction string) error {
-	service, err := cifractx.GetValue[*config.Service](ctx, config.SERVICE)
+	service, err := cifractx.GetValue[*service.Service](ctx, "TODO")
 	if err != nil {
 		return fmt.Errorf("failed to get server from context: %v", err)
 	}
@@ -19,7 +20,7 @@ func runMigration(ctx context.Context, direction string) error {
 	cmd := exec.Command(
 		"migrate",
 		"-path", "internal/data/sql/repositories/migrations",
-		"-database", service.Config.Database.URL,
+		"-database", service.Config.Database.SQL.URL,
 		"-verbose", direction,
 	)
 

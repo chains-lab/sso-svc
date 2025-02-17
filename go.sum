@@ -26,6 +26,8 @@ github.com/fsnotify/fsnotify v1.7.0 h1:8JEhPFa5W2WU7YfeZzPNqzMP6Lwt7L2715Ggo0nos
 github.com/fsnotify/fsnotify v1.7.0/go.mod h1:40Bi/Hjc2AVfZrqy+aj+yEI+/bRxZnMJyTJwOpGvigM=
 github.com/go-chi/chi v1.5.5 h1:vOB/HbEMt9QqBqErz07QehcOKHaWFtuj87tTDVz2qXE=
 github.com/go-chi/chi v1.5.5/go.mod h1:C9JqLr3tIYjDOZpzn+BCuxY8z8vmca43EeMgyZt7irw=
+github.com/go-chi/chi/v5 v5.2.1 h1:KOIHODQj58PmL80G2Eak4WdvUzjSJSm0vG72crDCqb8=
+github.com/go-chi/chi/v5 v5.2.1/go.mod h1:L2yAIGWB3H+phAw1NxKwWM+7eUH/lU8pOMm5hHcoops=
 github.com/go-ozzo/ozzo-validation/v4 v4.3.0 h1:byhDUpfEwjsVQb1vBunvIjh2BHQ9ead57VkAEY4V+Es=
 github.com/go-ozzo/ozzo-validation/v4 v4.3.0/go.mod h1:2NKgrcHl3z6cJs+3Oo940FPRiTzuqKbvfrL2RxCj6Ew=
 github.com/golang-jwt/jwt/v5 v5.2.1 h1:OuVbFODueb089Lh128TAcimifWaLhJwVflnrgM17wHk=
@@ -57,8 +59,8 @@ github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 h1:Jamvg5psRI
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/recovery-flow/comtools v0.0.53 h1:k/8gV9sOu78E5UAMmcJ9m83wUXFA3OSFP/d9F+j6hXU=
 github.com/recovery-flow/comtools v0.0.53/go.mod h1:D6bETGGIlML4oHMvL40qkFYB6hmyn0Zc1b/i9cw5CMc=
-github.com/recovery-flow/rerabbit v0.1.0 h1:ACMan1//6+WN3NLrNbNjYekWxjXw+AwA4IOFevShnY0=
-github.com/recovery-flow/rerabbit v0.1.0/go.mod h1:SSAO2aK2mH27ib1n0PiJH0YBbQq4JtWMLVxYsoGUw94=
+github.com/recovery-flow/comtools v0.1.0 h1:auJbXQ8SyRF1e8M/wnpWdXShnojZxM8W8iREZY3nQII=
+github.com/recovery-flow/comtools v0.1.0/go.mod h1:D6bETGGIlML4oHMvL40qkFYB6hmyn0Zc1b/i9cw5CMc=
 github.com/recovery-flow/rerabbit v0.1.1 h1:jVhvv3KKnLepA305HXxRiWFoAs2PlNJ5GeAei6ZULcQ=
 github.com/recovery-flow/rerabbit v0.1.1/go.mod h1:SSAO2aK2mH27ib1n0PiJH0YBbQq4JtWMLVxYsoGUw94=
 github.com/recovery-flow/roles v0.0.3 h1:1M82ChPXB1Tm3E6+cKpESuP5afs4SZsfkdHnAAghlNw=

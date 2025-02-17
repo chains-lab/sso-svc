@@ -9,13 +9,27 @@ import (
 	"github.com/spf13/viper"
 )
 
-type DatabaseConfig struct {
-	URL string `mapstructure:"url"`
-}
-
 type ServerConfig struct {
 	Port     string `mapstructure:"port"`
 	BasePath string `mapstructure:"base_path"`
+	TestMode bool   `mapstructure:"test_mode"`
+	Log      struct {
+		Level  string `mapstructure:"level"`
+		Format string `mapstructure:"format"`
+	} `mapstructure:"logging"`
+}
+
+type DatabaseConfig struct {
+	SQL struct {
+		URL string `mapstructure:"url"`
+	} `mapstructure:"sql"`
+
+	Redis struct {
+		Addr     string `mapstructure:"addr"`
+		Password string `mapstructure:"password"`
+		DB       int    `mapstructure:"db"`
+		Lifetime int    `mapstructure:"lifetime"`
+	} `mapstructure:"redis"`
 }
 
 type OAuthConfig struct {
@@ -38,25 +52,11 @@ type JWTConfig struct {
 	} `mapstructure:"refresh_token"`
 }
 
-type RabbitMQConfig struct {
+type RabbitConfig struct {
 	URL      string `mapstructure:"url"`
 	User     string `mapstructure:"user"`
 	Password string `mapstructure:"password"`
 	Exchange string `mapstructure:"exchange"`
-}
-
-type LoggingConfig struct {
-	Level  string `mapstructure:"level"`
-	Format string `mapstructure:"format"`
-}
-
-type EmailConfig struct {
-	Password string `mapstructure:"password"`
-	Address  string `mapstructure:"address"`
-	SmtpHost string `mapstructure:"smtp_host"`
-	SmtpPort string `mapstructure:"smtp_port"`
-	Key      string `mapstructure:"key"`
-	Off      bool   `mapstructure:"off"`
 }
 
 type SwaggerConfig struct {
@@ -65,29 +65,13 @@ type SwaggerConfig struct {
 	Port    string `mapstructure:"port"`
 }
 
-type CORSConfig struct {
-	AllowedOrigins []string `mapstructure:"allowed_origins"`
-	AllowedMethods []string `mapstructure:"allowed_methods"`
-	AllowedHeaders []string `mapstructure:"allowed_headers"`
-}
-
-type RedisConfig struct {
-	Addr     string `mapstructure:"addr"`
-	Password string `mapstructure:"password"`
-	DB       int    `mapstructure:"db"`
-}
-
 type Config struct {
-	Database DatabaseConfig `mapstructure:"database"`
 	Server   ServerConfig   `mapstructure:"server"`
-	Rabbit   RabbitMQConfig `mapstructure:"rabbit"`
-	OAuth    OAuthConfig    `mapstructure:"oauth"`
 	JWT      JWTConfig      `mapstructure:"jwt"`
-	Logging  LoggingConfig  `mapstructure:"logging"`
-	Email    EmailConfig    `mapstructure:"email"`
+	OAuth    OAuthConfig    `mapstructure:"oauth"`
+	Rabbit   RabbitConfig   `mapstructure:"rabbit"`
+	Database DatabaseConfig `mapstructure:"database"`
 	Swagger  SwaggerConfig  `mapstructure:"swagger"`
-	CORS     CORSConfig     `mapstructure:"cors"`
-	Redis    RedisConfig    `mapstructure:"redis"`
 }
 
 func LoadConfig() (*Config, error) {
