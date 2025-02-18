@@ -2,32 +2,22 @@ package domain
 
 import (
 	"github.com/recovery-flow/sso-oauth/internal/config"
-	"github.com/recovery-flow/sso-oauth/internal/service/data"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/account"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/session"
+	"github.com/recovery-flow/sso-oauth/internal/service/domain/entities"
 	"github.com/sirupsen/logrus"
 )
 
 type Domain struct {
-	Log  *logrus.Logger
-	Data *data.Data
-
-	Session session.Session
-	Account account.Account
+	Log     *logrus.Logger
+	Session entities.Session
+	Account entities.Account
 }
 
 func NewDomain(cfg *config.Config, logger *logrus.Logger) (*Domain, error) {
-	DB, err := data.NewDataBase(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	acc := account.NewAccount(DB.Accounts, logger)
-	ses := session.NewSession(DB.Sessions, logger)
+	acc := entities.NewAccount(DB.Accounts, logger)
+	ses := entities.NewSession(DB.Sessions, logger)
 
 	return &Domain{
 		Log:     logger,
-		Data:    DB,
 		Session: ses,
 		Account: acc,
 	}, err

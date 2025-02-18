@@ -4,11 +4,11 @@ import (
 	"context"
 	"sync"
 
-	"github.com/recovery-flow/sso-oauth/internal/service"
-	"github.com/recovery-flow/sso-oauth/internal/service/transport/rest"
+	"github.com/recovery-flow/sso-oauth/internal/service/transport"
+	"github.com/recovery-flow/sso-oauth/internal/service/transport/handlers"
 )
 
-func runServices(ctx context.Context, wg *sync.WaitGroup, srv *service.Service) {
+func runServices(ctx context.Context, wg *sync.WaitGroup, srv *handlers.Handler) {
 	var (
 	// signals indicate the finished initialization of each worker
 	)
@@ -21,5 +21,5 @@ func runServices(ctx context.Context, wg *sync.WaitGroup, srv *service.Service) 
 		}()
 	}
 
-	run(func() { rest.Run(ctx, srv) })
+	run(func() { transport.Run(ctx, srv) })
 }

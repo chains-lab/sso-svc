@@ -31,7 +31,7 @@ func EncryptToken(token, secretKey string) (string, error) {
 }
 
 // DecryptToken дешифрует токен с использованием AES-GCM.
-func DecryptToken(encryptedToken, secretKey string) (string, error) {
+func xDecryptToken(encryptedToken, secretKey string) (string, error) {
 	ciphertext, err := hex.DecodeString(encryptedToken)
 	if err != nil {
 		return "", err
