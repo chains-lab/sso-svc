@@ -13,9 +13,13 @@ import (
 	"github.com/recovery-flow/tokens"
 )
 
-func (h *Handler) SessionDelete(w http.ResponseWriter, r *http.Request) {
-	svc := h.svc
-	log := svc.Logger
+func (a *App) SessionDelete(w http.ResponseWriter, r *http.Request) {
+	accountID, sessionID, _, err := tokens.GetAccountData(r.Context())
+	if err != nil {
+		a.Log.Warnf("Unauthorized session delete attempt: %v", err)
+		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
+		return
+	}
 
 	sessionForDeleteId, err := uuid.Parse(chi.URLParam(r, "session_id"))
 	if err != nil {
@@ -23,47 +27,26 @@ func (h *Handler) SessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionID, ok := r.Context().Value(tokens.DeviceIDKey).(uuid.UUID)
-	if !ok {
-		log.Warn("SessionID not found in context")
-		httpkit.RenderErr(w, problems.InternalError())
-		return
-	}
-
-	userID, ok := r.Context().Value(tokens.UserIDKey).(uuid.UUID)
-	if !ok {
-		log.Warn("UserID not found in context")
-		httpkit.RenderErr(w, problems.InternalError())
-		return
-	}
-
-	if sessionID == sessionForDeleteId {
-		log.Debugf("Sessions can't be current")
+	if sessionID.String() == sessionForDeleteId.String() {
+		a.Log.Debugf("Sessions can't be current")
 		httpkit.RenderErr(w, problems.BadRequest(errors.New("session can't be current"))...)
 		return
 	}
 
-	err = svc.DB.Sessions.Delete(r, sessionForDeleteId)
+	err = a.Domain.SessionDelete(r.Context(), sessionForDeleteId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())
 			return
 		}
-		log.Errorf("Failed to delete device: %v", err)
+		a.Log.Errorf("Failed to delete device: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	err = svc.TokenManager.AddToBlackList(r.Context(), userID.String(), sessionForDeleteId.String())
+	sessions, err := a.Domain.SessionsListByUser(r.Context(), *accountID)
 	if err != nil {
-		log.Errorf("Failed to add token to bin: %v", err)
-		httpkit.RenderErr(w, problems.InternalError())
-		return
-	}
-
-	sessions, err := svc.DB.Sessions.SelectByUserID(r, userID)
-	if err != nil {
-		log.Errorf("Failed to retrieve user sessions: %v", err)
+		a.Log.Errorf("Failed to retrieve user sessions: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}

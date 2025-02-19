@@ -12,7 +12,7 @@ func Account(account models.Account) resources.Account {
 			Type: resources.AccountType,
 			Attributes: resources.AccountDataAttributes{
 				Email:     account.Email,
-				Role:      account.Role,
+				Role:      string(account.Role),
 				UpdatedAt: account.UpdatedAt,
 				CreatedAt: account.CreatedAt,
 			},

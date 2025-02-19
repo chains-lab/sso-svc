@@ -1,33 +1,22 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/google/uuid"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
-	"github.com/recovery-flow/rerabbit"
 	"github.com/recovery-flow/roles"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/events/entities"
 	"github.com/recovery-flow/tokens"
 )
 
-func (h Handler) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
-	svc := h.svc
-
-	initiatorID, ok := r.Context().Value(tokens.UserIDKey).(uuid.UUID)
-	if !ok {
-		httpkit.RenderErr(w, problems.Unauthorized("User not authenticated"))
-		return
-	}
-
-	InitiatorRoleStr, ok := r.Context().Value(tokens.RoleKey).(string)
-	if !ok {
-		httpkit.RenderErr(w, problems.InternalError())
+func (a *App) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
+	initiatorID, _, InitiatorRole, err := tokens.GetAccountData(r.Context())
+	if err != nil {
+		a.Log.Warnf("Unauthorized role update attempt: %v", err)
+		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
 		return
 	}
 
@@ -39,71 +28,39 @@ func (h Handler) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedRole, err := roles.StringToRoleUser(chi.URLParam(r, "role"))
+	updatedRole, err := roles.ParseUserRole(chi.URLParam(r, "role"))
 	if err != nil {
-		log.Errorf("Failed to parse role: %v", err)
 		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
 			"role": validation.NewError("role", "invalid role"),
 		})...)
-		return
 	}
 
-	if roles.CompareRolesUser(InitiatorRole, updatedRole) != 1 {
-		log.Warn("User can't update role to higher level than his own")
+	if roles.CompareRolesUser(*InitiatorRole, updatedRole) != 1 {
+		a.Log.Warn("User can't update role to higher level than his own")
 		httpkit.RenderErr(w, problems.Forbidden("User can't update role to higher level"))
 		return
 	}
 
-	user, err := svc.DB.Accounts.GetByID(r, updatedUserID)
+	user, err := a.Domain.AccountGet(r.Context(), updatedUserID)
 	if err != nil {
-		log.Errorf("Failed to get user: %v", err)
+		a.Log.Errorf("Failed to get user: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	userRole, err := roles.StringToRoleUser(user.Role)
-	if err != nil {
-		log.Errorf("Failed to parse user role: %v", err)
-		httpkit.RenderErr(w, problems.InternalError())
-		return
-	}
-	if roles.CompareRolesUser(InitiatorRole, userRole) == -1 {
-		log.Warn("User can't update role of user with higher role than his own")
+	if roles.CompareRolesUser(*InitiatorRole, user.Role) == -1 {
+		a.Log.Warn("User can't update role of user with higher role than his own")
 		httpkit.RenderErr(w, problems.Forbidden("User can't update role of user with higher role"))
 		return
 	}
 
-	res, err := svc.DB.Accounts.UpdateRole(r, updatedUserID, updatedRole)
+	_, err = a.Domain.AccountUpdateRole(r.Context(), updatedUserID, string(updatedRole))
 	if err != nil {
-		log.Errorf("Failed to update role: %v", err)
+		a.Log.Errorf("Failed to update role: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	event := entities.RoleUpdated{
-		Event:     "RoleUpdated",
-		UserID:    res.ID.String(),
-		Role:      res.Role,
-		Timestamp: time.Now().UTC(),
-	}
-
-	body, err := json.Marshal(event)
-	if err != nil {
-		log.Errorf("error serializing event: %v", err)
-		httpkit.RenderErr(w, problems.InternalError())
-		return
-	}
-
-	err = svc.Rabbit.PublishJSON(r.Context(), body, rerabbit.PublishOptions{
-		Exchange:   "re-news.sso",
-		RoutingKey: "account.role_updated",
-	})
-	if err != nil {
-		log.Errorf("error publishing event: %v", err)
-		httpkit.RenderErr(w, problems.InternalError())
-		return
-	}
-
-	log.Infof("Role updated for user %s to %s by user %s", updatedUserID, updatedRole, initiatorID)
+	a.Log.Infof("Role updated for user %s to %s by user %s", updatedUserID, updatedRole, initiatorID)
 	httpkit.Render(w, http.StatusOK)
 }

@@ -13,30 +13,8 @@ import (
 	"github.com/recovery-flow/tokens"
 )
 
-func (h *Handler) AdminSessionsTerminate(w http.ResponseWriter, r *http.Request) {
-	svc := h.svc
-	log := svc.Logger
-
-	initiatorID, ok := r.Context().Value(tokens.UserIDKey).(uuid.UUID)
-	if !ok {
-		log.Warn("UserID not found in context")
-		httpkit.RenderErr(w, problems.InternalError())
-		return
-	}
-
-	InitiatorRoleStr, ok := r.Context().Value(tokens.RoleKey).(string)
-	if !ok {
-		log.Warn("Role not found in context")
-		httpkit.RenderErr(w, problems.InternalError())
-		return
-	}
-
-	InitiatorRole, err := roles.StringToRoleUser(InitiatorRoleStr)
-	if err != nil {
-		log.Errorf("Failed to parse Initiator updatedRole: %v", err)
-		httpkit.RenderErr(w, problems.InternalError())
-		return
-	}
+func (a *App) AdminSessionsTerminate(w http.ResponseWriter, r *http.Request) {
+	initiatorID, _, InitiatorRole, err := tokens.GetAccountData(r.Context())
 
 	userID, err := uuid.Parse(chi.URLParam(r, "user_id"))
 	if err != nil {
@@ -44,31 +22,24 @@ func (h *Handler) AdminSessionsTerminate(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	user, err := svc.DB.Accounts.GetByID(r, userID)
+	account, err := a.Domain.AccountGet(r.Context(), userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())
 			return
 		}
-		log.Errorf("Failed to retrieve user: %v", err)
+		a.Log.Errorf("Failed to retrieve account: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	userRole, err := roles.StringToRoleUser(user.Role)
-	if err != nil {
-		log.Errorf("Failed to parse user role: %v", err)
-		httpkit.RenderErr(w, problems.InternalError())
+	if roles.CompareRolesUser(*InitiatorRole, account.Role) == -1 {
+		a.Log.Warn("User can't terminate sessions of higher level account")
+		httpkit.RenderErr(w, problems.Forbidden("User can't terminate sessions of higher level account"))
 		return
 	}
 
-	if roles.CompareRolesUser(InitiatorRole, userRole) == -1 {
-		log.Warn("User can't terminate sessions of higher level user")
-		httpkit.RenderErr(w, problems.Forbidden("User can't terminate sessions of higher level user"))
-		return
-	}
-
-	err = svc.DB.Sessions.Terminate(r, userID, nil)
+	err = a.Domain.SessionsTerminate(r.Context(), userID, nil)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())
@@ -78,6 +49,6 @@ func (h *Handler) AdminSessionsTerminate(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	log.Infof("Sessions terminated for user %s by user %s", userID, initiatorID)
+	a.Log.Infof("Sessions terminated for account %s by account %s", userID, initiatorID)
 	httpkit.Render(w, http.StatusOK)
 }

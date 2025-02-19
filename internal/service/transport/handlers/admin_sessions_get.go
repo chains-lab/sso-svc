@@ -11,22 +11,19 @@ import (
 	"github.com/recovery-flow/sso-oauth/internal/service/transport/responses"
 )
 
-func (h *Handler) AdminSessionsGet(w http.ResponseWriter, r *http.Request) {
-	svc := h.svc
-	log := svc.Logger
-
+func (a *App) AdminSessionsGet(w http.ResponseWriter, r *http.Request) {
 	userID, err := uuid.Parse(chi.URLParam(r, "user_id"))
 	if err != nil {
-		log.Errorf("Failed to parse user_id: %v", err)
+		a.Log.Errorf("Failed to parse user_id: %v", err)
 		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
 			"user_id": validation.NewError("user_id", "Invalid user_id"),
 		})...)
 		return
 	}
 
-	sessions, err := svc.DB.Sessions.SelectByUserID(r, userID)
+	sessions, err := a.Domain.SessionsListByUser(r.Context(), userID)
 	if err != nil {
-		log.Errorf("Failed to retrieve user session: %v", err)
+		a.Log.Errorf("Failed to retrieve user session: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}

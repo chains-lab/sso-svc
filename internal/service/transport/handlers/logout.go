@@ -5,28 +5,23 @@ import (
 
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/core/tools"
+	"github.com/recovery-flow/tokens"
 )
 
-func Logout(w http.ResponseWriter, r *http.Request) {
-	sessionID, userID, err := tools.GetSessionAndUserID(r.Context())
+func (a *App) Logout(w http.ResponseWriter, r *http.Request) {
+	sessionID, userID, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
-		Log.Warnf("Unauthorized logout attempt: %v", err)
+		a.Log.Warnf("Unauthorized logout attempt: %v", err)
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
 		return
 	}
 
-	err = TokenManager.AddToBlackList(r.Context(), sessionID.String(), userID.String())
+	err = a.Domain.SessionDelete(r.Context(), *sessionID)
 	if err != nil {
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	err = Domain.Session.Delete(r.Context(), sessionID)
-	if err != nil {
-		httpkit.RenderErr(w, problems.InternalError())
-		return
-	}
-
+	a.Log.Infof("User %s logged out", userID)
 	httpkit.Render(w, http.StatusOK)
 }

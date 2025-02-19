@@ -11,7 +11,7 @@ import (
 )
 
 type Sessions interface {
-	Add(ctx context.Context, session models.Session, ttl time.Duration) error
+	Add(ctx context.Context, session models.Session) error
 	GetByID(ctx context.Context, sessionID uuid.UUID) (*models.Session, error)
 	SelectByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error)
 	DeleteByUserID(ctx context.Context, userID uuid.UUID, sessionCurID *uuid.UUID) error
@@ -30,7 +30,7 @@ func NewSessions(client *redis.Client, lifeTime time.Duration) Sessions {
 	}
 }
 
-func (s *sessions) Add(ctx context.Context, session models.Session, ttl time.Duration) error {
+func (s *sessions) Add(ctx context.Context, session models.Session) error {
 	sessionKey := fmt.Sprintf("session:id:%s", session.ID)
 	userSessionsKey := fmt.Sprintf("session:user:%s", session.UserID)
 
@@ -70,9 +70,9 @@ func (s *sessions) Add(ctx context.Context, session models.Session, ttl time.Dur
 		}
 	}
 
-	if ttl > 0 {
-		_ = s.client.Expire(ctx, sessionKey, ttl).Err()
-		_ = s.client.Expire(ctx, userSessionsKey, ttl).Err()
+	if s.lifeTime > 0 {
+		_ = s.client.Expire(ctx, sessionKey, s.lifeTime).Err()
+		_ = s.client.Expire(ctx, userSessionsKey, s.lifeTime).Err()
 	}
 
 	return nil

@@ -14,10 +14,6 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-const (
-	ttlAccounts = 15 * time.Minute
-)
-
 type Accounts interface {
 	Create(ctx context.Context, email string, role roles.UserRole) (*models.Account, error)
 
@@ -64,7 +60,7 @@ func (a *accounts) Create(ctx context.Context, email string, role roles.UserRole
 		CreatedAt: acc.CreatedAt,
 		UpdatedAt: acc.UpdatedAt,
 	}
-	err = a.redis.Add(ctx, res, ttlAccounts)
+	err = a.redis.Add(ctx, res)
 
 	return &res, nil
 }
@@ -93,7 +89,7 @@ func (a *accounts) GetByEmail(ctx context.Context, email string) (*models.Accoun
 		UpdatedAt: acc.UpdatedAt,
 		CreatedAt: acc.CreatedAt,
 	}
-	err = a.redis.Add(ctx, res, ttlAccounts)
+	err = a.redis.Add(ctx, res)
 	if err != nil {
 		//todo error
 	}
@@ -127,7 +123,7 @@ func (a *accounts) GetByID(ctx context.Context, id uuid.UUID) (*models.Account, 
 		UpdatedAt: acc.UpdatedAt,
 		CreatedAt: acc.CreatedAt,
 	}
-	err = a.redis.Add(ctx, res, ttlAccounts)
+	err = a.redis.Add(ctx, res)
 	if err != nil {
 		//todo error
 	}
@@ -148,7 +144,7 @@ func (a *accounts) UpdateRole(ctx context.Context, id uuid.UUID, role roles.User
 		CreatedAt: acc.CreatedAt,
 		UpdatedAt: acc.UpdatedAt,
 	}
-	err = a.redis.Add(ctx, res, ttlAccounts)
+	err = a.redis.Add(ctx, res)
 	if err != nil {
 		//todo error
 	}

@@ -3,27 +3,23 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
 	"github.com/recovery-flow/sso-oauth/internal/service/transport/responses"
 	"github.com/recovery-flow/tokens"
 )
 
-func (h *Handler) SessionsGet(w http.ResponseWriter, r *http.Request) {
-	svc := h.svc
-	log := svc.Logger
-
-	userID, ok := r.Context().Value(tokens.UserIDKey).(uuid.UUID)
-	if !ok {
-		log.Warn("UserID not found in context")
-		httpkit.RenderErr(w, problems.Unauthorized("User not authenticated"))
+func (a *App) SessionsGet(w http.ResponseWriter, r *http.Request) {
+	accountID, _, _, err := tokens.GetAccountData(r.Context())
+	if err != nil {
+		a.Log.Warnf("Unauthorized session get attempt: %v", err)
+		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
 		return
 	}
 
-	sessions, err := svc.DB.Sessions.SelectByUserID(r, userID)
+	sessions, err := a.Domain.SessionsListByUser(r.Context(), *accountID)
 	if err != nil {
-		log.Errorf("Failed to retrieve user sessions: %v", err)
+		a.Log.Errorf("Failed to retrieve user sessions: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}

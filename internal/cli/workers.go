@@ -8,7 +8,7 @@ import (
 	"github.com/recovery-flow/sso-oauth/internal/service/transport/handlers"
 )
 
-func runServices(ctx context.Context, wg *sync.WaitGroup, srv *handlers.Handler) {
+func runServices(ctx context.Context, wg *sync.WaitGroup, app *handlers.App) {
 	var (
 	// signals indicate the finished initialization of each worker
 	)
@@ -21,5 +21,5 @@ func runServices(ctx context.Context, wg *sync.WaitGroup, srv *handlers.Handler)
 		}()
 	}
 
-	run(func() { transport.Run(ctx, srv) })
+	run(func() { transport.Run(ctx, app) })
 }

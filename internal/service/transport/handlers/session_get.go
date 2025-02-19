@@ -12,35 +12,32 @@ import (
 	"github.com/recovery-flow/tokens"
 )
 
-func (h *Handler) SessionGet(w http.ResponseWriter, r *http.Request) {
-	svc := h.svc
-	log := svc.Logger
-
-	userID, ok := r.Context().Value(tokens.UserIDKey).(uuid.UUID)
-	if !ok {
-		log.Warn("UserID not found in context")
-		httpkit.RenderErr(w, problems.Unauthorized("User not authenticated"))
+func (a *App) SessionGet(w http.ResponseWriter, r *http.Request) {
+	accountID, _, _, err := tokens.GetAccountData(r.Context())
+	if err != nil {
+		a.Log.Warnf("Unauthorized session get attempt: %v", err)
+		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
 		return
 	}
 
 	sessionID, err := uuid.Parse(chi.URLParam(r, "session_id"))
 	if err != nil {
-		log.Errorf("Failed to parse session_id: %v", err)
+		a.Log.Errorf("Failed to parse session_id: %v", err)
 		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
 			"session_id": validation.NewError("session_id", "Invalid session_id"),
 		})...)
 		return
 	}
 
-	session, err := svc.DB.Sessions.GetByID(r, sessionID)
+	session, err := a.Domain.SessionGet(r.Context(), sessionID)
 	if err != nil {
-		log.Errorf("Failed to retrieve user session: %v", err)
+		a.Log.Errorf("Failed to retrieve user session: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	if session.UserID != userID {
-		log.Debugf("Session doesn't belong to user")
+	if session.UserID != *accountID {
+		a.Log.Debugf("Session doesn't belong to user")
 		httpkit.RenderErr(w, problems.Forbidden("Session doesn't belong to user"))
 		return
 	}

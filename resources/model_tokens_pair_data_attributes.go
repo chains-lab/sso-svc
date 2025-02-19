@@ -23,7 +23,7 @@ var _ MappedNullable = &TokensPairDataAttributes{}
 type TokensPairDataAttributes struct {
 	// Access Token
 	AccessToken string `json:"access_token"`
-	// Refresh Token
+	// TokenRefresh Token
 	RefreshToken string `json:"refresh_token"`
 }
 

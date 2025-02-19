@@ -35,7 +35,7 @@ func NewAccounts(url string) (Accounts, error) {
 }
 
 func (a *accounts) Create(ctx context.Context, email string, role roles.UserRole) (*models.Account, error) {
-	res, err := a.queries.CreateAccount(ctx, core2.CreateAccountParams{
+	acc, err := a.queries.CreateAccount(ctx, core2.CreateAccountParams{
 		Email: email,
 		Role:  string(role),
 	})
@@ -43,29 +43,41 @@ func (a *accounts) Create(ctx context.Context, email string, role roles.UserRole
 		return nil, err
 	}
 
-	return parseAccount(res), nil
+	res, err := parseAccount(acc)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (a *accounts) GetByID(ctx context.Context, id uuid.UUID) (*models.Account, error) {
-	res, err := a.queries.GetAccountByID(ctx, id)
+	acc, err := a.queries.GetAccountByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return parseAccount(res), nil
+	res, err := parseAccount(acc)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (a *accounts) GetByEmail(ctx context.Context, email string) (*models.Account, error) {
-	res, err := a.queries.GetAccountByEmail(ctx, email)
+	acc, err := a.queries.GetAccountByEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}
 
-	return parseAccount(res), nil
+	res, err := parseAccount(acc)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (a *accounts) UpdateRole(ctx context.Context, id uuid.UUID, role roles.UserRole) (*models.Account, error) {
-	res, err := a.queries.UpdateAccountRole(ctx, core2.UpdateAccountRoleParams{
+	acc, err := a.queries.UpdateAccountRole(ctx, core2.UpdateAccountRoleParams{
 		ID:   id,
 		Role: string(role),
 	})
@@ -73,15 +85,24 @@ func (a *accounts) UpdateRole(ctx context.Context, id uuid.UUID, role roles.User
 		return nil, err
 	}
 
-	return parseAccount(res), nil
+	res, err := parseAccount(acc)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
-func parseAccount(account core2.Account) *models.Account {
+func parseAccount(account core2.Account) (*models.Account, error) {
+	role, err := roles.ParseUserRole(account.Role)
+	if err != nil {
+		return nil, err
+	}
+
 	return &models.Account{
 		ID:        account.ID,
 		Email:     account.Email,
-		Role:      account.Role,
+		Role:      role,
 		CreatedAt: account.CreatedAt,
 		UpdatedAt: account.UpdatedAt,
-	}
+	}, nil
 }

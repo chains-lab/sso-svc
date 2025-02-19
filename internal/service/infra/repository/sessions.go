@@ -13,10 +13,6 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-const (
-	ttlSessions = 15 * time.Minute
-)
-
 type Sessions interface {
 	Create(ctx context.Context, session models.Session) (*models.Session, error)
 
@@ -60,7 +56,7 @@ func (s *sessions) Create(ctx context.Context, session models.Session) (*models.
 		return nil, err
 	}
 
-	err = s.redis.Add(ctx, *res, ttlSessions)
+	err = s.redis.Add(ctx, *res)
 	if err != nil {
 		//todo error handling
 	}
@@ -83,7 +79,7 @@ func (s *sessions) GetByID(ctx context.Context, sessionID uuid.UUID) (*models.Se
 	if err != nil {
 		return nil, err
 	}
-	err = s.redis.Add(ctx, *res, ttlSessions)
+	err = s.redis.Add(ctx, *res)
 	if err != nil {
 		//todo error handling
 	}
@@ -109,7 +105,7 @@ func (s *sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]mode
 
 	go func() {
 		for _, ses := range res {
-			err = s.redis.Add(ctx, ses, ttlSessions)
+			err = s.redis.Add(ctx, ses)
 			if err != nil {
 				// todo error handling (лучше логировать ошибку)
 			}
@@ -125,7 +121,7 @@ func (s *sessions) UpdateToken(ctx context.Context, sessionID uuid.UUID, token s
 		return nil, err
 	}
 
-	err = s.redis.Add(ctx, *res, ttlSessions)
+	err = s.redis.Add(ctx, *res)
 	if err != nil {
 		//todo error handling
 	}
@@ -148,7 +144,7 @@ func (s *sessions) Delete(ctx context.Context, sessionID uuid.UUID) error {
 }
 
 func (s *sessions) Terminate(ctx context.Context, userID uuid.UUID, sessionID *uuid.UUID) error {
-	err := s.sql.TerminateSessions(ctx, userID, sessionID)
+	err := s.sql.Terminate(ctx, userID, sessionID)
 	if err != nil {
 		return err
 	}

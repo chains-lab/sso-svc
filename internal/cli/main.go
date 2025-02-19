@@ -11,6 +11,7 @@ import (
 	"github.com/alecthomas/kingpin"
 	"github.com/recovery-flow/comtools/logkit"
 	"github.com/recovery-flow/sso-oauth/internal/config"
+	"github.com/recovery-flow/sso-oauth/internal/service/transport/handlers"
 )
 
 func Run(args []string) bool {
@@ -23,7 +24,7 @@ func Run(args []string) bool {
 	logger.Info("Starting server...")
 
 	var (
-		app            = kingpin.New("geo-points-svc", "")
+		app            = kingpin.New("sso-oauth", "")
 		runCmd         = app.Command("run", "run command")
 		serviceCmd     = runCmd.Command("service", "run service")
 		migrateCmd     = app.Command("migrate", "migrate command")
@@ -34,7 +35,7 @@ func Run(args []string) bool {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	srv, err := service.NewService(cfg, logger)
+	aplication, err := handlers.NewApp(cfg, logger)
 	if err != nil {
 		logger.Fatalf("failed to create server: %v", err)
 		return false
@@ -50,7 +51,7 @@ func Run(args []string) bool {
 
 	switch cmd {
 	case serviceCmd.FullCommand():
-		runServices(ctx, &wg, srv)
+		runServices(ctx, &wg, aplication)
 	case migrateUpCmd.FullCommand():
 		err = MigrateUp(ctx)
 	case migrateDownCmd.FullCommand():

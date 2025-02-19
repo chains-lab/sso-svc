@@ -2,26 +2,32 @@ package infra
 
 import (
 	"github.com/recovery-flow/sso-oauth/internal/config"
-	sqldb2 "github.com/recovery-flow/sso-oauth/internal/service/infra/repository/sqldb"
+	"github.com/recovery-flow/sso-oauth/internal/service/infra/jwtmanager"
+	"github.com/recovery-flow/sso-oauth/internal/service/infra/repository"
 )
 
-type Data struct {
-	Accounts sqldb2.Accounts
-	Sessions sqldb2.Sessions
+type Infra struct {
+	Accounts repository.Accounts
+	Sessions repository.Sessions
+
+	Tokens jwtmanager.JWTManager
 }
 
-func NewDataBase(cfg *config.Config) (*Data, error) {
-	acc, err := sqldb2.NewAccounts(cfg.Database.SQL.URL)
+func NewDataBase(cfg *config.Config) (*Infra, error) {
+	acc, err := repository.NewAccounts(cfg)
 	if err != nil {
 		return nil, err
 	}
-	sess, err := sqldb2.NewSessions(cfg.Database.SQL.URL)
+	sess, err := repository.NewSessions(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Data{
+	jwtManager := jwtmanager.NewJWTManager(cfg)
+
+	return &Infra{
 		Accounts: acc,
 		Sessions: sess,
+		Tokens:   jwtManager,
 	}, nil
 }

@@ -21,7 +21,7 @@ type Sessions interface {
 	DeleteAll(ctx context.Context, userID uuid.UUID) error
 	Delete(ctx context.Context, id uuid.UUID) error
 
-	TerminateSessions(
+	Terminate(
 		ctx context.Context,
 		userId uuid.UUID,
 		curDevId *uuid.UUID,
@@ -96,7 +96,7 @@ func (s *sessions) UpdateToken(ctx context.Context, id uuid.UUID, token string, 
 	return parseSession(res), nil
 }
 
-func (s *sessions) TerminateSessions(
+func (s *sessions) Terminate(
 	ctx context.Context,
 	userId uuid.UUID,
 	curDevId *uuid.UUID,

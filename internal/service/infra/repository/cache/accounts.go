@@ -6,12 +6,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/recovery-flow/roles"
 	"github.com/recovery-flow/sso-oauth/internal/service/domain/core/models"
 	"github.com/redis/go-redis/v9"
 )
 
 type Accounts interface {
-	Add(ctx context.Context, account models.Account, ttl time.Duration) error
+	Add(ctx context.Context, account models.Account) error
 	GetByID(ctx context.Context, userID string) (*models.Account, error)
 	GetByEmail(ctx context.Context, email string) (*models.Account, error)
 	Delete(ctx context.Context, userID string) error
@@ -29,7 +30,7 @@ func NewAccounts(client *redis.Client, lifetime time.Duration) Accounts {
 	}
 }
 
-func (a *accounts) Add(ctx context.Context, account models.Account, ttl time.Duration) error {
+func (a *accounts) Add(ctx context.Context, account models.Account) error {
 	userKey := fmt.Sprintf("user:id:%s", account.ID)
 	emailKey := fmt.Sprintf("user:email:%s", account.Email)
 
@@ -50,9 +51,9 @@ func (a *accounts) Add(ctx context.Context, account models.Account, ttl time.Dur
 		return fmt.Errorf("error creating email index: %w", err)
 	}
 
-	if ttl > 0 {
-		_ = a.client.Expire(ctx, userKey, ttl).Err()
-		_ = a.client.Expire(ctx, emailKey, ttl).Err()
+	if a.LifeTime > 0 {
+		_ = a.client.Expire(ctx, userKey, a.LifeTime).Err()
+		_ = a.client.Expire(ctx, emailKey, a.LifeTime).Err()
 	}
 
 	return nil
@@ -133,10 +134,15 @@ func parseUser(userID string, vals map[string]string) (*models.Account, error) {
 		return nil, fmt.Errorf("error parsing userID: %w", err)
 	}
 
+	role, err := roles.ParseUserRole(vals["role"])
+	if err != nil {
+		return nil, fmt.Errorf("error parsing role: %w", err)
+	}
+
 	user := &models.Account{
 		ID:        ID,
 		Email:     vals["email"],
-		Role:      vals["role"],
+		Role:      role,
 		CreatedAt: createdAt,
 		UpdatedAt: updatedAt,
 	}
