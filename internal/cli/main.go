@@ -24,10 +24,10 @@ func Run(args []string) bool {
 	logger.Info("Starting server...")
 
 	var (
-		app            = kingpin.New("sso-oauth", "")
-		runCmd         = app.Command("run", "run command")
+		application    = kingpin.New("sso-oauth", "")
+		runCmd         = application.Command("run", "run command")
 		serviceCmd     = runCmd.Command("service", "run service")
-		migrateCmd     = app.Command("migrate", "migrate command")
+		migrateCmd     = application.Command("migrate", "migrate command")
 		migrateUpCmd   = migrateCmd.Command("up", "migrate db up")
 		migrateDownCmd = migrateCmd.Command("down", "migrate db down")
 	)
@@ -35,7 +35,7 @@ func Run(args []string) bool {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	aplication, err := handlers.NewApp(cfg, logger)
+	app, err := handlers.NewApp(cfg, logger)
 	if err != nil {
 		logger.Fatalf("failed to create server: %v", err)
 		return false
@@ -43,7 +43,7 @@ func Run(args []string) bool {
 
 	var wg sync.WaitGroup
 
-	cmd, err := app.Parse(args[1:])
+	cmd, err := application.Parse(args[1:])
 	if err != nil {
 		logger.WithError(err).Error("failed to parse arguments")
 		return false
@@ -51,11 +51,11 @@ func Run(args []string) bool {
 
 	switch cmd {
 	case serviceCmd.FullCommand():
-		runServices(ctx, &wg, aplication)
+		runServices(ctx, &wg, app)
 	case migrateUpCmd.FullCommand():
-		err = MigrateUp(ctx)
+		err = MigrateUp(ctx, *cfg)
 	case migrateDownCmd.FullCommand():
-		err = MigrateDown(ctx)
+		err = MigrateDown(ctx, *cfg)
 	default:
 		logger.Errorf("unknown command %s", cmd)
 		return false
