@@ -10,27 +10,19 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type Sessions interface {
-	Add(ctx context.Context, session models.Session) error
-	GetByID(ctx context.Context, sessionID uuid.UUID) (*models.Session, error)
-	SelectByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error)
-	DeleteByUserID(ctx context.Context, userID uuid.UUID, sessionCurID *uuid.UUID) error
-	Delete(ctx context.Context, sessionID uuid.UUID) error
-}
-
-type sessions struct {
+type Sessions struct {
 	client   *redis.Client
 	lifeTime time.Duration
 }
 
 func NewSessions(client *redis.Client, lifeTime time.Duration) Sessions {
-	return &sessions{
+	return Sessions{
 		client:   client,
 		lifeTime: lifeTime,
 	}
 }
 
-func (s *sessions) Add(ctx context.Context, session models.Session) error {
+func (s *Sessions) Add(ctx context.Context, session models.Session) error {
 	sessionKey := fmt.Sprintf("session:id:%s", session.ID)
 	userSessionsKey := fmt.Sprintf("session:user:%s", session.UserID)
 
@@ -78,7 +70,7 @@ func (s *sessions) Add(ctx context.Context, session models.Session) error {
 	return nil
 }
 
-func (s *sessions) GetByID(ctx context.Context, sessionID uuid.UUID) (*models.Session, error) {
+func (s *Sessions) GetByID(ctx context.Context, sessionID uuid.UUID) (*models.Session, error) {
 	key := fmt.Sprintf("session:id:%s", sessionID)
 
 	vals, err := s.client.HGetAll(ctx, key).Result()
@@ -118,12 +110,12 @@ func (s *sessions) GetByID(ctx context.Context, sessionID uuid.UUID) (*models.Se
 	return session, nil
 }
 
-func (s *sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error) {
+func (s *Sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error) {
 	userSessionsKey := fmt.Sprintf("session:user:%s", userID)
 
 	sessionIDs, err := s.client.SMembers(ctx, userSessionsKey).Result()
 	if err != nil {
-		return nil, fmt.Errorf("error getting sessions by user_id: %w", err)
+		return nil, fmt.Errorf("error getting Sessions by user_id: %w", err)
 	}
 
 	var sessionsArr []models.Session
@@ -141,12 +133,12 @@ func (s *sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]mode
 	return sessionsArr, nil
 }
 
-func (s *sessions) DeleteByUserID(ctx context.Context, userID uuid.UUID, curSessionID *uuid.UUID) error {
+func (s *Sessions) DeleteByUserID(ctx context.Context, userID uuid.UUID, curSessionID *uuid.UUID) error {
 	userSessionsKey := fmt.Sprintf("session:user:%s", userID)
 
 	sessionIDs, err := s.client.SMembers(ctx, userSessionsKey).Result()
 	if err != nil {
-		return fmt.Errorf("error getting sessions for user: %w", err)
+		return fmt.Errorf("error getting Sessions for user: %w", err)
 	}
 
 	for _, sessionID := range sessionIDs {
@@ -167,7 +159,7 @@ func (s *sessions) DeleteByUserID(ctx context.Context, userID uuid.UUID, curSess
 	return nil
 }
 
-func (s *sessions) Delete(ctx context.Context, sessionID uuid.UUID) error {
+func (s *Sessions) Delete(ctx context.Context, sessionID uuid.UUID) error {
 	key := fmt.Sprintf("session:id:%s", sessionID)
 
 	exists, err := s.client.Exists(ctx, key).Result()

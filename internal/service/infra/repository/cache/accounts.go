@@ -6,31 +6,24 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/recovery-flow/roles"
 	"github.com/recovery-flow/sso-oauth/internal/service/domain/core/models"
+	"github.com/recovery-flow/tokens/identity"
 	"github.com/redis/go-redis/v9"
 )
 
-type Accounts interface {
-	Add(ctx context.Context, account models.Account) error
-	GetByID(ctx context.Context, userID string) (*models.Account, error)
-	GetByEmail(ctx context.Context, email string) (*models.Account, error)
-	Delete(ctx context.Context, userID string) error
-}
-
-type accounts struct {
+type Accounts struct {
 	client   *redis.Client
 	LifeTime time.Duration
 }
 
-func NewAccounts(client *redis.Client, lifetime time.Duration) Accounts {
-	return &accounts{
+func NewAccounts(client *redis.Client, lifetime time.Duration) *Accounts {
+	return &Accounts{
 		client:   client,
 		LifeTime: lifetime,
 	}
 }
 
-func (a *accounts) Add(ctx context.Context, account models.Account) error {
+func (a *Accounts) Add(ctx context.Context, account models.Account) error {
 	userKey := fmt.Sprintf("user:id:%s", account.ID)
 	emailKey := fmt.Sprintf("user:email:%s", account.Email)
 
@@ -59,7 +52,7 @@ func (a *accounts) Add(ctx context.Context, account models.Account) error {
 	return nil
 }
 
-func (a *accounts) GetByEmail(ctx context.Context, email string) (*models.Account, error) {
+func (a *Accounts) GetByEmail(ctx context.Context, email string) (*models.Account, error) {
 	emailKey := fmt.Sprintf("user:email:%s", email)
 
 	userID, err := a.client.Get(ctx, emailKey).Result()
@@ -70,7 +63,7 @@ func (a *accounts) GetByEmail(ctx context.Context, email string) (*models.Accoun
 	return a.GetByID(ctx, userID)
 }
 
-func (a *accounts) GetByID(ctx context.Context, userID string) (*models.Account, error) {
+func (a *Accounts) GetByID(ctx context.Context, userID string) (*models.Account, error) {
 	userKey := fmt.Sprintf("user:id:%s", userID)
 
 	vals, err := a.client.HGetAll(ctx, userKey).Result()
@@ -85,7 +78,7 @@ func (a *accounts) GetByID(ctx context.Context, userID string) (*models.Account,
 	return parseUser(userID, vals)
 }
 
-func (a *accounts) Delete(ctx context.Context, userID string) error {
+func (a *Accounts) Delete(ctx context.Context, userID string) error {
 	key := fmt.Sprintf("user:id:%s", userID)
 
 	exists, err := a.client.Exists(ctx, key).Result()
@@ -134,7 +127,7 @@ func parseUser(userID string, vals map[string]string) (*models.Account, error) {
 		return nil, fmt.Errorf("error parsing userID: %w", err)
 	}
 
-	role, err := roles.ParseUserRole(vals["role"])
+	role, err := identity.ParseIdentityType(vals["role"])
 	if err != nil {
 		return nil, fmt.Errorf("error parsing role: %w", err)
 	}

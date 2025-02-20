@@ -5,18 +5,18 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/recovery-flow/comtools/httpkit"
-	"github.com/recovery-flow/roles"
 	"github.com/recovery-flow/sso-oauth/internal/service/transport/handlers"
 	"github.com/recovery-flow/tokens"
+	"github.com/recovery-flow/tokens/identity"
 )
 
 func Run(ctx context.Context, app *handlers.App) {
 	r := chi.NewRouter()
 
 	authMW := tokens.AuthMdl(ctx, app.Config.JWT.AccessToken.SecretKey)
-	adminGrant := tokens.RoleMdl(ctx, app.Config.JWT.AccessToken.SecretKey, string(roles.RoleUserAdmin), string(roles.RoleUserSuperAdmin))
+	adminGrant := tokens.IdentityMdl(ctx, app.Config.JWT.AccessToken.SecretKey, identity.Admin, identity.SuperUser)
 
-	r.Route("/sso", func(r chi.Router) {
+	r.Route("/re-flow/sso", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/public", func(r chi.Router) {
 				r.Post("/refresh", app.Refresh)

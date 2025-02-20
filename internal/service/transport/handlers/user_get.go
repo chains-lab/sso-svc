@@ -10,7 +10,7 @@ import (
 )
 
 func (a *App) AccountGet(w http.ResponseWriter, r *http.Request) {
-	accountID, _, _, err := tokens.GetAccountData(r.Context())
+	accountID, _, _, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
 		a.Log.Warnf("Unauthorized account get attempt: %v", err)
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))

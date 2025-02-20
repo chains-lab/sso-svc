@@ -9,13 +9,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
-	"github.com/recovery-flow/roles"
 	"github.com/recovery-flow/sso-oauth/internal/service/transport/responses"
 	"github.com/recovery-flow/tokens"
+	"github.com/recovery-flow/tokens/identity"
 )
 
 func (a *App) AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
-	initiatorID, initiatorSession, initiatorRole, err := tokens.GetAccountData(r.Context())
+	initiatorID, initiatorSession, initiatorRole, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
 		a.Log.Warnf("Unauthorized session delete attempt: %v", err)
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
@@ -47,7 +47,7 @@ func (a *App) AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if roles.CompareRolesUser(*initiatorRole, user.Role) == -1 {
+	if identity.CompareRolesUser(*initiatorRole, user.Role) == -1 {
 		a.Log.Warn("User can't delete session of user with higher role")
 		httpkit.RenderErr(w, problems.Forbidden("User can't delete session of user with higher role"))
 		return

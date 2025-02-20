@@ -8,12 +8,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
-	"github.com/recovery-flow/roles"
 	"github.com/recovery-flow/tokens"
+	"github.com/recovery-flow/tokens/identity"
 )
 
 func (a *App) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
-	initiatorID, _, InitiatorRole, err := tokens.GetAccountData(r.Context())
+	initiatorID, _, InitiatorRole, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
 		a.Log.Warnf("Unauthorized role update attempt: %v", err)
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
@@ -28,14 +28,14 @@ func (a *App) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedRole, err := roles.ParseUserRole(chi.URLParam(r, "role"))
+	updatedRole, err := identity.ParseIdentityType(chi.URLParam(r, "role"))
 	if err != nil {
 		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
 			"role": validation.NewError("role", "invalid role"),
 		})...)
 	}
 
-	if roles.CompareRolesUser(*InitiatorRole, updatedRole) != 1 {
+	if identity.CompareRolesUser(*InitiatorRole, updatedRole) != 1 {
 		a.Log.Warn("User can't update role to higher level than his own")
 		httpkit.RenderErr(w, problems.Forbidden("User can't update role to higher level"))
 		return
@@ -48,13 +48,13 @@ func (a *App) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if roles.CompareRolesUser(*InitiatorRole, user.Role) == -1 {
+	if identity.CompareRolesUser(*InitiatorRole, user.Role) == -1 {
 		a.Log.Warn("User can't update role of user with higher role than his own")
 		httpkit.RenderErr(w, problems.Forbidden("User can't update role of user with higher role"))
 		return
 	}
 
-	_, err = a.Domain.AccountUpdateRole(r.Context(), updatedUserID, string(updatedRole))
+	_, err = a.Domain.AccountUpdateRole(r.Context(), updatedUserID, updatedRole)
 	if err != nil {
 		a.Log.Errorf("Failed to update role: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())

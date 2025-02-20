@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
-	"github.com/recovery-flow/roles"
 	"github.com/recovery-flow/sso-oauth/internal/service/transport/requests"
 	"github.com/recovery-flow/sso-oauth/internal/service/transport/responses"
 	"github.com/recovery-flow/tokens"
@@ -54,27 +53,19 @@ func (a *App) Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionID, err := uuid.Parse(*userData.SessionID)
-	if err != nil {
-		httpkit.RenderErr(w, problems.BadRequest(err)...)
-		return
-	}
+	sessionID := userData.SessionID
 
-	accountRole, err := roles.ParseUserRole(*userData.Role)
-	if err != nil {
-		httpkit.RenderErr(w, problems.BadRequest(err)...)
-		return
-	}
+	accountRole := userData.Identity
 
 	//-------------------------------------------------------------------------//
 
-	session, err := a.Domain.SessionGetForUser(r.Context(), sessionID, userID)
+	session, err := a.Domain.SessionGetForUser(r.Context(), *sessionID, userID)
 	if err != nil {
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	tokenAccess, tokenRefresh, err := a.Domain.SessionRefresh(r.Context(), session, refreshToken, accountRole, r.RemoteAddr)
+	tokenAccess, tokenRefresh, err := a.Domain.SessionRefresh(r.Context(), *session, refreshToken, accountRole)
 	if err != nil {
 		a.Log.Errorf("Error generating access token: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())

@@ -9,10 +9,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/recovery-flow/comtools/httpkit/problems"
-	"github.com/recovery-flow/roles"
 	"github.com/recovery-flow/sso-oauth/internal/config"
 	"github.com/recovery-flow/sso-oauth/internal/service/domain/core/models"
 	"github.com/recovery-flow/sso-oauth/internal/service/infra"
+	"github.com/recovery-flow/tokens/identity"
 	"github.com/sirupsen/logrus"
 )
 
@@ -24,24 +24,13 @@ type Domain interface {
 
 	SessionsTerminate(ctx context.Context, userID uuid.UUID, excludeSessionID *uuid.UUID) error
 	SessionDelete(ctx context.Context, sessionID uuid.UUID) error
-	SessionRefresh(
-		ctx context.Context,
-		session *models.Session,
-		curToken string,
-		role roles.UserRole,
-		IP string,
-	) (string, string, error)
-	SessionLogin(
-		ctx context.Context,
-		email string,
-		role roles.UserRole,
-		IP string,
-	) (string, string, error)
+	SessionRefresh(ctx context.Context, session models.Session, curToken string, role identity.IdnType) (string, string, error)
+	SessionLogin(ctx context.Context, role identity.IdnType, email, client, IP string) (string, string, error)
 
 	AccountCreate(ctx context.Context, acc models.Account) (*models.Account, error)
 	AccountGet(ctx context.Context, accountID uuid.UUID) (*models.Account, error)
 	AccountGetByEmail(ctx context.Context, email string) (*models.Account, error)
-	AccountUpdateRole(ctx context.Context, accountID uuid.UUID, newRole string) (*models.Account, error)
+	AccountUpdateRole(ctx context.Context, accountID uuid.UUID, newRole identity.IdnType) (*models.Account, error)
 }
 
 type domain struct {
@@ -74,7 +63,6 @@ func (d *domain) AccountGet(ctx context.Context, accountID uuid.UUID) (*models.A
 func (d *domain) AccountGetByEmail(ctx context.Context, email string) (*models.Account, error) {
 	user, err := d.Infra.Accounts.GetByEmail(ctx, email)
 	if err != nil {
-		d.log.Errorf("Failed to retrieve user: %v", err)
 		return nil, err
 	}
 
@@ -91,12 +79,8 @@ func (d *domain) AccountCreate(ctx context.Context, account models.Account) (*mo
 	return user, nil
 }
 
-func (d *domain) AccountUpdateRole(ctx context.Context, accountID uuid.UUID, newRole string) (*models.Account, error) {
-	accRole, err := roles.ParseUserRole(newRole)
-	if err != nil {
-		return nil, err
-	}
-	user, err := d.Infra.Accounts.UpdateRole(ctx, accountID, accRole)
+func (d *domain) AccountUpdateRole(ctx context.Context, accountID uuid.UUID, newRole identity.IdnType) (*models.Account, error) {
+	user, err := d.Infra.Accounts.UpdateRole(ctx, accountID, newRole)
 	if err != nil {
 		d.log.Errorf("Failed to update user role: %v", err)
 		return nil, err
@@ -170,13 +154,7 @@ func (d *domain) SessionsTerminate(ctx context.Context, userID uuid.UUID, exclud
 	return nil
 }
 
-func (d *domain) SessionRefresh(
-	ctx context.Context,
-	session *models.Session,
-	curToken string,
-	role roles.UserRole,
-	IP string,
-) (string, string, error) {
+func (d *domain) SessionRefresh(ctx context.Context, session models.Session, curToken string, role identity.IdnType) (string, string, error) {
 	sessionToken, err := d.Infra.Tokens.DecryptRefresh(session.Token)
 	if err != nil {
 		d.log.Errorf("Failed to decrypt refresh token: %v", err)
@@ -200,7 +178,7 @@ func (d *domain) SessionRefresh(
 		return "", "", problems.InternalError()
 	}
 
-	_, err = d.Infra.Sessions.UpdateToken(ctx, session.ID, refresh, IP)
+	_, err = d.Infra.Sessions.UpdateToken(ctx, session)
 	if err != nil {
 		d.log.Errorf("Failed to update session token: %v", err)
 		return "", "", problems.InternalError()
@@ -209,17 +187,12 @@ func (d *domain) SessionRefresh(
 	return access, refresh, nil
 }
 
-func (d *domain) SessionLogin(
-	ctx context.Context,
-	email string,
-	role roles.UserRole,
-	IP string,
-) (string, string, error) {
+func (d *domain) SessionLogin(ctx context.Context, role identity.IdnType, email, client, IP string) (string, string, error) {
 	var accountID, sessionID uuid.UUID
 
 	account, err := d.AccountGetByEmail(ctx, email)
 	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, sql.ErrNoRows) {
 			accountID = uuid.New()
 
 			account, err = d.AccountCreate(ctx, models.Account{
@@ -251,8 +224,23 @@ func (d *domain) SessionLogin(
 		return "", "", problems.InternalError()
 	}
 
-	_, err = d.Infra.Sessions.UpdateToken(ctx, sessionID, refresh, IP)
+	refreshCrypto, err := d.Infra.Tokens.EncryptRefresh(refresh)
 	if err != nil {
+		d.log.Errorf("Failed to encrypt refresh token: %v", err)
+		return "", "", problems.InternalError()
+	}
+
+	d.log.Debugf("Generated tokens: %s, %s", access, refresh)
+
+	_, err = d.Infra.Sessions.UpdateToken(ctx, models.Session{
+		ID:     sessionID,
+		UserID: account.ID,
+		Token:  refreshCrypto,
+		Client: client,
+		IP:     IP,
+	})
+	if err != nil {
+
 		d.log.Errorf("Failed to update session token: %v", err)
 		return "", "", problems.InternalError()
 	}

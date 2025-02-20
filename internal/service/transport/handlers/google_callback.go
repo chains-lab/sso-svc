@@ -8,8 +8,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
-	"github.com/recovery-flow/roles"
 	"github.com/recovery-flow/sso-oauth/internal/service/transport/responses"
+	"github.com/recovery-flow/tokens/identity"
 )
 
 func (a *App) GoogleCallback(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +50,7 @@ func (a *App) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenAccess, tokenRefresh, err := a.Domain.SessionLogin(r.Context(), userInfo.Email, roles.RoleUserSimple, r.RemoteAddr)
+	tokenAccess, tokenRefresh, err := a.Domain.SessionLogin(r.Context(), identity.User, userInfo.Email, r.UserAgent(), r.RemoteAddr)
 	if err != nil {
 		httpkit.RenderErr(w, problems.InternalError())
 		return

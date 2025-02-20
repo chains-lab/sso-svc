@@ -4,13 +4,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/recovery-flow/roles"
+	"github.com/recovery-flow/tokens/identity"
 )
 
 type Account struct {
 	ID        uuid.UUID
 	Email     string
-	Role      roles.UserRole
+	Role      identity.IdnType
 	UpdatedAt time.Time
 	CreatedAt time.Time
 }

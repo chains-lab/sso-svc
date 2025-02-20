@@ -9,13 +9,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
-	"github.com/recovery-flow/roles"
 	"github.com/recovery-flow/tokens"
+	"github.com/recovery-flow/tokens/identity"
 )
 
 func (a *App) AdminSessionsTerminate(w http.ResponseWriter, r *http.Request) {
-	initiatorID, _, InitiatorRole, err := tokens.GetAccountData(r.Context())
-
+	initiatorID, _, initiatorRole, _, err := tokens.GetAccountData(r.Context())
 	userID, err := uuid.Parse(chi.URLParam(r, "user_id"))
 	if err != nil {
 		httpkit.RenderErr(w, problems.BadRequest(err)...)
@@ -33,7 +32,7 @@ func (a *App) AdminSessionsTerminate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if roles.CompareRolesUser(*InitiatorRole, account.Role) == -1 {
+	if identity.CompareRolesUser(*initiatorRole, account.Role) == -1 {
 		a.Log.Warn("User can't terminate sessions of higher level account")
 		httpkit.RenderErr(w, problems.Forbidden("User can't terminate sessions of higher level account"))
 		return

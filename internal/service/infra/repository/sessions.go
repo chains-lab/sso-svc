@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,7 +20,7 @@ type Sessions interface {
 	GetByID(ctx context.Context, sessionID uuid.UUID) (*models.Session, error)
 	SelectByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error)
 
-	UpdateToken(ctx context.Context, sessionID uuid.UUID, token string, IP string) (*models.Session, error)
+	UpdateToken(ctx context.Context, session models.Session) (*models.Session, error)
 
 	Delete(ctx context.Context, sessionID uuid.UUID) error
 
@@ -46,12 +47,14 @@ func NewSessions(cfg *config.Config) (Sessions, error) {
 	}
 	return &sessions{
 		redis: redisRepo,
-		sql:   sqlRepo,
+		sql:   *sqlRepo,
 	}, nil
 }
 
 func (s *sessions) Create(ctx context.Context, session models.Session) (*models.Session, error) {
-	res, err := s.sql.Create(ctx, session)
+	session.CreatedAt = time.Now()
+	session.LastUsed = session.CreatedAt
+	res, err := s.sql.Insert(ctx, session)
 	if err != nil {
 		return nil, err
 	}
@@ -115,9 +118,12 @@ func (s *sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]mode
 	return res, nil
 }
 
-func (s *sessions) UpdateToken(ctx context.Context, sessionID uuid.UUID, token string, IP string) (*models.Session, error) {
-	res, err := s.sql.UpdateToken(ctx, sessionID, token, IP)
+func (s *sessions) UpdateToken(ctx context.Context, session models.Session) (*models.Session, error) {
+	res, err := s.sql.UpdateToken(ctx, session.ID, session.Token, session.IP)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			_, err = s.Create(ctx, session)
+		}
 		return nil, err
 	}
 

@@ -9,8 +9,8 @@ import (
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
 	"github.com/recovery-flow/comtools/jsonkit"
-	"github.com/recovery-flow/roles"
 	"github.com/recovery-flow/sso-oauth/internal/service/transport/responses"
+	"github.com/recovery-flow/tokens/identity"
 )
 
 func (a *App) LoginSimple(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +24,6 @@ func (a *App) LoginSimple(w http.ResponseWriter, r *http.Request) {
 		Role  string `json:"role"`
 	}
 	var req emailReq
-
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		err = jsonkit.NewDecodeError("body", err)
 		return
@@ -40,13 +39,13 @@ func (a *App) LoginSimple(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	role, err := roles.ParseUserRole(req.Role)
+	role, err := identity.ParseIdentityType(req.Role)
 	if err != nil {
 		httpkit.RenderErr(w, problems.BadRequest(errors.New("invalid role"))...)
 		return
 	}
 
-	tokenAccess, tokenRefresh, err := a.Domain.SessionLogin(r.Context(), req.Email, role, r.RemoteAddr)
+	tokenAccess, tokenRefresh, err := a.Domain.SessionLogin(r.Context(), role, req.Email, r.UserAgent(), r.RemoteAddr)
 	if err != nil {
 		httpkit.RenderErr(w, problems.InternalError())
 		return

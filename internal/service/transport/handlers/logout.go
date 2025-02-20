@@ -9,7 +9,7 @@ import (
 )
 
 func (a *App) Logout(w http.ResponseWriter, r *http.Request) {
-	sessionID, userID, _, err := tokens.GetAccountData(r.Context())
+	accountID, sessionID, _, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
 		a.Log.Warnf("Unauthorized logout attempt: %v", err)
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
@@ -22,6 +22,6 @@ func (a *App) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a.Log.Infof("User %s logged out", userID)
+	a.Log.Infof("User %s logged out", accountID)
 	httpkit.Render(w, http.StatusOK)
 }

@@ -6,21 +6,21 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/recovery-flow/roles"
 	"github.com/recovery-flow/sso-oauth/internal/config"
 	"github.com/recovery-flow/sso-oauth/internal/service/domain/core/models"
 	"github.com/recovery-flow/sso-oauth/internal/service/infra/repository/cache"
 	"github.com/recovery-flow/sso-oauth/internal/service/infra/repository/sqldb"
+	"github.com/recovery-flow/tokens/identity"
 	"github.com/redis/go-redis/v9"
 )
 
 type Accounts interface {
-	Create(ctx context.Context, email string, role roles.UserRole) (*models.Account, error)
+	Create(ctx context.Context, email string, idn identity.IdnType) (*models.Account, error)
 
 	GetByID(ctx context.Context, id uuid.UUID) (*models.Account, error)
 	GetByEmail(ctx context.Context, email string) (*models.Account, error)
 
-	UpdateRole(ctx context.Context, id uuid.UUID, role roles.UserRole) (*models.Account, error)
+	UpdateRole(ctx context.Context, id uuid.UUID, idn identity.IdnType) (*models.Account, error)
 }
 
 type accounts struct {
@@ -42,13 +42,13 @@ func NewAccounts(cfg *config.Config) (Accounts, error) {
 		return nil, err
 	}
 	return &accounts{
-		redis: redisRepo,
-		sql:   sqlRepo,
+		redis: *redisRepo,
+		sql:   *sqlRepo,
 	}, nil
 }
 
-func (a *accounts) Create(ctx context.Context, email string, role roles.UserRole) (*models.Account, error) {
-	acc, err := a.sql.Create(ctx, email, role)
+func (a *accounts) Create(ctx context.Context, email string, idn identity.IdnType) (*models.Account, error) {
+	acc, err := a.sql.Insert(ctx, email, idn)
 	if err != nil {
 		return nil, err
 	}
@@ -131,8 +131,8 @@ func (a *accounts) GetByID(ctx context.Context, id uuid.UUID) (*models.Account, 
 	return &res, nil
 }
 
-func (a *accounts) UpdateRole(ctx context.Context, id uuid.UUID, role roles.UserRole) (*models.Account, error) {
-	acc, err := a.sql.UpdateRole(ctx, id, role)
+func (a *accounts) UpdateRole(ctx context.Context, id uuid.UUID, idn identity.IdnType) (*models.Account, error) {
+	acc, err := a.sql.UpdateRole(ctx, id, idn)
 	if err != nil {
 		return nil, err
 	}

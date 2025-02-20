@@ -5,16 +5,14 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/hex"
-	"fmt"
 	"io"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	"github.com/recovery-flow/roles"
 	"github.com/recovery-flow/sso-oauth/internal/config"
 	"github.com/recovery-flow/tokens"
+	"github.com/recovery-flow/tokens/identity"
 )
 
 type JWTManager interface {
@@ -25,13 +23,13 @@ type JWTManager interface {
 	GenerateAccess(
 		sub uuid.UUID,
 		sessionID uuid.UUID,
-		role roles.UserRole,
+		idn identity.IdnType,
 	) (string, error)
 
 	GenerateRefresh(
 		sub uuid.UUID,
 		sessionID uuid.UUID,
-		role roles.UserRole,
+		idn identity.IdnType,
 	) (string, error)
 }
 
@@ -129,60 +127,15 @@ func (m *jwtmanager) DecryptRefresh(encryptedToken string) (string, error) {
 func (m *jwtmanager) GenerateAccess(
 	sub uuid.UUID,
 	sessionID uuid.UUID,
-	role roles.UserRole,
+	idn identity.IdnType,
 ) (string, error) {
-	roleU := string(role)
-	ses := sessionID.String()
-	return generateJWT(m.iss, sub.String(), nil, &roleU, &ses, m.accessTTL, m.accessSK)
+	return tokens.GenerateJWT(m.iss, sub.String(), nil, m.accessTTL, idn, &sessionID, &sub, m.accessSK)
 }
 
 func (m *jwtmanager) GenerateRefresh(
 	sub uuid.UUID,
 	sessionID uuid.UUID,
-	role roles.UserRole,
+	idn identity.IdnType,
 ) (string, error) {
-	roleU := string(role)
-	ses := sessionID.String()
-	return generateJWT(m.iss, sub.String(), nil, &roleU, &ses, m.refreshTTL, m.refreshSK)
-}
-
-func generateJWT(
-	iss string,
-	sub string,
-	aud []string,
-	role *string,
-	sessionID *string,
-	ttl time.Duration,
-	sk string,
-) (string, error) {
-	expirationTime := time.Now().Add(ttl * time.Second)
-	claims := &tokens.CustomClaims{
-		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    iss,
-			Subject:   sub,
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
-		},
-		Role:      role,
-		SessionID: sessionID,
-	}
-	if role != nil {
-		_, err := roles.ParseUserRole(*role)
-		if err != nil {
-			return "", fmt.Errorf("invalid role: %w", err)
-		}
-		claims.Role = role
-	}
-	if sessionID != nil {
-		_, err := uuid.Parse(*sessionID)
-		if err != nil {
-			return "", fmt.Errorf("invalid device id: %w", err)
-		}
-		claims.SessionID = sessionID
-	}
-	if aud != nil {
-		claims.Audience = aud
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(sk))
+	return tokens.GenerateJWT(m.iss, sub.String(), nil, m.refreshTTL, idn, &sessionID, &sub, m.refreshSK)
 }

@@ -5,39 +5,27 @@ import (
 	"database/sql"
 
 	"github.com/google/uuid"
-	"github.com/recovery-flow/roles"
 	"github.com/recovery-flow/sso-oauth/internal/service/domain/core/models"
-	core2 "github.com/recovery-flow/sso-oauth/internal/service/infra/repository/sqldb/core"
+	"github.com/recovery-flow/sso-oauth/internal/service/infra/repository/sqldb/core"
+	"github.com/recovery-flow/tokens/identity"
 )
 
-type Accounts interface {
-	Create(ctx context.Context, email string, role roles.UserRole) (*models.Account, error)
-	GetByEmail(ctx context.Context, email string) (*models.Account, error)
-	GetByID(ctx context.Context, id uuid.UUID) (*models.Account, error)
-	UpdateRole(ctx context.Context, id uuid.UUID, role roles.UserRole) (*models.Account, error)
+type Accounts struct {
+	queries *core.Queries
 }
 
-type accounts struct {
-	queries *core2.Queries
-}
-
-func NewAccounts(url string) (Accounts, error) {
+func NewAccounts(url string) (*Accounts, error) {
 	db, err := sql.Open("postgres", url)
 	if err != nil {
 		return nil, err
 	}
-
-	if err = db.Ping(); err != nil {
-		return nil, err
-	}
-
-	return &accounts{queries: core2.New(db)}, nil
+	return &Accounts{queries: core.New(db)}, nil
 }
 
-func (a *accounts) Create(ctx context.Context, email string, role roles.UserRole) (*models.Account, error) {
-	acc, err := a.queries.CreateAccount(ctx, core2.CreateAccountParams{
+func (a *Accounts) Insert(ctx context.Context, email string, idn identity.IdnType) (*models.Account, error) {
+	acc, err := a.queries.CreateAccount(ctx, core.CreateAccountParams{
 		Email: email,
-		Role:  string(role),
+		Role:  string(idn),
 	})
 	if err != nil {
 		return nil, err
@@ -50,7 +38,7 @@ func (a *accounts) Create(ctx context.Context, email string, role roles.UserRole
 	return res, nil
 }
 
-func (a *accounts) GetByID(ctx context.Context, id uuid.UUID) (*models.Account, error) {
+func (a *Accounts) GetByID(ctx context.Context, id uuid.UUID) (*models.Account, error) {
 	acc, err := a.queries.GetAccountByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -63,7 +51,7 @@ func (a *accounts) GetByID(ctx context.Context, id uuid.UUID) (*models.Account, 
 	return res, nil
 }
 
-func (a *accounts) GetByEmail(ctx context.Context, email string) (*models.Account, error) {
+func (a *Accounts) GetByEmail(ctx context.Context, email string) (*models.Account, error) {
 	acc, err := a.queries.GetAccountByEmail(ctx, email)
 	if err != nil {
 		return nil, err
@@ -76,10 +64,10 @@ func (a *accounts) GetByEmail(ctx context.Context, email string) (*models.Accoun
 	return res, nil
 }
 
-func (a *accounts) UpdateRole(ctx context.Context, id uuid.UUID, role roles.UserRole) (*models.Account, error) {
-	acc, err := a.queries.UpdateAccountRole(ctx, core2.UpdateAccountRoleParams{
+func (a *Accounts) UpdateRole(ctx context.Context, id uuid.UUID, idn identity.IdnType) (*models.Account, error) {
+	acc, err := a.queries.UpdateAccountRole(ctx, core.UpdateAccountRoleParams{
 		ID:   id,
-		Role: string(role),
+		Role: string(idn),
 	})
 	if err != nil {
 		return nil, err
@@ -92,12 +80,11 @@ func (a *accounts) UpdateRole(ctx context.Context, id uuid.UUID, role roles.User
 	return res, nil
 }
 
-func parseAccount(account core2.Account) (*models.Account, error) {
-	role, err := roles.ParseUserRole(account.Role)
+func parseAccount(account core.Account) (*models.Account, error) {
+	role, err := identity.ParseIdentityType(account.Role)
 	if err != nil {
 		return nil, err
 	}
-
 	return &models.Account{
 		ID:        account.ID,
 		Email:     account.Email,

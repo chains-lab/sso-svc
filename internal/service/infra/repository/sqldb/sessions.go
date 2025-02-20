@@ -7,32 +7,14 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/recovery-flow/sso-oauth/internal/service/domain/core/models"
-	core2 "github.com/recovery-flow/sso-oauth/internal/service/infra/repository/sqldb/core"
+	"github.com/recovery-flow/sso-oauth/internal/service/infra/repository/sqldb/core"
 )
 
-type Sessions interface {
-	Create(ctx context.Context, session models.Session) (*models.Session, error)
-
-	GetByID(ctx context.Context, id uuid.UUID) (*models.Session, error)
-	SelectByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error)
-
-	UpdateToken(ctx context.Context, id uuid.UUID, token string, IP string) (*models.Session, error)
-
-	DeleteAll(ctx context.Context, userID uuid.UUID) error
-	Delete(ctx context.Context, id uuid.UUID) error
-
-	Terminate(
-		ctx context.Context,
-		userId uuid.UUID,
-		curDevId *uuid.UUID,
-	) error
+type Sessions struct {
+	queries *core.Queries
 }
 
-type sessions struct {
-	queries *core2.Queries
-}
-
-func NewSessions(url string) (Sessions, error) {
+func NewSessions(url string) (*Sessions, error) {
 	db, err := sql.Open("postgres", url)
 	if err != nil {
 		return nil, err
@@ -42,11 +24,11 @@ func NewSessions(url string) (Sessions, error) {
 		return nil, err
 	}
 
-	return &sessions{queries: core2.New(db)}, nil
+	return &Sessions{queries: core.New(db)}, nil
 }
 
-func (s *sessions) Create(ctx context.Context, session models.Session) (*models.Session, error) {
-	res, err := s.queries.CreateSession(ctx, core2.CreateSessionParams{
+func (s *Sessions) Insert(ctx context.Context, session models.Session) (*models.Session, error) {
+	res, err := s.queries.CreateSession(ctx, core.CreateSessionParams{
 		ID:     session.ID,
 		UserID: session.UserID,
 		Token:  session.Token,
@@ -60,7 +42,7 @@ func (s *sessions) Create(ctx context.Context, session models.Session) (*models.
 	return parseSession(res), nil
 }
 
-func (s *sessions) GetByID(ctx context.Context, id uuid.UUID) (*models.Session, error) {
+func (s *Sessions) GetByID(ctx context.Context, id uuid.UUID) (*models.Session, error) {
 	res, err := s.queries.GetSession(ctx, id)
 	if err != nil {
 		return nil, err
@@ -69,7 +51,7 @@ func (s *sessions) GetByID(ctx context.Context, id uuid.UUID) (*models.Session, 
 	return parseSession(res), nil
 }
 
-func (s *sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error) {
+func (s *Sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error) {
 	arr, err := s.queries.GetSessionsByUserID(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -83,8 +65,8 @@ func (s *sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]mode
 	return res, nil
 }
 
-func (s *sessions) UpdateToken(ctx context.Context, id uuid.UUID, token string, IP string) (*models.Session, error) {
-	res, err := s.queries.UpdateSessionToken(ctx, core2.UpdateSessionTokenParams{
+func (s *Sessions) UpdateToken(ctx context.Context, id uuid.UUID, token string, IP string) (*models.Session, error) {
+	res, err := s.queries.UpdateSessionToken(ctx, core.UpdateSessionTokenParams{
 		ID:    id,
 		Token: token,
 		Ip:    IP,
@@ -96,7 +78,7 @@ func (s *sessions) UpdateToken(ctx context.Context, id uuid.UUID, token string, 
 	return parseSession(res), nil
 }
 
-func (s *sessions) Terminate(
+func (s *Sessions) Terminate(
 	ctx context.Context,
 	userId uuid.UUID,
 	curDevId *uuid.UUID,
@@ -142,15 +124,15 @@ func HandleTransactionRollback(tx *sql.Tx, originalErr error) error {
 	return originalErr
 }
 
-func (s *sessions) DeleteAll(ctx context.Context, userID uuid.UUID) error {
+func (s *Sessions) DeleteAll(ctx context.Context, userID uuid.UUID) error {
 	return s.queries.DeleteUserSessions(ctx, userID)
 }
 
-func (s *sessions) Delete(ctx context.Context, id uuid.UUID) error {
+func (s *Sessions) Delete(ctx context.Context, id uuid.UUID) error {
 	return s.queries.DeleteSession(ctx, id)
 }
 
-func parseSession(session core2.Session) *models.Session {
+func parseSession(session core.Session) *models.Session {
 	return &models.Session{
 		ID:        session.ID,
 		UserID:    session.UserID,
