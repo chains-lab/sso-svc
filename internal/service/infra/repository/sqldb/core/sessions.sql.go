@@ -12,23 +12,23 @@ import (
 )
 
 const createSession = `-- name: CreateSession :one
-INSERT INTO sessions (id, user_id, token, client, IP)
+INSERT INTO sessions (id, account_id, token, client, IP)
 VALUES ($1, $2, $3, $4 , $5)
-RETURNING id, user_id, token, client, ip, created_at, last_used
+RETURNING id, account_id, token, client, ip, created_at, last_used
 `
 
 type CreateSessionParams struct {
-	ID     uuid.UUID
-	UserID uuid.UUID
-	Token  string
-	Client string
-	Ip     string
+	ID        uuid.UUID
+	AccountID uuid.UUID
+	Token     string
+	Client    string
+	Ip        string
 }
 
 func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error) {
 	row := q.db.QueryRowContext(ctx, createSession,
 		arg.ID,
-		arg.UserID,
+		arg.AccountID,
 		arg.Token,
 		arg.Client,
 		arg.Ip,
@@ -36,7 +36,7 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 	var i Session
 	err := row.Scan(
 		&i.ID,
-		&i.UserID,
+		&i.AccountID,
 		&i.Token,
 		&i.Client,
 		&i.Ip,
@@ -44,6 +44,16 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 		&i.LastUsed,
 	)
 	return i, err
+}
+
+const deleteAccountSessions = `-- name: DeleteAccountSessions :exec
+DELETE FROM sessions
+WHERE account_id = $1
+`
+
+func (q *Queries) DeleteAccountSessions(ctx context.Context, accountID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteAccountSessions, accountID)
+	return err
 }
 
 const deleteSession = `-- name: DeleteSession :exec
@@ -56,18 +66,8 @@ func (q *Queries) DeleteSession(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
-const deleteUserSessions = `-- name: DeleteUserSessions :exec
-DELETE FROM sessions
-WHERE user_id = $1
-`
-
-func (q *Queries) DeleteUserSessions(ctx context.Context, userID uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteUserSessions, userID)
-	return err
-}
-
 const getSession = `-- name: GetSession :one
-SELECT id, user_id, token, client, ip, created_at, last_used FROM sessions
+SELECT id, account_id, token, client, ip, created_at, last_used FROM sessions
 WHERE id = $1
 `
 
@@ -76,7 +76,7 @@ func (q *Queries) GetSession(ctx context.Context, id uuid.UUID) (Session, error)
 	var i Session
 	err := row.Scan(
 		&i.ID,
-		&i.UserID,
+		&i.AccountID,
 		&i.Token,
 		&i.Client,
 		&i.Ip,
@@ -86,13 +86,13 @@ func (q *Queries) GetSession(ctx context.Context, id uuid.UUID) (Session, error)
 	return i, err
 }
 
-const getSessionsByUserID = `-- name: GetSessionsByUserID :many
-SELECT id, user_id, token, client, ip, created_at, last_used FROM sessions
-WHERE user_id = $1
+const getSessionsByAccountID = `-- name: GetSessionsByAccountID :many
+SELECT id, account_id, token, client, ip, created_at, last_used FROM sessions
+WHERE account_id = $1
 `
 
-func (q *Queries) GetSessionsByUserID(ctx context.Context, userID uuid.UUID) ([]Session, error) {
-	rows, err := q.db.QueryContext(ctx, getSessionsByUserID, userID)
+func (q *Queries) GetSessionsByAccountID(ctx context.Context, accountID uuid.UUID) ([]Session, error) {
+	rows, err := q.db.QueryContext(ctx, getSessionsByAccountID, accountID)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (q *Queries) GetSessionsByUserID(ctx context.Context, userID uuid.UUID) ([]
 		var i Session
 		if err := rows.Scan(
 			&i.ID,
-			&i.UserID,
+			&i.AccountID,
 			&i.Token,
 			&i.Client,
 			&i.Ip,
@@ -128,28 +128,28 @@ SET
     token = $3,
     IP = $4,
     last_used = now()
-WHERE id = $1 AND user_id = $2
-RETURNING id, user_id, token, client, ip, created_at, last_used
+WHERE id = $1 AND account_id = $2
+RETURNING id, account_id, token, client, ip, created_at, last_used
 `
 
 type UpdateSessionTokenParams struct {
-	ID     uuid.UUID
-	UserID uuid.UUID
-	Token  string
-	Ip     string
+	ID        uuid.UUID
+	AccountID uuid.UUID
+	Token     string
+	Ip        string
 }
 
 func (q *Queries) UpdateSessionToken(ctx context.Context, arg UpdateSessionTokenParams) (Session, error) {
 	row := q.db.QueryRowContext(ctx, updateSessionToken,
 		arg.ID,
-		arg.UserID,
+		arg.AccountID,
 		arg.Token,
 		arg.Ip,
 	)
 	var i Session
 	err := row.Scan(
 		&i.ID,
-		&i.UserID,
+		&i.AccountID,
 		&i.Token,
 		&i.Client,
 		&i.Ip,

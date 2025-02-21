@@ -34,22 +34,22 @@ func (h *Handlers) AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := uuid.Parse(chi.URLParam(r, "user_id"))
+	accountID, err := uuid.Parse(chi.URLParam(r, "account_id"))
 	if err != nil {
 		httpkit.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
 
-	user, err := h.Domain.AccountGet(r.Context(), userID)
+	account, err := h.Domain.AccountGet(r.Context(), accountID)
 	if err != nil {
-		h.Log.Errorf("Failed to get user: %v", err)
+		h.Log.Errorf("Failed to get account: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	if identity.CompareRolesUser(*initiatorRole, user.Role) == -1 {
-		h.Log.Warn("User can't delete session of user with higher role")
-		httpkit.RenderErr(w, problems.Forbidden("User can't delete session of user with higher role"))
+	if identity.CompareRolesUser(*initiatorRole, account.Role) == -1 {
+		h.Log.Warn("Account can't delete session of account with higher role")
+		httpkit.RenderErr(w, problems.Forbidden("Account can't delete session of account with higher role"))
 		return
 	}
 
@@ -64,13 +64,13 @@ func (h *Handlers) AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessions, err := h.Domain.SessionsListByAccount(r.Context(), userID)
+	sessions, err := h.Domain.SessionsListByAccount(r.Context(), accountID)
 	if err != nil {
-		h.Log.Errorf("Failed to retrieve user sessions: %v", err)
+		h.Log.Errorf("Failed to retrieve account sessions: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	h.Log.Infof("Sessions Deleted %s for user %s by user %s", sessionID, userID, initiatorID)
+	h.Log.Infof("Sessions Deleted %s for account %s by account %s", sessionID, accountID, initiatorID)
 	httpkit.Render(w, responses.SessionCollection(sessions))
 }

@@ -41,18 +41,18 @@ func (h *Handlers) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		}
 	}(resp.Body)
 
-	var userInfo struct {
+	var accountInfo struct {
 		Email   string `json:"email"`
 		Name    string `json:"name"`
 		Picture string `json:"picture"`
 	}
-	if err = json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
-		h.Log.WithError(err).Error("failed to decode user info")
+	if err = json.NewDecoder(resp.Body).Decode(&accountInfo); err != nil {
+		h.Log.WithError(err).Error("failed to decode account info")
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	tokenAccess, tokenRefresh, err := h.Domain.Login(r.Context(), identity.User, userInfo.Email, r.UserAgent(), r.RemoteAddr)
+	tokenAccess, tokenRefresh, err := h.Domain.Login(r.Context(), identity.User, accountInfo.Email, r.UserAgent(), r.RemoteAddr)
 	if err != nil {
 		h.Log.WithError(err).Error("Failed to login")
 		httpkit.RenderErr(w, problems.InternalError())

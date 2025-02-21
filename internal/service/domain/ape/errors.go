@@ -1,4 +1,4 @@
-package derr
+package ape
 
 import "fmt"
 

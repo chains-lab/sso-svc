@@ -10,7 +10,7 @@ CREATE TABLE accounts (
 
 CREATE TABLE sessions (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
     token TEXT NOT NULL,
     client TEXT NOT NULL,
     IP TEXT NOT NULL,
@@ -19,5 +19,5 @@ CREATE TABLE sessions (
 );
 
 CREATE INDEX idx_account_email ON accounts(email);
-CREATE INDEX idx_sessions_user_id ON sessions(user_id);
+CREATE INDEX idx_sessions_account_id ON sessions(account_id);
 CREATE INDEX idx_sessions_last_used ON sessions(last_used);

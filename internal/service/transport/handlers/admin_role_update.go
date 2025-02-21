@@ -20,7 +20,7 @@ func (h *Handlers) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedUserID, err := uuid.Parse(chi.URLParam(r, "account_id"))
+	updatedAccountID, err := uuid.Parse(chi.URLParam(r, "account_id"))
 	if err != nil {
 		h.Log.WithError(err).Warn("Invalid account_id")
 		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
@@ -38,31 +38,31 @@ func (h *Handlers) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if identity.CompareRolesUser(*InitiatorRole, updatedRole) != 1 {
-		h.Log.Warn("User can't update role to higher level than his own")
-		httpkit.RenderErr(w, problems.Forbidden("User can't update role to higher level"))
+		h.Log.Warn("Account can't update role to higher level than his own")
+		httpkit.RenderErr(w, problems.Forbidden("Account can't update role to higher level"))
 		return
 	}
 
-	user, err := h.Domain.AccountGet(r.Context(), updatedUserID)
+	account, err := h.Domain.AccountGet(r.Context(), updatedAccountID)
 	if err != nil {
-		h.Log.WithError(err).Warn("Failed to get user")
+		h.Log.WithError(err).Warn("Failed to get account")
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	if identity.CompareRolesUser(*InitiatorRole, user.Role) == -1 {
-		h.Log.Warn("User can't update role of user with higher role than his own")
-		httpkit.RenderErr(w, problems.Forbidden("User can't update role of user with higher role"))
+	if identity.CompareRolesUser(*InitiatorRole, account.Role) == -1 {
+		h.Log.Warn("Account can't update role of account with higher role than his own")
+		httpkit.RenderErr(w, problems.Forbidden("Account can't update role of account with higher role"))
 		return
 	}
 
-	_, err = h.Domain.AccountUpdateRole(r.Context(), updatedUserID, updatedRole)
+	_, err = h.Domain.AccountUpdateRole(r.Context(), updatedAccountID, updatedRole)
 	if err != nil {
 		h.Log.WithError(err).Warn("Failed to update role")
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	h.Log.Infof("Role updated for user %s to %s by user %s", updatedUserID, updatedRole, initiatorID)
+	h.Log.Infof("Role updated for account %s to %s by account %s", updatedAccountID, updatedRole, initiatorID)
 	httpkit.Render(w, http.StatusOK)
 }

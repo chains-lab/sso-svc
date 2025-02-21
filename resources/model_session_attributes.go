@@ -23,7 +23,7 @@ var _ MappedNullable = &SessionAttributes{}
 // SessionAttributes struct for SessionAttributes
 type SessionAttributes struct {
 	// user id
-	UserId string `json:"user_id"`
+	AccountId string `json:"account_id"`
 	// client name and version
 	Client string `json:"client"`
 	// IP address
@@ -40,9 +40,9 @@ type _SessionAttributes SessionAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewSessionAttributes(userId string, client string, ip string, createdAt time.Time, lastUsed time.Time) *SessionAttributes {
+func NewSessionAttributes(accountId string, client string, ip string, createdAt time.Time, lastUsed time.Time) *SessionAttributes {
 	this := SessionAttributes{}
-	this.UserId = userId
+	this.AccountId = accountId
 	this.Client = client
 	this.Ip = ip
 	this.CreatedAt = createdAt
@@ -58,28 +58,28 @@ func NewSessionAttributesWithDefaults() *SessionAttributes {
 	return &this
 }
 
-// GetUserId returns the UserId field value
-func (o *SessionAttributes) GetUserId() string {
+// GetAccountId returns the AccountId field value
+func (o *SessionAttributes) GetAccountId() string {
 	if o == nil {
 		var ret string
 		return ret
 	}
 
-	return o.UserId
+	return o.AccountId
 }
 
-// GetUserIdOk returns a tuple with the UserId field value
+// GetAccountIdOk returns a tuple with the AccountId field value
 // and a boolean to check if the value has been set.
-func (o *SessionAttributes) GetUserIdOk() (*string, bool) {
+func (o *SessionAttributes) GetAccountIdOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.UserId, true
+	return &o.AccountId, true
 }
 
-// SetUserId sets field value
-func (o *SessionAttributes) SetUserId(v string) {
-	o.UserId = v
+// SetAccountId sets field value
+func (o *SessionAttributes) SetAccountId(v string) {
+	o.AccountId = v
 }
 
 // GetClient returns the Client field value
@@ -188,7 +188,7 @@ func (o SessionAttributes) MarshalJSON() ([]byte, error) {
 
 func (o SessionAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["user_id"] = o.UserId
+	toSerialize["account_id"] = o.AccountId
 	toSerialize["client"] = o.Client
 	toSerialize["ip"] = o.Ip
 	toSerialize["created_at"] = o.CreatedAt
@@ -201,7 +201,7 @@ func (o *SessionAttributes) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"user_id",
+		"account_id",
 		"client",
 		"ip",
 		"created_at",

@@ -4,7 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**UserId** | **string** | user id | 
+**AccountId** | **string** | user id | 
 **Client** | **string** | client name and version | 
 **Ip** | **string** | IP address | 
 **CreatedAt** | **time.Time** | session creation date | 
@@ -14,7 +14,7 @@ Name | Type | Description | Notes
 
 ### NewSessionAttributes
 
-`func NewSessionAttributes(userId string, client string, ip string, createdAt time.Time, lastUsed time.Time, ) *SessionAttributes`
+`func NewSessionAttributes(accountId string, client string, ip string, createdAt time.Time, lastUsed time.Time, ) *SessionAttributes`
 
 NewSessionAttributes instantiates a new SessionAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -29,24 +29,24 @@ NewSessionAttributesWithDefaults instantiates a new SessionAttributes object
 This constructor will only assign default values to properties that have it defined,
 but it doesn't guarantee that properties required by API are set
 
-### GetUserId
+### GetAccountId
 
-`func (o *SessionAttributes) GetUserId() string`
+`func (o *SessionAttributes) GetAccountId() string`
 
-GetUserId returns the UserId field if non-nil, zero value otherwise.
+GetAccountId returns the AccountId field if non-nil, zero value otherwise.
 
-### GetUserIdOk
+### GetAccountIdOk
 
-`func (o *SessionAttributes) GetUserIdOk() (*string, bool)`
+`func (o *SessionAttributes) GetAccountIdOk() (*string, bool)`
 
-GetUserIdOk returns a tuple with the UserId field if it's non-nil, zero value otherwise
+GetAccountIdOk returns a tuple with the AccountId field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
-### SetUserId
+### SetAccountId
 
-`func (o *SessionAttributes) SetUserId(v string)`
+`func (o *SessionAttributes) SetAccountId(v string)`
 
-SetUserId sets UserId field to given value.
+SetAccountId sets AccountId field to given value.
 
 
 ### GetClient

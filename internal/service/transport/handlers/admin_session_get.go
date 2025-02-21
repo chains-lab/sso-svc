@@ -23,7 +23,7 @@ func (h *Handlers) AdminSessionGet(w http.ResponseWriter, r *http.Request) {
 
 	session, err := h.Domain.SessionGet(r.Context(), sessionID)
 	if err != nil {
-		h.Log.Errorf("Failed to retrieve user session: %v", err)
+		h.Log.Errorf("Failed to retrieve account session: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}

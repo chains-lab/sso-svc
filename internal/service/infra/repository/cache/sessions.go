@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/core/models"
+	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -24,7 +24,7 @@ func NewSessions(client *redis.Client, lifeTime time.Duration) Sessions {
 
 func (s *Sessions) Add(ctx context.Context, session models.Session) error {
 	sessionKey := fmt.Sprintf("session:id:%s", session.ID)
-	userSessionsKey := fmt.Sprintf("session:user:%s", session.UserID)
+	accountSessionsKey := fmt.Sprintf("session:account:%s", session.AccountID)
 
 	exists, err := s.client.Exists(ctx, sessionKey).Result()
 	if err != nil {
@@ -43,12 +43,12 @@ func (s *Sessions) Add(ctx context.Context, session models.Session) error {
 		}
 	} else {
 		data := map[string]interface{}{
-			"user_id":   session.UserID.String(),
-			"token":     session.Token,
-			"client":    session.Client,
-			"ip":        session.IP,
-			"create_at": session.CreatedAt.Format(time.RFC3339),
-			"last_used": session.LastUsed.Format(time.RFC3339),
+			"account_id": session.AccountID.String(),
+			"token":      session.Token,
+			"client":     session.Client,
+			"ip":         session.IP,
+			"create_at":  session.CreatedAt.Format(time.RFC3339),
+			"last_used":  session.LastUsed.Format(time.RFC3339),
 		}
 
 		err = s.client.HSet(ctx, sessionKey, data).Err()
@@ -56,15 +56,15 @@ func (s *Sessions) Add(ctx context.Context, session models.Session) error {
 			return fmt.Errorf("error adding session to Redis: %w", err)
 		}
 
-		err = s.client.SAdd(ctx, userSessionsKey, session.ID.String()).Err()
+		err = s.client.SAdd(ctx, accountSessionsKey, session.ID.String()).Err()
 		if err != nil {
-			return fmt.Errorf("error indexing session under user_id: %w", err)
+			return fmt.Errorf("error indexing session under account_id: %w", err)
 		}
 	}
 
 	if s.lifeTime > 0 {
 		_ = s.client.Expire(ctx, sessionKey, s.lifeTime).Err()
-		_ = s.client.Expire(ctx, userSessionsKey, s.lifeTime).Err()
+		_ = s.client.Expire(ctx, accountSessionsKey, s.lifeTime).Err()
 	}
 
 	return nil
@@ -92,14 +92,14 @@ func (s *Sessions) GetByID(ctx context.Context, sessionID uuid.UUID) (*models.Se
 		return nil, fmt.Errorf("error parsing updated_at: %w", err)
 	}
 
-	userID, err := uuid.Parse(vals["user_id"])
+	AccountID, err := uuid.Parse(vals["account_id"])
 	if err != nil {
-		return nil, fmt.Errorf("error parsing user ID: %w", err)
+		return nil, fmt.Errorf("error parsing account ID: %w", err)
 	}
 
 	session := &models.Session{
 		ID:        sessionID,
-		UserID:    userID,
+		AccountID: AccountID,
 		Token:     vals["token"],
 		Client:    vals["client"],
 		IP:        vals["ip"],
@@ -110,10 +110,10 @@ func (s *Sessions) GetByID(ctx context.Context, sessionID uuid.UUID) (*models.Se
 	return session, nil
 }
 
-func (s *Sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error) {
-	userSessionsKey := fmt.Sprintf("session:user:%s", userID)
+func (s *Sessions) SelectByAccountID(ctx context.Context, AccountID uuid.UUID) ([]models.Session, error) {
+	accountSessionsKey := fmt.Sprintf("session:account:%s", AccountID)
 
-	sessionIDs, err := s.client.SMembers(ctx, userSessionsKey).Result()
+	sessionIDs, err := s.client.SMembers(ctx, accountSessionsKey).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -133,12 +133,12 @@ func (s *Sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]mode
 	return sessionsArr, nil
 }
 
-func (s *Sessions) DeleteByUserID(ctx context.Context, userID uuid.UUID, curSessionID *uuid.UUID) error {
-	userSessionsKey := fmt.Sprintf("session:user:%s", userID)
+func (s *Sessions) DeleteByAccountID(ctx context.Context, AccountID uuid.UUID, curSessionID *uuid.UUID) error {
+	accountSessionsKey := fmt.Sprintf("session:account:%s", AccountID)
 
-	sessionIDs, err := s.client.SMembers(ctx, userSessionsKey).Result()
+	sessionIDs, err := s.client.SMembers(ctx, accountSessionsKey).Result()
 	if err != nil {
-		return fmt.Errorf("error getting Sessions for user: %w", err)
+		return fmt.Errorf("error getting Sessions for account: %w", err)
 	}
 
 	for _, sessionID := range sessionIDs {
@@ -151,9 +151,9 @@ func (s *Sessions) DeleteByUserID(ctx context.Context, userID uuid.UUID, curSess
 		}
 	}
 
-	err = s.client.Del(ctx, userSessionsKey).Err()
+	err = s.client.Del(ctx, accountSessionsKey).Err()
 	if err != nil {
-		return fmt.Errorf("error deleting session list for user: %w", err)
+		return fmt.Errorf("error deleting session list for account: %w", err)
 	}
 
 	return nil

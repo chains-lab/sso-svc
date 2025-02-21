@@ -51,7 +51,7 @@ components:
           type: string
         type:
           enum:
-          - users_session
+          - account_session
           type: string
         attributes:
           $ref: '#/components/schemas/SessionAttributes'
@@ -62,7 +62,7 @@ components:
       type: object
     SessionAttributes:
       properties:
-        user_id:
+        account_id:
           description: user id
           format: uuid
           type: string
@@ -81,11 +81,11 @@ components:
           format: date-time
           type: string
       required:
+      - account_id
       - client
       - created_at
       - ip
       - last_used
-      - user_id
       type: object
     SessionsCollection:
       properties:
@@ -181,7 +181,7 @@ components:
       properties:
         type:
           enum:
-          - users_sessions
+          - account_sessions
           type: string
         attributes:
           $ref: '#/components/schemas/SessionsCollection_data_attributes'

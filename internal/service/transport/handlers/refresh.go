@@ -38,24 +38,24 @@ func (h *Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
 
 	tokenString := parts[1]
 
-	userData, err := tokens.VerifyJWT(r.Context(), tokenString, h.Config.JWT.AccessToken.SecretKey)
+	accountData, err := tokens.VerifyJWT(r.Context(), tokenString, h.Config.JWT.AccessToken.SecretKey)
 	if err != nil && !errors.Is(err, jwt.ErrTokenExpired) {
 		h.Log.WithError(err).Warn("Error validating token")
 		httpkit.RenderErr(w, problems.Unauthorized())
 		return
 	}
-	if userData == nil {
-		h.Log.Warn("Token validation failed, no user data")
+	if accountData == nil {
+		h.Log.Warn("Token validation failed, no account data")
 		httpkit.RenderErr(w, problems.Unauthorized("Token validation failed"))
 		return
 	}
 
-	sessionID := userData.SessionID
-	accountRole := userData.Identity
+	sessionID := accountData.SessionID
+	accountRole := accountData.Identity
 
 	//-------------------------------------------------------------------------//
 
-	session, err := h.Domain.SessionGetForAccount(r.Context(), *sessionID, *userData.AccountID)
+	session, err := h.Domain.SessionGetForAccount(r.Context(), *sessionID, *accountData.AccountID)
 	if err != nil {
 		h.Log.WithError(err).Error("Failed to get session")
 		httpkit.RenderErr(w, problems.InternalError())

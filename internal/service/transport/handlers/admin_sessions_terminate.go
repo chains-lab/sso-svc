@@ -15,14 +15,14 @@ import (
 
 func (h *Handlers) AdminSessionsTerminate(w http.ResponseWriter, r *http.Request) {
 	initiatorID, _, initiatorRole, _, err := tokens.GetAccountData(r.Context())
-	userID, err := uuid.Parse(chi.URLParam(r, "account_id"))
+	accountID, err := uuid.Parse(chi.URLParam(r, "account_id"))
 	if err != nil {
 		h.Log.WithError(err).Warn("Invalid account_id")
 		httpkit.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
 
-	account, err := h.Domain.AccountGet(r.Context(), userID)
+	account, err := h.Domain.AccountGet(r.Context(), accountID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())
@@ -33,12 +33,12 @@ func (h *Handlers) AdminSessionsTerminate(w http.ResponseWriter, r *http.Request
 	}
 
 	if identity.CompareRolesUser(*initiatorRole, account.Role) == -1 {
-		h.Log.Errorf("User can't terminate sessions of higher level account")
-		httpkit.RenderErr(w, problems.Forbidden("User can't terminate sessions of higher level account"))
+		h.Log.Errorf("Account can't terminate sessions of higher level account")
+		httpkit.RenderErr(w, problems.Forbidden("Account can't terminate sessions of higher level account"))
 		return
 	}
 
-	err = h.Domain.SessionsTerminate(r.Context(), userID, nil)
+	err = h.Domain.SessionsTerminate(r.Context(), accountID, nil)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())
@@ -48,6 +48,6 @@ func (h *Handlers) AdminSessionsTerminate(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	h.Log.Infof("Sessions terminated for account %s by account %s", userID, initiatorID)
+	h.Log.Infof("Sessions terminated for account %s by account %s", accountID, initiatorID)
 	httpkit.Render(w, http.StatusOK)
 }

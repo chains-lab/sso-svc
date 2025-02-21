@@ -19,10 +19,10 @@ func (h *Handlers) AdminAccountGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.Domain.AccountGet(r.Context(), accountID)
+	account, err := h.Domain.AccountGet(r.Context(), accountID)
 	if err != nil {
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
-	httpkit.Render(w, responses.Account(*user))
+	httpkit.Render(w, responses.Account(*account))
 }

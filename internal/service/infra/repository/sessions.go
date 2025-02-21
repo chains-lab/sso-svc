@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/recovery-flow/sso-oauth/internal/config"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/core/models"
+	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
 	"github.com/recovery-flow/sso-oauth/internal/service/infra/repository/cache"
 	"github.com/recovery-flow/sso-oauth/internal/service/infra/repository/sqldb"
 	"github.com/redis/go-redis/v9"
@@ -18,13 +18,13 @@ type Sessions interface {
 	Create(ctx context.Context, session models.Session) (*models.Session, error)
 
 	GetByID(ctx context.Context, sessionID uuid.UUID) (*models.Session, error)
-	SelectByAccountID(ctx context.Context, userID uuid.UUID) ([]models.Session, error)
+	SelectByAccountID(ctx context.Context, accountID uuid.UUID) ([]models.Session, error)
 
-	UpdateToken(ctx context.Context, sessionID, UserID uuid.UUID, IP, client, newToken string) (*models.Session, error)
+	UpdateToken(ctx context.Context, sessionID, accountID uuid.UUID, IP, client, newToken string) (*models.Session, error)
 
 	Delete(ctx context.Context, sessionID uuid.UUID) error
 
-	Terminate(ctx context.Context, userID uuid.UUID, sessionID *uuid.UUID) error
+	Terminate(ctx context.Context, accountID uuid.UUID, sessionID *uuid.UUID) error
 }
 
 type sessions struct {
@@ -96,7 +96,7 @@ func (s *sessions) GetByID(ctx context.Context, sessionID uuid.UUID) (*models.Se
 }
 
 func (s *sessions) SelectByAccountID(ctx context.Context, accountID uuid.UUID) ([]models.Session, error) {
-	res, err := s.redis.SelectByUserID(ctx, accountID)
+	res, err := s.redis.SelectByAccountID(ctx, accountID)
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			res = nil
@@ -107,7 +107,7 @@ func (s *sessions) SelectByAccountID(ctx context.Context, accountID uuid.UUID) (
 		return res, nil
 	}
 
-	res, err = s.sql.SelectByUserID(ctx, accountID)
+	res, err = s.sql.SelectByAccountID(ctx, accountID)
 	if err != nil {
 		return nil, err
 	}
@@ -124,8 +124,8 @@ func (s *sessions) SelectByAccountID(ctx context.Context, accountID uuid.UUID) (
 	return res, nil
 }
 
-func (s *sessions) UpdateToken(ctx context.Context, sessionID, UserID uuid.UUID, IP, client, newToken string) (*models.Session, error) {
-	res, err := s.sql.UpdateToken(ctx, sessionID, UserID, newToken, IP)
+func (s *sessions) UpdateToken(ctx context.Context, sessionID, AccountID uuid.UUID, IP, client, newToken string) (*models.Session, error) {
+	res, err := s.sql.UpdateToken(ctx, sessionID, AccountID, newToken, IP)
 	if err != nil {
 		return nil, err
 	}
@@ -152,13 +152,13 @@ func (s *sessions) Delete(ctx context.Context, sessionID uuid.UUID) error {
 	return nil
 }
 
-func (s *sessions) Terminate(ctx context.Context, userID uuid.UUID, sessionID *uuid.UUID) error {
-	err := s.sql.Terminate(ctx, userID, sessionID)
+func (s *sessions) Terminate(ctx context.Context, AccountID uuid.UUID, sessionID *uuid.UUID) error {
+	err := s.sql.Terminate(ctx, AccountID, sessionID)
 	if err != nil {
 		return err
 	}
 
-	err = s.redis.DeleteByUserID(ctx, userID, sessionID)
+	err = s.redis.DeleteByAccountID(ctx, AccountID, sessionID)
 	if err != nil {
 		s.log.WithError(err).Error("error deleting session from Redis")
 	}

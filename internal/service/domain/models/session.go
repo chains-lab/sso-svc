@@ -8,7 +8,7 @@ import (
 
 type Session struct {
 	ID        uuid.UUID
-	UserID    uuid.UUID
+	AccountID uuid.UUID
 	Token     string
 	Client    string
 	IP        string

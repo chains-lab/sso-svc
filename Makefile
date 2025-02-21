@@ -26,11 +26,10 @@ generate-sqlc:
 	sqlc generate
 
 migrate-up:
-	KV_VIPER_FILE=$(CONFIG_FILE) go build -o main main.go
-	KV_VIPER_FILE=$(CONFIG_FILE) ./main migrate up
+	migrate -path internal/service/infra/repository/sqldb/migrations -database $(DB_URL) -verbose up
 
 migrate-down:
-	migrate -path internal/data/sql/repositories/migrations -database $(DB_URL) -verbose down
+	migrate -path internal/service/infra/repository/sqldb/migrations -database $(DB_URL) -verbose down
 
 run-server:
 	KV_VIPER_FILE=$(CONFIG_FILE) go build -o main ./cmd/sso-oauth/main.go

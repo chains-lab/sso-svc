@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/core/models"
+	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
 	"github.com/recovery-flow/sso-oauth/internal/service/infra/repository/sqldb/core"
 )
 
@@ -29,11 +29,11 @@ func NewSessions(url string) (*Sessions, error) {
 
 func (s *Sessions) Insert(ctx context.Context, session models.Session) (*models.Session, error) {
 	res, err := s.queries.CreateSession(ctx, core.CreateSessionParams{
-		ID:     session.ID,
-		UserID: session.UserID,
-		Token:  session.Token,
-		Client: session.Client,
-		Ip:     session.IP,
+		ID:        session.ID,
+		AccountID: session.AccountID,
+		Token:     session.Token,
+		Client:    session.Client,
+		Ip:        session.IP,
 	})
 	if err != nil {
 		return nil, err
@@ -51,8 +51,8 @@ func (s *Sessions) GetByID(ctx context.Context, id uuid.UUID) (*models.Session, 
 	return parseSession(res), nil
 }
 
-func (s *Sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error) {
-	arr, err := s.queries.GetSessionsByUserID(ctx, userID)
+func (s *Sessions) SelectByAccountID(ctx context.Context, AccountID uuid.UUID) ([]models.Session, error) {
+	arr, err := s.queries.GetSessionsByAccountID(ctx, AccountID)
 	if err != nil {
 		return nil, err
 	}
@@ -65,12 +65,12 @@ func (s *Sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]mode
 	return res, nil
 }
 
-func (s *Sessions) UpdateToken(ctx context.Context, SessionID, userID uuid.UUID, token string, IP string) (*models.Session, error) {
+func (s *Sessions) UpdateToken(ctx context.Context, SessionID, AccountID uuid.UUID, token string, IP string) (*models.Session, error) {
 	res, err := s.queries.UpdateSessionToken(ctx, core.UpdateSessionTokenParams{
-		ID:     SessionID,
-		UserID: userID,
-		Token:  token,
-		Ip:     IP,
+		ID:        SessionID,
+		AccountID: AccountID,
+		Token:     token,
+		Ip:        IP,
 	})
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func (s *Sessions) UpdateToken(ctx context.Context, SessionID, userID uuid.UUID,
 
 func (s *Sessions) Terminate(
 	ctx context.Context,
-	userId uuid.UUID,
+	AccountID uuid.UUID,
 	curDevId *uuid.UUID,
 ) error {
 	queries, tx, err := s.queries.BeginTx(ctx)
@@ -97,12 +97,12 @@ func (s *Sessions) Terminate(
 		return err
 	}
 
-	userSessions, err := queries.GetSessionsByUserID(ctx, userId)
+	accountSessions, err := queries.GetSessionsByAccountID(ctx, AccountID)
 	if err != nil {
 		return err
 	}
 
-	for _, dev := range userSessions {
+	for _, dev := range accountSessions {
 		if curDevId != nil && dev.ID == *curDevId {
 			continue
 		}
@@ -125,8 +125,8 @@ func HandleTransactionRollback(tx *sql.Tx, originalErr error) error {
 	return originalErr
 }
 
-func (s *Sessions) DeleteAll(ctx context.Context, userID uuid.UUID) error {
-	return s.queries.DeleteUserSessions(ctx, userID)
+func (s *Sessions) DeleteAll(ctx context.Context, AccountID uuid.UUID) error {
+	return s.queries.DeleteAccountSessions(ctx, AccountID)
 }
 
 func (s *Sessions) Delete(ctx context.Context, id uuid.UUID) error {
@@ -136,7 +136,7 @@ func (s *Sessions) Delete(ctx context.Context, id uuid.UUID) error {
 func parseSession(session core.Session) *models.Session {
 	return &models.Session{
 		ID:        session.ID,
-		UserID:    session.UserID,
+		AccountID: session.AccountID,
 		Token:     session.Token,
 		Client:    session.Client,
 		IP:        session.Ip,

@@ -110,19 +110,19 @@ components:
         type:
           type: string
           enum:
-            - users_session
+            - account_session
         attributes:
           $ref: '#/components/schemas/SessionAttributes'
     SessionAttributes:
       type: object
       required:
-        - user_id
+        - account_id
         - client
         - ip
         - created_at
         - last_used
       properties:
-        user_id:
+        account_id:
           type: string
           format: uuid
           description: user id
@@ -154,7 +154,7 @@ components:
             type:
               type: string
               enum:
-                - users_sessions
+                - account_sessions
             attributes:
               type: object
               required:

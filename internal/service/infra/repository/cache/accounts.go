@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/core/models"
+	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
 	"github.com/recovery-flow/tokens/identity"
 	"github.com/redis/go-redis/v9"
 )
@@ -24,8 +24,8 @@ func NewAccounts(client *redis.Client, lifetime time.Duration) *Accounts {
 }
 
 func (a *Accounts) Add(ctx context.Context, account models.Account) error {
-	userKey := fmt.Sprintf("user:id:%s", account.ID)
-	emailKey := fmt.Sprintf("user:email:%s", account.Email)
+	accountKey := fmt.Sprintf("account:id:%s", account.ID)
+	emailKey := fmt.Sprintf("account:email:%s", account.Email)
 
 	data := map[string]interface{}{
 		"email":      account.Email,
@@ -34,9 +34,9 @@ func (a *Accounts) Add(ctx context.Context, account models.Account) error {
 		"updated_at": account.UpdatedAt.Format(time.RFC3339),
 	}
 
-	err := a.client.HSet(ctx, userKey, data).Err()
+	err := a.client.HSet(ctx, accountKey, data).Err()
 	if err != nil {
-		return fmt.Errorf("error adding user to Redis: %w", err)
+		return fmt.Errorf("error adding account to Redis: %w", err)
 	}
 
 	err = a.client.Set(ctx, emailKey, account.ID.String(), 0).Err()
@@ -45,7 +45,7 @@ func (a *Accounts) Add(ctx context.Context, account models.Account) error {
 	}
 
 	if a.LifeTime > 0 {
-		_ = a.client.Expire(ctx, userKey, a.LifeTime).Err()
+		_ = a.client.Expire(ctx, accountKey, a.LifeTime).Err()
 		_ = a.client.Expire(ctx, emailKey, a.LifeTime).Err()
 	}
 
@@ -53,36 +53,36 @@ func (a *Accounts) Add(ctx context.Context, account models.Account) error {
 }
 
 func (a *Accounts) GetByEmail(ctx context.Context, email string) (*models.Account, error) {
-	emailKey := fmt.Sprintf("user:email:%s", email)
+	emailKey := fmt.Sprintf("account:email:%s", email)
 
-	userID, err := a.client.Get(ctx, emailKey).Result()
+	accountID, err := a.client.Get(ctx, emailKey).Result()
 	if err != nil {
-		return nil, fmt.Errorf("error getting userID by email: %w", err)
+		return nil, fmt.Errorf("error getting accountID by email: %w", err)
 	}
 
-	return a.GetByID(ctx, userID)
+	return a.GetByID(ctx, accountID)
 }
 
-func (a *Accounts) GetByID(ctx context.Context, userID string) (*models.Account, error) {
-	userKey := fmt.Sprintf("user:id:%s", userID)
-	vals, err := a.client.HGetAll(ctx, userKey).Result()
+func (a *Accounts) GetByID(ctx context.Context, AccountID string) (*models.Account, error) {
+	accountKey := fmt.Sprintf("account:id:%s", AccountID)
+	vals, err := a.client.HGetAll(ctx, accountKey).Result()
 	if err != nil {
-		return nil, fmt.Errorf("error getting user from Redis: %w", err)
+		return nil, fmt.Errorf("error getting account from Redis: %w", err)
 	}
 
 	if len(vals) == 0 {
-		return nil, fmt.Errorf("user not found, id=%s", userID)
+		return nil, fmt.Errorf("account not found, id=%s", AccountID)
 	}
 
-	return parseUser(userID, vals)
+	return parseAccount(AccountID, vals)
 }
 
-func (a *Accounts) Delete(ctx context.Context, userID string) error {
-	key := fmt.Sprintf("user:id:%s", userID)
+func (a *Accounts) Delete(ctx context.Context, AccountID string) error {
+	key := fmt.Sprintf("account:id:%s", AccountID)
 
 	exists, err := a.client.Exists(ctx, key).Result()
 	if err != nil {
-		return fmt.Errorf("error checking user existence in Redis: %w", err)
+		return fmt.Errorf("error checking account existence in Redis: %w", err)
 	}
 
 	if exists == 0 {
@@ -91,17 +91,17 @@ func (a *Accounts) Delete(ctx context.Context, userID string) error {
 
 	email, err := a.client.HGet(ctx, key, "email").Result()
 	if err != nil {
-		return fmt.Errorf("error getting email for user %s: %w", userID, err)
+		return fmt.Errorf("error getting email for account %s: %w", AccountID, err)
 	}
 
 	// Удаляем запись пользователя
 	err = a.client.Del(ctx, key).Err()
 	if err != nil {
-		return fmt.Errorf("error deleting user from Redis: %w", err)
+		return fmt.Errorf("error deleting account from Redis: %w", err)
 	}
 
-	// Удаляем индекс email → userID
-	emailKey := fmt.Sprintf("user:email:%s", email)
+	// Удаляем индекс email → AccountID
+	emailKey := fmt.Sprintf("account:email:%s", email)
 	err = a.client.Del(ctx, emailKey).Err()
 	if err != nil {
 		return fmt.Errorf("error deleting email index: %w", err)
@@ -110,7 +110,7 @@ func (a *Accounts) Delete(ctx context.Context, userID string) error {
 	return nil
 }
 
-func parseUser(userID string, vals map[string]string) (*models.Account, error) {
+func parseAccount(AccountID string, vals map[string]string) (*models.Account, error) {
 	createdAt, err := time.Parse(time.RFC3339, vals["created_at"])
 	if err != nil {
 		return nil, fmt.Errorf("error parsing created_at: %w", err)
@@ -121,9 +121,9 @@ func parseUser(userID string, vals map[string]string) (*models.Account, error) {
 		return nil, fmt.Errorf("error parsing updated_at: %w", err)
 	}
 
-	ID, err := uuid.Parse(userID)
+	ID, err := uuid.Parse(AccountID)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing userID: %w", err)
+		return nil, fmt.Errorf("error parsing AccountID: %w", err)
 	}
 
 	role, err := identity.ParseIdentityType(vals["role"])
@@ -131,7 +131,7 @@ func parseUser(userID string, vals map[string]string) (*models.Account, error) {
 		return nil, fmt.Errorf("error parsing role: %w", err)
 	}
 
-	user := &models.Account{
+	account := &models.Account{
 		ID:        ID,
 		Email:     vals["email"],
 		Role:      role,
@@ -139,5 +139,5 @@ func parseUser(userID string, vals map[string]string) (*models.Account, error) {
 		UpdatedAt: updatedAt,
 	}
 
-	return user, nil
+	return account, nil
 }

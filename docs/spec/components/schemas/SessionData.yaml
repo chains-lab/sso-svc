@@ -10,6 +10,6 @@ properties:
     description: "session id"
   type:
     type: string
-    enum: [ users_session ]
+    enum: [ account_session ]
   attributes:
     $ref: './SessionAttributes.yaml'

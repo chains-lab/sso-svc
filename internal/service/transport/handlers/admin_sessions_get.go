@@ -12,7 +12,7 @@ import (
 )
 
 func (h *Handlers) AdminSessionsGet(w http.ResponseWriter, r *http.Request) {
-	userID, err := uuid.Parse(chi.URLParam(r, "account_id"))
+	accountID, err := uuid.Parse(chi.URLParam(r, "account_id"))
 	if err != nil {
 		h.Log.WithError(err).Warn("Invalid account_id")
 		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
@@ -21,7 +21,7 @@ func (h *Handlers) AdminSessionsGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessions, err := h.Domain.SessionsListByAccount(r.Context(), userID)
+	sessions, err := h.Domain.SessionsListByAccount(r.Context(), accountID)
 	if err != nil {
 		httpkit.RenderErr(w, problems.InternalError())
 		return

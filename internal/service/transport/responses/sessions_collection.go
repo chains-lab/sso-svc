@@ -1,7 +1,7 @@
 package responses
 
 import (
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/core/models"
+	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
 	"github.com/recovery-flow/sso-oauth/resources"
 )
 
@@ -12,7 +12,7 @@ func SessionCollection(sessions []models.Session) resources.SessionsCollection {
 	}
 	return resources.SessionsCollection{
 		Data: resources.SessionsCollectionData{
-			Type: resources.UserSessionsType,
+			Type: resources.AccountSessionsType,
 			Attributes: resources.SessionsCollectionDataAttributes{
 				Sessions: data,
 			},

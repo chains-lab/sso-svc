@@ -24,9 +24,9 @@ func (h *Handlers) SessionGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if session.UserID != *accountID {
-		h.Log.Errorf("Session doesn't belong to user")
-		httpkit.RenderErr(w, problems.Forbidden("Session doesn't belong to user"))
+	if session.AccountID != *accountID {
+		h.Log.Errorf("Session doesn't belong to account")
+		httpkit.RenderErr(w, problems.Forbidden("Session doesn't belong to account"))
 		return
 	}
 

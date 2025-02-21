@@ -10,7 +10,7 @@ properties:
     properties:
       type:
         type: string
-        enum: [ users_sessions ]
+        enum: [ account_sessions ]
       attributes:
         type: object
         required:

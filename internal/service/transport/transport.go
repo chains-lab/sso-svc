@@ -55,10 +55,8 @@ func Run(ctx context.Context, svc *service.Service) {
 							r.Get("/", h.AdminSessionsGet)
 							r.Delete("/", h.AdminSessionsTerminate)
 						})
-
 						r.Get("/", h.AdminAccountGet)
-
-						r.Patch("/role/{role}", h.AdminRoleUpdate)
+						r.Patch("/{role}", h.AdminRoleUpdate)
 					})
 				})
 			})
