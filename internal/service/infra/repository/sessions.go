@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,15 +11,16 @@ import (
 	"github.com/recovery-flow/sso-oauth/internal/service/infra/repository/cache"
 	"github.com/recovery-flow/sso-oauth/internal/service/infra/repository/sqldb"
 	"github.com/redis/go-redis/v9"
+	"github.com/sirupsen/logrus"
 )
 
 type Sessions interface {
 	Create(ctx context.Context, session models.Session) (*models.Session, error)
 
 	GetByID(ctx context.Context, sessionID uuid.UUID) (*models.Session, error)
-	SelectByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error)
+	SelectByAccountID(ctx context.Context, userID uuid.UUID) ([]models.Session, error)
 
-	UpdateToken(ctx context.Context, session models.Session) (*models.Session, error)
+	UpdateToken(ctx context.Context, sessionID, UserID uuid.UUID, IP, client, newToken string) (*models.Session, error)
 
 	Delete(ctx context.Context, sessionID uuid.UUID) error
 
@@ -30,9 +30,11 @@ type Sessions interface {
 type sessions struct {
 	redis cache.Sessions
 	sql   sqldb.Sessions
+
+	log *logrus.Logger
 }
 
-func NewSessions(cfg *config.Config) (Sessions, error) {
+func NewSessions(cfg *config.Config, log *logrus.Logger) (Sessions, error) {
 	redisRepo := cache.NewSessions(
 		redis.NewClient(&redis.Options{
 			Addr:     cfg.Database.Redis.Addr,
@@ -48,6 +50,7 @@ func NewSessions(cfg *config.Config) (Sessions, error) {
 	return &sessions{
 		redis: redisRepo,
 		sql:   *sqlRepo,
+		log:   log,
 	}, nil
 }
 
@@ -61,7 +64,7 @@ func (s *sessions) Create(ctx context.Context, session models.Session) (*models.
 
 	err = s.redis.Add(ctx, *res)
 	if err != nil {
-		//todo error handling
+		s.log.WithError(err).Error("error adding session to Redis")
 	}
 	return res, nil
 }
@@ -72,11 +75,13 @@ func (s *sessions) GetByID(ctx context.Context, sessionID uuid.UUID) (*models.Se
 		if errors.Is(err, redis.Nil) {
 			res = nil
 		} else {
-			//todo error handling
+			s.log.WithError(err).Error("error getting session from Redis")
 		}
 	} else if res != nil {
 		return res, nil
 	}
+
+	s.log.WithField("session_id", sessionID)
 
 	res, err = s.sql.GetByID(ctx, sessionID)
 	if err != nil {
@@ -84,24 +89,25 @@ func (s *sessions) GetByID(ctx context.Context, sessionID uuid.UUID) (*models.Se
 	}
 	err = s.redis.Add(ctx, *res)
 	if err != nil {
-		//todo error handling
+		s.log.WithError(err).Error("error adding session to Redis")
 	}
+
 	return res, nil
 }
 
-func (s *sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error) {
-	res, err := s.redis.SelectByUserID(ctx, userID)
+func (s *sessions) SelectByAccountID(ctx context.Context, accountID uuid.UUID) ([]models.Session, error) {
+	res, err := s.redis.SelectByUserID(ctx, accountID)
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			res = nil
 		} else {
-			//todo error handling
+			s.log.WithError(err).Error("error getting session from Redis")
 		}
 	} else if res != nil {
 		return res, nil
 	}
 
-	res, err = s.sql.SelectByUserID(ctx, userID)
+	res, err = s.sql.SelectByUserID(ctx, accountID)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +116,7 @@ func (s *sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]mode
 		for _, ses := range res {
 			err = s.redis.Add(ctx, ses)
 			if err != nil {
-				// todo error handling (лучше логировать ошибку)
+				s.log.WithError(err).Error("error adding session to Redis")
 			}
 		}
 	}()
@@ -118,18 +124,15 @@ func (s *sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]mode
 	return res, nil
 }
 
-func (s *sessions) UpdateToken(ctx context.Context, session models.Session) (*models.Session, error) {
-	res, err := s.sql.UpdateToken(ctx, session.ID, session.Token, session.IP)
+func (s *sessions) UpdateToken(ctx context.Context, sessionID, UserID uuid.UUID, IP, client, newToken string) (*models.Session, error) {
+	res, err := s.sql.UpdateToken(ctx, sessionID, UserID, newToken, IP)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			_, err = s.Create(ctx, session)
-		}
 		return nil, err
 	}
 
 	err = s.redis.Add(ctx, *res)
 	if err != nil {
-		//todo error handling
+		s.log.WithError(err).Error("error adding session to Redis")
 	}
 
 	return res, nil
@@ -143,7 +146,7 @@ func (s *sessions) Delete(ctx context.Context, sessionID uuid.UUID) error {
 
 	err = s.redis.Delete(ctx, sessionID)
 	if err != nil {
-		//todo error handling
+		s.log.WithError(err).Error("error deleting session from Redis")
 	}
 
 	return nil
@@ -157,7 +160,7 @@ func (s *sessions) Terminate(ctx context.Context, userID uuid.UUID, sessionID *u
 
 	err = s.redis.DeleteByUserID(ctx, userID, sessionID)
 	if err != nil {
-		//todo error handling
+		s.log.WithError(err).Error("error deleting session from Redis")
 	}
 
 	return nil

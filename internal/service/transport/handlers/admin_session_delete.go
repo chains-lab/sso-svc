@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
@@ -14,10 +14,10 @@ import (
 	"github.com/recovery-flow/tokens/identity"
 )
 
-func (a *App) AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
 	initiatorID, initiatorSession, initiatorRole, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
-		a.Log.Warnf("Unauthorized session delete attempt: %v", err)
+		h.Log.Warnf("Unauthorized session delete attempt: %v", err)
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
 		return
 	}
@@ -29,7 +29,7 @@ func (a *App) AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if *initiatorSession == sessionID {
-		a.Log.Debugf("Sessions can't be current")
+		h.Log.Debugf("Sessions can't be current")
 		httpkit.RenderErr(w, problems.BadRequest(errors.New("session can't be current"))...)
 		return
 	}
@@ -40,37 +40,37 @@ func (a *App) AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := a.Domain.AccountGet(r.Context(), userID)
+	user, err := h.Domain.AccountGet(r.Context(), userID)
 	if err != nil {
-		a.Log.Errorf("Failed to get user: %v", err)
+		h.Log.Errorf("Failed to get user: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
 	if identity.CompareRolesUser(*initiatorRole, user.Role) == -1 {
-		a.Log.Warn("User can't delete session of user with higher role")
+		h.Log.Warn("User can't delete session of user with higher role")
 		httpkit.RenderErr(w, problems.Forbidden("User can't delete session of user with higher role"))
 		return
 	}
 
-	err = a.Domain.SessionDelete(r.Context(), sessionID)
+	err = h.Domain.SessionDelete(r.Context(), sessionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())
 			return
 		}
-		a.Log.Errorf("Failed to delete device: %v", err)
+		h.Log.Errorf("Failed to delete device: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	sessions, err := a.Domain.SessionsListByUser(r.Context(), userID)
+	sessions, err := h.Domain.SessionsListByAccount(r.Context(), userID)
 	if err != nil {
-		a.Log.Errorf("Failed to retrieve user sessions: %v", err)
+		h.Log.Errorf("Failed to retrieve user sessions: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	a.Log.Infof("Sessions Deleted %s for user %s by user %s", sessionID, userID, initiatorID)
+	h.Log.Infof("Sessions Deleted %s for user %s by user %s", sessionID, userID, initiatorID)
 	httpkit.Render(w, responses.SessionCollection(sessions))
 }

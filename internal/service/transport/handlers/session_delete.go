@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
@@ -13,10 +13,10 @@ import (
 	"github.com/recovery-flow/tokens"
 )
 
-func (a *App) SessionDelete(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) SessionDelete(w http.ResponseWriter, r *http.Request) {
 	accountID, sessionID, _, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
-		a.Log.Warnf("Unauthorized session delete attempt: %v", err)
+		h.Log.Warnf("Unauthorized session delete attempt: %v", err)
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
 		return
 	}
@@ -28,25 +28,23 @@ func (a *App) SessionDelete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sessionID.String() == sessionForDeleteId.String() {
-		a.Log.Debugf("Sessions can't be current")
+		h.Log.Debugf("Sessions can't be current")
 		httpkit.RenderErr(w, problems.BadRequest(errors.New("session can't be current"))...)
 		return
 	}
 
-	err = a.Domain.SessionDelete(r.Context(), sessionForDeleteId)
+	err = h.Domain.SessionDelete(r.Context(), sessionForDeleteId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())
 			return
 		}
-		a.Log.Errorf("Failed to delete device: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	sessions, err := a.Domain.SessionsListByUser(r.Context(), *accountID)
+	sessions, err := h.Domain.SessionsListByAccount(r.Context(), *accountID)
 	if err != nil {
-		a.Log.Errorf("Failed to retrieve user sessions: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}

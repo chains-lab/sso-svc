@@ -11,7 +11,7 @@ import (
 	"github.com/alecthomas/kingpin"
 	"github.com/recovery-flow/comtools/logkit"
 	"github.com/recovery-flow/sso-oauth/internal/config"
-	"github.com/recovery-flow/sso-oauth/internal/service/transport/handlers"
+	"github.com/recovery-flow/sso-oauth/internal/service"
 )
 
 func Run(args []string) bool {
@@ -35,7 +35,7 @@ func Run(args []string) bool {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	app, err := handlers.NewApp(cfg, logger)
+	app, err := service.NewService(cfg, logger)
 	if err != nil {
 		logger.Fatalf("failed to create server: %v", err)
 		return false

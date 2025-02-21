@@ -9,17 +9,17 @@ import (
 	"github.com/recovery-flow/tokens"
 )
 
-func (a *App) SessionsGet(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) SessionsGet(w http.ResponseWriter, r *http.Request) {
 	accountID, _, _, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
-		a.Log.Warnf("Unauthorized session get attempt: %v", err)
+		h.Log.WithError(err).Warn("Unauthorized session list attempt")
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
 		return
 	}
 
-	sessions, err := a.Domain.SessionsListByUser(r.Context(), *accountID)
+	sessions, err := h.Domain.SessionsListByAccount(r.Context(), *accountID)
 	if err != nil {
-		a.Log.Errorf("Failed to retrieve user sessions: %v", err)
+		h.Log.WithError(err).Error("Failed to list sessions")
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}

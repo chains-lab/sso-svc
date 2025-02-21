@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
 	"github.com/recovery-flow/sso-oauth/internal/service/transport/requests"
@@ -14,63 +13,61 @@ import (
 	"github.com/recovery-flow/tokens"
 )
 
-func (a *App) Refresh(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
 	req, err := requests.NewRefresh(r)
 	if err != nil {
+		h.Log.WithError(err).Warn("Error parsing request")
 		httpkit.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
-	refreshToken := req.Data.Attributes.RefreshToken
+	curToken := req.Data.Attributes.RefreshToken
 
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
+		h.Log.Warn("Missing Authorization header")
 		httpkit.RenderErr(w, problems.Unauthorized("Missing Authorization header"))
 		return
 	}
 
 	parts := strings.Split(authHeader, " ")
 	if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
+		h.Log.Warn("Invalid Authorization header format")
 		httpkit.RenderErr(w, problems.Unauthorized("Invalid Authorization header format"))
 		return
 	}
 
 	tokenString := parts[1]
 
-	userData, err := tokens.VerifyJWT(r.Context(), tokenString, a.Config.JWT.AccessToken.SecretKey)
+	userData, err := tokens.VerifyJWT(r.Context(), tokenString, h.Config.JWT.AccessToken.SecretKey)
 	if err != nil && !errors.Is(err, jwt.ErrTokenExpired) {
-		a.Log.Warnf("Token validation failed: %v", err)
+		h.Log.WithError(err).Warn("Error validating token")
 		httpkit.RenderErr(w, problems.Unauthorized())
 		return
 	}
 	if userData == nil {
+		h.Log.Warn("Token validation failed, no user data")
 		httpkit.RenderErr(w, problems.Unauthorized("Token validation failed"))
 		return
 	}
 
-	userID, err := uuid.Parse(userData.ID)
-	if err != nil {
-		httpkit.RenderErr(w, problems.BadRequest(err)...)
-		return
-	}
-
 	sessionID := userData.SessionID
-
 	accountRole := userData.Identity
 
 	//-------------------------------------------------------------------------//
 
-	session, err := a.Domain.SessionGetForUser(r.Context(), *sessionID, userID)
+	session, err := h.Domain.SessionGetForAccount(r.Context(), *sessionID, *userData.AccountID)
 	if err != nil {
+		h.Log.WithError(err).Error("Failed to get session")
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	tokenAccess, tokenRefresh, err := a.Domain.SessionRefresh(r.Context(), *session, refreshToken, accountRole)
+	tokenAccess, tokenRefresh, err := h.Domain.SessionRefresh(r.Context(), *session, accountRole, r.RemoteAddr, r.UserAgent(), curToken)
 	if err != nil {
-		a.Log.Errorf("Error generating access token: %v", err)
+		h.Log.WithError(err).Error("Failed to refresh session")
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	httpkit.Render(w, responses.TokensPair(tokenAccess, tokenRefresh))
+	httpkit.Render(w, responses.TokensPair(*tokenAccess, *tokenRefresh))
 }

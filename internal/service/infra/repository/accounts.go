@@ -12,6 +12,7 @@ import (
 	"github.com/recovery-flow/sso-oauth/internal/service/infra/repository/sqldb"
 	"github.com/recovery-flow/tokens/identity"
 	"github.com/redis/go-redis/v9"
+	"github.com/sirupsen/logrus"
 )
 
 type Accounts interface {
@@ -26,9 +27,10 @@ type Accounts interface {
 type accounts struct {
 	redis cache.Accounts
 	sql   sqldb.Accounts
+	log   *logrus.Logger
 }
 
-func NewAccounts(cfg *config.Config) (Accounts, error) {
+func NewAccounts(cfg *config.Config, log *logrus.Logger) (Accounts, error) {
 	redisRepo := cache.NewAccounts(
 		redis.NewClient(&redis.Options{
 			Addr:     cfg.Database.Redis.Addr,
@@ -44,6 +46,7 @@ func NewAccounts(cfg *config.Config) (Accounts, error) {
 	return &accounts{
 		redis: *redisRepo,
 		sql:   *sqlRepo,
+		log:   log,
 	}, nil
 }
 
@@ -52,17 +55,9 @@ func (a *accounts) Create(ctx context.Context, email string, idn identity.IdnTyp
 	if err != nil {
 		return nil, err
 	}
+	err = a.redis.Add(ctx, *acc)
 
-	res := models.Account{
-		ID:        acc.ID,
-		Email:     acc.Email,
-		Role:      acc.Role,
-		CreatedAt: acc.CreatedAt,
-		UpdatedAt: acc.UpdatedAt,
-	}
-	err = a.redis.Add(ctx, res)
-
-	return &res, nil
+	return acc, nil
 }
 
 func (a *accounts) GetByEmail(ctx context.Context, email string) (*models.Account, error) {
@@ -71,7 +66,7 @@ func (a *accounts) GetByEmail(ctx context.Context, email string) (*models.Accoun
 		if errors.Is(err, redis.Nil) {
 			user = nil
 		} else {
-			//todo error
+			a.log.WithError(err).Error("error getting user from Redis")
 		}
 
 	} else if user != nil {
@@ -82,19 +77,12 @@ func (a *accounts) GetByEmail(ctx context.Context, email string) (*models.Accoun
 	if err != nil {
 		return nil, err
 	}
-	res := models.Account{
-		ID:        acc.ID,
-		Email:     acc.Email,
-		Role:      acc.Role,
-		UpdatedAt: acc.UpdatedAt,
-		CreatedAt: acc.CreatedAt,
-	}
-	err = a.redis.Add(ctx, res)
+	err = a.redis.Add(ctx, *acc)
 	if err != nil {
-		//todo error
+		a.log.WithError(err).Error("error adding user to Redis")
 	}
 
-	return &res, nil
+	return acc, nil
 }
 
 func (a *accounts) GetByID(ctx context.Context, id uuid.UUID) (*models.Account, error) {
@@ -103,7 +91,7 @@ func (a *accounts) GetByID(ctx context.Context, id uuid.UUID) (*models.Account, 
 		if errors.Is(err, redis.Nil) {
 			user = nil
 		} else {
-			//todo error
+			a.log.WithError(err).Error("error getting user from Redis")
 		}
 	} else if user != nil {
 		return user, nil
@@ -116,19 +104,12 @@ func (a *accounts) GetByID(ctx context.Context, id uuid.UUID) (*models.Account, 
 	if err != nil {
 		return nil, err
 	}
-	res := models.Account{
-		ID:        acc.ID,
-		Email:     acc.Email,
-		Role:      acc.Role,
-		UpdatedAt: acc.UpdatedAt,
-		CreatedAt: acc.CreatedAt,
-	}
-	err = a.redis.Add(ctx, res)
+	err = a.redis.Add(ctx, *acc)
 	if err != nil {
-		//todo error
+		a.log.WithError(err).Error("error adding user to Redis")
 	}
 
-	return &res, nil
+	return acc, nil
 }
 
 func (a *accounts) UpdateRole(ctx context.Context, id uuid.UUID, idn identity.IdnType) (*models.Account, error) {
@@ -136,18 +117,10 @@ func (a *accounts) UpdateRole(ctx context.Context, id uuid.UUID, idn identity.Id
 	if err != nil {
 		return nil, err
 	}
-
-	res := models.Account{
-		ID:        acc.ID,
-		Email:     acc.Email,
-		Role:      acc.Role,
-		CreatedAt: acc.CreatedAt,
-		UpdatedAt: acc.UpdatedAt,
-	}
-	err = a.redis.Add(ctx, res)
+	err = a.redis.Add(ctx, *acc)
 	if err != nil {
-		//todo error
+		a.log.WithError(err).Error("error adding user to Redis")
 	}
 
-	return &res, nil
+	return acc, nil
 }

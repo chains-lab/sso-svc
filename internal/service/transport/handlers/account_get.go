@@ -9,17 +9,16 @@ import (
 	"github.com/recovery-flow/tokens"
 )
 
-func (a *App) AccountGet(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) AccountGet(w http.ResponseWriter, r *http.Request) {
 	accountID, _, _, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
-		a.Log.Warnf("Unauthorized account get attempt: %v", err)
+		h.Log.WithError(err).Error("Failed to retrieve account data")
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
 		return
 	}
 
-	user, err := a.Domain.AccountGet(r.Context(), *accountID)
+	user, err := h.Domain.AccountGet(r.Context(), *accountID)
 	if err != nil {
-		a.Log.Errorf("Failed to retrieve user: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}

@@ -75,7 +75,7 @@ func (s *Sessions) GetByID(ctx context.Context, sessionID uuid.UUID) (*models.Se
 
 	vals, err := s.client.HGetAll(ctx, key).Result()
 	if err != nil {
-		return nil, fmt.Errorf("error getting session from Redis: %w", err)
+		return nil, err
 	}
 
 	if len(vals) == 0 {
@@ -115,7 +115,7 @@ func (s *Sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]mode
 
 	sessionIDs, err := s.client.SMembers(ctx, userSessionsKey).Result()
 	if err != nil {
-		return nil, fmt.Errorf("error getting Sessions by user_id: %w", err)
+		return nil, err
 	}
 
 	var sessionsArr []models.Session

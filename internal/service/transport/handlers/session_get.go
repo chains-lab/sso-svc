@@ -9,23 +9,23 @@ import (
 	"github.com/recovery-flow/tokens"
 )
 
-func (a *App) SessionGet(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) SessionGet(w http.ResponseWriter, r *http.Request) {
 	accountID, sessionID, _, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
-		a.Log.Warnf("Unauthorized session get attempt: %v", err)
+		h.Log.WithError(err).Debug("Failed to get account data")
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
 		return
 	}
 
-	session, err := a.Domain.SessionGetForUser(r.Context(), *sessionID, *accountID)
+	session, err := h.Domain.SessionGetForAccount(r.Context(), *sessionID, *accountID)
 	if err != nil {
-		a.Log.Errorf("Failed to retrieve user session: %v", err)
+		h.Log.WithError(err).Debug("Failed to get session")
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
 	if session.UserID != *accountID {
-		a.Log.Debugf("Session doesn't belong to user")
+		h.Log.Errorf("Session doesn't belong to user")
 		httpkit.RenderErr(w, problems.Forbidden("Session doesn't belong to user"))
 		return
 	}

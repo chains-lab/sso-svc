@@ -29,7 +29,7 @@ func (a *Accounts) Add(ctx context.Context, account models.Account) error {
 
 	data := map[string]interface{}{
 		"email":      account.Email,
-		"role":       account.Role,
+		"role":       string(account.Role),
 		"created_at": account.CreatedAt.Format(time.RFC3339),
 		"updated_at": account.UpdatedAt.Format(time.RFC3339),
 	}
@@ -65,7 +65,6 @@ func (a *Accounts) GetByEmail(ctx context.Context, email string) (*models.Accoun
 
 func (a *Accounts) GetByID(ctx context.Context, userID string) (*models.Account, error) {
 	userKey := fmt.Sprintf("user:id:%s", userID)
-
 	vals, err := a.client.HGetAll(ctx, userKey).Result()
 	if err != nil {
 		return nil, fmt.Errorf("error getting user from Redis: %w", err)

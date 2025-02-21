@@ -57,7 +57,7 @@ func (s *Sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]mode
 		return nil, err
 	}
 
-	var res []models.Session
+	res := make([]models.Session, len(arr))
 	for i, session := range arr {
 		res[i] = *parseSession(session)
 	}
@@ -65,11 +65,12 @@ func (s *Sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]mode
 	return res, nil
 }
 
-func (s *Sessions) UpdateToken(ctx context.Context, id uuid.UUID, token string, IP string) (*models.Session, error) {
+func (s *Sessions) UpdateToken(ctx context.Context, SessionID, userID uuid.UUID, token string, IP string) (*models.Session, error) {
 	res, err := s.queries.UpdateSessionToken(ctx, core.UpdateSessionTokenParams{
-		ID:    id,
-		Token: token,
-		Ip:    IP,
+		ID:     SessionID,
+		UserID: userID,
+		Token:  token,
+		Ip:     IP,
 	})
 	if err != nil {
 		return nil, err
