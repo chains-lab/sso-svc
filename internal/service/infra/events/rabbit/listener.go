@@ -33,7 +33,7 @@ func Listener(ctx context.Context, svc *service.Service) {
 
 	queues := []QueueConfig{
 		{
-			QueueName:  amqpconfig.AccountQueue,
+			QueueName:  amqpconfig.AccountSsoQ,
 			RoutingKey: amqpconfig.AccountUpdateRoleKey,
 			Callback:   callbacks.AccountUpdateRole, // Это функция из domain/callbacks
 		},

@@ -15,7 +15,6 @@ type Infra struct {
 	Tokens jwtmanager.JWTManager
 
 	Rabbit rerabbit.RabbitBroker
-	//Kafka  interface{} // TODO: add kafka
 }
 
 func NewInfra(cfg *config.Config, log *logrus.Logger) (*Infra, error) {

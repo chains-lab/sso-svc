@@ -57,6 +57,14 @@ func (h *Handlers) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if identity.CompareRolesUser(account.Role, updatedRole) == 0 {
+		h.Log.Warn("Account can't update role to the same role")
+		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
+			"role": validation.NewError("role", "same role"),
+		})...)
+		return
+	}
+
 	_, err = h.Domain.AccountUpdateRole(r.Context(), updatedAccountID, updatedRole)
 	if err != nil {
 		h.Log.WithError(err).Warn("Failed to update role")
