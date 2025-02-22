@@ -27,7 +27,8 @@ type Accounts interface {
 type accounts struct {
 	redis cache.Accounts
 	sql   sqldb.Accounts
-	log   *logrus.Logger
+	
+	log *logrus.Logger
 }
 
 func NewAccounts(cfg *config.Config, log *logrus.Logger) (Accounts, error) {

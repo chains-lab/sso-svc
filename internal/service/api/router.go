@@ -1,4 +1,4 @@
-package transport
+package api
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/sso-oauth/internal/service"
-	"github.com/recovery-flow/sso-oauth/internal/service/transport/handlers"
+	"github.com/recovery-flow/sso-oauth/internal/service/api/handlers"
 	"github.com/recovery-flow/tokens"
 	"github.com/recovery-flow/tokens/identity"
 )
@@ -14,7 +14,7 @@ import (
 func Run(ctx context.Context, svc *service.Service) {
 	r := chi.NewRouter()
 
-	h, err := handlers.NewHandlers(svc.Config, svc.Log)
+	h, err := handlers.NewHandlers(svc)
 	if err != nil {
 		svc.Log.Fatalf("failed to create handlers: %v", err)
 		<-ctx.Done()

@@ -5,7 +5,7 @@ import (
 
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
-	"github.com/recovery-flow/sso-oauth/internal/service/transport/responses"
+	"github.com/recovery-flow/sso-oauth/internal/service/api/responses"
 	"github.com/recovery-flow/tokens"
 )
 

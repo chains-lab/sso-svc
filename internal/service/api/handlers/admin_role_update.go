@@ -35,6 +35,7 @@ func (h *Handlers) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
 			"role": validation.NewError("role", "invalid role"),
 		})...)
+		return
 	}
 
 	if identity.CompareRolesUser(*InitiatorRole, updatedRole) != 1 {

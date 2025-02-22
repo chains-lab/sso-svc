@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/recovery-flow/sso-oauth/internal/config"
+	"github.com/recovery-flow/sso-oauth/internal/service"
 	"github.com/recovery-flow/sso-oauth/internal/service/domain"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
@@ -14,17 +15,13 @@ type Handlers struct {
 	Log         *logrus.Logger
 }
 
-func NewHandlers(cfg *config.Config, log *logrus.Logger) (*Handlers, error) {
-	googleOAuth := config.InitGoogleOAuth(cfg.OAuth.Google.ClientID, cfg.OAuth.Google.ClientSecret, cfg.OAuth.Google.RedirectURL)
-	logic, err := domain.NewDomain(cfg, log)
-	if err != nil {
-		return nil, err
-	}
+func NewHandlers(svc *service.Service) (*Handlers, error) {
+	googleOAuth := config.InitGoogleOAuth(svc.Config.OAuth.Google.ClientID, svc.Config.OAuth.Google.ClientSecret, svc.Config.OAuth.Google.RedirectURL)
 
 	return &Handlers{
-		Config:      cfg,
-		Domain:      logic,
+		Config:      svc.Config,
+		Domain:      svc.Domain,
 		GoogleOAuth: googleOAuth,
-		Log:         log,
+		Log:         svc.Log,
 	}, nil
 }

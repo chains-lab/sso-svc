@@ -63,7 +63,6 @@ type RabbitConfig struct {
 	URL      string `mapstructure:"url"`
 	User     string `mapstructure:"user"`
 	Password string `mapstructure:"password"`
-	Exchange string `mapstructure:"exchange"`
 }
 
 type SwaggerConfig struct {

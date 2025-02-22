@@ -5,13 +5,16 @@ import (
 	"sync"
 
 	"github.com/recovery-flow/sso-oauth/internal/service"
-	"github.com/recovery-flow/sso-oauth/internal/service/transport"
+	"github.com/recovery-flow/sso-oauth/internal/service/api"
+	"github.com/recovery-flow/sso-oauth/internal/service/infra/events/rabbit"
 )
 
-func runServices(ctx context.Context, wg *sync.WaitGroup, service *service.Service) {
+func runServices(ctx context.Context, wg *sync.WaitGroup, svc *service.Service) {
 	var (
 	// signals indicate the finished initialization of each worker
 	)
+
+	//TODO INITIALIZATION OF INFRASTRUCTURE AND DOMAIN SERVICES
 
 	run := func(f func()) {
 		wg.Add(1)
@@ -21,5 +24,7 @@ func runServices(ctx context.Context, wg *sync.WaitGroup, service *service.Servi
 		}()
 	}
 
-	run(func() { transport.Run(ctx, service) })
+	run(func() { api.Run(ctx, svc) })
+
+	run(func() { rabbit.Listener(ctx, svc) })
 }

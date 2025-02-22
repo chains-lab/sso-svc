@@ -8,8 +8,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
-	"github.com/recovery-flow/sso-oauth/internal/service/transport/requests"
-	"github.com/recovery-flow/sso-oauth/internal/service/transport/responses"
+	"github.com/recovery-flow/sso-oauth/internal/service/api/requests"
+	"github.com/recovery-flow/sso-oauth/internal/service/api/responses"
 	"github.com/recovery-flow/tokens"
 )
 

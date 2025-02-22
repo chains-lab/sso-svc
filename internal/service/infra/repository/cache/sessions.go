@@ -15,8 +15,8 @@ type Sessions struct {
 	lifeTime time.Duration
 }
 
-func NewSessions(client *redis.Client, lifeTime time.Duration) Sessions {
-	return Sessions{
+func NewSessions(client *redis.Client, lifeTime time.Duration) *Sessions {
+	return &Sessions{
 		client:   client,
 		lifeTime: lifeTime,
 	}
@@ -146,8 +146,10 @@ func (s *Sessions) DeleteByAccountID(ctx context.Context, AccountID uuid.UUID, c
 		if err != nil {
 			return fmt.Errorf("error parsing session ID: %w", err)
 		}
-		if id != *curSessionID {
-			_ = s.Delete(ctx, id)
+		if curSessionID != nil {
+			if id != *curSessionID {
+				_ = s.Delete(ctx, id)
+			}
 		}
 	}
 

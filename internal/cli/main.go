@@ -12,6 +12,8 @@ import (
 	"github.com/recovery-flow/comtools/logkit"
 	"github.com/recovery-flow/sso-oauth/internal/config"
 	"github.com/recovery-flow/sso-oauth/internal/service"
+	"github.com/recovery-flow/sso-oauth/internal/service/domain"
+	"github.com/recovery-flow/sso-oauth/internal/service/infra"
 )
 
 func Run(args []string) bool {
@@ -35,7 +37,19 @@ func Run(args []string) bool {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	app, err := service.NewService(cfg, logger)
+	inf, err := infra.NewInfra(cfg, logger)
+	if err != nil {
+		logger.Fatalf("failed to create infra: %v", err)
+		return false
+	}
+
+	dmn, err := domain.NewDomain(inf, logger)
+	if err != nil {
+		logger.Fatalf("failed to create domain: %v", err)
+		return false
+	}
+
+	svc, err := service.NewService(cfg, dmn, logger)
 	if err != nil {
 		logger.Fatalf("failed to create server: %v", err)
 		return false
@@ -51,7 +65,7 @@ func Run(args []string) bool {
 
 	switch cmd {
 	case serviceCmd.FullCommand():
-		runServices(ctx, &wg, app)
+		runServices(ctx, &wg, svc)
 	case migrateUpCmd.FullCommand():
 		err = MigrateUp(ctx, *cfg)
 	case migrateDownCmd.FullCommand():

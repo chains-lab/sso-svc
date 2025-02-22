@@ -40,7 +40,6 @@ rabbit:
   url: "amqp://localhost:5672/"
   user: "re-news"
   password: "Test@1234"
-  exchange: "re-news.sso"
 
 swagger:
   enabled: true

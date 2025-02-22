@@ -3,33 +3,38 @@ package domain
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/google/uuid"
-	"github.com/recovery-flow/sso-oauth/internal/config"
+	"github.com/recovery-flow/rerabbit"
 	"github.com/recovery-flow/sso-oauth/internal/service/domain/ape"
-	models2 "github.com/recovery-flow/sso-oauth/internal/service/domain/models"
+	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
 	"github.com/recovery-flow/sso-oauth/internal/service/infra"
+	"github.com/recovery-flow/sso-oauth/internal/service/infra/events/rabbit/amqpconfig"
+	"github.com/recovery-flow/sso-oauth/internal/service/infra/events/rabbit/evebody"
 	"github.com/recovery-flow/tokens/identity"
 	"github.com/sirupsen/logrus"
 )
 
 type Domain interface {
-	SessionCreate(ctx context.Context, session models2.Session) (*models2.Session, error)
-	SessionGet(ctx context.Context, sessionID uuid.UUID) (*models2.Session, error)
-	SessionGetForAccount(ctx context.Context, sessionID, accountID uuid.UUID) (*models2.Session, error)
-	SessionsListByAccount(ctx context.Context, accountID uuid.UUID) ([]models2.Session, error)
+	SessionCreate(ctx context.Context, session models.Session) (*models.Session, error)
+	SessionGet(ctx context.Context, sessionID uuid.UUID) (*models.Session, error)
+	SessionGetForAccount(ctx context.Context, sessionID, accountID uuid.UUID) (*models.Session, error)
+	SessionsListByAccount(ctx context.Context, accountID uuid.UUID) ([]models.Session, error)
 
 	SessionsTerminate(ctx context.Context, accountID uuid.UUID, excludeSessionID *uuid.UUID) error
 	SessionDelete(ctx context.Context, sessionID uuid.UUID) error
-	SessionRefresh(ctx context.Context, session models2.Session, role identity.IdnType, IP, client, curToken string) (*string, *string, error)
+	SessionRefresh(ctx context.Context, session models.Session, role identity.IdnType, IP, client, curToken string) (*string, *string, error)
 
 	Login(ctx context.Context, role identity.IdnType, email, client, IP string) (*string, *string, error)
 
-	AccountCreate(ctx context.Context, acc models2.Account) (*models2.Account, error)
-	AccountGet(ctx context.Context, accountID uuid.UUID) (*models2.Account, error)
-	AccountGetByEmail(ctx context.Context, email string) (*models2.Account, error)
-	AccountUpdateRole(ctx context.Context, accountID uuid.UUID, newRole identity.IdnType) (*models2.Account, error)
+	AccountCreate(ctx context.Context, acc models.Account) (*models.Account, error)
+	AccountGet(ctx context.Context, accountID uuid.UUID) (*models.Account, error)
+	AccountGetByEmail(ctx context.Context, email string) (*models.Account, error)
+	AccountUpdateRole(ctx context.Context, accountID uuid.UUID, newRole identity.IdnType) (*models.Account, error)
 }
 
 type domain struct {
@@ -37,28 +42,53 @@ type domain struct {
 	log   *logrus.Logger
 }
 
-func NewDomain(cfg *config.Config, log *logrus.Logger) (Domain, error) {
-	repo, err := infra.NewDataBase(cfg, log)
-	if err != nil {
-		return nil, err
-	}
-
+func NewDomain(infra *infra.Infra, log *logrus.Logger) (Domain, error) {
 	return &domain{
-		Infra: repo,
+		Infra: infra,
 		log:   log,
-	}, err
+	}, nil
 }
 
-func (d *domain) AccountCreate(ctx context.Context, account models2.Account) (*models2.Account, error) {
+func (d *domain) AccountCreate(ctx context.Context, account models.Account) (*models.Account, error) {
 	res, err := d.Infra.Accounts.Create(ctx, account.Email, account.Role)
 	if err != nil {
 		return nil, err
 	}
 
+	eventBody := evebody.AccountCreated{
+		Event:     amqpconfig.AccountCreateKey,
+		AccountID: res.ID.String(),
+		Email:     res.Email,
+		Role:      string(res.Role),
+		Timestamp: time.Now().UTC(),
+	}
+
+	bodyBytes, err := json.Marshal(eventBody)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal event: %w", err)
+	}
+
+	publishOpts := rerabbit.PublishOptions{
+		Exchange:      amqpconfig.AccountExchange,
+		RoutingKey:    amqpconfig.AccountCreateKey,
+		Mandatory:     false,
+		Immediate:     false,
+		ContentType:   "application/json",
+		DeliveryMode:  2, // 2 = Persistent
+		Headers:       nil,
+		CorrelationID: "",
+		ReplyTo:       "",
+		Body:          bodyBytes,
+	}
+
+	err = d.Infra.Rabbit.Publish(ctx, publishOpts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to publish event: %w", err)
+	}
 	return res, nil
 }
 
-func (d *domain) AccountGet(ctx context.Context, accountID uuid.UUID) (*models2.Account, error) {
+func (d *domain) AccountGet(ctx context.Context, accountID uuid.UUID) (*models.Account, error) {
 	account, err := d.Infra.Accounts.GetByID(ctx, accountID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -70,7 +100,7 @@ func (d *domain) AccountGet(ctx context.Context, accountID uuid.UUID) (*models2.
 	return account, nil
 }
 
-func (d *domain) AccountGetByEmail(ctx context.Context, email string) (*models2.Account, error) {
+func (d *domain) AccountGetByEmail(ctx context.Context, email string) (*models.Account, error) {
 	account, err := d.Infra.Accounts.GetByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -82,7 +112,8 @@ func (d *domain) AccountGetByEmail(ctx context.Context, email string) (*models2.
 	return account, nil
 }
 
-func (d *domain) AccountUpdateRole(ctx context.Context, accountID uuid.UUID, newRole identity.IdnType) (*models2.Account, error) {
+// AccountUpdateRole обновляет роль аккаунта через репозиторий и публикует событие обновления роли.
+func (d *domain) AccountUpdateRole(ctx context.Context, accountID uuid.UUID, newRole identity.IdnType) (*models.Account, error) {
 	account, err := d.Infra.Accounts.UpdateRole(ctx, accountID, newRole)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -91,10 +122,42 @@ func (d *domain) AccountUpdateRole(ctx context.Context, accountID uuid.UUID, new
 		return nil, err
 	}
 
+	// Формируем событие обновления роли
+	eventBody := evebody.RoleUpdated{
+		Event:     amqpconfig.AccountUpdateRoleKey,
+		AccountID: account.ID.String(),
+		Role:      string(newRole),
+		Timestamp: time.Now().UTC(),
+	}
+
+	// Маршаллинг события в JSON
+	bodyBytes, err := json.Marshal(eventBody)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal event: %w", err)
+	}
+
+	publishOpts := rerabbit.PublishOptions{
+		Exchange:      amqpconfig.AccountExchange,
+		RoutingKey:    amqpconfig.AccountUpdateRoleKey,
+		Mandatory:     false,
+		Immediate:     false,
+		ContentType:   "application/json",
+		DeliveryMode:  2, // Persistent
+		Headers:       nil,
+		CorrelationID: "",
+		ReplyTo:       "",
+		Body:          bodyBytes,
+	}
+
+	err = d.Infra.Rabbit.Publish(ctx, publishOpts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to publish event: %w", err)
+	}
+
 	return account, nil
 }
 
-func (d *domain) SessionCreate(ctx context.Context, session models2.Session) (*models2.Session, error) {
+func (d *domain) SessionCreate(ctx context.Context, session models.Session) (*models.Session, error) {
 	ses, err := d.Infra.Sessions.Create(ctx, session)
 	if err != nil {
 		return nil, err
@@ -103,7 +166,7 @@ func (d *domain) SessionCreate(ctx context.Context, session models2.Session) (*m
 	return ses, nil
 }
 
-func (d *domain) SessionGetForAccount(ctx context.Context, sessionID, accountID uuid.UUID) (*models2.Session, error) {
+func (d *domain) SessionGetForAccount(ctx context.Context, sessionID, accountID uuid.UUID) (*models.Session, error) {
 	ses, err := d.Infra.Sessions.GetByID(ctx, sessionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -119,7 +182,7 @@ func (d *domain) SessionGetForAccount(ctx context.Context, sessionID, accountID 
 	return ses, nil
 }
 
-func (d *domain) SessionGet(ctx context.Context, sessionID uuid.UUID) (*models2.Session, error) {
+func (d *domain) SessionGet(ctx context.Context, sessionID uuid.UUID) (*models.Session, error) {
 	ses, err := d.Infra.Sessions.GetByID(ctx, sessionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -131,7 +194,7 @@ func (d *domain) SessionGet(ctx context.Context, sessionID uuid.UUID) (*models2.
 	return ses, nil
 }
 
-func (d *domain) SessionsListByAccount(ctx context.Context, accountID uuid.UUID) ([]models2.Session, error) {
+func (d *domain) SessionsListByAccount(ctx context.Context, accountID uuid.UUID) ([]models.Session, error) {
 	ses, err := d.Infra.Sessions.SelectByAccountID(ctx, accountID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -167,7 +230,7 @@ func (d *domain) SessionsTerminate(ctx context.Context, accountID uuid.UUID, exc
 	return nil
 }
 
-func (d *domain) SessionRefresh(ctx context.Context, session models2.Session, role identity.IdnType, IP, client, curToken string) (*string, *string, error) {
+func (d *domain) SessionRefresh(ctx context.Context, session models.Session, role identity.IdnType, IP, client, curToken string) (*string, *string, error) {
 	sessionToken, err := d.Infra.Tokens.DecryptRefresh(session.Token)
 	if err != nil {
 		return nil, nil, err
@@ -207,7 +270,13 @@ func (d *domain) Login(ctx context.Context, role identity.IdnType, email, client
 	account, err := d.Infra.Accounts.GetByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			account, err = d.Infra.Accounts.Create(ctx, email, role)
+			account, err = d.AccountCreate(ctx, models.Account{
+				ID:        uuid.New(),
+				Email:     email,
+				Role:      role,
+				UpdatedAt: time.Now(),
+				CreatedAt: time.Now(),
+			})
 			if err != nil {
 				return nil, nil, err
 			}
@@ -232,7 +301,7 @@ func (d *domain) Login(ctx context.Context, role identity.IdnType, email, client
 		return nil, nil, err
 	}
 
-	_, err = d.Infra.Sessions.Create(ctx, models2.Session{
+	_, err = d.Infra.Sessions.Create(ctx, models.Session{
 		ID:        sessionID,
 		AccountID: account.ID,
 		Token:     refreshCrypto,

@@ -48,7 +48,7 @@ func NewSessions(cfg *config.Config, log *logrus.Logger) (Sessions, error) {
 		return nil, err
 	}
 	return &sessions{
-		redis: redisRepo,
+		redis: *redisRepo,
 		sql:   *sqlRepo,
 		log:   log,
 	}, nil
