@@ -14,8 +14,6 @@ func runServices(ctx context.Context, wg *sync.WaitGroup, svc *service.Service) 
 	// signals indicate the finished initialization of each worker
 	)
 
-	//TODO INITIALIZATION OF INFRASTRUCTURE AND DOMAIN SERVICES
-
 	run := func(f func()) {
 		wg.Add(1)
 		go func() {

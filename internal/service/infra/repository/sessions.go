@@ -55,7 +55,7 @@ func NewSessions(cfg *config.Config, log *logrus.Logger) (Sessions, error) {
 }
 
 func (s *sessions) Create(ctx context.Context, session models.Session) (*models.Session, error) {
-	session.CreatedAt = time.Now()
+	session.CreatedAt = time.Now().UTC()
 	session.LastUsed = session.CreatedAt
 	res, err := s.sql.Insert(ctx, session)
 	if err != nil {
@@ -80,8 +80,6 @@ func (s *sessions) GetByID(ctx context.Context, sessionID uuid.UUID) (*models.Se
 	} else if res != nil {
 		return res, nil
 	}
-
-	s.log.WithField("session_id", sessionID)
 
 	res, err = s.sql.GetByID(ctx, sessionID)
 	if err != nil {

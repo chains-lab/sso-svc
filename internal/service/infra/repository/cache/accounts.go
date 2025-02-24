@@ -52,17 +52,6 @@ func (a *Accounts) Add(ctx context.Context, account models.Account) error {
 	return nil
 }
 
-func (a *Accounts) GetByEmail(ctx context.Context, email string) (*models.Account, error) {
-	emailKey := fmt.Sprintf("account:email:%s", email)
-
-	accountID, err := a.client.Get(ctx, emailKey).Result()
-	if err != nil {
-		return nil, fmt.Errorf("error getting accountID by email: %w", err)
-	}
-
-	return a.GetByID(ctx, accountID)
-}
-
 func (a *Accounts) GetByID(ctx context.Context, AccountID string) (*models.Account, error) {
 	accountKey := fmt.Sprintf("account:id:%s", AccountID)
 	vals, err := a.client.HGetAll(ctx, accountKey).Result()
@@ -75,6 +64,17 @@ func (a *Accounts) GetByID(ctx context.Context, AccountID string) (*models.Accou
 	}
 
 	return parseAccount(AccountID, vals)
+}
+
+func (a *Accounts) GetByEmail(ctx context.Context, email string) (*models.Account, error) {
+	emailKey := fmt.Sprintf("account:email:%s", email)
+
+	accountID, err := a.client.Get(ctx, emailKey).Result()
+	if err != nil {
+		return nil, fmt.Errorf("error getting accountID by email: %w", err)
+	}
+
+	return a.GetByID(ctx, accountID)
 }
 
 func (a *Accounts) Delete(ctx context.Context, AccountID string) error {

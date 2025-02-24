@@ -11,7 +11,6 @@ import (
 )
 
 func Listener(ctx context.Context, svc *service.Service) {
-	// Создаем подключение к RabbitMQ.
 	rabbitWorker, err := rerabbit.NewBroker(svc.Config.Rabbit.URL)
 	if err != nil {
 		svc.Log.Errorf("Failed to connect to RabbitMQ: %v", err)
@@ -35,17 +34,17 @@ func Listener(ctx context.Context, svc *service.Service) {
 		{
 			QueueName:  amqpconfig.AccountSsoQ,
 			RoutingKey: amqpconfig.AccountUpdateRoleKey,
-			Callback:   callbacks.AccountUpdateRole, // Это функция из domain/callbacks
+			Callback:   callbacks.AccountUpdateRole,
 		},
 	}
 
-	// Для каждой очереди запускаем отдельного consumer-а.
+	// for each q starting consumer-а.
 	for _, qc := range queues {
-		qc := qc // захватываем локальную копию, чтобы избежать гонок
+		qc := qc // create a local copy
 		go func(qc QueueConfig) {
 			opts := rerabbit.ConsumeOptions{
 				QueueName:   qc.QueueName,
-				ConsumerTag: "", // можно задать уникальный тег, если нужно
+				ConsumerTag: "",
 				AutoAck:     false,
 				Exclusive:   false,
 				NoLocal:     false,
@@ -54,7 +53,7 @@ func Listener(ctx context.Context, svc *service.Service) {
 			}
 
 			err := rabbitWorker.Consume(ctx, opts, func(ctx context.Context, d amqp.Delivery) {
-				// Вызываем callback. Если произошла ошибка, отправляем отрицательное подтверждение (Nack).
+				// Callback. If an error occurs, send a negative confirmation (Nack).
 				if err := qc.Callback(ctx, svc, d.Body); err != nil {
 					svc.Log.Errorf("Error processing message from queue %s: %v", qc.QueueName, err)
 					if nackErr := d.Nack(false, true); nackErr != nil {

@@ -69,7 +69,7 @@ func (d *domain) AccountCreate(ctx context.Context, account models.Account) (*mo
 	}
 
 	publishOpts := rerabbit.PublishOptions{
-		Exchange:      amqpconfig.AccountExchange,
+		Exchange:      amqpconfig.AccountSSOExchange,
 		RoutingKey:    amqpconfig.AccountCreateKey,
 		Mandatory:     false,
 		Immediate:     false,
@@ -137,7 +137,7 @@ func (d *domain) AccountUpdateRole(ctx context.Context, accountID uuid.UUID, new
 	}
 
 	publishOpts := rerabbit.PublishOptions{
-		Exchange:      amqpconfig.AccountExchange,
+		Exchange:      amqpconfig.AccountSSOExchange,
 		RoutingKey:    amqpconfig.AccountUpdateRoleKey,
 		Mandatory:     false,
 		Immediate:     false,
