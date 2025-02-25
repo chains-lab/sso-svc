@@ -20,7 +20,7 @@ func AccountUpdateRole(ctx context.Context, svc *service.Service, body []byte) e
 		return fmt.Errorf("service or domain layer is nil")
 	}
 
-	var event evebody.RoleUpdated
+	var event evebody.AccountRoleUpdated
 	err := json.Unmarshal(body, &event)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal event body: %w", err)

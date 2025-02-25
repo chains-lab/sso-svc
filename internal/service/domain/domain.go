@@ -112,7 +112,6 @@ func (d *domain) AccountGetByEmail(ctx context.Context, email string) (*models.A
 	return account, nil
 }
 
-// AccountUpdateRole обновляет роль аккаунта через репозиторий и публикует событие обновления роли.
 func (d *domain) AccountUpdateRole(ctx context.Context, accountID uuid.UUID, newRole identity.IdnType) (*models.Account, error) {
 	account, err := d.Infra.Accounts.UpdateRole(ctx, accountID, newRole)
 	if err != nil {
@@ -123,7 +122,7 @@ func (d *domain) AccountUpdateRole(ctx context.Context, accountID uuid.UUID, new
 	}
 
 	// Формируем событие обновления роли
-	eventBody := evebody.RoleUpdated{
+	eventBody := evebody.AccountRoleUpdated{
 		Event:     amqpconfig.AccountUpdateRoleKey,
 		AccountID: account.ID.String(),
 		Role:      string(newRole),
@@ -286,12 +285,12 @@ func (d *domain) Login(ctx context.Context, role identity.IdnType, email, client
 	}
 
 	sessionID := uuid.New()
-	refresh, err := d.Infra.Tokens.GenerateRefresh(account.ID, sessionID, role)
+	refresh, err := d.Infra.Tokens.GenerateRefresh(account.ID, sessionID, account.Role)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	access, err := d.Infra.Tokens.GenerateAccess(account.ID, sessionID, role)
+	access, err := d.Infra.Tokens.GenerateAccess(account.ID, sessionID, account.Role)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -2,7 +2,7 @@ package evebody
 
 import "time"
 
-type RoleUpdated struct {
+type AccountRoleUpdated struct {
 	Event     string    `json:"event"`
 	AccountID string    `json:"account_id"`
 	Role      string    `json:"role"`
