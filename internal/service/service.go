@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/recovery-flow/sso-oauth/internal/config"
 	"github.com/recovery-flow/sso-oauth/internal/service/domain"
+	"github.com/recovery-flow/sso-oauth/internal/service/infra"
 	"github.com/sirupsen/logrus"
 )
 
@@ -12,7 +13,16 @@ type Service struct {
 	Log    *logrus.Logger
 }
 
-func NewService(cfg *config.Config, dmn domain.Domain, log *logrus.Logger) (*Service, error) {
+func NewService(cfg *config.Config, log *logrus.Logger) (*Service, error) {
+	inf, err := infra.NewInfra(cfg, log)
+	if err != nil {
+		return nil, err
+	}
+	dmn, err := domain.NewDomain(inf, log)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Service{
 		Config: cfg,
 		Log:    log,
