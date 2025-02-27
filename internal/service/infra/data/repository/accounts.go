@@ -8,8 +8,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/recovery-flow/sso-oauth/internal/config"
 	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/repository/cache"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/repository/sqldb"
+	"github.com/recovery-flow/sso-oauth/internal/service/infra/data/repository/cache"
+	"github.com/recovery-flow/sso-oauth/internal/service/infra/data/repository/sqldb"
 	"github.com/recovery-flow/tokens/identity"
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
@@ -27,7 +27,7 @@ type Accounts interface {
 type accounts struct {
 	redis cache.Accounts
 	sql   sqldb.Accounts
-	
+
 	log *logrus.Logger
 }
 

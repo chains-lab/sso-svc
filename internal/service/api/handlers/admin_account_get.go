@@ -11,15 +11,15 @@ import (
 	"github.com/recovery-flow/sso-oauth/internal/service/api/responses"
 )
 
-func (h *Handler) AdminAccountGet(w http.ResponseWriter, r *http.Request) {
+func AdminAccountGet(w http.ResponseWriter, r *http.Request) {
 	accountID, err := uuid.Parse(chi.URLParam(r, "account_id"))
 	if err != nil {
-		h.Log.WithError(err).Error("Failed to parse account_id")
+		Log(r).WithError(err).Error("Failed to parse account_id")
 		httpkit.RenderErr(w, problems.BadRequest(fmt.Errorf("invalid account_id"))...)
 		return
 	}
 
-	account, err := h.Domain.AccountGet(r.Context(), accountID)
+	account, err := Domain(r).AccountGet(r.Context(), accountID)
 	if err != nil {
 		httpkit.RenderErr(w, problems.InternalError())
 		return

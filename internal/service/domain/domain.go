@@ -50,7 +50,7 @@ func NewDomain(infra *infra.Infra, log *logrus.Logger) (Domain, error) {
 }
 
 func (d *domain) AccountCreate(ctx context.Context, account models.Account) (*models.Account, error) {
-	res, err := d.Infra.Accounts.Create(ctx, account.Email, account.Role)
+	res, err := d.Infra.Data.Accounts.Create(ctx, account.Email, account.Role)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (d *domain) AccountCreate(ctx context.Context, account models.Account) (*mo
 }
 
 func (d *domain) AccountGet(ctx context.Context, accountID uuid.UUID) (*models.Account, error) {
-	account, err := d.Infra.Accounts.GetByID(ctx, accountID)
+	account, err := d.Infra.Data.Accounts.GetByID(ctx, accountID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ape.ErrAccountNotFound
@@ -101,7 +101,7 @@ func (d *domain) AccountGet(ctx context.Context, accountID uuid.UUID) (*models.A
 }
 
 func (d *domain) AccountGetByEmail(ctx context.Context, email string) (*models.Account, error) {
-	account, err := d.Infra.Accounts.GetByEmail(ctx, email)
+	account, err := d.Infra.Data.Accounts.GetByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ape.ErrAccountNotFound
@@ -113,7 +113,7 @@ func (d *domain) AccountGetByEmail(ctx context.Context, email string) (*models.A
 }
 
 func (d *domain) AccountUpdateRole(ctx context.Context, accountID uuid.UUID, newRole identity.IdnType) (*models.Account, error) {
-	account, err := d.Infra.Accounts.UpdateRole(ctx, accountID, newRole)
+	account, err := d.Infra.Data.Accounts.UpdateRole(ctx, accountID, newRole)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ape.ErrAccountNotFound
@@ -157,7 +157,7 @@ func (d *domain) AccountUpdateRole(ctx context.Context, accountID uuid.UUID, new
 }
 
 func (d *domain) SessionCreate(ctx context.Context, session models.Session) (*models.Session, error) {
-	ses, err := d.Infra.Sessions.Create(ctx, session)
+	ses, err := d.Infra.Data.Sessions.Create(ctx, session)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func (d *domain) SessionCreate(ctx context.Context, session models.Session) (*mo
 }
 
 func (d *domain) SessionGetForAccount(ctx context.Context, sessionID, accountID uuid.UUID) (*models.Session, error) {
-	ses, err := d.Infra.Sessions.GetByID(ctx, sessionID)
+	ses, err := d.Infra.Data.Sessions.GetByID(ctx, sessionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ape.SessionNotFound
@@ -182,7 +182,7 @@ func (d *domain) SessionGetForAccount(ctx context.Context, sessionID, accountID 
 }
 
 func (d *domain) SessionGet(ctx context.Context, sessionID uuid.UUID) (*models.Session, error) {
-	ses, err := d.Infra.Sessions.GetByID(ctx, sessionID)
+	ses, err := d.Infra.Data.Sessions.GetByID(ctx, sessionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ape.SessionNotFound
@@ -194,7 +194,7 @@ func (d *domain) SessionGet(ctx context.Context, sessionID uuid.UUID) (*models.S
 }
 
 func (d *domain) SessionsListByAccount(ctx context.Context, accountID uuid.UUID) ([]models.Session, error) {
-	ses, err := d.Infra.Sessions.SelectByAccountID(ctx, accountID)
+	ses, err := d.Infra.Data.Sessions.SelectByAccountID(ctx, accountID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ape.SessionNotFound
@@ -206,7 +206,7 @@ func (d *domain) SessionsListByAccount(ctx context.Context, accountID uuid.UUID)
 }
 
 func (d *domain) SessionDelete(ctx context.Context, sessionID uuid.UUID) error {
-	err := d.Infra.Sessions.Delete(ctx, sessionID)
+	err := d.Infra.Data.Sessions.Delete(ctx, sessionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ape.SessionNotFound
@@ -218,7 +218,7 @@ func (d *domain) SessionDelete(ctx context.Context, sessionID uuid.UUID) error {
 }
 
 func (d *domain) SessionsTerminate(ctx context.Context, accountID uuid.UUID, excludeSessionID *uuid.UUID) error {
-	err := d.Infra.Sessions.Terminate(ctx, accountID, excludeSessionID)
+	err := d.Infra.Data.Sessions.Terminate(ctx, accountID, excludeSessionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ape.SessionNotFound
@@ -254,7 +254,7 @@ func (d *domain) SessionRefresh(ctx context.Context, session models.Session, rol
 		return nil, nil, err
 	}
 
-	_, err = d.Infra.Sessions.UpdateToken(ctx, session.ID, session.AccountID, IP, client, refreshCrypto)
+	_, err = d.Infra.Data.Sessions.UpdateToken(ctx, session.ID, session.AccountID, IP, client, refreshCrypto)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil, ape.SessionNotFound
@@ -266,7 +266,7 @@ func (d *domain) SessionRefresh(ctx context.Context, session models.Session, rol
 }
 
 func (d *domain) Login(ctx context.Context, role identity.IdnType, email, client, IP string) (*string, *string, error) {
-	account, err := d.Infra.Accounts.GetByEmail(ctx, email)
+	account, err := d.Infra.Data.Accounts.GetByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			account, err = d.AccountCreate(ctx, models.Account{
@@ -300,7 +300,7 @@ func (d *domain) Login(ctx context.Context, role identity.IdnType, email, client
 		return nil, nil, err
 	}
 
-	_, err = d.Infra.Sessions.Create(ctx, models.Session{
+	_, err = d.Infra.Data.Sessions.Create(ctx, models.Session{
 		ID:        sessionID,
 		AccountID: account.ID,
 		Token:     refreshCrypto,

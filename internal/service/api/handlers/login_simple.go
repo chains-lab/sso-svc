@@ -13,9 +13,9 @@ import (
 	"github.com/recovery-flow/tokens/identity"
 )
 
-func (h *Handler) LoginSimple(w http.ResponseWriter, r *http.Request) {
-	if !h.Config.Server.TestMode {
-		h.Log.Warn("Test mode is off")
+func LoginSimple(w http.ResponseWriter, r *http.Request) {
+	if !Config(r).Server.TestMode {
+		Log(r).Warn("Test mode is off")
 		httpkit.RenderErr(w, problems.Forbidden("Test mode is off"))
 	}
 
@@ -34,21 +34,21 @@ func (h *Handler) LoginSimple(w http.ResponseWriter, r *http.Request) {
 		"role":  validation.Validate(req.Role, validation.Required),
 	}
 	if errs.Filter() != nil {
-		h.Log.WithError(errs.Filter()).Error("Failed to parse email")
+		Log(r).WithError(errs.Filter()).Error("Failed to parse email")
 		httpkit.RenderErr(w, problems.BadRequest(errs.Filter())...)
 		return
 	}
 
 	role, err := identity.ParseIdentityType(req.Role)
 	if err != nil {
-		h.Log.WithError(err).Error("Invalid role")
+		Log(r).WithError(err).Error("Invalid role")
 		httpkit.RenderErr(w, problems.BadRequest(errors.New("invalid role"))...)
 		return
 	}
 
-	tokenAccess, tokenRefresh, err := h.Domain.Login(r.Context(), role, req.Email, r.UserAgent(), r.RemoteAddr)
+	tokenAccess, tokenRefresh, err := Domain(r).Login(r.Context(), role, req.Email, r.UserAgent(), r.RemoteAddr)
 	if err != nil {
-		h.Log.WithError(err).Error("Failed to login")
+		Log(r).WithError(err).Error("Failed to login")
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}

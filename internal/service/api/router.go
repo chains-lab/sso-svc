@@ -14,12 +14,14 @@ import (
 func Run(ctx context.Context, svc *service.Service) {
 	r := chi.NewRouter()
 
-	h, err := handlers.NewHandler(svc)
-	if err != nil {
-		svc.Log.Fatalf("failed to create handlers: %v", err)
-		<-ctx.Done()
-		return
-	}
+	r.Use(
+		httpkit.CtxMiddleWare(
+			handlers.CtxLog(svc.Log),
+			handlers.CtxDomain(svc.Domain),
+			handlers.CtxConfig(svc.Config),
+			handlers.CtxGoogleOauth(svc.Config),
+		),
+	)
 
 	authMW := tokens.AuthMdl(svc.Config.JWT.AccessToken.SecretKey)
 	roleGrant := tokens.IdentityMdl(svc.Config.JWT.AccessToken.SecretKey, identity.Admin, identity.SuperUser)
@@ -27,10 +29,10 @@ func Run(ctx context.Context, svc *service.Service) {
 	r.Route("/re-flow/sso", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/public", func(r chi.Router) {
-				r.Post("/refresh", h.Refresh)
+				r.Post("/refresh", handlers.Refresh)
 				r.Route("/google", func(r chi.Router) {
-					r.Get("/login", h.GoogleLogin)
-					r.Get("/callback", h.GoogleCallback)
+					r.Get("/login", handlers.GoogleLogin)
+					r.Get("/callback", handlers.GoogleCallback)
 				})
 			})
 
@@ -39,29 +41,29 @@ func Run(ctx context.Context, svc *service.Service) {
 					r.With(authMW).Route("/current", func(r chi.Router) {
 						r.Route("/sessions", func(r chi.Router) {
 							r.Route("/{session_id}", func(r chi.Router) {
-								r.Get("/", h.SessionGet)
-								r.Delete("/", h.SessionDelete)
+								r.Get("/", handlers.SessionGet)
+								r.Delete("/", handlers.SessionDelete)
 							})
-							r.Get("/", h.SessionsGet)
-							r.Delete("/", h.SessionsTerminate)
+							r.Get("/", handlers.SessionsGet)
+							r.Delete("/", handlers.SessionsTerminate)
 						})
-						r.Get("/", h.AccountGet)
-						r.Post("/", h.Logout)
+						r.Get("/", handlers.AccountGet)
+						r.Post("/", handlers.Logout)
 					})
 
 					r.With(roleGrant).Route("/{account_id}", func(r chi.Router) {
 						r.Route("/sessions", func(r chi.Router) {
-							r.Get("/{session_id}", h.AdminSessionGet)
-							r.Get("/", h.AdminSessionsGet)
-							r.Delete("/", h.AdminSessionsTerminate)
+							r.Get("/{session_id}", handlers.AdminSessionGet)
+							r.Get("/", handlers.AdminSessionsGet)
+							r.Delete("/", handlers.AdminSessionsTerminate)
 						})
-						r.Get("/", h.AdminAccountGet)
-						r.Patch("/{role}", h.AdminRoleUpdate)
+						r.Get("/", handlers.AdminAccountGet)
+						r.Patch("/{role}", handlers.AdminRoleUpdate)
 					})
 				})
 			})
 
-			r.Post("/test/login", h.LoginSimple)
+			r.Post("/test/login", handlers.LoginSimple)
 		})
 	})
 

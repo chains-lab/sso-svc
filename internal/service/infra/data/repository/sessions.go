@@ -8,8 +8,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/recovery-flow/sso-oauth/internal/config"
 	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/repository/cache"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/repository/sqldb"
+	"github.com/recovery-flow/sso-oauth/internal/service/infra/data/repository/cache"
+	"github.com/recovery-flow/sso-oauth/internal/service/infra/data/repository/sqldb"
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 )

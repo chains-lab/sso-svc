@@ -12,22 +12,22 @@ import (
 	"github.com/recovery-flow/tokens/identity"
 )
 
-func (h *Handler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
+func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 	if code == "" {
-		h.Log.Errorf("missing code parameter")
+		Log(r).Errorf("missing code parameter")
 		httpkit.RenderErr(w, problems.BadRequest(errors.New("missing code parameter"))...)
 		return
 	}
 
-	token, err := h.GoogleOAuth.Exchange(r.Context(), code)
+	token, err := GoogleOAuth(r).Exchange(r.Context(), code)
 	if err != nil {
-		h.Log.WithError(err).Error("failed to exchange code for token")
+		Log(r).WithError(err).Error("failed to exchange code for token")
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	client := h.GoogleOAuth.Client(r.Context(), token)
+	client := GoogleOAuth(r).Client(r.Context(), token)
 	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
 	if err != nil {
 		httpkit.RenderErr(w, problems.InternalError())
@@ -47,14 +47,14 @@ func (h *Handler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		Picture string `json:"picture"`
 	}
 	if err = json.NewDecoder(resp.Body).Decode(&accountInfo); err != nil {
-		h.Log.WithError(err).Error("failed to decode account info")
+		Log(r).WithError(err).Error("failed to decode account info")
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	tokenAccess, tokenRefresh, err := h.Domain.Login(r.Context(), identity.User, accountInfo.Email, r.UserAgent(), r.RemoteAddr)
+	tokenAccess, tokenRefresh, err := Domain(r).Login(r.Context(), identity.User, accountInfo.Email, r.UserAgent(), r.RemoteAddr)
 	if err != nil {
-		h.Log.WithError(err).Error("Failed to login")
+		Log(r).WithError(err).Error("Failed to login")
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}

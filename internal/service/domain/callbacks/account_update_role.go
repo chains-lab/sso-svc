@@ -5,11 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	//"database/sql"
-	//
-	//"github.com/recovery-flow/comtools/httpkit"
-	//"github.com/recovery-flow/comtools/httpkit/problems"
-
 	"github.com/google/uuid"
 	"github.com/recovery-flow/sso-oauth/internal/service"
 	"github.com/recovery-flow/sso-oauth/internal/service/infra/events/rabbit/evebody"

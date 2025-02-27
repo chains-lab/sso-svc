@@ -6,12 +6,12 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/repository/sqldb/core"
+	core2 "github.com/recovery-flow/sso-oauth/internal/service/infra/data/repository/sqldb/core"
 	"github.com/recovery-flow/tokens/identity"
 )
 
 type Accounts struct {
-	queries *core.Queries
+	queries *core2.Queries
 }
 
 func NewAccounts(url string) (*Accounts, error) {
@@ -19,11 +19,11 @@ func NewAccounts(url string) (*Accounts, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Accounts{queries: core.New(db)}, nil
+	return &Accounts{queries: core2.New(db)}, nil
 }
 
 func (a *Accounts) Insert(ctx context.Context, email string, idn identity.IdnType) (*models.Account, error) {
-	acc, err := a.queries.CreateAccount(ctx, core.CreateAccountParams{
+	acc, err := a.queries.CreateAccount(ctx, core2.CreateAccountParams{
 		Email: email,
 		Role:  string(idn),
 	})
@@ -65,7 +65,7 @@ func (a *Accounts) GetByEmail(ctx context.Context, email string) (*models.Accoun
 }
 
 func (a *Accounts) UpdateRole(ctx context.Context, id uuid.UUID, idn identity.IdnType) (*models.Account, error) {
-	acc, err := a.queries.UpdateAccountRole(ctx, core.UpdateAccountRoleParams{
+	acc, err := a.queries.UpdateAccountRole(ctx, core2.UpdateAccountRoleParams{
 		ID:   id,
 		Role: string(idn),
 	})
@@ -80,7 +80,7 @@ func (a *Accounts) UpdateRole(ctx context.Context, id uuid.UUID, idn identity.Id
 	return res, nil
 }
 
-func parseAccount(account core.Account) (*models.Account, error) {
+func parseAccount(account core2.Account) (*models.Account, error) {
 	role, err := identity.ParseIdentityType(account.Role)
 	if err != nil {
 		return nil, err

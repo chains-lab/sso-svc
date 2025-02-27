@@ -7,11 +7,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/repository/sqldb/core"
+	core2 "github.com/recovery-flow/sso-oauth/internal/service/infra/data/repository/sqldb/core"
 )
 
 type Sessions struct {
-	queries *core.Queries
+	queries *core2.Queries
 }
 
 func NewSessions(url string) (*Sessions, error) {
@@ -24,11 +24,11 @@ func NewSessions(url string) (*Sessions, error) {
 		return nil, err
 	}
 
-	return &Sessions{queries: core.New(db)}, nil
+	return &Sessions{queries: core2.New(db)}, nil
 }
 
 func (s *Sessions) Insert(ctx context.Context, session models.Session) (*models.Session, error) {
-	res, err := s.queries.CreateSession(ctx, core.CreateSessionParams{
+	res, err := s.queries.CreateSession(ctx, core2.CreateSessionParams{
 		ID:        session.ID,
 		AccountID: session.AccountID,
 		Token:     session.Token,
@@ -66,7 +66,7 @@ func (s *Sessions) SelectByAccountID(ctx context.Context, AccountID uuid.UUID) (
 }
 
 func (s *Sessions) UpdateToken(ctx context.Context, SessionID, AccountID uuid.UUID, token string, IP string) (*models.Session, error) {
-	res, err := s.queries.UpdateSessionToken(ctx, core.UpdateSessionTokenParams{
+	res, err := s.queries.UpdateSessionToken(ctx, core2.UpdateSessionTokenParams{
 		ID:        SessionID,
 		AccountID: AccountID,
 		Token:     token,
@@ -133,7 +133,7 @@ func (s *Sessions) Delete(ctx context.Context, id uuid.UUID) error {
 	return s.queries.DeleteSession(ctx, id)
 }
 
-func parseSession(session core.Session) *models.Session {
+func parseSession(session core2.Session) *models.Session {
 	return &models.Session{
 		ID:        session.ID,
 		AccountID: session.AccountID,

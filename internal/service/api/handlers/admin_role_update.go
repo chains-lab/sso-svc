@@ -12,17 +12,17 @@ import (
 	"github.com/recovery-flow/tokens/identity"
 )
 
-func (h *Handler) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
+func AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 	initiatorID, _, InitiatorRole, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
-		h.Log.WithError(err).Warn("Unauthorized role update attempt")
+		Log(r).WithError(err).Warn("Unauthorized role update attempt")
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
 		return
 	}
 
 	updatedAccountID, err := uuid.Parse(chi.URLParam(r, "account_id"))
 	if err != nil {
-		h.Log.WithError(err).Warn("Invalid account_id")
+		Log(r).WithError(err).Warn("Invalid account_id")
 		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
 			"account_id": validation.NewError("account_id", "invalid UUID"),
 		})...)
@@ -31,7 +31,7 @@ func (h *Handler) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 
 	updatedRole, err := identity.ParseIdentityType(chi.URLParam(r, "role"))
 	if err != nil {
-		h.Log.WithError(err).Warn("Invalid role")
+		Log(r).WithError(err).Warn("Invalid role")
 		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
 			"role": validation.NewError("role", "invalid role"),
 		})...)
@@ -39,39 +39,39 @@ func (h *Handler) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if identity.CompareRolesUser(*InitiatorRole, updatedRole) != 1 {
-		h.Log.Warn("Account can't update role to higher level than his own")
+		Log(r).Warn("Account can't update role to higher level than his own")
 		httpkit.RenderErr(w, problems.Forbidden("Account can't update role to higher level"))
 		return
 	}
 
-	account, err := h.Domain.AccountGet(r.Context(), updatedAccountID)
+	account, err := Domain(r).AccountGet(r.Context(), updatedAccountID)
 	if err != nil {
-		h.Log.WithError(err).Warn("Failed to get account")
+		Log(r).WithError(err).Warn("Failed to get account")
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
 	if identity.CompareRolesUser(*InitiatorRole, account.Role) == -1 {
-		h.Log.Warn("Account can't update role of account with higher role than his own")
+		Log(r).Warn("Account can't update role of account with higher role than his own")
 		httpkit.RenderErr(w, problems.Forbidden("Account can't update role of account with higher role"))
 		return
 	}
 
 	if identity.CompareRolesUser(account.Role, updatedRole) == 0 {
-		h.Log.Warn("Account can't update role to the same role")
+		Log(r).Warn("Account can't update role to the same role")
 		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
 			"role": validation.NewError("role", "same role"),
 		})...)
 		return
 	}
 
-	_, err = h.Domain.AccountUpdateRole(r.Context(), updatedAccountID, updatedRole)
+	_, err = Domain(r).AccountUpdateRole(r.Context(), updatedAccountID, updatedRole)
 	if err != nil {
-		h.Log.WithError(err).Warn("Failed to update role")
+		Log(r).WithError(err).Warn("Failed to update role")
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	h.Log.Infof("Role updated for account %s to %s by account %s", updatedAccountID, updatedRole, initiatorID)
+	Log(r).Infof("Role updated for account %s to %s by account %s", updatedAccountID, updatedRole, initiatorID)
 	httpkit.Render(w, http.StatusOK)
 }

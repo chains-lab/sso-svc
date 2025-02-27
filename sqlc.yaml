@@ -1,9 +1,9 @@
 version: "2"
 sql:
-  - schema:  internal/service/infra/repository/sqldb/migrations
-    queries: internal/service/infra/repository/sqldb/query
+  - schema:  internal/app/infra/repository/sqldb/migrations
+    queries: internal/app/infra/repository/sqldb/query
     engine: postgresql
     gen:
       go:
         package: core
-        out: internal/service/infra/repository/sqldb/core
+        out: internal/app/infra/repository/sqldb/core

@@ -13,10 +13,10 @@ import (
 	"github.com/recovery-flow/tokens"
 )
 
-func (h *Handler) SessionDelete(w http.ResponseWriter, r *http.Request) {
+func SessionDelete(w http.ResponseWriter, r *http.Request) {
 	accountID, sessionID, _, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
-		h.Log.Warnf("Unauthorized session delete attempt: %v", err)
+		Log(r).Warnf("Unauthorized session delete attempt: %v", err)
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
 		return
 	}
@@ -28,12 +28,12 @@ func (h *Handler) SessionDelete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sessionID.String() == sessionForDeleteId.String() {
-		h.Log.Debugf("Sessions can't be current")
+		Log(r).Debugf("Sessions can't be current")
 		httpkit.RenderErr(w, problems.BadRequest(errors.New("session can't be current"))...)
 		return
 	}
 
-	err = h.Domain.SessionDelete(r.Context(), sessionForDeleteId)
+	err = Domain(r).SessionDelete(r.Context(), sessionForDeleteId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())
@@ -43,7 +43,7 @@ func (h *Handler) SessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessions, err := h.Domain.SessionsListByAccount(r.Context(), *accountID)
+	sessions, err := Domain(r).SessionsListByAccount(r.Context(), *accountID)
 	if err != nil {
 		httpkit.RenderErr(w, problems.InternalError())
 		return
