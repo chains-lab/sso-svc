@@ -70,7 +70,7 @@ func (s *sessions) Create(ctx context.Context, session models.Session) (*models.
 }
 
 func (s *sessions) GetByID(ctx context.Context, sessionID uuid.UUID) (*models.Session, error) {
-	res, err := s.redis.GetByID(ctx, sessionID)
+	res, err := s.redis.GetByID(ctx, sessionID.String())
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			res = nil
@@ -94,7 +94,7 @@ func (s *sessions) GetByID(ctx context.Context, sessionID uuid.UUID) (*models.Se
 }
 
 func (s *sessions) SelectByAccountID(ctx context.Context, accountID uuid.UUID) ([]models.Session, error) {
-	res, err := s.redis.SelectByAccountID(ctx, accountID)
+	res, err := s.redis.SelectByAccountID(ctx, accountID.String())
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			res = nil
@@ -156,7 +156,7 @@ func (s *sessions) Terminate(ctx context.Context, AccountID uuid.UUID, sessionID
 		return err
 	}
 
-	err = s.redis.DeleteByAccountID(ctx, AccountID, sessionID)
+	err = s.redis.DeleteAllByAccountID(ctx, AccountID, sessionID)
 	if err != nil {
 		s.log.WithError(err).Error("error deleting session from Redis")
 	}

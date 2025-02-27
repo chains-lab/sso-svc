@@ -13,13 +13,13 @@ import (
 
 type Accounts struct {
 	client   *redis.Client
-	LifeTime time.Duration
+	lifeTime time.Duration
 }
 
 func NewAccounts(client *redis.Client, lifetime time.Duration) *Accounts {
 	return &Accounts{
 		client:   client,
-		LifeTime: lifetime,
+		lifeTime: lifetime,
 	}
 }
 
@@ -44,9 +44,11 @@ func (a *Accounts) Add(ctx context.Context, account models.Account) error {
 		return fmt.Errorf("error creating email index: %w", err)
 	}
 
-	if a.LifeTime > 0 {
-		_ = a.client.Expire(ctx, accountKey, a.LifeTime).Err()
-		_ = a.client.Expire(ctx, emailKey, a.LifeTime).Err()
+	if a.lifeTime > 0 {
+		keys := []string{accountKey, emailKey}
+		for _, key := range keys {
+			_ = a.client.Expire(ctx, key, a.lifeTime).Err()
+		}
 	}
 
 	return nil
@@ -86,7 +88,7 @@ func (a *Accounts) Delete(ctx context.Context, AccountID string) error {
 	}
 
 	if exists == 0 {
-		return nil
+		return redis.Nil
 	}
 
 	email, err := a.client.HGet(ctx, key, "email").Result()
