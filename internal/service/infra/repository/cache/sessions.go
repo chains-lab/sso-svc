@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -35,20 +36,23 @@ func (s *Sessions) Add(ctx context.Context, session models.Session) error {
 		"last_used":  session.LastUsed.Format(time.RFC3339),
 	}
 
-	err := s.client.HSet(ctx, sessionKey, data).Err()
-	if err != nil {
+	if err := s.client.HSet(ctx, sessionKey, data).Err(); err != nil {
 		return fmt.Errorf("error adding session to Redis: %w", err)
 	}
 
-	err = s.client.SAdd(ctx, accountSessionsKey, session.ID.String()).Err()
-	if err != nil {
+	if err := s.client.SAdd(ctx, accountSessionsKey, session.ID.String()).Err(); err != nil {
 		return fmt.Errorf("error indexing session under account_id: %w", err)
 	}
 
 	if s.lifeTime > 0 {
+		pipe := s.client.Pipeline()
 		keys := []string{sessionKey, accountSessionsKey}
 		for _, key := range keys {
-			_ = s.client.Expire(ctx, key, s.lifeTime).Err()
+			pipe.Expire(ctx, key, s.lifeTime)
+		}
+		_, err := pipe.Exec(ctx)
+		if err != nil && !errors.Is(err, redis.Nil) {
+			return fmt.Errorf("error setting expiration for keys: %w", err)
 		}
 	}
 
@@ -79,8 +83,12 @@ func (s *Sessions) SelectByAccountID(ctx context.Context, AccountID string) ([]m
 	}
 
 	var sessionsArr []models.Session
-	for _, sessionID := range sessionIDs {
-		ses, err := s.GetByID(ctx, sessionID)
+	for _, ID := range sessionIDs {
+		vals, err := s.client.HGetAll(ctx, ID).Result()
+		if err != nil {
+			return nil, fmt.Errorf("error geting session: %w", err)
+		}
+		ses, err := parseSession(ID, vals)
 		if err != nil {
 			return nil, err
 		}

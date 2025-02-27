@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
 	"github.com/recovery-flow/tokens/identity"
 	"github.com/redis/go-redis/v9"
@@ -34,20 +35,23 @@ func (a *Accounts) Add(ctx context.Context, account models.Account) error {
 		"updated_at": account.UpdatedAt.Format(time.RFC3339),
 	}
 
-	err := a.client.HSet(ctx, accountKey, data).Err()
-	if err != nil {
+	if err := a.client.HSet(ctx, accountKey, data).Err(); err != nil {
 		return fmt.Errorf("error adding account to Redis: %w", err)
 	}
 
-	err = a.client.Set(ctx, emailKey, account.ID.String(), 0).Err()
-	if err != nil {
+	if err := a.client.Set(ctx, emailKey, account.ID.String(), 0).Err(); err != nil {
 		return fmt.Errorf("error creating email index: %w", err)
 	}
 
 	if a.lifeTime > 0 {
+		pipe := a.client.Pipeline()
 		keys := []string{accountKey, emailKey}
 		for _, key := range keys {
-			_ = a.client.Expire(ctx, key, a.lifeTime).Err()
+			pipe.Expire(ctx, key, a.lifeTime)
+		}
+		_, err := pipe.Exec(ctx)
+		if err != nil && !errors.Is(err, redis.Nil) {
+			return fmt.Errorf("error setting expiration for keys: %w", err)
 		}
 	}
 
