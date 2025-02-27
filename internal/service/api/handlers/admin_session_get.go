@@ -11,7 +11,7 @@ import (
 	"github.com/recovery-flow/sso-oauth/internal/service/api/responses"
 )
 
-func (h *Handlers) AdminSessionGet(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) AdminSessionGet(w http.ResponseWriter, r *http.Request) {
 	sessionID, err := uuid.Parse(chi.URLParam(r, "session_id"))
 	if err != nil {
 		h.Log.Errorf("Failed to parse session_id: %v", err)

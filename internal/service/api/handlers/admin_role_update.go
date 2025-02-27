@@ -12,7 +12,7 @@ import (
 	"github.com/recovery-flow/tokens/identity"
 )
 
-func (h *Handlers) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 	initiatorID, _, InitiatorRole, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
 		h.Log.WithError(err).Warn("Unauthorized role update attempt")

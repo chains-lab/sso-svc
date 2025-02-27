@@ -10,7 +10,7 @@ import (
 	"github.com/recovery-flow/tokens"
 )
 
-func (h *Handlers) SessionsTerminate(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) SessionsTerminate(w http.ResponseWriter, r *http.Request) {
 	accountID, sessionID, _, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
 		h.Log.WithError(err).Warn("Unauthorized session terminate attempt")

@@ -9,7 +9,7 @@ import (
 	"github.com/recovery-flow/tokens"
 )
 
-func (h *Handlers) AccountGet(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) AccountGet(w http.ResponseWriter, r *http.Request) {
 	accountID, _, _, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
 		h.Log.WithError(err).Error("Failed to retrieve account data")

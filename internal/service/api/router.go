@@ -14,7 +14,7 @@ import (
 func Run(ctx context.Context, svc *service.Service) {
 	r := chi.NewRouter()
 
-	h, err := handlers.NewHandlers(svc)
+	h, err := handlers.NewHandler(svc)
 	if err != nil {
 		svc.Log.Fatalf("failed to create handlers: %v", err)
 		<-ctx.Done()

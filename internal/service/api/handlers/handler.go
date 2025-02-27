@@ -8,17 +8,17 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type Handlers struct {
+type Handler struct {
 	Config      *config.Config
 	Domain      domain.Domain
 	GoogleOAuth oauth2.Config
 	Log         *logrus.Logger
 }
 
-func NewHandlers(svc *service.Service) (*Handlers, error) {
+func NewHandler(svc *service.Service) (*Handler, error) {
 	googleOAuth := config.InitGoogleOAuth(svc.Config.OAuth.Google.ClientID, svc.Config.OAuth.Google.ClientSecret, svc.Config.OAuth.Google.RedirectURL)
 
-	return &Handlers{
+	return &Handler{
 		Config:      svc.Config,
 		Domain:      svc.Domain,
 		GoogleOAuth: googleOAuth,

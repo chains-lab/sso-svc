@@ -13,7 +13,7 @@ import (
 	"github.com/recovery-flow/tokens"
 )
 
-func (h *Handlers) SessionDelete(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) SessionDelete(w http.ResponseWriter, r *http.Request) {
 	accountID, sessionID, _, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
 		h.Log.Warnf("Unauthorized session delete attempt: %v", err)

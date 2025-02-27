@@ -12,7 +12,7 @@ import (
 	"github.com/recovery-flow/tokens/identity"
 )
 
-func (h *Handlers) GoogleCallback(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 	if code == "" {
 		h.Log.Errorf("missing code parameter")

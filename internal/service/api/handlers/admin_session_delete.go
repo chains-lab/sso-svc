@@ -14,7 +14,7 @@ import (
 	"github.com/recovery-flow/tokens/identity"
 )
 
-func (h *Handlers) AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
 	initiatorID, initiatorSession, initiatorRole, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
 		h.Log.Warnf("Unauthorized session delete attempt: %v", err)

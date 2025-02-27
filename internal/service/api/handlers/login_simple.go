@@ -13,7 +13,7 @@ import (
 	"github.com/recovery-flow/tokens/identity"
 )
 
-func (h *Handlers) LoginSimple(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) LoginSimple(w http.ResponseWriter, r *http.Request) {
 	if !h.Config.Server.TestMode {
 		h.Log.Warn("Test mode is off")
 		httpkit.RenderErr(w, problems.Forbidden("Test mode is off"))

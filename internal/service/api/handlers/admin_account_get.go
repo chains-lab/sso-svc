@@ -11,7 +11,7 @@ import (
 	"github.com/recovery-flow/sso-oauth/internal/service/api/responses"
 )
 
-func (h *Handlers) AdminAccountGet(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) AdminAccountGet(w http.ResponseWriter, r *http.Request) {
 	accountID, err := uuid.Parse(chi.URLParam(r, "account_id"))
 	if err != nil {
 		h.Log.WithError(err).Error("Failed to parse account_id")

@@ -13,7 +13,7 @@ import (
 	"github.com/recovery-flow/tokens"
 )
 
-func (h *Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 	req, err := requests.NewRefresh(r)
 	if err != nil {
 		h.Log.WithError(err).Warn("Error parsing request")

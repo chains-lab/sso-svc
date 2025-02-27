@@ -13,7 +13,7 @@ import (
 	"github.com/recovery-flow/tokens/identity"
 )
 
-func (h *Handlers) AdminSessionsTerminate(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) AdminSessionsTerminate(w http.ResponseWriter, r *http.Request) {
 	initiatorID, _, initiatorRole, _, err := tokens.GetAccountData(r.Context())
 	accountID, err := uuid.Parse(chi.URLParam(r, "account_id"))
 	if err != nil {

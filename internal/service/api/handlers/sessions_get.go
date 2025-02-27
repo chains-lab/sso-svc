@@ -9,7 +9,7 @@ import (
 	"github.com/recovery-flow/tokens"
 )
 
-func (h *Handlers) SessionsGet(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) SessionsGet(w http.ResponseWriter, r *http.Request) {
 	accountID, _, _, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
 		h.Log.WithError(err).Warn("Unauthorized session list attempt")
