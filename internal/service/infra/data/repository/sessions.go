@@ -94,19 +94,19 @@ func (s *sessions) GetByID(ctx context.Context, sessionID uuid.UUID) (*models.Se
 }
 
 func (s *sessions) SelectByAccountID(ctx context.Context, accountID uuid.UUID) ([]models.Session, error) {
-	res, err := s.redis.SelectByAccountID(ctx, accountID.String())
-	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			res = nil
-		} else {
-			s.log.WithError(err).Error("error getting session from Redis")
-		}
-	} else if res != nil {
-		return res, nil
-	}
+	//res, err := s.redis.SelectByAccountID(ctx, accountID.String())
+	//if err != nil {
+	//	if errors.Is(err, redis.Nil) {
+	//		res = nil
+	//	} else {
+	//		s.log.WithError(err).Error("error getting session from Redis")
+	//	}
+	//} else if res != nil {
+	//	return res, nil
+	//}
 
-	res, err = s.sql.SelectByAccountID(ctx, accountID)
-	if err != nil {
+	res, err := s.sql.SelectByAccountID(ctx, accountID)
+	if err != nil || len(res) == 0 {
 		return nil, err
 	}
 

@@ -63,6 +63,8 @@ github.com/recovery-flow/rerabbit v0.1.1 h1:jVhvv3KKnLepA305HXxRiWFoAs2PlNJ5GeAe
 github.com/recovery-flow/rerabbit v0.1.1/go.mod h1:SSAO2aK2mH27ib1n0PiJH0YBbQq4JtWMLVxYsoGUw94=
 github.com/recovery-flow/tokens v0.4.22 h1:ZanmaKxx2Z9m7d3idVzy0lHeG4iZzhClJi1L7+B3wTg=
 github.com/recovery-flow/tokens v0.4.22/go.mod h1:/jkXaQEDv6xccJXfelLJSBsTuAKtCvVj35sgr9XbIds=
+github.com/recovery-flow/tokens v0.5.0 h1:AQK2OLmNou5ruVg21Q+NNmYs3AMsE5QtF6RcLIRQU4U=
+github.com/recovery-flow/tokens v0.5.0/go.mod h1:/jkXaQEDv6xccJXfelLJSBsTuAKtCvVj35sgr9XbIds=
 github.com/redis/go-redis/v9 v9.7.0 h1:HhLSs+B6O021gwzl+locl0zEDnyNkxMtf/Z3NNBMa9E=
 github.com/redis/go-redis/v9 v9.7.0/go.mod h1:f6zhXITC7JUJIlPEiBOTXxJgPLdZcA93GewI7inzyWw=
 github.com/rogpeppe/go-internal v1.9.0 h1:73kH8U+JUqXU8lRuOHeVHaa/SZPifC7BkcraZVejAe8=

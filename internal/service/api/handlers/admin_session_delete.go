@@ -15,7 +15,7 @@ import (
 )
 
 func AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
-	initiatorID, initiatorSession, initiatorRole, _, err := tokens.GetAccountData(r.Context())
+	initiatorID, initiatorSession, _, initiatorRole, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
 		Log(r).Warnf("Unauthorized session delete attempt: %v", err)
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))

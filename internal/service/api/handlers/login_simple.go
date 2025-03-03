@@ -46,7 +46,8 @@ func LoginSimple(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenAccess, tokenRefresh, err := Domain(r).Login(r.Context(), role, req.Email, r.UserAgent(), r.RemoteAddr)
+	//TODO SUBSCRIPTION WATCH!
+	tokenAccess, tokenRefresh, err := Domain(r).Login(r.Context(), role, nil, req.Email, r.UserAgent(), r.RemoteAddr)
 	if err != nil {
 		Log(r).WithError(err).Error("Failed to login")
 		httpkit.RenderErr(w, problems.InternalError())

@@ -10,7 +10,7 @@ import (
 )
 
 func AccountGet(w http.ResponseWriter, r *http.Request) {
-	accountID, _, _, _, err := tokens.GetAccountData(r.Context())
+	accountID, _, _, _, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
 		Log(r).WithError(err).Error("Failed to retrieve account data")
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))

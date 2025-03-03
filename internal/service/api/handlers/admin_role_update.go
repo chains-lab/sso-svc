@@ -13,7 +13,7 @@ import (
 )
 
 func AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
-	initiatorID, _, InitiatorRole, _, err := tokens.GetAccountData(r.Context())
+	initiatorID, _, _, InitiatorRole, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
 		Log(r).WithError(err).Warn("Unauthorized role update attempt")
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))

@@ -10,7 +10,7 @@ import (
 )
 
 func SessionsGet(w http.ResponseWriter, r *http.Request) {
-	accountID, _, _, _, err := tokens.GetAccountData(r.Context())
+	accountID, _, _, _, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
 		Log(r).WithError(err).Warn("Unauthorized session list attempt")
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))

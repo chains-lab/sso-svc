@@ -27,9 +27,9 @@ type Domain interface {
 
 	SessionsTerminate(ctx context.Context, accountID uuid.UUID, excludeSessionID *uuid.UUID) error
 	SessionDelete(ctx context.Context, sessionID uuid.UUID) error
-	SessionRefresh(ctx context.Context, session models.Session, role identity.IdnType, IP, client, curToken string) (*string, *string, error)
+	SessionRefresh(ctx context.Context, session models.Session, role identity.IdnType, subTypeID *uuid.UUID, IP, client, curToken string) (*string, *string, error)
 
-	Login(ctx context.Context, role identity.IdnType, email, client, IP string) (*string, *string, error)
+	Login(ctx context.Context, role identity.IdnType, subTypeID *uuid.UUID, email, client, IP string) (*string, *string, error)
 
 	AccountCreate(ctx context.Context, acc models.Account) (*models.Account, error)
 	AccountGet(ctx context.Context, accountID uuid.UUID) (*models.Account, error)
@@ -229,7 +229,7 @@ func (d *domain) SessionsTerminate(ctx context.Context, accountID uuid.UUID, exc
 	return nil
 }
 
-func (d *domain) SessionRefresh(ctx context.Context, session models.Session, role identity.IdnType, IP, client, curToken string) (*string, *string, error) {
+func (d *domain) SessionRefresh(ctx context.Context, session models.Session, role identity.IdnType, subTypeID *uuid.UUID, IP, client, curToken string) (*string, *string, error) {
 	sessionToken, err := d.Infra.Tokens.DecryptRefresh(session.Token)
 	if err != nil {
 		return nil, nil, err
@@ -239,12 +239,12 @@ func (d *domain) SessionRefresh(ctx context.Context, session models.Session, rol
 		return nil, nil, ape.ErrTokenInvalid
 	}
 
-	refresh, err := d.Infra.Tokens.GenerateRefresh(session.AccountID, session.ID, role)
+	refresh, err := d.Infra.Tokens.GenerateRefresh(&session.AccountID, &session.ID, subTypeID, role)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	access, err := d.Infra.Tokens.GenerateAccess(session.AccountID, session.ID, role)
+	access, err := d.Infra.Tokens.GenerateAccess(&session.AccountID, &session.ID, subTypeID, role)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -265,7 +265,7 @@ func (d *domain) SessionRefresh(ctx context.Context, session models.Session, rol
 	return &access, &refresh, nil
 }
 
-func (d *domain) Login(ctx context.Context, role identity.IdnType, email, client, IP string) (*string, *string, error) {
+func (d *domain) Login(ctx context.Context, role identity.IdnType, subTypeID *uuid.UUID, email, client, IP string) (*string, *string, error) {
 	account, err := d.Infra.Data.Accounts.GetByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -285,12 +285,12 @@ func (d *domain) Login(ctx context.Context, role identity.IdnType, email, client
 	}
 
 	sessionID := uuid.New()
-	refresh, err := d.Infra.Tokens.GenerateRefresh(account.ID, sessionID, account.Role)
+	refresh, err := d.Infra.Tokens.GenerateRefresh(&account.ID, &sessionID, subTypeID, account.Role)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	access, err := d.Infra.Tokens.GenerateAccess(account.ID, sessionID, account.Role)
+	access, err := d.Infra.Tokens.GenerateAccess(&account.ID, &sessionID, subTypeID, account.Role)
 	if err != nil {
 		return nil, nil, err
 	}

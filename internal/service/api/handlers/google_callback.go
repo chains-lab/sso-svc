@@ -52,7 +52,7 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenAccess, tokenRefresh, err := Domain(r).Login(r.Context(), identity.User, accountInfo.Email, r.UserAgent(), r.RemoteAddr)
+	tokenAccess, tokenRefresh, err := Domain(r).Login(r.Context(), identity.User, nil, accountInfo.Email, r.UserAgent(), r.RemoteAddr)
 	if err != nil {
 		Log(r).WithError(err).Error("Failed to login")
 		httpkit.RenderErr(w, problems.InternalError())

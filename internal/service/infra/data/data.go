@@ -7,6 +7,7 @@ import (
 )
 
 type Data struct {
+	//TODO Переделать чтобы redis db создавался 1 екзепляр и передавался а не создавалось 2 внутрифункций
 	Accounts repository.Accounts
 	Sessions repository.Sessions
 }

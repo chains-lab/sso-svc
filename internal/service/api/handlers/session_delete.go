@@ -14,7 +14,7 @@ import (
 )
 
 func SessionDelete(w http.ResponseWriter, r *http.Request) {
-	accountID, sessionID, _, _, err := tokens.GetAccountData(r.Context())
+	accountID, sessionID, _, _, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
 		Log(r).Warnf("Unauthorized session delete attempt: %v", err)
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))

@@ -14,7 +14,7 @@ import (
 )
 
 func AdminSessionsTerminate(w http.ResponseWriter, r *http.Request) {
-	initiatorID, _, initiatorRole, _, err := tokens.GetAccountData(r.Context())
+	initiatorID, _, _, initiatorRole, _, err := tokens.GetAccountData(r.Context())
 	accountID, err := uuid.Parse(chi.URLParam(r, "account_id"))
 	if err != nil {
 		Log(r).WithError(err).Warn("Invalid account_id")

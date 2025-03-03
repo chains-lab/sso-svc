@@ -21,14 +21,16 @@ type JWTManager interface {
 	DecryptRefresh(encryptedToken string) (string, error)
 
 	GenerateAccess(
-		sub uuid.UUID,
-		sessionID uuid.UUID,
+		userID *uuid.UUID,
+		sessionID *uuid.UUID,
+		subTypeID *uuid.UUID,
 		idn identity.IdnType,
 	) (string, error)
 
 	GenerateRefresh(
-		sub uuid.UUID,
-		sessionID uuid.UUID,
+		userID *uuid.UUID,
+		sessionID *uuid.UUID,
+		subTypeID *uuid.UUID,
 		idn identity.IdnType,
 	) (string, error)
 }
@@ -125,17 +127,19 @@ func (m *jwtmanager) DecryptRefresh(encryptedToken string) (string, error) {
 }
 
 func (m *jwtmanager) GenerateAccess(
-	sub uuid.UUID,
-	sessionID uuid.UUID,
+	userID *uuid.UUID,
+	sessionID *uuid.UUID,
+	subTypeID *uuid.UUID,
 	idn identity.IdnType,
 ) (string, error) {
-	return tokens.GenerateJWT(m.iss, sub.String(), nil, m.accessTTL, idn, &sessionID, &sub, m.accessSK)
+	return tokens.GenerateJWT(m.iss, userID.String(), nil, m.accessTTL, idn, sessionID, userID, subTypeID, m.accessSK)
 }
 
 func (m *jwtmanager) GenerateRefresh(
-	sub uuid.UUID,
-	sessionID uuid.UUID,
+	userID *uuid.UUID,
+	sessionID *uuid.UUID,
+	subTypeID *uuid.UUID,
 	idn identity.IdnType,
 ) (string, error) {
-	return tokens.GenerateJWT(m.iss, sub.String(), nil, m.refreshTTL, idn, &sessionID, &sub, m.refreshSK)
+	return tokens.GenerateJWT(m.iss, userID.String(), nil, m.refreshTTL, idn, sessionID, userID, subTypeID, m.refreshSK)
 }

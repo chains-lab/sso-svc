@@ -11,7 +11,7 @@ import (
 )
 
 func SessionsTerminate(w http.ResponseWriter, r *http.Request) {
-	accountID, sessionID, _, _, err := tokens.GetAccountData(r.Context())
+	accountID, sessionID, _, _, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
 		Log(r).WithError(err).Warn("Unauthorized session terminate attempt")
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
