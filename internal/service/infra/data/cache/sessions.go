@@ -11,21 +11,32 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type Sessions struct {
+const sessionsCollection = "sessions"
+
+type Sessions interface {
+	Add(ctx context.Context, session models.Session) error
+	GetByID(ctx context.Context, sessionID string) (*models.Session, error)
+	SelectByAccountID(ctx context.Context, AccountID string) ([]models.Session, error)
+	DeleteAllByAccountID(ctx context.Context, AccountID uuid.UUID, curSessionID *uuid.UUID) error
+	Delete(ctx context.Context, sessionID uuid.UUID) error
+	Drop(ctx context.Context) error
+}
+
+type sessions struct {
 	client   *redis.Client
 	lifeTime time.Duration
 }
 
-func NewSessions(client *redis.Client, lifeTime time.Duration) *Sessions {
-	return &Sessions{
+func NewSessions(client *redis.Client, lifeTime time.Duration) Sessions {
+	return &sessions{
 		client:   client,
 		lifeTime: lifeTime,
 	}
 }
 
-func (s *Sessions) Add(ctx context.Context, session models.Session) error {
-	sessionKey := fmt.Sprintf("session:id:%s", session.ID)
-	accountSessionsKey := fmt.Sprintf("session:account:%s", session.AccountID)
+func (s *sessions) Add(ctx context.Context, session models.Session) error {
+	sessionKey := fmt.Sprintf("%s:id:%s", sessionsCollection, session.ID)
+	accountSessionsKey := fmt.Sprintf("%s:account:%s", sessionsCollection, session.AccountID)
 
 	data := map[string]interface{}{
 		"account_id": session.AccountID.String(),
@@ -59,8 +70,8 @@ func (s *Sessions) Add(ctx context.Context, session models.Session) error {
 	return nil
 }
 
-func (s *Sessions) GetByID(ctx context.Context, sessionID string) (*models.Session, error) {
-	key := fmt.Sprintf("session:id:%s", sessionID)
+func (s *sessions) GetByID(ctx context.Context, sessionID string) (*models.Session, error) {
+	key := fmt.Sprintf("%s:id:%s", sessionsCollection, sessionID)
 
 	vals, err := s.client.HGetAll(ctx, key).Result()
 	if err != nil {
@@ -74,8 +85,8 @@ func (s *Sessions) GetByID(ctx context.Context, sessionID string) (*models.Sessi
 	return parseSession(key, vals)
 }
 
-func (s *Sessions) SelectByAccountID(ctx context.Context, AccountID string) ([]models.Session, error) {
-	accountSessionsKey := fmt.Sprintf("session:account:%s", AccountID)
+func (s *sessions) SelectByAccountID(ctx context.Context, AccountID string) ([]models.Session, error) {
+	accountSessionsKey := fmt.Sprintf("%s:account:%s", sessionsCollection, AccountID)
 
 	sessionIDs, err := s.client.SMembers(ctx, accountSessionsKey).Result()
 	if err != nil {
@@ -98,12 +109,12 @@ func (s *Sessions) SelectByAccountID(ctx context.Context, AccountID string) ([]m
 	return sessionsArr, nil
 }
 
-func (s *Sessions) DeleteAllByAccountID(ctx context.Context, AccountID uuid.UUID, curSessionID *uuid.UUID) error {
-	accountSessionsKey := fmt.Sprintf("session:account:%s", AccountID)
+func (s *sessions) DeleteAllByAccountID(ctx context.Context, AccountID uuid.UUID, curSessionID *uuid.UUID) error {
+	accountSessionsKey := fmt.Sprintf("%s:account:%s", sessionsCollection, AccountID)
 
 	sessionIDs, err := s.client.SMembers(ctx, accountSessionsKey).Result()
 	if err != nil {
-		return fmt.Errorf("error getting Sessions for account: %w", err)
+		return fmt.Errorf("error getting sessions for account: %w", err)
 	}
 
 	for _, sessionID := range sessionIDs {
@@ -126,15 +137,15 @@ func (s *Sessions) DeleteAllByAccountID(ctx context.Context, AccountID uuid.UUID
 	return nil
 }
 
-func (s *Sessions) Delete(ctx context.Context, sessionID uuid.UUID) error {
-	key := fmt.Sprintf("session:id:%s", sessionID)
+func (s *sessions) Delete(ctx context.Context, sessionID uuid.UUID) error {
+	key := fmt.Sprintf("%s:id:%s", sessionsCollection, sessionID)
 
 	ses, err := s.GetByID(ctx, key)
 	if err != nil {
 		return err
 	}
 
-	accountSessionsKey := fmt.Sprintf("session:account:%s", ses.AccountID)
+	accountSessionsKey := fmt.Sprintf("%s:account:%s", sessionsCollection, ses.AccountID)
 
 	exists, err := s.client.Exists(ctx, key).Result()
 	if err != nil {
@@ -190,4 +201,19 @@ func parseSession(sessionID string, vals map[string]string) (*models.Session, er
 	}
 
 	return session, nil
+}
+
+func (s *sessions) Drop(ctx context.Context) error {
+	pattern := fmt.Sprintf("%s:*", sessionsCollection)
+	keys, err := s.client.Keys(ctx, pattern).Result()
+	if err != nil {
+		return fmt.Errorf("error fetching keys with pattern %s: %w", pattern, err)
+	}
+	if len(keys) == 0 {
+		return nil
+	}
+	if err := s.client.Del(ctx, keys...).Err(); err != nil {
+		return fmt.Errorf("failed to delete keys with pattern %s: %w", pattern, err)
+	}
+	return nil
 }

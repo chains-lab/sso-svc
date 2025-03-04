@@ -41,6 +41,16 @@ type OAuthConfig struct {
 	}
 }
 
+type KafkaConfig struct {
+	Brokers      []string      `mapstructure:"brokers"`
+	Topic        string        `mapstructure:"topic"`
+	GroupID      string        `mapstructure:"group_id"`
+	DialTimeout  time.Duration `mapstructure:"dial_timeout"`
+	ReadTimeout  time.Duration `mapstructure:"read_timeout"`
+	WriteTimeout time.Duration `mapstructure:"write_timeout"`
+	RequiredAcks string        `mapstructure:"required_acks"`
+}
+
 type JWTConfig struct {
 	AccessToken struct {
 		SecretKey     string        `mapstructure:"secret_key"`
@@ -76,6 +86,7 @@ type Config struct {
 	JWT      JWTConfig      `mapstructure:"jwt"`
 	OAuth    OAuthConfig    `mapstructure:"oauth"`
 	Rabbit   RabbitConfig   `mapstructure:"rabbit"`
+	Kafka    KafkaConfig    `mapstructure:"kafka"`
 	Database DatabaseConfig `mapstructure:"database"`
 	Swagger  SwaggerConfig  `mapstructure:"swagger"`
 }

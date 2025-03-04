@@ -11,14 +11,14 @@ import (
 )
 
 func SessionsTerminate(w http.ResponseWriter, r *http.Request) {
-	accountID, sessionID, _, _, _, err := tokens.GetAccountData(r.Context())
+	accountID, _, _, _, _, err := tokens.GetAccountData(r.Context())
 	if err != nil {
 		Log(r).WithError(err).Warn("Unauthorized session terminate attempt")
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
 		return
 	}
 
-	err = Domain(r).SessionsTerminate(r.Context(), *accountID, sessionID)
+	err = Domain(r).SessionsTerminate(r.Context(), *accountID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())

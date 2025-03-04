@@ -65,7 +65,7 @@ func AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = Domain(r).AccountUpdateRole(r.Context(), updatedAccountID, updatedRole)
+	err = Domain(r).AccountUpdateRole(r.Context(), updatedAccountID, updatedRole)
 	if err != nil {
 		Log(r).WithError(err).Warn("Failed to update role")
 		httpkit.RenderErr(w, problems.InternalError())

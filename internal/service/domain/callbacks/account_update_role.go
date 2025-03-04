@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/recovery-flow/sso-oauth/internal/service"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/events/rabbit/evebody"
+	"github.com/recovery-flow/sso-oauth/internal/service/infra/events/kafka/evebody"
 )
 
 func AccountUpdateRole(ctx context.Context, svc *service.Service, body []byte) error {

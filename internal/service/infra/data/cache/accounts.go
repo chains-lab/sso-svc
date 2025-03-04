@@ -12,21 +12,31 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type Accounts struct {
+const accountsCollection = "accounts"
+
+type Accounts interface {
+	Add(ctx context.Context, account models.Account) error
+	GetByID(ctx context.Context, AccountID string) (*models.Account, error)
+	GetByEmail(ctx context.Context, email string) (*models.Account, error)
+	Delete(ctx context.Context, AccountID string) error
+	Drop(ctx context.Context) error
+}
+
+type accounts struct {
 	client   *redis.Client
 	lifeTime time.Duration
 }
 
-func NewAccounts(client *redis.Client, lifetime time.Duration) *Accounts {
-	return &Accounts{
+func NewAccounts(client *redis.Client, lifetime time.Duration) Accounts {
+	return &accounts{
 		client:   client,
 		lifeTime: lifetime,
 	}
 }
 
-func (a *Accounts) Add(ctx context.Context, account models.Account) error {
-	accountKey := fmt.Sprintf("account:id:%s", account.ID)
-	emailKey := fmt.Sprintf("account:email:%s", account.Email)
+func (a *accounts) Add(ctx context.Context, account models.Account) error {
+	accountKey := fmt.Sprintf("%s:id:%s", accountsCollection, account.ID)
+	emailKey := fmt.Sprintf("%s:email:%s", accountsCollection, account.Email)
 
 	data := map[string]interface{}{
 		"email":      account.Email,
@@ -58,8 +68,8 @@ func (a *Accounts) Add(ctx context.Context, account models.Account) error {
 	return nil
 }
 
-func (a *Accounts) GetByID(ctx context.Context, AccountID string) (*models.Account, error) {
-	accountKey := fmt.Sprintf("account:id:%s", AccountID)
+func (a *accounts) GetByID(ctx context.Context, AccountID string) (*models.Account, error) {
+	accountKey := fmt.Sprintf("%s:id:%s", accountsCollection, AccountID)
 	vals, err := a.client.HGetAll(ctx, accountKey).Result()
 	if err != nil {
 		return nil, fmt.Errorf("error getting account from Redis: %w", err)
@@ -72,8 +82,8 @@ func (a *Accounts) GetByID(ctx context.Context, AccountID string) (*models.Accou
 	return parseAccount(AccountID, vals)
 }
 
-func (a *Accounts) GetByEmail(ctx context.Context, email string) (*models.Account, error) {
-	emailKey := fmt.Sprintf("account:email:%s", email)
+func (a *accounts) GetByEmail(ctx context.Context, email string) (*models.Account, error) {
+	emailKey := fmt.Sprintf("%s:email:%s", accountsCollection, email)
 
 	accountID, err := a.client.Get(ctx, emailKey).Result()
 	if err != nil {
@@ -83,8 +93,8 @@ func (a *Accounts) GetByEmail(ctx context.Context, email string) (*models.Accoun
 	return a.GetByID(ctx, accountID)
 }
 
-func (a *Accounts) Delete(ctx context.Context, AccountID string) error {
-	key := fmt.Sprintf("account:id:%s", AccountID)
+func (a *accounts) Delete(ctx context.Context, AccountID string) error {
+	key := fmt.Sprintf("%s:id:%s", accountsCollection, AccountID)
 
 	exists, err := a.client.Exists(ctx, key).Result()
 	if err != nil {
@@ -107,7 +117,7 @@ func (a *Accounts) Delete(ctx context.Context, AccountID string) error {
 	}
 
 	// Удаляем индекс email → AccountID
-	emailKey := fmt.Sprintf("account:email:%s", email)
+	emailKey := fmt.Sprintf("%s:email:%s", accountsCollection, email)
 	err = a.client.Del(ctx, emailKey).Err()
 	if err != nil {
 		return fmt.Errorf("error deleting email index: %w", err)
@@ -146,4 +156,19 @@ func parseAccount(AccountID string, vals map[string]string) (*models.Account, er
 	}
 
 	return account, nil
+}
+
+func (a *accounts) Drop(ctx context.Context) error {
+	pattern := fmt.Sprintf("%s:*", accountsCollection)
+	keys, err := a.client.Keys(ctx, pattern).Result()
+	if err != nil {
+		return fmt.Errorf("error fetching keys with pattern %s: %w", pattern, err)
+	}
+	if len(keys) == 0 {
+		return nil
+	}
+	if err := a.client.Del(ctx, keys...).Err(); err != nil {
+		return fmt.Errorf("failed to delete keys with pattern %s: %w", pattern, err)
+	}
+	return nil
 }

@@ -6,7 +6,6 @@ import (
 
 	"github.com/recovery-flow/sso-oauth/internal/service"
 	"github.com/recovery-flow/sso-oauth/internal/service/api"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/events/rabbit"
 )
 
 func runServices(ctx context.Context, wg *sync.WaitGroup, svc *service.Service) {
@@ -24,5 +23,5 @@ func runServices(ctx context.Context, wg *sync.WaitGroup, svc *service.Service) 
 
 	run(func() { api.Run(ctx, svc) })
 
-	run(func() { rabbit.Listener(ctx, svc) })
+	//run(func() { rabbit.Listener(ctx, svc) })
 }

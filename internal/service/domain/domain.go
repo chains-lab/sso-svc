@@ -3,29 +3,25 @@ package domain
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/recovery-flow/rerabbit"
 	"github.com/recovery-flow/sso-oauth/internal/service/domain/ape"
 	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
 	"github.com/recovery-flow/sso-oauth/internal/service/infra"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/events/rabbit/amqpconfig"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/events/rabbit/evebody"
 	"github.com/recovery-flow/tokens/identity"
+	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 )
 
 type Domain interface {
-	SessionCreate(ctx context.Context, session models.Session) (*models.Session, error)
+	SessionCreate(ctx context.Context, session models.Session) error
 	SessionGet(ctx context.Context, sessionID uuid.UUID) (*models.Session, error)
 	SessionGetForAccount(ctx context.Context, sessionID, accountID uuid.UUID) (*models.Session, error)
 	SessionsListByAccount(ctx context.Context, accountID uuid.UUID) ([]models.Session, error)
 
-	SessionsTerminate(ctx context.Context, accountID uuid.UUID, excludeSessionID *uuid.UUID) error
+	SessionsTerminate(ctx context.Context, accountID uuid.UUID) error
 	SessionDelete(ctx context.Context, sessionID uuid.UUID) error
 	SessionRefresh(ctx context.Context, session models.Session, role identity.IdnType, subTypeID *uuid.UUID, IP, client, curToken string) (*string, *string, error)
 
@@ -34,7 +30,7 @@ type Domain interface {
 	AccountCreate(ctx context.Context, acc models.Account) (*models.Account, error)
 	AccountGet(ctx context.Context, accountID uuid.UUID) (*models.Account, error)
 	AccountGetByEmail(ctx context.Context, email string) (*models.Account, error)
-	AccountUpdateRole(ctx context.Context, accountID uuid.UUID, newRole identity.IdnType) (*models.Account, error)
+	AccountUpdateRole(ctx context.Context, accountID uuid.UUID, newRole identity.IdnType) error
 }
 
 type domain struct {
@@ -50,58 +46,62 @@ func NewDomain(infra *infra.Infra, log *logrus.Logger) (Domain, error) {
 }
 
 func (d *domain) AccountCreate(ctx context.Context, account models.Account) (*models.Account, error) {
-	res, err := d.Infra.Data.Accounts.Create(ctx, account.Email, account.Role)
+	err := d.Infra.Data.SQL.Accounts.New().Transaction(func(ctx context.Context) error {
+		err := d.Infra.Data.SQL.Accounts.New().Insert(ctx, account)
+		if err != nil {
+			return err
+		}
+
+		//TODO KAFKA EVENT
+
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	eventBody := evebody.AccountCreated{
-		Event:     amqpconfig.AccountCreateKey,
-		AccountID: res.ID.String(),
-		Email:     res.Email,
-		Role:      string(res.Role),
-		Timestamp: time.Now().UTC(),
+	if err = d.Infra.Data.Cache.Accounts.Add(ctx, account); err != nil {
+		d.log.WithField("redis", err).Error("failed to add account to cache")
 	}
 
-	bodyBytes, err := json.Marshal(eventBody)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal event: %w", err)
-	}
-
-	publishOpts := rerabbit.PublishOptions{
-		Exchange:      amqpconfig.AccountSSOExchange,
-		RoutingKey:    amqpconfig.AccountCreateKey,
-		Mandatory:     false,
-		Immediate:     false,
-		ContentType:   "application/json",
-		DeliveryMode:  2, // 2 = Persistent
-		Headers:       nil,
-		CorrelationID: "",
-		ReplyTo:       "",
-		Body:          bodyBytes,
-	}
-
-	err = d.Infra.Rabbit.Publish(ctx, publishOpts)
-	if err != nil {
-		return nil, fmt.Errorf("failed to publish event: %w", err)
-	}
-	return res, nil
+	return &account, nil
 }
 
 func (d *domain) AccountGet(ctx context.Context, accountID uuid.UUID) (*models.Account, error) {
-	account, err := d.Infra.Data.Accounts.GetByID(ctx, accountID)
+	account, err := d.Infra.Data.Cache.Accounts.GetByID(ctx, accountID.String())
+	if err != nil && !errors.Is(err, redis.Nil) {
+		d.log.WithField("redis", err).Error("failed to get account from cache")
+	}
+	if account != nil {
+		return account, nil
+	}
+
+	account, err = d.Infra.Data.SQL.Accounts.New().Filter(map[string]any{"id": accountID}).Get(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ape.ErrAccountNotFound
 		}
 		return nil, err
+	}
+
+	err = d.Infra.Data.Cache.Accounts.Add(ctx, *account)
+	if err != nil {
+		d.log.WithField("redis", err).Error("failed to add account to cache")
 	}
 
 	return account, nil
 }
 
 func (d *domain) AccountGetByEmail(ctx context.Context, email string) (*models.Account, error) {
-	account, err := d.Infra.Data.Accounts.GetByEmail(ctx, email)
+	account, err := d.Infra.Data.Cache.Accounts.GetByEmail(ctx, email)
+	if err != nil && !errors.Is(err, redis.Nil) {
+		d.log.WithField("redis", err).Error("failed to get account from cache")
+	}
+	if account != nil {
+		return account, nil
+	}
+
+	account, err = d.Infra.Data.SQL.Accounts.New().Filter(map[string]any{"email": email}).Get(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ape.ErrAccountNotFound
@@ -109,64 +109,75 @@ func (d *domain) AccountGetByEmail(ctx context.Context, email string) (*models.A
 		return nil, err
 	}
 
+	err = d.Infra.Data.Cache.Accounts.Add(ctx, *account)
+	if err != nil {
+		d.log.WithField("redis", err).Error("failed to add account to cache")
+	}
+
 	return account, nil
 }
 
-func (d *domain) AccountUpdateRole(ctx context.Context, accountID uuid.UUID, newRole identity.IdnType) (*models.Account, error) {
-	account, err := d.Infra.Data.Accounts.UpdateRole(ctx, accountID, newRole)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ape.ErrAccountNotFound
+func (d *domain) AccountUpdateRole(ctx context.Context, accountID uuid.UUID, newRole identity.IdnType) error {
+	return d.Infra.Data.SQL.Accounts.New().Transaction(func(ctx context.Context) error {
+		err := d.Infra.Data.SQL.Accounts.New().Filter(map[string]any{"id": accountID}).Update(ctx, map[string]any{"role": newRole})
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return ape.ErrAccountNotFound
+			}
+			return err
 		}
-		return nil, err
-	}
 
-	// Формируем событие обновления роли
-	eventBody := evebody.AccountRoleUpdated{
-		Event:     amqpconfig.AccountUpdateRoleKey,
-		AccountID: account.ID.String(),
-		Role:      string(newRole),
-		Timestamp: time.Now().UTC(),
-	}
+		err = d.Infra.Data.SQL.Sessions.New().Filter(map[string]interface{}{"account_id": accountID}).Delete(ctx)
+		if err != nil {
+			if !errors.Is(err, sql.ErrNoRows) {
+				return err
+			}
+		}
 
-	// Маршаллинг события в JSON
-	bodyBytes, err := json.Marshal(eventBody)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal event: %w", err)
-	}
+		err = d.Infra.Data.Cache.Accounts.Delete(ctx, accountID.String())
+		if err != nil && !errors.Is(err, redis.Nil) {
+			if err = d.Infra.Data.Cache.Accounts.Drop(ctx); err != nil {
+				d.log.WithField("redis", err).Error("failed to drop account from cache")
+			}
+			d.log.WithField("redis", err).Error("failed to delete account from cache")
+		}
 
-	publishOpts := rerabbit.PublishOptions{
-		Exchange:      amqpconfig.AccountSSOExchange,
-		RoutingKey:    amqpconfig.AccountUpdateRoleKey,
-		Mandatory:     false,
-		Immediate:     false,
-		ContentType:   "application/json",
-		DeliveryMode:  2, // Persistent
-		Headers:       nil,
-		CorrelationID: "",
-		ReplyTo:       "",
-		Body:          bodyBytes,
-	}
+		err = d.Infra.Data.Cache.Sessions.DeleteAllByAccountID(ctx, accountID, nil)
+		if err != nil && !errors.Is(err, redis.Nil) {
+			if err = d.Infra.Data.Cache.Sessions.Drop(ctx); err != nil {
+				d.log.WithField("redis", err).Error("failed to drop sesions from cache")
+			}
+			d.log.WithField("redis", err).Error("failed to delete sessions from cache")
+		}
 
-	err = d.Infra.Rabbit.Publish(ctx, publishOpts)
-	if err != nil {
-		return nil, fmt.Errorf("failed to publish event: %w", err)
-	}
-
-	return account, nil
+		return nil
+	})
 }
 
-func (d *domain) SessionCreate(ctx context.Context, session models.Session) (*models.Session, error) {
-	ses, err := d.Infra.Data.Sessions.Create(ctx, session)
+func (d *domain) SessionCreate(ctx context.Context, session models.Session) error {
+	err := d.Infra.Data.SQL.Sessions.New().Insert(ctx, session)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return ses, nil
+	err = d.Infra.Data.Cache.Sessions.Add(ctx, session)
+	if err != nil {
+		d.log.WithField("redis", err).Error("failed to add session to cache")
+	}
+
+	return nil
 }
 
 func (d *domain) SessionGetForAccount(ctx context.Context, sessionID, accountID uuid.UUID) (*models.Session, error) {
-	ses, err := d.Infra.Data.Sessions.GetByID(ctx, sessionID)
+	ses, err := d.Infra.Data.Cache.Sessions.GetByID(ctx, sessionID.String())
+	if err != nil || !errors.Is(err, redis.Nil) {
+		d.log.WithField("redis", err).Error("failed to get session from cache")
+	}
+	if ses != nil {
+		return ses, nil
+	}
+
+	ses, err = d.Infra.Data.SQL.Sessions.New().Filter(map[string]any{"id": sessionID}).Get(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ape.SessionNotFound
@@ -182,7 +193,15 @@ func (d *domain) SessionGetForAccount(ctx context.Context, sessionID, accountID 
 }
 
 func (d *domain) SessionGet(ctx context.Context, sessionID uuid.UUID) (*models.Session, error) {
-	ses, err := d.Infra.Data.Sessions.GetByID(ctx, sessionID)
+	ses, err := d.Infra.Data.Cache.Sessions.GetByID(ctx, sessionID.String())
+	if err != nil || !errors.Is(err, redis.Nil) {
+		d.log.WithField("redis", err).Error("failed to get session from cache")
+	}
+	if ses != nil {
+		return ses, nil
+	}
+
+	ses, err = d.Infra.Data.SQL.Sessions.New().Filter(map[string]any{"id": sessionID.String()}).Get(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ape.SessionNotFound
@@ -190,11 +209,21 @@ func (d *domain) SessionGet(ctx context.Context, sessionID uuid.UUID) (*models.S
 		return nil, err
 	}
 
+	err = d.Infra.Data.Cache.Sessions.Add(ctx, *ses)
+	if err != nil {
+		d.log.WithField("redis", err).Error("failed to add session to cache")
+	}
+
 	return ses, nil
 }
 
 func (d *domain) SessionsListByAccount(ctx context.Context, accountID uuid.UUID) ([]models.Session, error) {
-	ses, err := d.Infra.Data.Sessions.SelectByAccountID(ctx, accountID)
+	ses, err := d.Infra.Data.Cache.Sessions.SelectByAccountID(ctx, accountID.String())
+	if err != nil || !errors.Is(err, redis.Nil) {
+		d.log.WithField("redis", err).Error("failed to get sessions from cache")
+	}
+
+	ses, err = d.Infra.Data.SQL.Sessions.New().Filter(map[string]any{"account_id": accountID}).Select(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ape.SessionNotFound
@@ -206,7 +235,15 @@ func (d *domain) SessionsListByAccount(ctx context.Context, accountID uuid.UUID)
 }
 
 func (d *domain) SessionDelete(ctx context.Context, sessionID uuid.UUID) error {
-	err := d.Infra.Data.Sessions.Delete(ctx, sessionID)
+	err := d.Infra.Data.Cache.Sessions.Delete(ctx, sessionID)
+	if err != nil && !errors.Is(err, redis.Nil) {
+		if err = d.Infra.Data.Cache.Sessions.Drop(ctx); err != nil {
+			d.log.WithField("redis", err).Error("failed to drop session from cache")
+		}
+		d.log.WithField("redis", err).Error("failed to delete session from cache")
+	}
+
+	err = d.Infra.Data.SQL.Sessions.New().Filter(map[string]interface{}{"id": sessionID}).Delete(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ape.SessionNotFound
@@ -217,8 +254,16 @@ func (d *domain) SessionDelete(ctx context.Context, sessionID uuid.UUID) error {
 	return nil
 }
 
-func (d *domain) SessionsTerminate(ctx context.Context, accountID uuid.UUID, excludeSessionID *uuid.UUID) error {
-	err := d.Infra.Data.Sessions.Terminate(ctx, accountID, excludeSessionID)
+func (d *domain) SessionsTerminate(ctx context.Context, accountID uuid.UUID) error {
+	err := d.Infra.Data.Cache.Sessions.DeleteAllByAccountID(ctx, accountID, nil)
+	if err != nil && !errors.Is(err, redis.Nil) {
+		if err = d.Infra.Data.Cache.Sessions.Drop(ctx); err != nil {
+			d.log.WithField("redis", err).Error("failed to drop sessions from cache")
+		}
+		d.log.WithField("redis", err).Error("failed to delete sessions from cache")
+	}
+
+	err = d.Infra.Data.SQL.Sessions.New().Filter(map[string]interface{}{"account_id": accountID}).Delete(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ape.SessionNotFound
@@ -254,7 +299,14 @@ func (d *domain) SessionRefresh(ctx context.Context, session models.Session, rol
 		return nil, nil, err
 	}
 
-	_, err = d.Infra.Data.Sessions.UpdateToken(ctx, session.ID, session.AccountID, IP, client, refreshCrypto)
+	err = d.Infra.Data.SQL.Sessions.New().Filter(map[string]interface{}{
+		"id":         session.ID,
+		"account_id": session.AccountID,
+	}).Update(ctx, map[string]interface{}{
+		"token":  refreshCrypto,
+		"client": client,
+		"ip":     IP,
+	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil, ape.SessionNotFound
@@ -262,11 +314,21 @@ func (d *domain) SessionRefresh(ctx context.Context, session models.Session, rol
 		return nil, nil, err
 	}
 
+	err = d.Infra.Data.Cache.Sessions.Delete(ctx, session.ID)
+	if err != nil && !errors.Is(err, redis.Nil) {
+		if err = d.Infra.Data.Cache.Sessions.Drop(ctx); err != nil {
+			d.log.WithField("redis", err).Error("failed to drop session from cache")
+		}
+		d.log.WithField("redis", err).Error("failed to delete session from cache")
+	}
+
 	return &access, &refresh, nil
 }
 
 func (d *domain) Login(ctx context.Context, role identity.IdnType, subTypeID *uuid.UUID, email, client, IP string) (*string, *string, error) {
-	account, err := d.Infra.Data.Accounts.GetByEmail(ctx, email)
+	account, err := d.Infra.Data.SQL.Accounts.New().Filter(map[string]any{
+		"email": email,
+	}).Get(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			account, err = d.AccountCreate(ctx, models.Account{
@@ -300,7 +362,7 @@ func (d *domain) Login(ctx context.Context, role identity.IdnType, subTypeID *uu
 		return nil, nil, err
 	}
 
-	_, err = d.Infra.Data.Sessions.Create(ctx, models.Session{
+	err = d.Infra.Data.SQL.Sessions.New().Insert(ctx, models.Session{
 		ID:        sessionID,
 		AccountID: account.ID,
 		Token:     refreshCrypto,

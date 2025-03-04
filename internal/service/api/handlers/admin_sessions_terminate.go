@@ -38,7 +38,7 @@ func AdminSessionsTerminate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = Domain(r).SessionsTerminate(r.Context(), accountID, nil)
+	err = Domain(r).SessionsTerminate(r.Context(), accountID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())

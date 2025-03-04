@@ -36,6 +36,14 @@ jwt:
     db: 0
     lifetime: 15 #minutes
 
+kafka:
+  brokers:
+    - "localhost:9092"
+  dial_timeout: 10s
+  read_timeout: 10s
+  write_timeout: 10s
+  required_acks: "0"
+
 rabbit:
   url: "amqp://localhost:5672/"
   user: "re-news"
