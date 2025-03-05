@@ -52,7 +52,11 @@ func (d *domain) AccountCreate(ctx context.Context, account models.Account) (*mo
 			return err
 		}
 
-		//TODO KAFKA EVENT
+		err = d.Infra.Kafka.AccountCreate(account)
+		if err != nil {
+			d.log.WithField("kafka", err).Error("failed to send account to kafka")
+			return err
+		}
 
 		return nil
 	})

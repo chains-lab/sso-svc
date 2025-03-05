@@ -1,4 +1,4 @@
-package kafka
+package events
 
 import (
 	"context"
@@ -7,15 +7,15 @@ import (
 	"time"
 
 	"github.com/recovery-flow/sso-oauth/internal/config"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/events/kafka/evebody"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/events/kafka/kafig"
+	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
+	"github.com/recovery-flow/sso-oauth/internal/service/infra/events/evebody"
+	"github.com/recovery-flow/sso-oauth/internal/service/infra/events/kafig"
 	"github.com/segmentio/kafka-go"
 	"github.com/sirupsen/logrus"
 )
 
 type Kafka interface {
-	AccountCreate(body evebody.AccountCreated) error
-	//AccountRoleUpdate(body evebody.AccountRoleUpdated) error
+	AccountCreate(account models.Account) error
 
 	sendMessage(msg kafka.Message) error
 }
@@ -37,7 +37,8 @@ func NewBroker(cfg *config.Config, log *logrus.Logger) Kafka {
 		Balancer:     &kafka.LeastBytes{},
 		BatchSize:    1,
 		BatchTimeout: 0,
-		Async:        true,
+		Async:        false,
+		RequiredAcks: kafka.RequireAll,
 	}
 
 	return &broker{
@@ -62,7 +63,14 @@ type internalEvent struct {
 	Data      interface{} `json:"data"`
 }
 
-func (b *broker) AccountCreate(body evebody.AccountCreated) error {
+func (b *broker) AccountCreate(account models.Account) error {
+	body := evebody.AccountCreated{
+		AccountID: account.ID.String(),
+		Email:     account.Email,
+		Role:      string(account.Role),
+		Timestamp: time.Now(),
+	}
+
 	evt := internalEvent{
 		EventType: "account_created",
 		Data:      body,
@@ -70,25 +78,6 @@ func (b *broker) AccountCreate(body evebody.AccountCreated) error {
 	data, err := json.Marshal(evt)
 	if err != nil {
 		return fmt.Errorf("failed to marshal AccountCreated event: %w", err)
-	}
-
-	msg := kafka.Message{
-		Topic: kafig.AccountsTopic,
-		Key:   []byte(body.AccountID),
-		Value: data,
-	}
-
-	return b.sendMessage(msg)
-}
-
-func (b *broker) AccountRoleUpdate(body evebody.AccountRoleUpdated) error {
-	evt := internalEvent{
-		EventType: "account_role_updated",
-		Data:      body,
-	}
-	data, err := json.Marshal(evt)
-	if err != nil {
-		return fmt.Errorf("failed to marshal AccountRoleUpdated event: %w", err)
 	}
 
 	msg := kafka.Message{
