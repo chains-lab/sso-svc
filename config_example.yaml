@@ -4,14 +4,14 @@ server:
   base_path: "/api/v1"
   test_mode: true
   logging:
-    level: "debug"                 # Levels: "debug", "info", "warn", "error".
-    format: "text"                 # Format: "json" or "text"
+    level: "debug"
+    format: "text"
 
 database:
   sql:
-    url: "postgresql://postgres:postgres@db:5432/postgres?sslmode=disable"
+    url: "postgresql://postgres:postgres@db:7000/postgres?sslmode=disable"
   redis:
-    addr: "localhost:6379"
+    addr: "localhost:7200"
     password: "example"
     db: 0
     lifetime: 15 #minutes
@@ -38,16 +38,11 @@ jwt:
 
 kafka:
   brokers:
-    - "localhost:9092"
+    - "re-news-kafka:9092"
   dial_timeout: 10s
   read_timeout: 10s
   write_timeout: 10s
   required_acks: "0"
-
-rabbit:
-  url: "amqp://localhost:5672/"
-  user: "re-news"
-  password: "Test@1234"
 
 swagger:
   enabled: true
