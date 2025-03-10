@@ -1,4 +1,4 @@
-DB_URL=postgresql://postgres:postgres@localhost:5555/postgres?sslmode=disable
+DB_URL=postgresql://postgres:postgres@localhost:7001/postgres?sslmode=disable
 OPENAPI_GENERATOR := java -jar ~/openapi-generator-cli.jar
 CONFIG_FILE := ./config_local.yaml
 API_SRC := ./docs/api.yaml
@@ -26,10 +26,10 @@ generate-sqlc:
 	sqlc generate
 
 migrate-up:
-	migrate -path internal/service/infra/data/repository/sqldb/migrations -database $(DB_URL) -verbose up
+	migrate -path internal/service/infra/data/sqldb/migrations -database $(DB_URL) -verbose up
 
 migrate-down:
-	migrate -path internal/service/infra/data/repository/sqldb/migrations -database $(DB_URL) -verbose down
+	migrate -path internal/service/infra/data/sqldb/migrations -database $(DB_URL) -verbose down
 
 run-server:
 	KV_VIPER_FILE=$(CONFIG_FILE) go build -o main ./cmd/sso-oauth/main.go

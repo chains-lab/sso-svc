@@ -1,0 +1,41 @@
+version: "3.8"
+
+services:
+  sso-oauth:
+    build: .
+    container_name: sso-oauth
+    environment:
+      - KV_VIPER_FILE=./config_docker.yaml
+    ports:
+      - "8001:8001"
+    networks:
+      - re-news-net
+
+  sso-oauth-postgres:
+    image: postgres:15
+    container_name:  sso-oauth-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    ports:
+      - "7001:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - re-news-net
+
+  sso-oauth-redis:
+    image: redis:6
+    container_name:  sso-oauth-redis
+    ports:
+      - "7201:6379"
+    networks:
+      - re-news-net
+
+networks:
+  re-news-net:
+    driver: bridge
+
+volumes:
+  pgdata:

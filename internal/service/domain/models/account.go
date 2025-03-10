@@ -8,9 +8,10 @@ import (
 )
 
 type Account struct {
-	ID        uuid.UUID
-	Email     string
-	Role      identity.IdnType
-	UpdatedAt time.Time
-	CreatedAt time.Time
+	ID           uuid.UUID        `json:"id"`
+	Email        string           `json:"email"`
+	Role         identity.IdnType `json:"role"`
+	Subscription *uuid.UUID       `json:"subscription,omitempty"`
+	UpdatedAt    time.Time        `json:"updated_at"`
+	CreatedAt    time.Time        `json:"created_at"`
 }

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/google/uuid"
 	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
 )
 
@@ -62,12 +61,13 @@ func (a *accounts) New() Accounts {
 
 func (a *accounts) Insert(ctx context.Context, acc models.Account) error {
 	values := map[string]interface{}{
-		"id":    uuid.New(),
-		"email": acc.Email,
-		"role":  acc.Role,
+		"id":           acc.ID,
+		"email":        acc.Email,
+		"role":         acc.Role,
+		"subscription": acc.Subscription,
+		"created_at":   acc.CreatedAt,
+		"updated_at":   acc.UpdatedAt,
 	}
-	values["created_at"] = time.Now().UTC()
-	values["updated_at"] = time.Now().UTC()
 
 	query, args, err := a.inserter.SetMap(values).ToSql()
 	if err != nil {
@@ -87,9 +87,7 @@ func (a *accounts) Insert(ctx context.Context, acc models.Account) error {
 
 func (a *accounts) Update(ctx context.Context, updates map[string]any) error {
 	updates["updated_at"] = time.Now().UTC()
-	query, args, err := a.updater.
-		SetMap(updates).
-		ToSql()
+	query, args, err := a.updater.SetMap(updates).ToSql()
 	if err != nil {
 		return fmt.Errorf("building update query for accounts: %w", err)
 	}
@@ -142,6 +140,7 @@ func (a *accounts) Select(ctx context.Context) ([]models.Account, error) {
 			&acc.ID,
 			&acc.Email,
 			&acc.Role,
+			&acc.Subscription,
 			&acc.UpdatedAt,
 			&acc.CreatedAt,
 		)
@@ -180,6 +179,7 @@ func (a *accounts) Get(ctx context.Context) (*models.Account, error) {
 		&acc.ID,
 		&acc.Email,
 		&acc.Role,
+		&acc.Subscription,
 		&acc.UpdatedAt,
 		&acc.CreatedAt,
 	)
@@ -192,9 +192,10 @@ func (a *accounts) Get(ctx context.Context) (*models.Account, error) {
 
 func (a *accounts) Filter(filters map[string]any) Accounts {
 	var validFilters = map[string]bool{
-		"id":    true,
-		"email": true,
-		"role":  true,
+		"id":           true,
+		"email":        true,
+		"role":         true,
+		"subscription": true,
 	}
 	for key, value := range filters {
 		if _, exists := validFilters[key]; !exists {

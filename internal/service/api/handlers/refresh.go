@@ -52,6 +52,7 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 
 	sessionID := accountData.SessionID
 	accountRole := accountData.Identity
+	subTypeID := accountData.SubTypeID
 
 	//-------------------------------------------------------------------------//
 
@@ -62,8 +63,7 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//TODO ADD SUBSCRIPTION CHECK
-	tokenAccess, tokenRefresh, err := Domain(r).SessionRefresh(r.Context(), *session, accountRole, nil, r.RemoteAddr, r.UserAgent(), curToken)
+	tokenAccess, tokenRefresh, err := Domain(r).SessionRefresh(r.Context(), *session, subTypeID, accountRole, r.RemoteAddr, r.UserAgent(), curToken)
 	if err != nil {
 		Log(r).WithError(err).Error("Failed to refresh session")
 		httpkit.RenderErr(w, problems.InternalError())

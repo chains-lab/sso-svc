@@ -39,10 +39,11 @@ func (a *accounts) Add(ctx context.Context, account models.Account) error {
 	emailKey := fmt.Sprintf("%s:email:%s", accountsCollection, account.Email)
 
 	data := map[string]interface{}{
-		"email":      account.Email,
-		"role":       string(account.Role),
-		"created_at": account.CreatedAt.Format(time.RFC3339),
-		"updated_at": account.UpdatedAt.Format(time.RFC3339),
+		"email":        account.Email,
+		"role":         string(account.Role),
+		"subscription": account.Subscription,
+		"created_at":   account.CreatedAt.Format(time.RFC3339),
+		"updated_at":   account.UpdatedAt.Format(time.RFC3339),
 	}
 
 	if err := a.client.HSet(ctx, accountKey, data).Err(); err != nil {
@@ -110,13 +111,11 @@ func (a *accounts) Delete(ctx context.Context, AccountID string) error {
 		return fmt.Errorf("error getting email for account %s: %w", AccountID, err)
 	}
 
-	// Удаляем запись пользователя
 	err = a.client.Del(ctx, key).Err()
 	if err != nil {
 		return fmt.Errorf("error deleting account from Redis: %w", err)
 	}
 
-	// Удаляем индекс email → AccountID
 	emailKey := fmt.Sprintf("%s:email:%s", accountsCollection, email)
 	err = a.client.Del(ctx, emailKey).Err()
 	if err != nil {
@@ -153,6 +152,14 @@ func parseAccount(AccountID string, vals map[string]string) (*models.Account, er
 		Role:      role,
 		CreatedAt: createdAt,
 		UpdatedAt: updatedAt,
+	}
+
+	if exist := vals["subscription"]; exist != "" {
+		id, err := uuid.Parse(vals["subscription"])
+		if err != nil {
+			return nil, fmt.Errorf("error parsing subscription: %w", err)
+		}
+		account.Subscription = &id
 	}
 
 	return account, nil

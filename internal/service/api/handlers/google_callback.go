@@ -9,6 +9,7 @@ import (
 	"github.com/recovery-flow/comtools/httpkit"
 	"github.com/recovery-flow/comtools/httpkit/problems"
 	"github.com/recovery-flow/sso-oauth/internal/service/api/responses"
+	"github.com/recovery-flow/sso-oauth/internal/service/domain/ape"
 	"github.com/recovery-flow/tokens/identity"
 )
 
@@ -52,7 +53,20 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenAccess, tokenRefresh, err := Domain(r).Login(r.Context(), identity.User, nil, accountInfo.Email, r.UserAgent(), r.RemoteAddr)
+	acc, err := Domain(r).AccountGetByEmail(r.Context(), accountInfo.Email)
+	if errors.Is(err, ape.ErrAccountNotFound) {
+		tokenAccess, tokenRefresh, err := Domain(r).Login(r.Context(), identity.User, nil, accountInfo.Email, r.UserAgent(), r.RemoteAddr)
+		if err != nil {
+			Log(r).WithError(err).Error("Failed to login")
+			httpkit.RenderErr(w, problems.InternalError())
+			return
+		}
+
+		httpkit.Render(w, responses.TokensPair(*tokenAccess, *tokenRefresh))
+		return
+	}
+
+	tokenAccess, tokenRefresh, err := Domain(r).Login(r.Context(), acc.Role, acc.Subscription, acc.Email, r.UserAgent(), r.RemoteAddr)
 	if err != nil {
 		Log(r).WithError(err).Error("Failed to login")
 		httpkit.RenderErr(w, problems.InternalError())

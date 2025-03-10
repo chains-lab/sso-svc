@@ -4,6 +4,7 @@ CREATE TABLE accounts (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     email TEXT NOT NULL UNIQUE,
     role VARCHAR(255) DEFAULT 'user' NOT NULL,
+    subscription UUID,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     updated_at TIMESTAMP NOT NULL DEFAULT now()
 );

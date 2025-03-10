@@ -42,13 +42,7 @@ type OAuthConfig struct {
 }
 
 type KafkaConfig struct {
-	Brokers      []string      `mapstructure:"brokers"`
-	Topic        string        `mapstructure:"topic"`
-	GroupID      string        `mapstructure:"group_id"`
-	DialTimeout  time.Duration `mapstructure:"dial_timeout"`
-	ReadTimeout  time.Duration `mapstructure:"read_timeout"`
-	WriteTimeout time.Duration `mapstructure:"write_timeout"`
-	RequiredAcks string        `mapstructure:"required_acks"`
+	Brokers []string `mapstructure:"brokers"`
 }
 
 type JWTConfig struct {

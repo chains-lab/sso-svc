@@ -39,10 +39,6 @@ jwt:
 kafka:
   brokers:
     - "re-news-kafka:9092"
-  dial_timeout: 10s
-  read_timeout: 10s
-  write_timeout: 10s
-  required_acks: "0"
 
 swagger:
   enabled: true

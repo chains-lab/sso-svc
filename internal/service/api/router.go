@@ -26,7 +26,7 @@ func Run(ctx context.Context, svc *service.Service) {
 	authMW := tokens.AuthMdl(svc.Config.JWT.AccessToken.SecretKey)
 	roleGrant := tokens.IdentityMdl(svc.Config.JWT.AccessToken.SecretKey, identity.Admin, identity.SuperUser)
 
-	r.Route("/re-flow/sso", func(r chi.Router) {
+	r.Route("/re-news/sso", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/public", func(r chi.Router) {
 				r.Post("/refresh", handlers.Refresh)

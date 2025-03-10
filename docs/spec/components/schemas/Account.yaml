@@ -20,6 +20,7 @@ properties:
         required:
           - email
           - role
+          - subscription
           - created_at
           - updated_at
         properties:
@@ -29,6 +30,9 @@ properties:
           role:
             type: string
             description: "Role"
+          subscription:
+            type: string
+            description: "Subscription"
           created_at:
             type: string
             format: date-time

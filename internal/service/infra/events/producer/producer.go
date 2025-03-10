@@ -1,51 +1,43 @@
-package events
+package producer
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/recovery-flow/sso-oauth/internal/config"
 	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/events/evebody"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/events/kafig"
+	"github.com/recovery-flow/sso-oauth/internal/service/infra/events"
 	"github.com/segmentio/kafka-go"
-	"github.com/sirupsen/logrus"
 )
 
 type Producer interface {
 	AccountCreate(account models.Account) error
 }
 
-type events struct {
-	cfg config.Config
-	log *logrus.Logger
+type producer struct {
+	brokers net.Addr
+	writer  *kafka.Writer
 }
 
-func NewBroker(cfg *config.Config, log *logrus.Logger) Producer {
-	return &events{
-		cfg: *cfg,
-		log: log,
+func NewProducer(cfg *config.Config) Producer {
+	return &producer{
+		brokers: kafka.TCP(cfg.Kafka.Brokers...),
+		writer: &kafka.Writer{
+			Addr:         kafka.TCP(cfg.Kafka.Brokers...),
+			Balancer:     &kafka.LeastBytes{},
+			BatchSize:    1,
+			BatchTimeout: 0,
+			Async:        false,
+			RequiredAcks: kafka.RequireAll,
+		},
 	}
 }
 
-type InternalEvent struct {
-	EventType string          `json:"event_type"`
-	Data      json.RawMessage `json:"data"`
-}
-
-func (e *events) AccountCreate(account models.Account) error {
-	writer := kafka.Writer{
-		Addr:         kafka.TCP(e.cfg.Kafka.Brokers...),
-		Balancer:     &kafka.LeastBytes{},
-		BatchSize:    1,
-		BatchTimeout: 0,
-		Async:        false,
-		RequiredAcks: kafka.RequireAll,
-	}
-
-	body, err := json.Marshal(evebody.AccountCreated{
+func (p *producer) AccountCreate(account models.Account) error {
+	body, err := json.Marshal(events.AccountCreated{
 		AccountID: account.ID.String(),
 		Email:     account.Email,
 		Role:      string(account.Role),
@@ -55,31 +47,30 @@ func (e *events) AccountCreate(account models.Account) error {
 		return fmt.Errorf("failed to marshal AccountCreated event: %w", err)
 	}
 
-	evt := InternalEvent{
-		EventType: "account_created",
+	return p.sendMessage(events.AccountCreateTopic, events.SubscriptionDeactivatedType, account.ID.String(), body)
+}
+
+func (p *producer) sendMessage(topic string, event string, key string, body []byte) error {
+	evt := events.InternalEvent{
+		EventType: event,
 		Data:      body,
 	}
 	data, err := json.Marshal(evt)
 	if err != nil {
-		return fmt.Errorf("failed to marshal AccountCreated event: %w", err)
+		return fmt.Errorf("failed to marshal subscription activate event: %w", err)
 	}
 
 	msg := kafka.Message{
-		Topic: kafig.AccountsTopic,
-		Key:   []byte(account.ID.String()),
+		Topic: topic,
 		Value: data,
+		Key:   []byte(key),
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	if err := writer.WriteMessages(ctx, msg); err != nil {
+	if err := p.writer.WriteMessages(ctx, msg); err != nil {
 		return fmt.Errorf("failed to send message: %w", err)
 	}
 	return nil
-}
-
-type TopicConfig struct {
-	Topic    string
-	Callback func(ctx context.Context, m kafka.Message, evt InternalEvent) error
 }

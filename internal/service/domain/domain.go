@@ -23,7 +23,9 @@ type Domain interface {
 
 	SessionsTerminate(ctx context.Context, accountID uuid.UUID) error
 	SessionDelete(ctx context.Context, sessionID uuid.UUID) error
-	SessionRefresh(ctx context.Context, session models.Session, role identity.IdnType, subTypeID *uuid.UUID, IP, client, curToken string) (*string, *string, error)
+	SessionRefresh(ctx context.Context, session models.Session, subTypeID *uuid.UUID, role identity.IdnType, IP, client, curToken string) (*string, *string, error)
+
+	SubscriptionUpdate(ctx context.Context, accountID uuid.UUID, subscriptionID *uuid.UUID) error
 
 	Login(ctx context.Context, role identity.IdnType, subTypeID *uuid.UUID, email, client, IP string) (*string, *string, error)
 
@@ -47,18 +49,14 @@ func NewDomain(infra *infra.Infra, log *logrus.Logger) (Domain, error) {
 
 func (d *domain) AccountCreate(ctx context.Context, account models.Account) (*models.Account, error) {
 	err := d.Infra.Data.SQL.Accounts.New().Transaction(func(ctx context.Context) error {
+		d.log.Debug("Creating account start")
+
 		err := d.Infra.Data.SQL.Accounts.New().Insert(ctx, account)
 		if err != nil {
 			return err
 		}
 
-		err = d.Infra.Kafka.AccountCreate(account)
-		if err != nil {
-			d.log.WithField("kafka", err).Error("failed to send account to kafka")
-			return err
-		}
-
-		return nil
+		return err
 	})
 	if err != nil {
 		return nil, err
@@ -278,7 +276,7 @@ func (d *domain) SessionsTerminate(ctx context.Context, accountID uuid.UUID) err
 	return nil
 }
 
-func (d *domain) SessionRefresh(ctx context.Context, session models.Session, role identity.IdnType, subTypeID *uuid.UUID, IP, client, curToken string) (*string, *string, error) {
+func (d *domain) SessionRefresh(ctx context.Context, session models.Session, subTypeID *uuid.UUID, role identity.IdnType, IP, client, curToken string) (*string, *string, error) {
 	sessionToken, err := d.Infra.Tokens.DecryptRefresh(session.Token)
 	if err != nil {
 		return nil, nil, err
@@ -327,6 +325,45 @@ func (d *domain) SessionRefresh(ctx context.Context, session models.Session, rol
 	}
 
 	return &access, &refresh, nil
+}
+
+func (d *domain) SubscriptionUpdate(ctx context.Context, accountID uuid.UUID, subscriptionID *uuid.UUID) error {
+	return d.Infra.Data.SQL.Accounts.New().Transaction(func(ctx context.Context) error {
+		err := d.Infra.Data.Cache.Sessions.DeleteAllByAccountID(ctx, accountID, nil)
+		if err != nil && !errors.Is(err, redis.Nil) {
+			if err = d.Infra.Data.Cache.Sessions.Drop(ctx); err != nil {
+				d.log.WithField("redis", err).Error("failed to drop sessions from cache")
+			}
+			d.log.WithField("redis", err).Error("failed to delete sessions from cache")
+		}
+
+		err = d.Infra.Data.Cache.Accounts.Delete(ctx, accountID.String())
+		if err != nil && !errors.Is(err, redis.Nil) {
+			if err = d.Infra.Data.Cache.Accounts.Drop(ctx); err != nil {
+				d.log.WithField("redis", err).Error("failed to drop account from cache")
+			}
+			d.log.WithField("redis", err).Error("failed to delete account from cache")
+		}
+
+		err = d.Infra.Data.SQL.Sessions.New().Filter(map[string]interface{}{"account_id": accountID}).Delete(ctx)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return ape.SessionNotFound
+			}
+			return err
+		}
+
+		err = d.Infra.Data.SQL.Accounts.New().Filter(map[string]any{
+			"id": accountID,
+		}).Update(ctx, map[string]any{
+			"subscription": subscriptionID,
+		})
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func (d *domain) Login(ctx context.Context, role identity.IdnType, subTypeID *uuid.UUID, email, client, IP string) (*string, *string, error) {
