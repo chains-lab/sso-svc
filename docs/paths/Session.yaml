@@ -1,0 +1,51 @@
+get:
+  tags:
+    - Sessions
+  summary: Get user's session
+  description: Endpoint to get user's session
+  parameters:
+    - name: session_id
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    '201':
+      description: Updated username successfully
+    '401':
+      $ref: '../spec/components/responses/invalidAuth.yaml'
+    '403':
+      $ref: '../spec/components/responses/forbidden.yaml'
+    '429':
+      $ref: '../spec/components/responses/tooManyRequests.yaml'
+    '500':
+      $ref: '../spec/components/responses/internalError.yaml'
+
+delete:
+  tags:
+    - Sessions
+  summary: Terminate user's session
+  description: Endpoint to terminate user's session
+  parameters:
+    - name: session_id
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    '201':
+      description: Updated username successfully
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '../spec/components/schemas/SessionsCollection.yaml'
+    '401':
+      $ref: '../spec/components/responses/invalidAuth.yaml'
+    '403':
+      $ref: '../spec/components/responses/forbidden.yaml'
+    '404':
+      $ref: '../spec/components/responses/notFound.yaml'
+    '429':
+      $ref: '../spec/components/responses/tooManyRequests.yaml'
+    '500':
+      $ref: '../spec/components/responses/internalError.yaml'

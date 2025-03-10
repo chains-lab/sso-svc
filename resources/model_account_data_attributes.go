@@ -26,6 +26,8 @@ type AccountDataAttributes struct {
 	Email string `json:"email"`
 	// Role
 	Role string `json:"role"`
+	// Subscription
+	Subscription string `json:"subscription"`
 	// Created At
 	CreatedAt time.Time `json:"created_at"`
 	// Updated At
@@ -38,10 +40,11 @@ type _AccountDataAttributes AccountDataAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewAccountDataAttributes(email string, role string, createdAt time.Time, updatedAt time.Time) *AccountDataAttributes {
+func NewAccountDataAttributes(email string, role string, subscription string, createdAt time.Time, updatedAt time.Time) *AccountDataAttributes {
 	this := AccountDataAttributes{}
 	this.Email = email
 	this.Role = role
+	this.Subscription = subscription
 	this.CreatedAt = createdAt
 	this.UpdatedAt = updatedAt
 	return &this
@@ -101,6 +104,30 @@ func (o *AccountDataAttributes) GetRoleOk() (*string, bool) {
 // SetRole sets field value
 func (o *AccountDataAttributes) SetRole(v string) {
 	o.Role = v
+}
+
+// GetSubscription returns the Subscription field value
+func (o *AccountDataAttributes) GetSubscription() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Subscription
+}
+
+// GetSubscriptionOk returns a tuple with the Subscription field value
+// and a boolean to check if the value has been set.
+func (o *AccountDataAttributes) GetSubscriptionOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Subscription, true
+}
+
+// SetSubscription sets field value
+func (o *AccountDataAttributes) SetSubscription(v string) {
+	o.Subscription = v
 }
 
 // GetCreatedAt returns the CreatedAt field value
@@ -163,6 +190,7 @@ func (o AccountDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["email"] = o.Email
 	toSerialize["role"] = o.Role
+	toSerialize["subscription"] = o.Subscription
 	toSerialize["created_at"] = o.CreatedAt
 	toSerialize["updated_at"] = o.UpdatedAt
 	return toSerialize, nil
@@ -175,6 +203,7 @@ func (o *AccountDataAttributes) UnmarshalJSON(data []byte) (err error) {
 	requiredProperties := []string{
 		"email",
 		"role",
+		"subscription",
 		"created_at",
 		"updated_at",
 	}

@@ -2,7 +2,7 @@
 .travis.yml
 README.md
 api/openapi.yaml
-api_default.go
+api_login.go
 client.go
 configuration.go
 docs/AccessToken.md
@@ -11,7 +11,9 @@ docs/AccessTokenDataAttributes.md
 docs/Account.md
 docs/AccountData.md
 docs/AccountDataAttributes.md
-docs/DefaultAPI.md
+docs/LoginAPI.md
+docs/ReNewsSsoV1PublicGoogleLoginPost400Response.md
+docs/ReNewsSsoV1PublicGoogleLoginPost400ResponseErrorsInner.md
 docs/RefreshToken.md
 docs/RefreshTokenData.md
 docs/RefreshTokenDataAttributes.md
@@ -27,6 +29,8 @@ docs/TokensPairDataAttributes.md
 git_push.sh
 go.mod
 go.sum
+model__re_news_sso_v1_public_google_login_post_400_response.go
+model__re_news_sso_v1_public_google_login_post_400_response_errors_inner.go
 model_access_token.go
 model_access_token_data.go
 model_access_token_data_attributes.go
@@ -46,5 +50,5 @@ model_tokens_pair.go
 model_tokens_pair_data.go
 model_tokens_pair_data_attributes.go
 response.go
-test/api_default_test.go
+test/api_login_test.go
 utils.go

@@ -1,0 +1,29 @@
+patch:
+  tags:
+    - Admin Role
+  summary: admin role update
+  description: Endpoint to update user
+  parameters:
+    - name: account_id
+      in: path
+      required: true
+      schema:
+        type: string
+    - name: role
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    '204':
+      description: User successfully logout
+    '400':
+      $ref: '../spec/components/responses/invalidParameter.yaml'
+    '401':
+      $ref: '../spec/components/responses/invalidAuth.yaml'
+    '403':
+      $ref: '../spec/components/responses/forbidden.yaml'
+    '429':
+      $ref: '../spec/components/responses/tooManyRequests.yaml'
+    '500':
+      $ref: '../spec/components/responses/internalError.yaml'

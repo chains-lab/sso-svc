@@ -1,0 +1,20 @@
+delete:
+  tags:
+    - Admin
+  summary: admin get user
+  description: Endpoint to get user
+  parameters:
+    - name: account_id
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    '204':
+      description: User successfully logout
+    '400':
+      $ref: '../spec/components/responses/invalidParameter.yaml'
+    '429':
+      $ref: '../spec/components/responses/tooManyRequests.yaml'
+    '500':
+      $ref: '../spec/components/responses/internalError.yaml'

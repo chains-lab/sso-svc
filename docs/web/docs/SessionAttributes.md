@@ -4,7 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**AccountId** | **string** | user id | 
+**AccountId** | **string** | account id | 
 **Client** | **string** | client name and version | 
 **Ip** | **string** | IP address | 
 **CreatedAt** | **time.Time** | session creation date | 

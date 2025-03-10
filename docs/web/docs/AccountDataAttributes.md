@@ -6,6 +6,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Email** | **string** | Email | 
 **Role** | **string** | Role | 
+**Subscription** | **string** | Subscription | 
 **CreatedAt** | **time.Time** | Created At | 
 **UpdatedAt** | **time.Time** | Updated At | 
 
@@ -13,7 +14,7 @@ Name | Type | Description | Notes
 
 ### NewAccountDataAttributes
 
-`func NewAccountDataAttributes(email string, role string, createdAt time.Time, updatedAt time.Time, ) *AccountDataAttributes`
+`func NewAccountDataAttributes(email string, role string, subscription string, createdAt time.Time, updatedAt time.Time, ) *AccountDataAttributes`
 
 NewAccountDataAttributes instantiates a new AccountDataAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -66,6 +67,26 @@ and a boolean to check if the value has been set.
 `func (o *AccountDataAttributes) SetRole(v string)`
 
 SetRole sets Role field to given value.
+
+
+### GetSubscription
+
+`func (o *AccountDataAttributes) GetSubscription() string`
+
+GetSubscription returns the Subscription field if non-nil, zero value otherwise.
+
+### GetSubscriptionOk
+
+`func (o *AccountDataAttributes) GetSubscriptionOk() (*string, bool)`
+
+GetSubscriptionOk returns a tuple with the Subscription field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetSubscription
+
+`func (o *AccountDataAttributes) SetSubscription(v string)`
+
+SetSubscription sets Subscription field to given value.
 
 
 ### GetCreatedAt

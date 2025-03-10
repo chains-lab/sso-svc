@@ -22,7 +22,7 @@ var _ MappedNullable = &SessionAttributes{}
 
 // SessionAttributes struct for SessionAttributes
 type SessionAttributes struct {
-	// user id
+	// account id
 	AccountId string `json:"account_id"`
 	// client name and version
 	Client string `json:"client"`

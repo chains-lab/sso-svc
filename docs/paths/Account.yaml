@@ -1,0 +1,33 @@
+delete:
+  tags:
+    - Login
+  summary: Logout user
+  description: Endpoint to logout user
+  responses:
+    '204':
+      description: User successfully logout
+    '403':
+      $ref: '../spec/components/responses/invalidAuth.yaml'
+    '429':
+      $ref: '../spec/components/responses/tooManyRequests.yaml'
+    '500':
+      $ref: '../spec/components/responses/internalError.yaml'
+
+get:
+  tags:
+    - Account
+  summary: Get account
+  description: Endpoint to get account
+  responses:
+    '200':
+      description: Account successfully get
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '../spec/components/schemas/Account.yaml'
+    '403':
+      $ref: '../spec/components/responses/invalidAuth.yaml'
+    '429':
+      $ref: '../spec/components/responses/tooManyRequests.yaml'
+    '500':
+      $ref: '../spec/components/responses/internalError.yaml'

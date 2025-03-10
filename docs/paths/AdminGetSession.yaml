@@ -1,0 +1,27 @@
+get:
+  tags:
+    - Admin
+  summary: admin get session
+  description: Endpoint to get user if you admin
+  parameters:
+    - name: account_id
+      in: path
+      required: true
+      schema:
+        type: string
+    - name: session_id
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    '200':
+      description: User successfully logout
+    '401':
+      $ref: '../spec/components/responses/invalidAuth.yaml'
+    '403':
+      $ref: '../spec/components/responses/forbidden.yaml'
+    '429':
+      $ref: '../spec/components/responses/tooManyRequests.yaml'
+    '500':
+      $ref: '../spec/components/responses/internalError.yaml'

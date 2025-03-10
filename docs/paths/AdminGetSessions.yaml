@@ -1,0 +1,45 @@
+get:
+  tags:
+    - Admin
+  summary: admin get sessions
+  description: Endpoint to get user if you admin
+  parameters:
+  - name: account_id
+    in: path
+    required: true
+    schema:
+      type: string
+  responses:
+    '200':
+      description: User successfully logout
+    '400':
+      $ref: '../spec/components/responses/invalidParameter.yaml'
+    '429':
+      $ref: '../spec/components/responses/tooManyRequests.yaml'
+    '500':
+      $ref: '../spec/components/responses/internalError.yaml'
+
+delete:
+  tags:
+      - Admin
+  summary: admin delete user
+  description: Endpoint to delete user if you admin
+  parameters:
+  - name: account_id
+    in: path
+    required: true
+    schema:
+      type: string
+  responses:
+    '204':
+      description: User successfully logout
+    '400':
+      $ref: '../spec/components/responses/invalidParameter.yaml'
+    '403':
+      $ref: '../spec/components/responses/forbidden.yaml'
+    '404':
+      $ref: '../spec/components/responses/notFound.yaml'
+    '429':
+      $ref: '../spec/components/responses/tooManyRequests.yaml'
+    '500':
+      $ref: '../spec/components/responses/internalError.yaml'

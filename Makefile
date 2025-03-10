@@ -22,9 +22,6 @@ generate-models:
 start-docs:
 	 http-server .
 
-generate-sqlc:
-	sqlc generate
-
 migrate-up:
 	migrate -path internal/service/infra/data/sqldb/migrations -database $(DB_URL) -verbose up
 

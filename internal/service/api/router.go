@@ -34,24 +34,26 @@ func Run(ctx context.Context, svc *service.Service) {
 					r.Get("/login", handlers.GoogleLogin)
 					r.Get("/callback", handlers.GoogleCallback)
 				})
+
+				r.Route("/account", func(r chi.Router) {
+					r.Use(authMW)
+					r.Route("/sessions", func(r chi.Router) {
+						r.Route("/{session_id}", func(r chi.Router) {
+							r.Get("/", handlers.SessionGet)
+							r.Delete("/", handlers.SessionDelete)
+						})
+						r.Get("/", handlers.SessionsGet)
+						r.Delete("/", handlers.SessionsTerminate)
+					})
+					r.Get("/", handlers.AccountGet)
+					r.Delete("/", handlers.Logout)
+				})
 			})
 
 			r.Route("/private", func(r chi.Router) {
 				r.Route("/account", func(r chi.Router) {
-					r.With(authMW).Route("/current", func(r chi.Router) {
-						r.Route("/sessions", func(r chi.Router) {
-							r.Route("/{session_id}", func(r chi.Router) {
-								r.Get("/", handlers.SessionGet)
-								r.Delete("/", handlers.SessionDelete)
-							})
-							r.Get("/", handlers.SessionsGet)
-							r.Delete("/", handlers.SessionsTerminate)
-						})
-						r.Get("/", handlers.AccountGet)
-						r.Post("/", handlers.Logout)
-					})
-
-					r.With(roleGrant).Route("/{account_id}", func(r chi.Router) {
+					r.Use(roleGrant)
+					r.Route("/{account_id}", func(r chi.Router) {
 						r.Route("/sessions", func(r chi.Router) {
 							r.Get("/{session_id}", handlers.AdminSessionGet)
 							r.Get("/", handlers.AdminSessionsGet)

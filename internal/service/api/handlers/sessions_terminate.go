@@ -28,5 +28,5 @@ func SessionsTerminate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpkit.Render(w, http.StatusOK)
+	httpkit.Render(w, http.StatusNoContent)
 }

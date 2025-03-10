@@ -23,5 +23,5 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	Log(r).Infof("Account %s logged out", accountID)
-	httpkit.Render(w, http.StatusOK)
+	httpkit.Render(w, http.StatusNoContent)
 }

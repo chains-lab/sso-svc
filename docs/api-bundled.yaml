@@ -4,13 +4,62 @@ info:
   description: SSO REST API for Cifra app
   version: 0.0.1
 paths:
-  /users/create:
+  /re-news/sso/v1/public/google/login:
     post:
-      summary: Test
-      operationId: Test
+      tags:
+        - Login
+      description: Endpoint to login use google account
       responses:
         '201':
-          description: Created
+          description: User successfully login
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/TokensPair'
+        '400':
+          description: One of the parameters is invalid. Refer to the response body for details.
+          content:
+            application/vnd.api+json:
+              schema:
+                description: 'Standard JSON:API error'
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    description: Non empty array of errors occurred during request processing
+                    items:
+                      type: object
+                      required:
+                        - title
+                        - status
+                      properties:
+                        title:
+                          type: string
+                          description: 'Title is a short, human-readable summary of the problem'
+                          example: Bad Request
+                        detail:
+                          type: string
+                          description: Detail is a human-readable explanation specific to this occurrence of the problem
+                          example: Request body was expected
+                        status:
+                          type: integer
+                          description: Status is the HTTP status code applicable to this problem
+                          example: 400
+                          enum:
+                            - 400
+                            - 401
+                            - 403
+                            - 404
+                            - 409
+                            - 500
+        '500':
+          description: Internal server error
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/paths/~1re-news~1sso~1v1~1public~1google~1login/post/responses/400/content/application~1vnd.api%2Bjson/schema'
 components:
   schemas:
     TokensPair:
@@ -125,7 +174,7 @@ components:
         account_id:
           type: string
           format: uuid
-          description: user id
+          description: account id
         client:
           type: string
           description: client name and version
@@ -188,6 +237,7 @@ components:
               required:
                 - email
                 - role
+                - subscription
                 - created_at
                 - updated_at
               properties:
@@ -197,6 +247,9 @@ components:
                 role:
                   type: string
                   description: Role
+                subscription:
+                  type: string
+                  description: Subscription
                 created_at:
                   type: string
                   format: date-time
