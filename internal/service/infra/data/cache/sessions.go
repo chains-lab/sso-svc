@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
+	"github.com/hs-zavet/sso-oauth/internal/service/domain/models"
 	"github.com/redis/go-redis/v9"
 )
 

@@ -1,8 +1,8 @@
 package responses
 
 import (
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
-	"github.com/recovery-flow/sso-oauth/resources"
+	"github.com/hs-zavet/sso-oauth/internal/service/domain/models"
+	"github.com/hs-zavet/sso-oauth/resources"
 )
 
 func Account(account models.Account) resources.Account {

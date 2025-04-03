@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hs-zavet/sso-oauth/internal/config"
+	"github.com/hs-zavet/tokens"
+	"github.com/hs-zavet/tokens/identity"
 	"github.com/pkg/errors"
-	"github.com/recovery-flow/sso-oauth/internal/config"
-	"github.com/recovery-flow/tokens"
-	"github.com/recovery-flow/tokens/identity"
 )
 
 type JWTManager interface {

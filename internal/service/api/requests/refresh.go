@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/recovery-flow/comtools/jsonkit"
-	"github.com/recovery-flow/sso-oauth/resources"
+	"github.com/hs-zavet/comtools/jsonkit"
+	"github.com/hs-zavet/sso-oauth/resources"
 )
 
 func NewRefresh(r *http.Request) (req resources.RefreshToken, err error) {

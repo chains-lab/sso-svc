@@ -1,9 +1,9 @@
 package service
 
 import (
-	"github.com/recovery-flow/sso-oauth/internal/config"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra"
+	"github.com/hs-zavet/sso-oauth/internal/config"
+	"github.com/hs-zavet/sso-oauth/internal/service/domain"
+	"github.com/hs-zavet/sso-oauth/internal/service/infra"
 	"github.com/sirupsen/logrus"
 )
 

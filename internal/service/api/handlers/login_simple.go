@@ -6,12 +6,12 @@ import (
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/google/uuid"
+	"github.com/hs-zavet/comtools/httpkit"
+	"github.com/hs-zavet/comtools/httpkit/problems"
+	"github.com/hs-zavet/comtools/jsonkit"
+	"github.com/hs-zavet/sso-oauth/internal/service/api/responses"
+	"github.com/hs-zavet/tokens/identity"
 	"github.com/pkg/errors"
-	"github.com/recovery-flow/comtools/httpkit"
-	"github.com/recovery-flow/comtools/httpkit/problems"
-	"github.com/recovery-flow/comtools/jsonkit"
-	"github.com/recovery-flow/sso-oauth/internal/service/api/responses"
-	"github.com/recovery-flow/tokens/identity"
 )
 
 func LoginSimple(w http.ResponseWriter, r *http.Request) {

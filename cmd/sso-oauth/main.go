@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/recovery-flow/sso-oauth/internal/cli"
+	"github.com/hs-zavet/sso-oauth/internal/cli"
 )
 
 func main() {

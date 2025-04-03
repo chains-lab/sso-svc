@@ -1,10 +1,10 @@
 package infra
 
 import (
-	"github.com/recovery-flow/sso-oauth/internal/config"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/data"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/events/producer"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/jwtmanager"
+	"github.com/hs-zavet/sso-oauth/internal/config"
+	"github.com/hs-zavet/sso-oauth/internal/service/infra/data"
+	"github.com/hs-zavet/sso-oauth/internal/service/infra/events/producer"
+	"github.com/hs-zavet/sso-oauth/internal/service/infra/jwtmanager"
 	"github.com/sirupsen/logrus"
 )
 

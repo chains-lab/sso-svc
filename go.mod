@@ -1,4 +1,4 @@
-module github.com/recovery-flow/sso-oauth
+module github.com/hs-zavet/sso-oauth
 
 go 1.23.4
 
@@ -9,10 +9,10 @@ require (
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
+	github.com/hs-zavet/comtools v0.1.21
+	github.com/hs-zavet/tokens v0.5.11
 	github.com/lib/pq v1.10.9
 	github.com/pkg/errors v0.9.1
-	github.com/recovery-flow/comtools v0.1.1
-	github.com/recovery-flow/tokens v0.5.1
 	github.com/redis/go-redis/v9 v9.7.0
 	github.com/segmentio/kafka-go v0.4.47
 	github.com/sirupsen/logrus v1.9.3

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
+	"github.com/hs-zavet/sso-oauth/internal/service/domain/models"
 )
 
 const sessionsTable = "sessions"

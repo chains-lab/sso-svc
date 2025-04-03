@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hs-zavet/sso-oauth/internal/service/domain/models"
+	"github.com/hs-zavet/tokens/identity"
 	"github.com/pkg/errors"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
-	"github.com/recovery-flow/tokens/identity"
 	"github.com/redis/go-redis/v9"
 )
 

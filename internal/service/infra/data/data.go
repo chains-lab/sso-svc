@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/recovery-flow/sso-oauth/internal/config"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/data/cache"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/data/sqldb"
+	"github.com/hs-zavet/sso-oauth/internal/config"
+	"github.com/hs-zavet/sso-oauth/internal/service/infra/data/cache"
+	"github.com/hs-zavet/sso-oauth/internal/service/infra/data/sqldb"
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 )

@@ -7,10 +7,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/recovery-flow/comtools/httpkit"
-	"github.com/recovery-flow/comtools/httpkit/problems"
-	"github.com/recovery-flow/tokens"
-	"github.com/recovery-flow/tokens/identity"
+	"github.com/hs-zavet/comtools/httpkit"
+	"github.com/hs-zavet/comtools/httpkit/problems"
+	"github.com/hs-zavet/tokens"
+	"github.com/hs-zavet/tokens/identity"
 )
 
 func AdminSessionsTerminate(w http.ResponseWriter, r *http.Request) {

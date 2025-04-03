@@ -3,10 +3,10 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/recovery-flow/comtools/httpkit"
-	"github.com/recovery-flow/comtools/httpkit/problems"
-	"github.com/recovery-flow/sso-oauth/internal/service/api/responses"
-	"github.com/recovery-flow/tokens"
+	"github.com/hs-zavet/comtools/httpkit"
+	"github.com/hs-zavet/comtools/httpkit/problems"
+	"github.com/hs-zavet/sso-oauth/internal/service/api/responses"
+	"github.com/hs-zavet/tokens"
 )
 
 func AccountGet(w http.ResponseWriter, r *http.Request) {

@@ -7,9 +7,9 @@ import (
 	"net"
 	"time"
 
-	"github.com/recovery-flow/sso-oauth/internal/config"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/events"
+	"github.com/hs-zavet/sso-oauth/internal/config"
+	"github.com/hs-zavet/sso-oauth/internal/service/domain/models"
+	"github.com/hs-zavet/sso-oauth/internal/service/infra/events"
 	"github.com/segmentio/kafka-go"
 )
 

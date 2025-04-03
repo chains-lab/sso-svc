@@ -9,9 +9,9 @@ import (
 	"syscall"
 
 	"github.com/alecthomas/kingpin"
-	"github.com/recovery-flow/comtools/logkit"
-	"github.com/recovery-flow/sso-oauth/internal/config"
-	"github.com/recovery-flow/sso-oauth/internal/service"
+	"github.com/hs-zavet/comtools/logkit"
+	"github.com/hs-zavet/sso-oauth/internal/config"
+	"github.com/hs-zavet/sso-oauth/internal/service"
 )
 
 func Run(args []string) bool {

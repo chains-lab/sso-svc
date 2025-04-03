@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os/exec"
 
-	"github.com/recovery-flow/sso-oauth/internal/config"
+	"github.com/hs-zavet/sso-oauth/internal/config"
 	"github.com/sirupsen/logrus"
 )
 

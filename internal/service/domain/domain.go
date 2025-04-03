@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/ape"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra"
-	"github.com/recovery-flow/tokens/identity"
+	"github.com/hs-zavet/sso-oauth/internal/service/domain/ape"
+	"github.com/hs-zavet/sso-oauth/internal/service/domain/models"
+	"github.com/hs-zavet/sso-oauth/internal/service/infra"
+	"github.com/hs-zavet/tokens/identity"
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 )

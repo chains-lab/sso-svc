@@ -4,9 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/recovery-flow/sso-oauth/internal/service"
-	"github.com/recovery-flow/sso-oauth/internal/service/api"
-	"github.com/recovery-flow/sso-oauth/internal/workers/listener"
+	"github.com/hs-zavet/sso-oauth/internal/service"
+	"github.com/hs-zavet/sso-oauth/internal/service/api"
+	"github.com/hs-zavet/sso-oauth/internal/workers/listener"
 )
 
 func runServices(ctx context.Context, wg *sync.WaitGroup, svc *service.Service) {

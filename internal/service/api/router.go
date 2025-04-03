@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/recovery-flow/comtools/httpkit"
-	"github.com/recovery-flow/sso-oauth/internal/service"
-	"github.com/recovery-flow/sso-oauth/internal/service/api/handlers"
-	"github.com/recovery-flow/tokens"
-	"github.com/recovery-flow/tokens/identity"
+	"github.com/hs-zavet/comtools/httpkit"
+	"github.com/hs-zavet/sso-oauth/internal/service"
+	"github.com/hs-zavet/sso-oauth/internal/service/api/handlers"
+	"github.com/hs-zavet/tokens"
+	"github.com/hs-zavet/tokens/identity"
 )
 
 func Run(ctx context.Context, svc *service.Service) {

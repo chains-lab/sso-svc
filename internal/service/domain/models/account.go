@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/recovery-flow/tokens/identity"
+	"github.com/hs-zavet/tokens/identity"
 )
 
 type Account struct {

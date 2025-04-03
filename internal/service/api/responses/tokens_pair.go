@@ -1,6 +1,6 @@
 package responses
 
-import "github.com/recovery-flow/sso-oauth/resources"
+import "github.com/hs-zavet/sso-oauth/resources"
 
 func TokensPair(access, refresh string) resources.TokensPair {
 	return resources.TokensPair{

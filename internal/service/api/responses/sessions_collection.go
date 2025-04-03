@@ -1,8 +1,8 @@
 package responses
 
 import (
-	"github.com/recovery-flow/sso-oauth/internal/service/domain/models"
-	"github.com/recovery-flow/sso-oauth/resources"
+	"github.com/hs-zavet/sso-oauth/internal/service/domain/models"
+	"github.com/hs-zavet/sso-oauth/resources"
 )
 
 func SessionCollection(sessions []models.Session) resources.SessionsCollection {

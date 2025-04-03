@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/recovery-flow/sso-oauth/internal/config"
-	"github.com/recovery-flow/sso-oauth/internal/service/domain"
+	"github.com/hs-zavet/sso-oauth/internal/config"
+	"github.com/hs-zavet/sso-oauth/internal/service/domain"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 )

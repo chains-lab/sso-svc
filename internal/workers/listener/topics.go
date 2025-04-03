@@ -3,9 +3,9 @@ package listener
 import (
 	"context"
 
-	"github.com/recovery-flow/sso-oauth/internal/service"
-	"github.com/recovery-flow/sso-oauth/internal/service/infra/events"
-	"github.com/recovery-flow/sso-oauth/internal/workers/listener/callbacks"
+	"github.com/hs-zavet/sso-oauth/internal/service"
+	"github.com/hs-zavet/sso-oauth/internal/service/infra/events"
+	"github.com/hs-zavet/sso-oauth/internal/workers/listener/callbacks"
 	"github.com/segmentio/kafka-go"
 )
 
