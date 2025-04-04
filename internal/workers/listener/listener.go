@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/hs-zavet/sso-oauth/internal/events"
 	"github.com/hs-zavet/sso-oauth/internal/service"
-	"github.com/hs-zavet/sso-oauth/internal/service/infra/events"
 	"github.com/segmentio/kafka-go"
 )
 

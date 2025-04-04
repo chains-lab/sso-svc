@@ -4,8 +4,8 @@ import (
 	"context"
 	"sync"
 
+	"github.com/hs-zavet/sso-oauth/internal/api"
 	"github.com/hs-zavet/sso-oauth/internal/service"
-	"github.com/hs-zavet/sso-oauth/internal/service/api"
 	"github.com/hs-zavet/sso-oauth/internal/workers/listener"
 )
 

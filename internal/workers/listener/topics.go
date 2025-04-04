@@ -3,8 +3,8 @@ package listener
 import (
 	"context"
 
+	"github.com/hs-zavet/sso-oauth/internal/events"
 	"github.com/hs-zavet/sso-oauth/internal/service"
-	"github.com/hs-zavet/sso-oauth/internal/service/infra/events"
 	"github.com/hs-zavet/sso-oauth/internal/workers/listener/callbacks"
 	"github.com/segmentio/kafka-go"
 )
