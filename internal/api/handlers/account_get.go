@@ -9,18 +9,18 @@ import (
 	"github.com/hs-zavet/tokens"
 )
 
-func AccountGet(w http.ResponseWriter, r *http.Request) {
-	accountID, _, _, _, _, err := tokens.GetAccountData(r.Context())
+func (h *Handler) AccountGet(w http.ResponseWriter, r *http.Request) {
+	data, err := tokens.GetAccountData(r.Context())
 	if err != nil {
-		Log(r).WithError(err).Error("Failed to retrieve account data")
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
 		return
 	}
 
-	account, err := Domain(r).AccountGet(r.Context(), *accountID)
+	res, err := h.app.AccountGetByID(r.Context(), data.AccountID)
 	if err != nil {
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
-	httpkit.Render(w, responses.Account(*account))
+
+	httpkit.Render(w, responses.Account(res))
 }

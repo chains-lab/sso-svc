@@ -6,6 +6,7 @@ import (
 
 	_ "github.com/lib/pq" // postgres driver don`t delete
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -17,7 +18,7 @@ type ServerConfig struct {
 	Log      struct {
 		Level  string `mapstructure:"level"`
 		Format string `mapstructure:"format"`
-	} `mapstructure:"logging"`
+	} `mapstructure:"log"`
 }
 
 type DatabaseConfig struct {
@@ -83,6 +84,7 @@ type Config struct {
 	Kafka    KafkaConfig    `mapstructure:"kafka"`
 	Database DatabaseConfig `mapstructure:"database"`
 	Swagger  SwaggerConfig  `mapstructure:"swagger"`
+	Log      *logrus.Logger
 }
 
 func LoadConfig() (*Config, error) {

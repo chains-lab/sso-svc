@@ -13,10 +13,9 @@ import (
 	"github.com/hs-zavet/tokens"
 )
 
-func SessionDelete(w http.ResponseWriter, r *http.Request) {
-	accountID, sessionID, _, _, _, err := tokens.GetAccountData(r.Context())
+func (h *Handler) SessionDelete(w http.ResponseWriter, r *http.Request) {
+	data, err := tokens.GetAccountData(r.Context())
 	if err != nil {
-		Log(r).Warnf("Unauthorized session delete attempt: %v", err)
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
 		return
 	}
@@ -27,13 +26,12 @@ func SessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if sessionID.String() == sessionForDeleteId.String() {
-		Log(r).Debugf("Sessions can't be current")
+	if data.SessionID.String() == sessionForDeleteId.String() {
 		httpkit.RenderErr(w, problems.BadRequest(errors.New("session can't be current"))...)
 		return
 	}
 
-	err = Domain(r).SessionDelete(r.Context(), sessionForDeleteId)
+	err = h.app.DeleteSession(r.Context(), sessionForDeleteId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())
@@ -43,7 +41,7 @@ func SessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessions, err := Domain(r).SessionsListByAccount(r.Context(), *accountID)
+	sessions, err := h.app.GetSessions(r.Context(), data.AccountID)
 	if err != nil {
 		httpkit.RenderErr(w, problems.InternalError())
 		return

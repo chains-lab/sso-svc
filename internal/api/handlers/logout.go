@@ -8,20 +8,18 @@ import (
 	"github.com/hs-zavet/tokens"
 )
 
-func Logout(w http.ResponseWriter, r *http.Request) {
-	accountID, sessionID, _, _, _, err := tokens.GetAccountData(r.Context())
+func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
+	data, err := tokens.GetAccountData(r.Context())
 	if err != nil {
-		Log(r).WithError(err).Warn("Unauthorized logout attempt")
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
 		return
 	}
 
-	err = Domain(r).SessionDelete(r.Context(), *sessionID)
+	err = h.app.DeleteSession(r.Context(), data.SessionID)
 	if err != nil {
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	Log(r).Infof("Account %s logged out", accountID)
 	httpkit.Render(w, http.StatusNoContent)
 }

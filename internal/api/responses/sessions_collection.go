@@ -1,7 +1,6 @@
 package responses
 
 import (
-	"github.com/hs-zavet/sso-oauth/internal/domain/models"
 	"github.com/hs-zavet/sso-oauth/resources"
 )
 

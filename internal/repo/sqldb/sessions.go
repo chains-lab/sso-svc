@@ -83,14 +83,12 @@ func (s SessionsQ) Insert(ctx context.Context, input SessionInsertInput) error {
 
 type SessionUpdateInput struct {
 	Token    string
-	Client   string
 	LastUsed time.Time
 }
 
 func (s SessionsQ) Update(ctx context.Context, input SessionUpdateInput) error {
 	values := map[string]interface{}{
 		"token":     input.Token,
-		"client":    input.Client,
 		"last_used": input.LastUsed,
 	}
 

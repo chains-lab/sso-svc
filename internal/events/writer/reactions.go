@@ -1,4 +1,4 @@
-package producer
+package writer
 
 import (
 	"context"
@@ -8,22 +8,17 @@ import (
 	"time"
 
 	"github.com/hs-zavet/sso-oauth/internal/config"
-	"github.com/hs-zavet/sso-oauth/internal/domain/models"
 	"github.com/hs-zavet/sso-oauth/internal/events"
 	"github.com/segmentio/kafka-go"
 )
 
-type Producer interface {
-	AccountCreate(account models.Account) error
-}
-
-type producer struct {
+type Writer struct {
 	brokers net.Addr
 	writer  *kafka.Writer
 }
 
-func NewProducer(cfg *config.Config) Producer {
-	return &producer{
+func NewWriter(cfg config.Config, RequiredAcks kafka.RequiredAcks) *Writer {
+	return &Writer{
 		brokers: kafka.TCP(cfg.Kafka.Brokers...),
 		writer: &kafka.Writer{
 			Addr:         kafka.TCP(cfg.Kafka.Brokers...),
@@ -31,26 +26,12 @@ func NewProducer(cfg *config.Config) Producer {
 			BatchSize:    1,
 			BatchTimeout: 0,
 			Async:        false,
-			RequiredAcks: kafka.RequireAll,
+			RequiredAcks: RequiredAcks,
 		},
 	}
 }
 
-func (p *producer) AccountCreate(account models.Account) error {
-	body, err := json.Marshal(events.AccountCreated{
-		AccountID: account.ID.String(),
-		Email:     account.Email,
-		Role:      string(account.Role),
-		Timestamp: time.Now(),
-	})
-	if err != nil {
-		return fmt.Errorf("failed to marshal AccountCreated event: %w", err)
-	}
-
-	return p.sendMessage(events.AccountCreateTopic, events.SubscriptionDeactivatedType, account.ID.String(), body)
-}
-
-func (p *producer) sendMessage(topic string, event string, key string, body []byte) error {
+func (p *Writer) SendMessage(topic string, event string, key string, body []byte) error {
 	evt := events.InternalEvent{
 		EventType: event,
 		Data:      body,

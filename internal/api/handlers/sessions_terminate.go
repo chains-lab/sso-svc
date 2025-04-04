@@ -10,15 +10,14 @@ import (
 	"github.com/hs-zavet/tokens"
 )
 
-func SessionsTerminate(w http.ResponseWriter, r *http.Request) {
-	accountID, _, _, _, _, err := tokens.GetAccountData(r.Context())
+func (h *Handler) SessionsTerminate(w http.ResponseWriter, r *http.Request) {
+	data, err := tokens.GetAccountData(r.Context())
 	if err != nil {
-		Log(r).WithError(err).Warn("Unauthorized session terminate attempt")
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
 		return
 	}
 
-	err = Domain(r).SessionsTerminate(r.Context(), *accountID)
+	err = h.app.Terminate(r.Context(), data.SessionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())

@@ -14,10 +14,9 @@ import (
 	"github.com/hs-zavet/tokens/identity"
 )
 
-func AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
-	initiatorID, initiatorSession, _, initiatorRole, _, err := tokens.GetAccountData(r.Context())
+func (h *Handler) AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
+	data, err := tokens.GetAccountData(r.Context())
 	if err != nil {
-		Log(r).Warnf("Unauthorized session delete attempt: %v", err)
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
 		return
 	}
@@ -28,8 +27,7 @@ func AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *initiatorSession == sessionID {
-		Log(r).Debugf("Sessions can't be current")
+	if data.SessionID == sessionID {
 		httpkit.RenderErr(w, problems.BadRequest(errors.New("session can't be current"))...)
 		return
 	}
@@ -40,37 +38,38 @@ func AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	account, err := Domain(r).AccountGet(r.Context(), accountID)
+	account, err := h.app.AccountGetByID(r.Context(), accountID)
 	if err != nil {
-		Log(r).Errorf("Failed to get account: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	if identity.CompareRolesUser(*initiatorRole, account.Role) == -1 {
-		Log(r).Warn("Account can't delete session of account with higher role")
+	accRole, err := identity.ParseIdentityType(account.Role)
+	if err != nil {
+		httpkit.RenderErr(w, problems.InternalError())
+		return
+	}
+
+	if identity.CompareRolesUser(data.Role, accRole) == -1 {
 		httpkit.RenderErr(w, problems.Forbidden("Account can't delete session of account with higher role"))
 		return
 	}
 
-	err = Domain(r).SessionDelete(r.Context(), sessionID)
+	err = h.app.DeleteSession(r.Context(), sessionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())
 			return
 		}
-		Log(r).Errorf("Failed to delete device: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	sessions, err := Domain(r).SessionsListByAccount(r.Context(), accountID)
+	sessions, err := h.app.GetSessions(r.Context(), accountID)
 	if err != nil {
-		Log(r).Errorf("Failed to retrieve account sessions: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	Log(r).Infof("Sessions Deleted %s for account %s by account %s", sessionID, accountID, initiatorID)
 	httpkit.Render(w, responses.SessionCollection(sessions))
 }

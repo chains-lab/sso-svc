@@ -11,22 +11,20 @@ import (
 	"github.com/hs-zavet/sso-oauth/internal/api/responses"
 )
 
-func AdminSessionGet(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) AdminSessionGet(w http.ResponseWriter, r *http.Request) {
 	sessionID, err := uuid.Parse(chi.URLParam(r, "session_id"))
 	if err != nil {
-		Log(r).Errorf("Failed to parse session_id: %v", err)
 		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
 			"session_id": validation.NewError("session_id", "Invalid session_id"),
 		})...)
 		return
 	}
 
-	session, err := Domain(r).SessionGet(r.Context(), sessionID)
+	session, err := h.app.GetSession(r.Context(), sessionID)
 	if err != nil {
-		Log(r).Errorf("Failed to retrieve account session: %v", err)
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	httpkit.Render(w, responses.Session(*session))
+	httpkit.Render(w, responses.Session(session))
 }

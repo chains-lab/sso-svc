@@ -2,9 +2,11 @@ package repo
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hs-zavet/sso-oauth/internal/config"
 	"github.com/hs-zavet/sso-oauth/internal/repo/sqldb"
 )
 
@@ -40,6 +42,19 @@ type AccountsRepo struct {
 	sql sqldb.AccountQ
 }
 
+func NewAccounts(cfg *config.Config) (AccountsRepo, error) {
+	db, err := sql.Open("postgres", cfg.Database.SQL.URL)
+	if err != nil {
+		return AccountsRepo{}, err
+	}
+
+	accounts := sqldb.NewAccounts(db)
+
+	return AccountsRepo{
+		sql: accounts,
+	}, nil
+}
+
 type AccountCreateRequest struct {
 	ID           uuid.UUID `json:"id"`
 	Email        string    `json:"email"`
@@ -48,8 +63,8 @@ type AccountCreateRequest struct {
 	CreatedAt    time.Time `json:"created_at"`
 }
 
-func (a *AccountsRepo) Create(input AccountCreateRequest) error {
-	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+func (a AccountsRepo) Create(ctx context.Context, input AccountCreateRequest) error {
+	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
 
 	err := a.sql.New().Insert(ctxSync, sqldb.AccountInsertInput{
@@ -71,8 +86,8 @@ type AccountUpdateRequest struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
-func (a *AccountsRepo) Update(ID uuid.UUID, input AccountUpdateRequest) error {
-	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+func (a AccountsRepo) Update(ctx context.Context, ID uuid.UUID, input AccountUpdateRequest) error {
+	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
 
 	err := a.sql.New().FilterID(ID).Update(ctxSync, sqldb.AccountUpdateInput{
@@ -86,8 +101,8 @@ func (a *AccountsRepo) Update(ID uuid.UUID, input AccountUpdateRequest) error {
 	return nil
 }
 
-func (a *AccountsRepo) Delete(ID uuid.UUID) error {
-	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+func (a AccountsRepo) Delete(ctx context.Context, ID uuid.UUID) error {
+	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
 
 	err := a.sql.New().FilterID(ID).Delete(ctxSync)
@@ -97,8 +112,8 @@ func (a *AccountsRepo) Delete(ID uuid.UUID) error {
 	return nil
 }
 
-func (a *AccountsRepo) GetByID(ID uuid.UUID) (Account, error) {
-	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+func (a AccountsRepo) GetByID(ctx context.Context, ID uuid.UUID) (Account, error) {
+	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
 
 	account, err := a.sql.New().FilterID(ID).Get(ctxSync)
@@ -122,7 +137,7 @@ func (a *AccountsRepo) GetByID(ID uuid.UUID) (Account, error) {
 	return res, nil
 }
 
-func (a *AccountsRepo) GetByEmail(email string) (Account, error) {
+func (a AccountsRepo) GetByEmail(ctx context.Context, email string) (Account, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
@@ -144,4 +159,8 @@ func (a *AccountsRepo) GetByEmail(email string) (Account, error) {
 	}
 
 	return res, nil
+}
+
+func (a AccountsRepo) Transaction(fn func(ctx context.Context) error) error {
+	return a.sql.Transaction(fn)
 }

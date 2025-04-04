@@ -10,8 +10,8 @@ import (
 
 	"github.com/alecthomas/kingpin"
 	"github.com/hs-zavet/comtools/logkit"
+	"github.com/hs-zavet/sso-oauth/internal/app"
 	"github.com/hs-zavet/sso-oauth/internal/config"
-	"github.com/hs-zavet/sso-oauth/internal/service"
 )
 
 func Run(args []string) bool {
@@ -35,7 +35,7 @@ func Run(args []string) bool {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	svc, err := service.NewService(cfg, logger)
+	svc, err := app.NewApp(cfg)
 	if err != nil {
 		logger.Fatalf("failed to create server: %v", err)
 		return false
@@ -51,7 +51,7 @@ func Run(args []string) bool {
 
 	switch cmd {
 	case serviceCmd.FullCommand():
-		runServices(ctx, &wg, svc)
+		runServices(ctx, &wg, svc, cfg)
 	case migrateUpCmd.FullCommand():
 		err = MigrateUp(ctx, *cfg)
 	case migrateDownCmd.FullCommand():

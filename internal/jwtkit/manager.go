@@ -1,4 +1,4 @@
-package jwtmanager
+package jwtkit
 
 import (
 	"crypto/aes"
@@ -15,27 +15,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type JWTManager interface {
-	EncryptAccess(token string) (string, error)
-	EncryptRefresh(token string) (string, error)
-	DecryptRefresh(encryptedToken string) (string, error)
-
-	GenerateAccess(
-		userID *uuid.UUID,
-		sessionID *uuid.UUID,
-		subTypeID *uuid.UUID,
-		idn identity.IdnType,
-	) (string, error)
-
-	GenerateRefresh(
-		userID *uuid.UUID,
-		sessionID *uuid.UUID,
-		subTypeID *uuid.UUID,
-		idn identity.IdnType,
-	) (string, error)
-}
-
-type jwtmanager struct {
+type Manager struct {
 	accessSK  string
 	refreshSK string
 
@@ -45,8 +25,8 @@ type jwtmanager struct {
 	iss string
 }
 
-func NewJWTManager(cfg *config.Config) JWTManager {
-	return &jwtmanager{
+func NewManager(cfg *config.Config) Manager {
+	return Manager{
 		accessSK:  cfg.JWT.AccessToken.SecretKey,
 		refreshSK: cfg.JWT.RefreshToken.SecretKey,
 
@@ -57,7 +37,7 @@ func NewJWTManager(cfg *config.Config) JWTManager {
 	}
 }
 
-func (m *jwtmanager) EncryptAccess(token string) (string, error) {
+func (m Manager) EncryptAccess(token string) (string, error) {
 	block, err := aes.NewCipher([]byte(m.accessSK))
 	if err != nil {
 		return "", err
@@ -77,7 +57,7 @@ func (m *jwtmanager) EncryptAccess(token string) (string, error) {
 	return hex.EncodeToString(ciphertext), nil
 }
 
-func (m *jwtmanager) EncryptRefresh(token string) (string, error) {
+func (m Manager) EncryptRefresh(token string) (string, error) {
 	block, err := aes.NewCipher([]byte(m.refreshSK))
 	if err != nil {
 		return "", err
@@ -97,7 +77,7 @@ func (m *jwtmanager) EncryptRefresh(token string) (string, error) {
 	return hex.EncodeToString(ciphertext), nil
 }
 
-func (m *jwtmanager) DecryptRefresh(encryptedToken string) (string, error) {
+func (m Manager) DecryptRefresh(encryptedToken string) (string, error) {
 	ciphertext, err := hex.DecodeString(encryptedToken)
 	if err != nil {
 		return "", err
@@ -126,20 +106,36 @@ func (m *jwtmanager) DecryptRefresh(encryptedToken string) (string, error) {
 	return string(plaintext), nil
 }
 
-func (m *jwtmanager) GenerateAccess(
-	userID *uuid.UUID,
-	sessionID *uuid.UUID,
-	subTypeID *uuid.UUID,
-	idn identity.IdnType,
+func (m Manager) GenerateAccess(
+	userID uuid.UUID,
+	sessionID uuid.UUID,
+	subTypeID uuid.UUID,
+	idn identity.Role,
 ) (string, error) {
-	return tokens.GenerateJWT(m.iss, userID.String(), nil, m.accessTTL, idn, sessionID, userID, subTypeID, m.accessSK)
+	return tokens.GenerateJWT(tokens.GenerateJwtRequest{
+		Issuer:    m.iss,
+		Subject:   userID.String(),
+		SessionID: sessionID,
+		SubsID:    subTypeID,
+		AccountID: userID,
+		Role:      idn,
+		Ttl:       m.accessTTL,
+	}, m.accessSK)
 }
 
-func (m *jwtmanager) GenerateRefresh(
-	userID *uuid.UUID,
-	sessionID *uuid.UUID,
-	subTypeID *uuid.UUID,
-	idn identity.IdnType,
+func (m Manager) GenerateRefresh(
+	userID uuid.UUID,
+	sessionID uuid.UUID,
+	subTypeID uuid.UUID,
+	idn identity.Role,
 ) (string, error) {
-	return tokens.GenerateJWT(m.iss, userID.String(), nil, m.refreshTTL, idn, sessionID, userID, subTypeID, m.refreshSK)
+	return tokens.GenerateJWT(tokens.GenerateJwtRequest{
+		Issuer:    m.iss,
+		Subject:   userID.String(),
+		SessionID: sessionID,
+		SubsID:    subTypeID,
+		AccountID: userID,
+		Role:      idn,
+		Ttl:       m.refreshTTL,
+	}, m.accessSK)
 }

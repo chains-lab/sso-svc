@@ -13,16 +13,37 @@ import (
 	"github.com/hs-zavet/tokens/identity"
 )
 
-func AdminSessionsTerminate(w http.ResponseWriter, r *http.Request) {
-	initiatorID, _, _, initiatorRole, _, err := tokens.GetAccountData(r.Context())
+func (h *Handler) AdminSessionsTerminate(w http.ResponseWriter, r *http.Request) {
+	data, err := tokens.GetAccountData(r.Context())
+	if err != nil {
+		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
+		return
+	}
+
 	accountID, err := uuid.Parse(chi.URLParam(r, "account_id"))
 	if err != nil {
-		Log(r).WithError(err).Warn("Invalid account_id")
 		httpkit.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
 
-	account, err := Domain(r).AccountGet(r.Context(), accountID)
+	account, err := h.app.AccountGetByID(r.Context(), accountID)
+	if err != nil {
+		httpkit.RenderErr(w, problems.InternalError())
+		return
+	}
+
+	accRole, err := identity.ParseIdentityType(account.Role)
+	if err != nil {
+		httpkit.RenderErr(w, problems.InternalError())
+		return
+	}
+
+	if identity.CompareRolesUser(data.Role, accRole) == -1 {
+		httpkit.RenderErr(w, problems.Forbidden("Account can't delete session of account with higher role"))
+		return
+	}
+
+	err = h.app.Terminate(r.Context(), accountID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())
@@ -32,22 +53,5 @@ func AdminSessionsTerminate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if identity.CompareRolesUser(*initiatorRole, account.Role) == -1 {
-		Log(r).Errorf("Account can't terminate sessions of higher level account")
-		httpkit.RenderErr(w, problems.Forbidden("Account can't terminate sessions of higher level account"))
-		return
-	}
-
-	err = Domain(r).SessionsTerminate(r.Context(), accountID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			httpkit.RenderErr(w, problems.NotFound())
-			return
-		}
-		httpkit.RenderErr(w, problems.InternalError("Failed to terminate sessions"))
-		return
-	}
-
-	Log(r).Infof("Sessions terminated for account %s by account %s", accountID, initiatorID)
 	httpkit.Render(w, http.StatusOK)
 }
