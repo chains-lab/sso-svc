@@ -78,7 +78,7 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
-*LoginAPI* | [**ReNewsSsoV1PublicGoogleLoginPost**](docs/LoginAPI.md#renewsssov1publicgoogleloginpost) | **Post** /re-news/sso/v1/public/google/login | 
+*TestAPI* | [**TestPost**](docs/TestAPI.md#testpost) | **Post** /test | 
 
 
 ## Documentation For Models
@@ -89,8 +89,6 @@ Class | Method | HTTP request | Description
  - [Account](docs/Account.md)
  - [AccountData](docs/AccountData.md)
  - [AccountDataAttributes](docs/AccountDataAttributes.md)
- - [ReNewsSsoV1PublicGoogleLoginPost400Response](docs/ReNewsSsoV1PublicGoogleLoginPost400Response.md)
- - [ReNewsSsoV1PublicGoogleLoginPost400ResponseErrorsInner](docs/ReNewsSsoV1PublicGoogleLoginPost400ResponseErrorsInner.md)
  - [RefreshToken](docs/RefreshToken.md)
  - [RefreshTokenData](docs/RefreshTokenData.md)
  - [RefreshTokenDataAttributes](docs/RefreshTokenDataAttributes.md)

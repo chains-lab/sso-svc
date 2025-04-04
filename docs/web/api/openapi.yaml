@@ -6,31 +6,14 @@ info:
 servers:
 - url: /
 paths:
-  /re-news/sso/v1/public/google/login:
+  /test:
     post:
-      description: Endpoint to login use google account
+      description: Test
       responses:
         "201":
-          content:
-            application/vnd.api+json:
-              schema:
-                $ref: '#/components/schemas/TokensPair'
-          description: User successfully login
-        "400":
-          content:
-            application/vnd.api+json:
-              schema:
-                $ref: '#/components/schemas/_re_news_sso_v1_public_google_login_post_400_response'
-          description: One of the parameters is invalid. Refer to the response body
-            for details.
-        "500":
-          content:
-            application/vnd.api+json:
-              schema:
-                $ref: '#/paths/~1re-news~1sso~1v1~1public~1google~1login/post/responses/400/content/application~1vnd.api%2Bjson/schema'
-          description: Internal server error
+          description: successfully
       tags:
-      - Login
+      - Test
 components:
   schemas:
     TokensPair:
@@ -118,43 +101,6 @@ components:
           $ref: '#/components/schemas/Account_data'
       required:
       - data
-      type: object
-    _re_news_sso_v1_public_google_login_post_400_response_errors_inner:
-      properties:
-        title:
-          description: "Title is a short, human-readable summary of the problem"
-          example: Bad Request
-          type: string
-        detail:
-          description: Detail is a human-readable explanation specific to this occurrence
-            of the problem
-          example: Request body was expected
-          type: string
-        status:
-          description: Status is the HTTP status code applicable to this problem
-          enum:
-          - 400
-          - 401
-          - 403
-          - 404
-          - 409
-          - 500
-          example: 400
-          type: integer
-      required:
-      - status
-      - title
-      type: object
-    _re_news_sso_v1_public_google_login_post_400_response:
-      description: Standard JSON:API error
-      properties:
-        errors:
-          description: Non empty array of errors occurred during request processing
-          items:
-            $ref: '#/components/schemas/_re_news_sso_v1_public_google_login_post_400_response_errors_inner'
-          type: array
-      required:
-      - errors
       type: object
     TokensPair_data_attributes:
       properties:

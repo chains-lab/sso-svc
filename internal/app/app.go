@@ -64,13 +64,13 @@ type JWTManager interface {
 		userID uuid.UUID,
 		sessionID uuid.UUID,
 		subTypeID uuid.UUID,
-		idn identity.IdnType,
+		idn identity.Role,
 	) (string, error)
 
 	GenerateRefresh(
 		userID uuid.UUID,
 		sessionID uuid.UUID,
 		subTypeID uuid.UUID,
-		idn identity.IdnType,
+		idn identity.Role,
 	) (string, error)
 }

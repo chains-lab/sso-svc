@@ -44,13 +44,7 @@ func (h *Handler) AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accRole, err := identity.ParseIdentityType(account.Role)
-	if err != nil {
-		httpkit.RenderErr(w, problems.InternalError())
-		return
-	}
-
-	if identity.CompareRolesUser(data.Role, accRole) == -1 {
+	if identity.CompareRolesUser(data.Role, account.Role) == -1 {
 		httpkit.RenderErr(w, problems.Forbidden("Account can't delete session of account with higher role"))
 		return
 	}

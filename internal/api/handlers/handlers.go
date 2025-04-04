@@ -7,7 +7,6 @@ import (
 	"github.com/hs-zavet/sso-oauth/internal/app"
 	"github.com/hs-zavet/sso-oauth/internal/app/models"
 	"github.com/hs-zavet/sso-oauth/internal/config"
-	"github.com/hs-zavet/sso-oauth/internal/repo"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 )
@@ -16,8 +15,8 @@ type App interface {
 	AccountCreate(ctx context.Context, email string) error
 	AccountUpdateSubscription(ctx context.Context, ID uuid.UUID, subscriptionID uuid.UUID) error
 	AccountUpdateRole(ctx context.Context, ID uuid.UUID, role string) error
-	AccountGetByID(ctx context.Context, ID uuid.UUID) (repo.Account, error)
-	AccountGetByEmail(ctx context.Context, email string) (repo.Account, error)
+	AccountGetByID(ctx context.Context, ID uuid.UUID) (models.Account, error)
+	AccountGetByEmail(ctx context.Context, email string) (models.Account, error)
 
 	Login(ctx context.Context, request app.LoginRequest) (models.Session, error)
 	Refresh(ctx context.Context, sessionID uuid.UUID, request app.RefreshRequest) (models.Session, error)

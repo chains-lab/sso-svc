@@ -5,8 +5,16 @@ info:
   version: 0.0.1
 
 paths:
-  /re-news/sso/v1/public/google/login:
-    $ref: './paths/Login.yaml'
+  /test:
+    post:
+      tags:
+        - Test
+      description: Test
+      responses:
+        '201':
+          description: successfully
+#  /re-news/sso/v1/public/google/login:
+#    $ref: './paths/Login.yaml'
 #  /re-news/sso/v1/public/refresh:
 #    $ref: './paths/Refresh.yaml'
 #  /re-news/sso/v1/public/account:
