@@ -17,7 +17,7 @@ func (h *Handler) SessionsTerminate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.app.Terminate(r.Context(), data.SessionID)
+	err = h.app.TerminateByOwner(r.Context(), data.SessionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())

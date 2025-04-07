@@ -43,7 +43,7 @@ type SessionsRepo struct {
 	sql sqldb.SessionsQ
 }
 
-func NewSessions(cfg *config.Config) (SessionsRepo, error) {
+func NewSessions(cfg config.Config) (SessionsRepo, error) {
 	db, err := sql.Open("postgres", cfg.Database.SQL.URL)
 	if err != nil {
 		return SessionsRepo{}, err
@@ -69,24 +69,20 @@ func (s SessionsRepo) Create(ctx context.Context, input SessionCreateRequest) er
 	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
 
-	err := s.sql.New().Transaction(func(ctx context.Context) error {
-		err := s.sql.New().Insert(ctxSync, sqldb.SessionInsertInput{
-			ID:        input.ID,
-			AccountID: input.AccountID,
-			Token:     input.Token,
-			Client:    input.Client,
-			LastUsed:  input.LastUsed,
-			CreatedAt: input.CreatedAt,
-		})
-		if err != nil {
-			return err
-		}
-
-		return nil
+	//err := s.sql.New().Transaction(func(ctx context.Context) error {
+	err := s.sql.New().Insert(ctxSync, sqldb.SessionInsertInput{
+		ID:        input.ID,
+		AccountID: input.AccountID,
+		Token:     input.Token,
+		Client:    input.Client,
+		LastUsed:  input.LastUsed,
+		CreatedAt: input.CreatedAt,
 	})
 	if err != nil {
 		return err
 	}
+
+	//add to redis
 
 	return nil
 }
@@ -108,6 +104,9 @@ func (s SessionsRepo) Update(ctx context.Context, ID uuid.UUID, input SessionUpd
 		return err
 	}
 
+	//get from sql or transfer to function userID
+	//update in redis
+
 	return nil
 }
 
@@ -120,6 +119,9 @@ func (s SessionsRepo) Delete(ctx context.Context, ID uuid.UUID) error {
 		return err
 	}
 
+	//get from sql or transfer to function userID
+	//delete in redis
+
 	return nil
 }
 
@@ -131,6 +133,9 @@ func (s SessionsRepo) Terminate(ctx context.Context, accountID uuid.UUID) error 
 	if err != nil {
 		return err
 	}
+
+	//get from sql or transfer to function sessionIDs
+	//delete in redis
 
 	return nil
 }

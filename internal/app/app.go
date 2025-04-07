@@ -7,7 +7,7 @@ import (
 	"github.com/hs-zavet/sso-oauth/internal/config"
 	"github.com/hs-zavet/sso-oauth/internal/jwtkit"
 	"github.com/hs-zavet/sso-oauth/internal/repo"
-	"github.com/hs-zavet/tokens/identity"
+	"github.com/hs-zavet/tokens/roles"
 )
 
 type App struct {
@@ -16,7 +16,7 @@ type App struct {
 	jwt      JWTManager
 }
 
-func NewApp(cfg *config.Config) (App, error) {
+func NewApp(cfg config.Config) (App, error) {
 	sessions, err := repo.NewSessions(cfg)
 	if err != nil {
 		return App{}, err
@@ -64,13 +64,13 @@ type JWTManager interface {
 		userID uuid.UUID,
 		sessionID uuid.UUID,
 		subTypeID uuid.UUID,
-		idn identity.Role,
+		idn roles.Role,
 	) (string, error)
 
 	GenerateRefresh(
 		userID uuid.UUID,
 		sessionID uuid.UUID,
 		subTypeID uuid.UUID,
-		idn identity.Role,
+		idn roles.Role,
 	) (string, error)
 }

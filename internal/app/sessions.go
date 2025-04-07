@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hs-zavet/sso-oauth/internal/app/models"
 	"github.com/hs-zavet/sso-oauth/internal/repo"
-	"github.com/hs-zavet/tokens/identity"
+	"github.com/hs-zavet/tokens/roles"
 )
 
 type LoginRequest struct {
@@ -34,7 +34,7 @@ func (a App) Login(ctx context.Context, request LoginRequest) (models.Session, e
 			}
 		}
 
-		role, err := identity.ParseIdentityType(account.Role)
+		role, err := roles.ParseRole(account.Role)
 		if err != nil {
 			return err
 		}
@@ -116,7 +116,7 @@ func (a App) Refresh(ctx context.Context, sessionID uuid.UUID, request RefreshRe
 		return models.Session{}, fmt.Errorf("token does not match")
 	}
 
-	role, err := identity.ParseIdentityType(account.Role)
+	role, err := roles.ParseRole(account.Role)
 	if err != nil {
 		return models.Session{}, err
 	}
@@ -159,11 +159,63 @@ func (a App) Logout(ctx context.Context, sessionID uuid.UUID) error {
 	return a.sessions.Delete(ctx, sessionID)
 }
 
-func (a App) Terminate(ctx context.Context, sessionID uuid.UUID) error {
-	return a.sessions.Terminate(ctx, sessionID)
+func (a App) TerminateByOwner(ctx context.Context, accountUD uuid.UUID) error {
+	return a.sessions.Terminate(ctx, accountUD)
 }
 
-func (a App) DeleteSession(ctx context.Context, sessionID uuid.UUID) error {
+func (a App) DeleteSessionByOwner(ctx context.Context, sessionID, initiatorSessionID uuid.UUID) error {
+	if sessionID == initiatorSessionID {
+		return fmt.Errorf("session can't be current")
+	}
+	return a.sessions.Delete(ctx, sessionID)
+}
+
+func (a App) TerminateByAdmin(ctx context.Context, userID uuid.UUID) error {
+	user, err := a.accounts.GetByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	role, err := roles.ParseRole(user.Role)
+	if err != nil {
+		return err
+	}
+
+	if role == roles.SuperUser {
+		return fmt.Errorf("cannot delete superuser")
+	}
+
+	return a.sessions.Terminate(ctx, userID)
+}
+
+func (a App) DeleteSessionByAdmin(ctx context.Context, sessionID, initiatorID, initiatorSessionID uuid.UUID) error {
+	session, err := a.sessions.GetByID(ctx, sessionID)
+	if err != nil {
+		return err
+	}
+
+	if session.ID == initiatorSessionID {
+		return fmt.Errorf("session can't be current")
+	}
+
+	if session.AccountID == initiatorID {
+		return fmt.Errorf("account can't be current")
+	}
+
+	user, err := a.accounts.GetByID(ctx, session.AccountID)
+	if err != nil {
+		return err
+	}
+
+	role, err := roles.ParseRole(user.Role)
+	if err != nil {
+		return err
+	}
+
+	if role == roles.SuperUser {
+		return fmt.Errorf("cannot delete superuser")
+	}
+
 	return a.sessions.Delete(ctx, sessionID)
 }
 

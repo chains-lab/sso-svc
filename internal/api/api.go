@@ -9,29 +9,29 @@ import (
 	"github.com/hs-zavet/sso-oauth/internal/app"
 	"github.com/hs-zavet/sso-oauth/internal/config"
 	"github.com/hs-zavet/tokens"
-	"github.com/hs-zavet/tokens/identity"
+	"github.com/hs-zavet/tokens/roles"
 	"github.com/sirupsen/logrus"
 )
 
 type Api struct {
-	cfg    *config.Config
-	log    *logrus.Logger
+	cfg    config.Config
 	router *chi.Mux
+	log    *logrus.Logger
 }
 
-func NewAPI(cfg *config.Config) Api {
+func NewAPI(cfg config.Config, log *logrus.Logger) Api {
 	return Api{
-		log:    cfg.Log,
 		cfg:    cfg,
 		router: chi.NewRouter(),
+		log:    log,
 	}
 }
 
 func (a *Api) Run(ctx context.Context, app *app.App) {
 	auth := tokens.AuthMdl(a.cfg.JWT.AccessToken.SecretKey)
-	admin := tokens.IdentityMdl(a.cfg.JWT.AccessToken.SecretKey, identity.Admin, identity.SuperUser)
+	admin := tokens.AccessGrant(a.cfg.JWT.AccessToken.SecretKey, roles.Admin, roles.SuperUser)
 
-	h := handlers.NewHandlers(a.cfg, app)
+	h := handlers.NewHandlers(app, a.cfg, a.log)
 
 	a.router.Route("/re-news/sso", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {

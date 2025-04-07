@@ -26,12 +26,9 @@ func (h *Handler) SessionDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if data.SessionID.String() == sessionForDeleteId.String() {
-		httpkit.RenderErr(w, problems.BadRequest(errors.New("session can't be current"))...)
-		return
-	}
+	initiatorSessionID := data.SessionID
 
-	err = h.app.DeleteSession(r.Context(), sessionForDeleteId)
+	err = h.app.DeleteSessionByOwner(r.Context(), sessionForDeleteId, initiatorSessionID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())

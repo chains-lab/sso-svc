@@ -36,13 +36,13 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 
 	tokenString := parts[1]
 
-	accountData, err := tokens.VerifyJWT(r.Context(), tokenString, h.cfg.JWT.AccessToken.SecretKey)
+	accountData, err := tokens.VerifyUserJWT(r.Context(), tokenString, h.cfg.JWT.AccessToken.SecretKey)
 	if err != nil && !errors.Is(err, jwt.ErrTokenExpired) {
 		httpkit.RenderErr(w, problems.Unauthorized())
 		return
 	}
 
-	sessionID := accountData.SessionID
+	sessionID := accountData.Session
 	//accountRole := accountData.Role
 	//subTypeID := accountData.SubID
 

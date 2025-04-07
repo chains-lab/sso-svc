@@ -7,7 +7,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hs-zavet/sso-oauth/internal/config"
+	"github.com/hs-zavet/sso-oauth/internal/repo/redisdb"
 	"github.com/hs-zavet/sso-oauth/internal/repo/sqldb"
+	"github.com/redis/go-redis/v9"
 )
 
 type Account struct {
@@ -38,20 +40,34 @@ type accountSQL interface {
 	Transaction(fn func(ctx context.Context) error) error
 }
 
-type AccountsRepo struct {
-	sql sqldb.AccountQ
+type accountRedis interface {
+	//Add(ctx context.Context, input redisdb.InsertAccountInput) error
+	//GetByID(ctx context.Context, AccountID string) (redisdb.AccountModel, error)
+	//Delete(ctx context.Context, AccountID string) error
+	//Drop(ctx context.Context) error
 }
 
-func NewAccounts(cfg *config.Config) (AccountsRepo, error) {
+type AccountsRepo struct {
+	sql   sqldb.AccountQ
+	redis accountRedis
+}
+
+func NewAccounts(cfg config.Config) (AccountsRepo, error) {
 	db, err := sql.Open("postgres", cfg.Database.SQL.URL)
 	if err != nil {
 		return AccountsRepo{}, err
 	}
 
-	accounts := sqldb.NewAccounts(db)
+	redisImpl := redisdb.NewAccounts(redis.NewClient(&redis.Options{
+		Addr:     cfg.Database.Redis.Addr,
+		Password: cfg.Database.Redis.Password,
+		DB:       cfg.Database.Redis.DB,
+	}), cfg.Database.Redis.Lifetime)
+	sqlImpl := sqldb.NewAccounts(db)
 
 	return AccountsRepo{
-		sql: accounts,
+		sql:   sqlImpl,
+		redis: redisImpl,
 	}, nil
 }
 
@@ -67,16 +83,18 @@ func (a AccountsRepo) Create(ctx context.Context, input AccountCreateRequest) er
 	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
 
-	err := a.sql.New().Insert(ctxSync, sqldb.AccountInsertInput{
+	if err := a.sql.Insert(ctxSync, sqldb.AccountInsertInput{
 		ID:           input.ID,
 		Email:        input.Email,
 		Role:         input.Role,
 		Subscription: input.Subscription,
 		CreatedAt:    input.CreatedAt,
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
+
+	//Create account in redis
+
 	return nil
 }
 
@@ -90,14 +108,17 @@ func (a AccountsRepo) Update(ctx context.Context, ID uuid.UUID, input AccountUpd
 	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
 
-	err := a.sql.New().FilterID(ID).Update(ctxSync, sqldb.AccountUpdateInput{
+	if err := a.sql.New().FilterID(ID).Update(ctxSync, sqldb.AccountUpdateInput{
 		Role:         input.Role,
 		Subscription: input.Subscription,
 		UpdatedAt:    input.UpdatedAt,
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
+
+	//Или я гечу из скл и потом обновляю или передаю юзерайди
+	//Update account in redis
+
 	return nil
 }
 
@@ -105,16 +126,21 @@ func (a AccountsRepo) Delete(ctx context.Context, ID uuid.UUID) error {
 	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
 
-	err := a.sql.New().FilterID(ID).Delete(ctxSync)
-	if err != nil {
+	if err := a.sql.New().FilterID(ID).Delete(ctxSync); err != nil {
 		return err
 	}
+
+	//Или я гечу из скл и потом удаляю или передаю юзерайди
+	//Delete account in redis
+
 	return nil
 }
 
 func (a AccountsRepo) GetByID(ctx context.Context, ID uuid.UUID) (Account, error) {
 	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
+
+	//Check account in redis
 
 	account, err := a.sql.New().FilterID(ID).Get(ctxSync)
 	if err != nil {
@@ -140,6 +166,8 @@ func (a AccountsRepo) GetByID(ctx context.Context, ID uuid.UUID) (Account, error
 func (a AccountsRepo) GetByEmail(ctx context.Context, email string) (Account, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
+
+	//Check account in redis
 
 	account, err := a.sql.New().FilterEmail(email).Get(ctxSync)
 	if err != nil {

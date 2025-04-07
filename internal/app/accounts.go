@@ -2,12 +2,13 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/hs-zavet/sso-oauth/internal/app/models"
 	"github.com/hs-zavet/sso-oauth/internal/repo"
-	"github.com/hs-zavet/tokens/identity"
+	"github.com/hs-zavet/tokens/roles"
 )
 
 func (a App) AccountCreate(ctx context.Context, email string) error {
@@ -17,7 +18,7 @@ func (a App) AccountCreate(ctx context.Context, email string) error {
 	err := a.accounts.Create(ctx, repo.AccountCreateRequest{
 		ID:           ID,
 		Email:        email,
-		Role:         string(identity.User),
+		Role:         string(roles.User),
 		Subscription: uuid.Nil,
 		CreatedAt:    CreatedAt,
 	})
@@ -44,11 +45,15 @@ func (a App) AccountUpdateSubscription(ctx context.Context, ID uuid.UUID, subscr
 	return nil
 }
 
-func (a App) AccountUpdateRole(ctx context.Context, ID uuid.UUID, role string) error {
+func (a App) AccountUpdateRole(ctx context.Context, ID uuid.UUID, role, initiatorRole roles.Role) error {
 	UpdatedAt := time.Now().UTC()
 
+	if roles.CompareRolesUser(role, initiatorRole) != 1 {
+		return fmt.Errorf("user has no permission to update role")
+	}
+
 	err := a.accounts.Update(ctx, ID, repo.AccountUpdateRequest{
-		Role:      role,
+		Role:      string(role),
 		UpdatedAt: UpdatedAt,
 	})
 
@@ -65,7 +70,7 @@ func (a App) AccountGetByID(ctx context.Context, ID uuid.UUID) (models.Account, 
 		return models.Account{}, err
 	}
 
-	role, err := identity.ParseIdentityType(account.Role)
+	role, err := roles.ParseRole(account.Role)
 	if err != nil {
 		return models.Account{}, err
 	}
@@ -86,7 +91,7 @@ func (a App) AccountGetByEmail(ctx context.Context, email string) (models.Accoun
 		return models.Account{}, err
 	}
 
-	role, err := identity.ParseIdentityType(account.Role)
+	role, err := roles.ParseRole(account.Role)
 	if err != nil {
 		return models.Account{}, err
 	}

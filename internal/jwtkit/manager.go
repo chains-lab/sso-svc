@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hs-zavet/sso-oauth/internal/config"
 	"github.com/hs-zavet/tokens"
-	"github.com/hs-zavet/tokens/identity"
+	"github.com/hs-zavet/tokens/roles"
 	"github.com/pkg/errors"
 )
 
@@ -25,7 +25,7 @@ type Manager struct {
 	iss string
 }
 
-func NewManager(cfg *config.Config) Manager {
+func NewManager(cfg config.Config) Manager {
 	return Manager{
 		accessSK:  cfg.JWT.AccessToken.SecretKey,
 		refreshSK: cfg.JWT.RefreshToken.SecretKey,
@@ -110,16 +110,15 @@ func (m Manager) GenerateAccess(
 	userID uuid.UUID,
 	sessionID uuid.UUID,
 	subTypeID uuid.UUID,
-	idn identity.Role,
+	idn roles.Role,
 ) (string, error) {
-	return tokens.GenerateJWT(tokens.GenerateJwtRequest{
-		Issuer:    m.iss,
-		Subject:   userID.String(),
-		SessionID: sessionID,
-		SubsID:    subTypeID,
-		AccountID: userID,
-		Role:      idn,
-		Ttl:       m.accessTTL,
+	return tokens.GenerateUserJWT(tokens.GenerateUserJwtRequest{
+		Issuer:       m.iss,
+		Account:      userID,
+		Session:      sessionID,
+		Subscription: subTypeID,
+		Role:         idn,
+		Ttl:          m.accessTTL,
 	}, m.accessSK)
 }
 
@@ -127,15 +126,14 @@ func (m Manager) GenerateRefresh(
 	userID uuid.UUID,
 	sessionID uuid.UUID,
 	subTypeID uuid.UUID,
-	idn identity.Role,
+	idn roles.Role,
 ) (string, error) {
-	return tokens.GenerateJWT(tokens.GenerateJwtRequest{
-		Issuer:    m.iss,
-		Subject:   userID.String(),
-		SessionID: sessionID,
-		SubsID:    subTypeID,
-		AccountID: userID,
-		Role:      idn,
-		Ttl:       m.refreshTTL,
-	}, m.accessSK)
+	return tokens.GenerateUserJWT(tokens.GenerateUserJwtRequest{
+		Issuer:       m.iss,
+		Account:      userID,
+		Session:      sessionID,
+		Subscription: subTypeID,
+		Role:         idn,
+		Ttl:          m.refreshTTL,
+	}, m.refreshSK)
 }

@@ -5,7 +5,7 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-func InitGoogleOAuth(cfg *Config) oauth2.Config {
+func InitGoogleOAuth(cfg Config) oauth2.Config {
 	return oauth2.Config{
 		ClientID:     cfg.OAuth.Google.ClientID,
 		ClientSecret: cfg.OAuth.Google.ClientSecret,

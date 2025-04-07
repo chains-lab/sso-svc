@@ -1,8 +1,11 @@
 package config
 
-import "github.com/hs-zavet/comtools/logkit"
+import (
+	"github.com/hs-zavet/comtools/logkit"
+	"github.com/sirupsen/logrus"
+)
 
-func (c *Config) LogSetup() {
-	logger := logkit.SetupLogger(c.Server.Log.Level, c.Server.Log.Format)
-	c.Log = logger
+func Logger(cfg Config) *logrus.Logger {
+	logger := logkit.SetupLogger(cfg.Server.Log.Level, cfg.Server.Log.Format)
+	return logger
 }

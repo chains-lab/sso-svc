@@ -15,7 +15,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.app.DeleteSession(r.Context(), data.SessionID)
+	err = h.app.Logout(r.Context(), data.SessionID)
 	if err != nil {
 		httpkit.RenderErr(w, problems.InternalError())
 		return

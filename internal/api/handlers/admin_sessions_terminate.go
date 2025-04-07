@@ -10,7 +10,6 @@ import (
 	"github.com/hs-zavet/comtools/httpkit"
 	"github.com/hs-zavet/comtools/httpkit/problems"
 	"github.com/hs-zavet/tokens"
-	"github.com/hs-zavet/tokens/identity"
 )
 
 func (h *Handler) AdminSessionsTerminate(w http.ResponseWriter, r *http.Request) {
@@ -25,25 +24,12 @@ func (h *Handler) AdminSessionsTerminate(w http.ResponseWriter, r *http.Request)
 		httpkit.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
-
-	account, err := h.app.AccountGetByID(r.Context(), accountID)
-	if err != nil {
-		httpkit.RenderErr(w, problems.InternalError())
-		return
-	}
-	//
-	//accRole, err := identity.ParseIdentityType(account.Role)
-	//if err != nil {
-	//	httpkit.RenderErr(w, problems.InternalError())
-	//	return
-	//}
-
-	if identity.CompareRolesUser(data.Role, account.Role) == -1 {
-		httpkit.RenderErr(w, problems.Forbidden("Account can't delete session of account with higher role"))
+	if data.AccountID == accountID {
+		httpkit.RenderErr(w, problems.Forbidden("You cannot terminate your own session"))
 		return
 	}
 
-	err = h.app.Terminate(r.Context(), accountID)
+	err = h.app.TerminateByAdmin(r.Context(), accountID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpkit.RenderErr(w, problems.NotFound())

@@ -9,7 +9,7 @@ import (
 	"github.com/hs-zavet/comtools/httpkit"
 	"github.com/hs-zavet/comtools/httpkit/problems"
 	"github.com/hs-zavet/tokens"
-	"github.com/hs-zavet/tokens/identity"
+	"github.com/hs-zavet/tokens/roles"
 )
 
 func (h *Handler) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
@@ -27,7 +27,7 @@ func (h *Handler) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedRole, err := identity.ParseIdentityType(chi.URLParam(r, "role"))
+	updatedRole, err := roles.ParseRole(chi.URLParam(r, "role"))
 	if err != nil {
 		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
 			"role": validation.NewError("role", "invalid role"),
@@ -35,12 +35,7 @@ func (h *Handler) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if identity.CompareRolesUser(data.Role, updatedRole) != 1 {
-		httpkit.RenderErr(w, problems.Forbidden("Account can't update role to higher level"))
-		return
-	}
-
-	err = h.app.AccountUpdateRole(r.Context(), updatedAccountID, string(updatedRole))
+	err = h.app.AccountUpdateRole(r.Context(), updatedAccountID, updatedRole, data.Role)
 	if err != nil {
 		httpkit.RenderErr(w, problems.InternalError())
 		return

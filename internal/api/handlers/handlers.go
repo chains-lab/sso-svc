@@ -7,38 +7,41 @@ import (
 	"github.com/hs-zavet/sso-oauth/internal/app"
 	"github.com/hs-zavet/sso-oauth/internal/app/models"
 	"github.com/hs-zavet/sso-oauth/internal/config"
+	"github.com/hs-zavet/tokens/roles"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 )
 
 type App interface {
 	AccountCreate(ctx context.Context, email string) error
-	AccountUpdateSubscription(ctx context.Context, ID uuid.UUID, subscriptionID uuid.UUID) error
-	AccountUpdateRole(ctx context.Context, ID uuid.UUID, role string) error
+	AccountUpdateSubscription(ctx context.Context, ID uuid.UUID, subscriptionID uuid.UUID) error //need userID transfer mb
+	AccountUpdateRole(ctx context.Context, ID uuid.UUID, role, initiatorRole roles.Role) error   //have userID transfer
 	AccountGetByID(ctx context.Context, ID uuid.UUID) (models.Account, error)
 	AccountGetByEmail(ctx context.Context, email string) (models.Account, error)
 
 	Login(ctx context.Context, request app.LoginRequest) (models.Session, error)
-	Refresh(ctx context.Context, sessionID uuid.UUID, request app.RefreshRequest) (models.Session, error)
-	Logout(ctx context.Context, sessionID uuid.UUID) error
-	Terminate(ctx context.Context, sessionID uuid.UUID) error
-	DeleteSession(ctx context.Context, sessionID uuid.UUID) error
+	Refresh(ctx context.Context, sessionID uuid.UUID, request app.RefreshRequest) (models.Session, error) //need userID transfer mb
+	Logout(ctx context.Context, sessionID uuid.UUID) error                                                //need userID transfer mb
+	TerminateByOwner(ctx context.Context, accountID uuid.UUID) error
+	DeleteSessionByOwner(ctx context.Context, sessionID, initiatorSessionID uuid.UUID) error              //need userID transfer mb
+	TerminateByAdmin(ctx context.Context, sessionID uuid.UUID) error                                      //need userID transfer mb
+	DeleteSessionByAdmin(ctx context.Context, sessionID, initiatorID, initiatorSessionID uuid.UUID) error //need userID transfer mb
 	GetSession(ctx context.Context, sessionID uuid.UUID) (models.Session, error)
 	GetSessions(ctx context.Context, accountID uuid.UUID) ([]models.Session, error)
 }
 
 type Handler struct {
-	log    *logrus.Logger
-	google oauth2.Config
 	app    App
-	cfg    *config.Config
+	cfg    config.Config
+	google oauth2.Config
+	log    *logrus.Logger
 }
 
-func NewHandlers(cfg *config.Config, app *app.App) *Handler {
+func NewHandlers(app *app.App, cfg config.Config, log *logrus.Logger) *Handler {
 	return &Handler{
-		log:    cfg.Log,
 		app:    app,
-		google: config.InitGoogleOAuth(cfg),
 		cfg:    cfg,
+		google: config.InitGoogleOAuth(cfg),
+		log:    log,
 	}
 }

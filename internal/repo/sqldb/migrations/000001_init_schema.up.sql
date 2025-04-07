@@ -14,7 +14,6 @@ CREATE TABLE sessions (
     account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
     token TEXT NOT NULL,
     client TEXT NOT NULL,
-    IP TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     last_used TIMESTAMP NOT NULL DEFAULT now()
 );

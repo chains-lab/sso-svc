@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/hs-zavet/tokens/identity"
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
 )
@@ -14,12 +13,12 @@ import (
 const accountsCollection = "accounts"
 
 type AccountModel struct {
-	ID           uuid.UUID        `json:"id"`
-	Email        string           `json:"email"`
-	Role         identity.IdnType `json:"role"`
-	Subscription uuid.UUID        `json:"subscription,omitempty"`
-	UpdatedAt    time.Time        `json:"updated_at"`
-	CreatedAt    time.Time        `json:"created_at"`
+	ID           uuid.UUID  `json:"id"`
+	Email        string     `json:"email"`
+	Role         string     `json:"role"`
+	Subscription uuid.UUID  `json:"subscription,omitempty"`
+	UpdatedAt    *time.Time `db:"updated_at,omitempty"`
+	CreatedAt    time.Time  `json:"created_at"`
 }
 
 type Accounts struct {
@@ -27,36 +26,46 @@ type Accounts struct {
 	lifeTime time.Duration
 }
 
-func NewAccounts(client *redis.Client, lifetime time.Duration) Accounts {
+func NewAccounts(client *redis.Client, lifetime int) Accounts {
 	return Accounts{
 		client:   client,
-		lifeTime: lifetime,
+		lifeTime: time.Duration(lifetime) * time.Minute,
 	}
 }
 
-type AddAccountInput struct {
-	ID           uuid.UUID        `json:"id"`
-	Email        string           `json:"email"`
-	Role         identity.IdnType `json:"role"`
-	Subscription uuid.UUID        `json:"subscription,omitempty"`
-	UpdatedAt    time.Time        `json:"updated_at"`
-	CreatedAt    time.Time        `json:"created_at"`
+type InsertAccountInput struct {
+	ID           uuid.UUID  `json:"id"`
+	Email        string     `json:"email"`
+	Role         string     `json:"role"`
+	Subscription uuid.UUID  `json:"subscription,omitempty"`
+	UpdatedAt    *time.Time `json:"updated_at,omitempty"`
+	CreatedAt    time.Time  `json:"created_at"`
 }
 
-func (a Accounts) Add(ctx context.Context, input AddAccountInput) error {
+func (a Accounts) Create(ctx context.Context, input InsertAccountInput) error {
 	accountKey := fmt.Sprintf("%s:id:%s", accountsCollection, input.ID)
 	emailKey := fmt.Sprintf("%s:email:%s", accountsCollection, input.Email)
 
+	exists, err := a.client.Exists(ctx, accountKey).Result()
+	if err != nil {
+		return fmt.Errorf("error checking account existence: %w", err)
+	}
+	if exists > 0 {
+		return errors.New("account already exists")
+	}
+
 	data := map[string]interface{}{
 		"email":        input.Email,
-		"role":         string(input.Role),
+		"role":         input.Role,
 		"subscription": input.Subscription.String(),
 		"created_at":   input.CreatedAt.Format(time.RFC3339),
-		"updated_at":   input.UpdatedAt.Format(time.RFC3339),
+	}
+	if input.UpdatedAt != nil {
+		data["updated_at"] = input.UpdatedAt.Format(time.RFC3339)
 	}
 
 	if err := a.client.HSet(ctx, accountKey, data).Err(); err != nil {
-		return fmt.Errorf("error adding input to Redis: %w", err)
+		return fmt.Errorf("error adding account to Redis: %w", err)
 	}
 
 	if err := a.client.Set(ctx, emailKey, input.ID.String(), 0).Err(); err != nil {
@@ -69,10 +78,85 @@ func (a Accounts) Add(ctx context.Context, input AddAccountInput) error {
 		for _, key := range keys {
 			pipe.Expire(ctx, key, a.lifeTime)
 		}
-		_, err := pipe.Exec(ctx)
-		if err != nil && !errors.Is(err, redis.Nil) {
+		if _, err := pipe.Exec(ctx); err != nil {
 			return fmt.Errorf("error setting expiration for keys: %w", err)
 		}
+	}
+
+	return nil
+}
+
+func (a Accounts) Set(ctx context.Context, input InsertAccountInput) error {
+	accountKey := fmt.Sprintf("%s:id:%s", accountsCollection, input.ID)
+	emailKey := fmt.Sprintf("%s:email:%s", accountsCollection, input.Email)
+
+	if err := a.client.Del(ctx, accountKey, emailKey).Err(); err != nil {
+		return fmt.Errorf("error deleting existing keys: %w", err)
+	}
+
+	data := map[string]interface{}{
+		"email":        input.Email,
+		"role":         input.Role,
+		"subscription": input.Subscription.String(),
+		"created_at":   input.CreatedAt.Format(time.RFC3339),
+	}
+	if input.UpdatedAt != nil {
+		data["updated_at"] = input.UpdatedAt.Format(time.RFC3339)
+	}
+
+	if err := a.client.HSet(ctx, accountKey, data).Err(); err != nil {
+		return fmt.Errorf("error setting account in Redis: %w", err)
+	}
+
+	if err := a.client.Set(ctx, emailKey, input.ID.String(), 0).Err(); err != nil {
+		return fmt.Errorf("error creating email index: %w", err)
+	}
+
+	if a.lifeTime > 0 {
+		pipe := a.client.Pipeline()
+		keys := []string{accountKey, emailKey}
+		for _, key := range keys {
+			pipe.Expire(ctx, key, a.lifeTime)
+		}
+		if _, err := pipe.Exec(ctx); err != nil {
+			return fmt.Errorf("error setting expiration for keys: %w", err)
+		}
+	}
+
+	return nil
+}
+
+type AccountUpdateRequest struct {
+	Role         *string    `json:"role"`
+	Subscription *uuid.UUID `json:"subscription,omitempty"`
+	UpdatedAt    time.Time  `json:"updated_at,omitempty"`
+}
+
+func (a Accounts) Update(ctx context.Context, accountID uuid.UUID, input AccountUpdateRequest) error {
+	accountKey := fmt.Sprintf("%s:id:%s", accountsCollection, accountID)
+
+	exists, err := a.client.Exists(ctx, accountKey).Result()
+	if err != nil {
+		return fmt.Errorf("error checking account existence: %w", err)
+	}
+	if exists == 0 {
+		return fmt.Errorf("account not found, id=%s", accountID)
+	}
+
+	data := make(map[string]interface{})
+
+	if input.Role != nil {
+		data["role"] = input.Role
+	}
+
+	if input.Subscription != nil {
+		data["subscription"] = input.Subscription
+	}
+
+	data["updated_at"] = input.UpdatedAt.Format(time.RFC3339)
+
+	if err := a.client.HSet(ctx, accountKey, data).Err(); err != nil {
+		return fmt.Errorf("error updating account in Redis: %w", err)
 	}
 
 	return nil
@@ -155,32 +239,36 @@ func parseAccount(AccountID string, vals map[string]string) (AccountModel, error
 		return AccountModel{}, fmt.Errorf("error parsing created_at: %w", err)
 	}
 
-	updatedAt, err := time.Parse(time.RFC3339, vals["updated_at"])
-	if err != nil {
-		return AccountModel{}, fmt.Errorf("error parsing updated_at: %w", err)
-	}
-
 	ID, err := uuid.Parse(AccountID)
 	if err != nil {
 		return AccountModel{}, fmt.Errorf("error parsing AccountID: %w", err)
 	}
 
-	role, err := identity.ParseIdentityType(vals["role"])
-	if err != nil {
-		return AccountModel{}, fmt.Errorf("error parsing role: %w", err)
-	}
+	//role, err := roles.ParseRole(vals["role"])
+	//if err != nil {
+	//	return AccountModel{}, fmt.Errorf("error parsing role: %w", err)
+	//}
 
 	subscription, err := uuid.Parse(vals["subscription"])
 	if err != nil {
 		return AccountModel{}, fmt.Errorf("error parsing subscription: %w", err)
 	}
 
-	return AccountModel{
+	res := AccountModel{
 		ID:           ID,
 		Email:        vals["email"],
-		Role:         role,
+		Role:         vals["role"],
 		Subscription: subscription,
 		CreatedAt:    createdAt,
-		UpdatedAt:    updatedAt,
-	}, nil
+	}
+
+	if lastUsed, ok := vals["updated_at"]; ok {
+		ua, err := time.Parse(time.RFC3339, lastUsed)
+		if err != nil {
+			return AccountModel{}, fmt.Errorf("error parsing last_used: %w", err)
+		}
+		res.UpdatedAt = &ua
+	}
+
+	return res, nil
 }
