@@ -8,6 +8,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
+	"github.com/hs-zavet/tokens/roles"
 )
 
 const accountsTable = "accounts"
@@ -15,7 +16,7 @@ const accountsTable = "accounts"
 type AccountModel struct {
 	ID           uuid.UUID  `db:"id"`
 	Email        string     `db:"email"`
-	Role         string     `db:"role"`
+	Role         roles.Role `db:"role"`
 	Subscription uuid.UUID  `db:"subscription"`
 	UpdatedAt    *time.Time `db:"updated_at,omitempty"`
 	CreatedAt    time.Time  `db:"created_at"`
@@ -49,7 +50,7 @@ func (a AccountQ) New() AccountQ {
 type AccountInsertInput struct {
 	ID           uuid.UUID
 	Email        string
-	Role         string
+	Role         roles.Role
 	Subscription uuid.UUID
 	CreatedAt    time.Time
 }
@@ -80,8 +81,8 @@ func (a AccountQ) Insert(ctx context.Context, input AccountInsertInput) error {
 }
 
 type AccountUpdateInput struct {
-	Role         string
-	Subscription uuid.UUID
+	Role         *roles.Role
+	Subscription *uuid.UUID
 	UpdatedAt    time.Time
 }
 
@@ -211,7 +212,7 @@ func (a AccountQ) FilterEmail(email string) AccountQ {
 	return a
 }
 
-func (a AccountQ) FilterRole(role string) AccountQ {
+func (a AccountQ) FilterRole(role roles.Role) AccountQ {
 	a.selector = a.selector.Where(sq.Eq{"role": role})
 	a.counter = a.counter.Where(sq.Eq{"role": role})
 	a.deleter = a.deleter.Where(sq.Eq{"role": role})

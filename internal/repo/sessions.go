@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hs-zavet/sso-oauth/internal/config"
+	"github.com/hs-zavet/sso-oauth/internal/repo/redisdb"
 	"github.com/hs-zavet/sso-oauth/internal/repo/sqldb"
 )
 
@@ -39,8 +40,20 @@ type SessionSQL interface {
 	Page(limit, offset uint64) sqldb.SessionsQ
 }
 
+type sessionsRedis interface {
+	Set(ctx context.Context, input redisdb.SessionCreateInput) error
+	Create(ctx context.Context, input redisdb.SessionCreateInput) error
+	GetByID(ctx context.Context, sessionID string) (redisdb.SessionModel, error)
+	GetByAccountID(ctx context.Context, accountID string) ([]redisdb.SessionModel, error)
+	Update(ctx context.Context, sessionID, userID uuid.UUID, update redisdb.SessionUpdateInput) error
+	Delete(ctx context.Context, sessionID uuid.UUID) error
+	Terminate(ctx context.Context, accountID uuid.UUID) error
+	Drop(ctx context.Context) error
+}
+
 type SessionsRepo struct {
-	sql sqldb.SessionsQ
+	sql   sqldb.SessionsQ
+	redis sessionsRedis
 }
 
 func NewSessions(cfg config.Config) (SessionsRepo, error) {
@@ -61,7 +74,6 @@ type SessionCreateRequest struct {
 	AccountID uuid.UUID `json:"account_id"`
 	Token     string    `json:"token"`
 	Client    string    `json:"client"`
-	LastUsed  time.Time `json:"last_used"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -69,32 +81,47 @@ func (s SessionsRepo) Create(ctx context.Context, input SessionCreateRequest) er
 	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
 
-	//err := s.sql.New().Transaction(func(ctx context.Context) error {
 	err := s.sql.New().Insert(ctxSync, sqldb.SessionInsertInput{
 		ID:        input.ID,
 		AccountID: input.AccountID,
 		Token:     input.Token,
 		Client:    input.Client,
-		LastUsed:  input.LastUsed,
+		LastUsed:  input.CreatedAt,
 		CreatedAt: input.CreatedAt,
 	})
 	if err != nil {
 		return err
 	}
 
-	//add to redis
+	err = s.redis.Create(ctx, redisdb.SessionCreateInput{
+		ID:        input.ID,
+		AccountID: input.AccountID,
+		Token:     input.Token,
+		Client:    input.Client,
+		LastUsed:  input.CreatedAt,
+		CreatedAt: input.CreatedAt,
+	})
+	if err != nil {
+		//Todo log error
+	}
 
 	return nil
 }
 
 type SessionUpdateRequest struct {
-	Token    string    `json:"token"`
+	Token    *string   `json:"token"`
 	LastUsed time.Time `json:"last_used"`
 }
 
 func (s SessionsRepo) Update(ctx context.Context, ID uuid.UUID, input SessionUpdateRequest) error {
 	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
+
+	var sqlInput sqldb.SessionUpdateInput
+	if input.Token != nil {
+		sqlInput.Token = input.Token
+	}
+	sqlInput.LastUsed = input.LastUsed
 
 	err := s.sql.New().FilterID(ID).Update(ctxSync, sqldb.SessionUpdateInput{
 		Token:    input.Token,
@@ -104,23 +131,36 @@ func (s SessionsRepo) Update(ctx context.Context, ID uuid.UUID, input SessionUpd
 		return err
 	}
 
-	//get from sql or transfer to function userID
-	//update in redis
-
-	return nil
-}
-
-func (s SessionsRepo) Delete(ctx context.Context, ID uuid.UUID) error {
-	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
-	defer cancel()
-
-	err := s.sql.New().FilterID(ID).Delete(ctxSync)
+	session, err := s.sql.New().FilterID(ID).Get(ctxSync)
 	if err != nil {
 		return err
 	}
 
-	//get from sql or transfer to function userID
-	//delete in redis
+	err = s.redis.Set(ctx, redisdb.SessionCreateInput{
+		ID:        session.ID,
+		AccountID: session.AccountID,
+		Token:     session.Token,
+		Client:    session.Client,
+		LastUsed:  session.LastUsed,
+		CreatedAt: session.CreatedAt,
+	})
+	if err != nil {
+
+	}
+
+	return nil
+}
+
+func (s SessionsRepo) Delete(ctx context.Context, sessionID uuid.UUID) error {
+	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
+	defer cancel()
+
+	err := s.sql.New().FilterID(sessionID).Delete(ctxSync)
+	if err != nil {
+		return err
+	}
+
+	err = s.redis.Delete(ctx, sessionID)
 
 	return nil
 }
@@ -134,8 +174,7 @@ func (s SessionsRepo) Terminate(ctx context.Context, accountID uuid.UUID) error 
 		return err
 	}
 
-	//get from sql or transfer to function sessionIDs
-	//delete in redis
+	err = s.redis.Terminate(ctx, accountID)
 
 	return nil
 }
@@ -144,9 +183,34 @@ func (s SessionsRepo) GetByID(ctx context.Context, ID uuid.UUID) (Session, error
 	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
 
+	redisRes, err := s.redis.GetByID(ctx, ID.String())
+	if err != nil {
+		//TODO: log
+	} else {
+		return Session{
+			ID:        redisRes.ID,
+			AccountID: redisRes.AccountID,
+			Token:     redisRes.Token,
+			Client:    redisRes.Client,
+			CreatedAt: redisRes.CreatedAt,
+			LastUsed:  redisRes.LastUsed,
+		}, nil
+	}
+
 	session, err := s.sql.New().FilterID(ID).Get(ctxSync)
 	if err != nil {
 		return Session{}, err
+	}
+
+	if err := s.redis.Set(ctxSync, redisdb.SessionCreateInput{
+		ID:        session.ID,
+		AccountID: session.AccountID,
+		Token:     session.Token,
+		Client:    session.Client,
+		LastUsed:  session.LastUsed,
+		CreatedAt: session.CreatedAt,
+	}); err != nil {
+		//TODO: log
 	}
 
 	return Session{
@@ -163,6 +227,24 @@ func (s SessionsRepo) GetByAccountID(ctx context.Context, accountID uuid.UUID) (
 	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
 
+	redisRes, err := s.redis.GetByAccountID(ctx, accountID.String())
+	if err != nil {
+		//TODO: log
+	} else {
+		var result []Session
+		for _, session := range redisRes {
+			result = append(result, Session{
+				ID:        session.ID,
+				AccountID: session.AccountID,
+				Token:     session.Token,
+				Client:    session.Client,
+				CreatedAt: session.CreatedAt,
+				LastUsed:  session.LastUsed,
+			})
+		}
+		return result, nil
+	}
+
 	sessions, err := s.sql.New().FilterAccountID(accountID).Select(ctxSync)
 	if err != nil {
 		return nil, err
@@ -178,6 +260,17 @@ func (s SessionsRepo) GetByAccountID(ctx context.Context, accountID uuid.UUID) (
 			CreatedAt: session.CreatedAt,
 			LastUsed:  session.LastUsed,
 		})
+
+		if err := s.redis.Set(ctxSync, redisdb.SessionCreateInput{
+			ID:        session.ID,
+			AccountID: session.AccountID,
+			Token:     session.Token,
+			Client:    session.Client,
+			CreatedAt: session.CreatedAt,
+			LastUsed:  session.LastUsed,
+		}); err != nil {
+			//TODO: log
+		}
 	}
 
 	return result, nil

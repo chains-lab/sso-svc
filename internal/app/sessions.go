@@ -90,7 +90,7 @@ type RefreshRequest struct {
 	Client string `json:"client"`
 }
 
-func (a App) Refresh(ctx context.Context, sessionID uuid.UUID, request RefreshRequest) (models.Session, error) {
+func (a App) Refresh(ctx context.Context, accountID, sessionID uuid.UUID, request RefreshRequest) (models.Session, error) {
 	LastUsed := time.Now().UTC()
 
 	session, err := a.sessions.GetByID(ctx, sessionID)

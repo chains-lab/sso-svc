@@ -82,7 +82,7 @@ func (s SessionsQ) Insert(ctx context.Context, input SessionInsertInput) error {
 }
 
 type SessionUpdateInput struct {
-	Token    string
+	Token    *string
 	LastUsed time.Time
 }
 

@@ -2,7 +2,6 @@ package redisdb
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -17,9 +16,8 @@ type SessionModel struct {
 	AccountID uuid.UUID `json:"account_id"`
 	Token     string    `json:"token"`
 	Client    string    `json:"client"`
-
-	LastUsed  *time.Time `db:"last_used"`
-	CreatedAt time.Time  `db:"created_at"`
+	LastUsed  time.Time `json:"last_used,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type Sessions struct {
@@ -34,26 +32,88 @@ func NewSessions(client *redis.Client, lifetime int) Sessions {
 	}
 }
 
-type InsertSessionInput struct {
+type SessionSetInput struct {
 	ID        uuid.UUID `json:"id"`
 	AccountID uuid.UUID `json:"account_id"`
 	Token     string    `json:"token"`
 	Client    string    `json:"client"`
-
-	LastUsed  *time.Time `json:"last_used,omitempty"`
-	CreatedAt time.Time  `json:"created_at"`
+	LastUsed  time.Time `json:"last_used,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
-func (s Sessions) Create(ctx context.Context, input InsertSessionInput) error {
-	sessionKey := fmt.Sprintf("%s:id:%s", sessionsCollection, input.ID)
-	accountSessionsKey := fmt.Sprintf("%s:account:%s", sessionsCollection, input.AccountID)
+func (s Sessions) Set(ctx context.Context, input SessionCreateInput) error {
+	sessionKey := fmt.Sprintf("%s:id:%s", sessionsCollection, input.ID.String())
+	accountSessionsKey := fmt.Sprintf("%s:account:%s", sessionsCollection, input.AccountID.String())
 
+	//// Проверка на существование сессии.
+	//exists, err := s.client.Exists(ctx, sessionKey).Result()
+	//if err != nil {
+	//	return fmt.Errorf("error checking session existence: %w", err)
+	//}
+	//if exists > 0 {
+	//	return fmt.Errorf("session already exists")
+	//}
+
+	if err := s.client.Del(ctx, sessionKey).Err(); err != nil {
+		//return fmt.Errorf("error deleting existing session key: %w", err)
+	}
+
+	// Обновляем индекс email: в emailIndexKey ставим для поля input.Email значение input.ID.
+	if err := s.client.HDel(ctx, accountSessionsKey, input.AccountID.String()).Err(); err != nil {
+		// Если ключа нет, можно проигнорировать ошибку.
+	}
+
+	data := map[string]interface{}{
+		"account_id": input.AccountID.String(),
+		"token":      input.Token,
+		"client":     input.Client,
+		"created_at": input.CreatedAt.Format(time.RFC3339),
+		"last_used":  input.LastUsed.Format(time.RFC3339),
+	}
+
+	if err := s.client.HSet(ctx, sessionKey, data).Err(); err != nil {
+		return fmt.Errorf("error adding session to Redis: %w", err)
+	}
+
+	if err := s.client.SAdd(ctx, accountSessionsKey, input.ID.String()).Err(); err != nil {
+		return fmt.Errorf("error indexing session under account: %w", err)
+	}
+
+	if s.lifeTime > 0 {
+		pipe := s.client.Pipeline()
+		pipe.Expire(ctx, sessionKey, s.lifeTime)
+		pipe.Expire(ctx, accountSessionsKey, s.lifeTime)
+		if _, err := pipe.Exec(ctx); err != nil {
+			return fmt.Errorf("error setting expiration for session keys: %w", err)
+		}
+	}
+
+	return nil
+}
+
+type SessionCreateInput struct {
+	ID        uuid.UUID `json:"id"`
+	AccountID uuid.UUID `json:"account_id"`
+	Token     string    `json:"token"`
+	Client    string    `json:"client"`
+	LastUsed  time.Time `json:"last_used,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// Create создаёт новую сессию, если с таким sessionID еще нет.
+// Помимо сохранения данных в hash по ключу sessions:id:<sessionID>,
+// идентификатор сессии добавляется в множество sessions:account:<accountID>.
+func (s Sessions) Create(ctx context.Context, input SessionCreateInput) error {
+	sessionKey := fmt.Sprintf("%s:id:%s", sessionsCollection, input.ID.String())
+	accountSessionsKey := fmt.Sprintf("%s:account:%s", sessionsCollection, input.AccountID.String())
+
+	// Проверка на существование сессии.
 	exists, err := s.client.Exists(ctx, sessionKey).Result()
 	if err != nil {
 		return fmt.Errorf("error checking session existence: %w", err)
 	}
 	if exists > 0 {
-		return errors.New("session already exists")
+		return fmt.Errorf("session already exists")
 	}
 
 	data := map[string]interface{}{
@@ -61,211 +121,133 @@ func (s Sessions) Create(ctx context.Context, input InsertSessionInput) error {
 		"token":      input.Token,
 		"client":     input.Client,
 		"created_at": input.CreatedAt.Format(time.RFC3339),
-	}
-	if input.LastUsed != nil {
-		data["last_used"] = input.LastUsed.Format(time.RFC3339)
+		"last_used":  input.LastUsed.Format(time.RFC3339),
 	}
 
 	if err := s.client.HSet(ctx, sessionKey, data).Err(); err != nil {
-		return fmt.Errorf("error adding input to Redis: %w", err)
+		return fmt.Errorf("error adding session to Redis: %w", err)
 	}
 
 	if err := s.client.SAdd(ctx, accountSessionsKey, input.ID.String()).Err(); err != nil {
-		return fmt.Errorf("error indexing input under account_id: %w", err)
+		return fmt.Errorf("error indexing session under account: %w", err)
 	}
 
 	if s.lifeTime > 0 {
 		pipe := s.client.Pipeline()
-		keys := []string{sessionKey, accountSessionsKey}
-		for _, key := range keys {
-			pipe.Expire(ctx, key, s.lifeTime)
-		}
-		_, err := pipe.Exec(ctx)
-		if err != nil && !errors.Is(err, redis.Nil) {
-			return fmt.Errorf("error setting expiration for keys: %w", err)
+		pipe.Expire(ctx, sessionKey, s.lifeTime)
+		pipe.Expire(ctx, accountSessionsKey, s.lifeTime)
+		if _, err := pipe.Exec(ctx); err != nil {
+			return fmt.Errorf("error setting expiration for session keys: %w", err)
 		}
 	}
 
 	return nil
 }
 
-func (s Sessions) Set(ctx context.Context, input InsertSessionInput) error {
-	sessionKey := fmt.Sprintf("%s:id:%s", sessionsCollection, input.ID)
-	accountSessionsKey := fmt.Sprintf("%s:account:%s", sessionsCollection, input.AccountID)
-
-	data := map[string]interface{}{
-		"account_id": input.AccountID.String(),
-		"token":      input.Token,
-		"client":     input.Client,
-		"created_at": input.CreatedAt.Format(time.RFC3339),
-	}
-	if input.LastUsed != nil {
-		data["last_used"] = input.LastUsed.Format(time.RFC3339)
-	}
-
-	if err := s.client.HSet(ctx, sessionKey, data).Err(); err != nil {
-		return fmt.Errorf("error adding input to Redis: %w", err)
-	}
-
-	if err := s.client.SAdd(ctx, accountSessionsKey, input.ID.String()).Err(); err != nil {
-		return fmt.Errorf("error indexing input under account_id: %w", err)
-	}
-
-	if s.lifeTime > 0 {
-		pipe := s.client.Pipeline()
-		keys := []string{sessionKey, accountSessionsKey}
-		for _, key := range keys {
-			pipe.Expire(ctx, key, s.lifeTime)
-		}
-		_, err := pipe.Exec(ctx)
-		if err != nil && !errors.Is(err, redis.Nil) {
-			return fmt.Errorf("error setting expiration for keys: %w", err)
-		}
-	}
-
-	return nil
-}
-
-type UpdateSessionInput struct {
-	Token    string    `json:"token"`
-	LastUsed time.Time `json:"last_used,omitempty"`
-}
-
-func (s Sessions) Update(ctx context.Context, sessionID uuid.UUID, update UpdateSessionInput) error {
+// GetByID возвращает данные сессии по sessionID.
+func (s Sessions) GetByID(ctx context.Context, sessionID string) (SessionModel, error) {
 	sessionKey := fmt.Sprintf("%s:id:%s", sessionsCollection, sessionID)
 
-	exists, err := s.client.Exists(ctx, sessionKey).Result()
+	vals, err := s.client.HGetAll(ctx, sessionKey).Result()
 	if err != nil {
-		return fmt.Errorf("error checking session existence: %w", err)
+		return SessionModel{}, fmt.Errorf("error getting session data: %w", err)
 	}
-	if exists == 0 {
-		return fmt.Errorf("session not found, id=%s", sessionID)
-	}
-
-	data := make(map[string]interface{})
-
-	data["token"] = update.Token
-	data["last_used"] = update.LastUsed.Format(time.RFC3339)
-
-	if err := s.client.HSet(ctx, sessionKey, data).Err(); err != nil {
-		return fmt.Errorf("error updating session in Redis: %w", err)
-	}
-
-	accountSessionsKey := fmt.Sprintf("%s:account:%s", sessionsCollection, exists.AccountID)
-
-	if err := s.client.SAdd(ctx, accountSessionsKey, update.ID.String()).Err(); err != nil {
-		return fmt.Errorf("error indexing update under account_id: %w", err)
-	}
-
-	if s.lifeTime > 0 {
-		pipe := s.client.Pipeline()
-		keys := []string{sessionKey, accountSessionsKey}
-		for _, key := range keys {
-			pipe.Expire(ctx, key, s.lifeTime)
-		}
-		_, err := pipe.Exec(ctx)
-		if err != nil && !errors.Is(err, redis.Nil) {
-			return fmt.Errorf("error setting expiration for keys: %w", err)
-		}
-	}
-
-	return nil
-}
-
-func (s Sessions) GetByID(ctx context.Context, sessionID string) (SessionModel, error) {
-	key := fmt.Sprintf("%s:id:%s", sessionsCollection, sessionID)
-
-	vals, err := s.client.HGetAll(ctx, key).Result()
-	if err != nil {
-		return SessionModel{}, err
-	}
-
 	if len(vals) == 0 {
-		return SessionModel{}, fmt.Errorf("sesion not found, id=%s", sessionID)
+		return SessionModel{}, fmt.Errorf("session not found, id=%s", sessionID)
 	}
-
-	return parseSession(key, vals)
+	return parseSession(sessionID, vals)
 }
 
-func (s Sessions) SelectByAccountID(ctx context.Context, AccountID string) ([]SessionModel, error) {
-	accountSessionsKey := fmt.Sprintf("%s:account:%s", sessionsCollection, AccountID)
-
+func (s Sessions) GetByAccountID(ctx context.Context, accountID string) ([]SessionModel, error) {
+	accountSessionsKey := fmt.Sprintf("%s:account:%s", sessionsCollection, accountID)
 	sessionIDs, err := s.client.SMembers(ctx, accountSessionsKey).Result()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting sessions for account: %w", err)
 	}
 
 	var sessionsArr []SessionModel
-	for _, ID := range sessionIDs {
-		vals, err := s.client.HGetAll(ctx, ID).Result()
+	for _, id := range sessionIDs {
+		sessionKey := fmt.Sprintf("%s:id:%s", sessionsCollection, id)
+		vals, err := s.client.HGetAll(ctx, sessionKey).Result()
 		if err != nil {
-			return nil, fmt.Errorf("error geting session: %w", err)
+			return nil, fmt.Errorf("error getting session %s: %w", id, err)
 		}
-		ses, err := parseSession(ID, vals)
+		ses, err := parseSession(id, vals)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error parsing session %s: %w", id, err)
 		}
 		sessionsArr = append(sessionsArr, ses)
 	}
-
 	return sessionsArr, nil
 }
 
-func (s Sessions) DeleteAllByAccountID(ctx context.Context, AccountID uuid.UUID, curSessionID *uuid.UUID) error {
-	accountSessionsKey := fmt.Sprintf("%s:account:%s", sessionsCollection, AccountID)
+type SessionUpdateInput struct {
+	Token    *string   `json:"token"`
+	LastUsed time.Time `json:"last_used,omitempty"`
+}
 
-	sessionIDs, err := s.client.SMembers(ctx, accountSessionsKey).Result()
+// Update обновляет данные сессии. Помимо обновления hash по ключу sessions:id:<sessionID>,
+// методом также гарантируется, что сессия принадлежит нужному аккаунту.
+// Затем обновление отражается и в индексе sessions:account:<accountID> за счёт продления времени жизни.
+func (s Sessions) Update(ctx context.Context, sessionID, userID uuid.UUID, update SessionUpdateInput) error {
+	sessionKey := fmt.Sprintf("%s:id:%s", sessionsCollection, sessionID.String())
+
+	ses, err := s.GetByID(ctx, sessionID.String())
 	if err != nil {
-		return fmt.Errorf("error getting sessions for account: %w", err)
+		return fmt.Errorf("failed to get session details: %w", err)
+	}
+	if ses.AccountID != userID {
+		return fmt.Errorf("session %s does not belong to user %s", sessionID, userID)
 	}
 
-	for _, sessionID := range sessionIDs {
-		id, err := uuid.Parse(sessionID)
-		if err != nil {
-			return fmt.Errorf("error parsing session ID: %w", err)
-		}
-		if curSessionID != nil {
-			if id != *curSessionID {
-				_ = s.Delete(ctx, id)
-			}
-		}
+	data := make(map[string]interface{})
+	if update.Token != nil {
+		data["token"] = *update.Token
+	}
+	if !update.LastUsed.IsZero() {
+		data["last_used"] = update.LastUsed.Format(time.RFC3339)
 	}
 
-	err = s.client.Del(ctx, accountSessionsKey).Err()
-	if err != nil {
-		return fmt.Errorf("error deleting session list for account: %w", err)
+	accountSessionsKey := fmt.Sprintf("%s:account:%s", sessionsCollection, userID.String())
+
+	pipe := s.client.Pipeline()
+	pipe.HSet(ctx, sessionKey, data)
+	// Добавляем sessionID в множество, чтобы убедиться, что оно там присутствует.
+	pipe.SAdd(ctx, accountSessionsKey, sessionID.String())
+	pipe.Expire(ctx, sessionKey, s.lifeTime)
+	pipe.Expire(ctx, accountSessionsKey, s.lifeTime)
+	if _, err := pipe.Exec(ctx); err != nil {
+		return fmt.Errorf("error executing session update pipeline: %w", err)
 	}
 
 	return nil
 }
 
+// Delete удаляет сессию по sessionID и удаляет ее из множества сессий аккаунта.
 func (s Sessions) Delete(ctx context.Context, sessionID uuid.UUID) error {
-	key := fmt.Sprintf("%s:id:%s", sessionsCollection, sessionID)
-
-	ses, err := s.GetByID(ctx, key)
+	// Получаем данные сессии, чтобы узнать accountID.
+	ses, err := s.GetByID(ctx, sessionID.String())
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to retrieve session: %w", err)
 	}
 
-	accountSessionsKey := fmt.Sprintf("%s:account:%s", sessionsCollection, ses.AccountID)
+	sessionKey := fmt.Sprintf("%s:id:%s", sessionsCollection, sessionID.String())
+	accountSessionsKey := fmt.Sprintf("%s:account:%s", sessionsCollection, ses.AccountID.String())
 
-	exists, err := s.client.Exists(ctx, key).Result()
+	// Опционально: проверяем, что sessionID действительно присутствует в множестве.
+	isMember, err := s.client.SIsMember(ctx, accountSessionsKey, sessionID.String()).Result()
 	if err != nil {
-		return fmt.Errorf("error checking session existence in Redis: %w", err)
+		return fmt.Errorf("error checking session membership: %w", err)
+	}
+	if !isMember {
+		// Логгировать предупреждение, но продолжаем удаление.
 	}
 
-	if exists == 0 {
-		return nil
-	}
-
-	err = s.client.Del(ctx, key).Err()
-	if err != nil {
-		return fmt.Errorf("error deleting session from Redis: %w", err)
-	}
-
-	err = s.client.SRem(ctx, accountSessionsKey, sessionID.String()).Err()
-	if err != nil {
-		return fmt.Errorf("error removing session ID from account set: %w", err)
+	pipe := s.client.Pipeline()
+	pipe.Del(ctx, sessionKey)
+	pipe.SRem(ctx, accountSessionsKey, sessionID.String())
+	if _, err := pipe.Exec(ctx); err != nil {
+		return fmt.Errorf("error deleting session keys from Redis: %w", err)
 	}
 
 	return nil
@@ -297,7 +279,7 @@ func parseSession(sessionID string, vals map[string]string) (SessionModel, error
 		return SessionModel{}, fmt.Errorf("error parsing account_id: %w", err)
 	}
 
-	sID, err := uuid.Parse(sessionID)
+	sID, err := uuid.Parse(sessionID) // sessionID здесь передается как чистый идентификатор (без префикса)
 	if err != nil {
 		return SessionModel{}, fmt.Errorf("error parsing sessionID: %w", err)
 	}
@@ -310,8 +292,8 @@ func parseSession(sessionID string, vals map[string]string) (SessionModel, error
 		CreatedAt: createdAt,
 	}
 
-	if LastUsed, ok := vals["last_used"]; ok {
-		lu, err := time.Parse(time.RFC3339, LastUsed)
+	if lastUsed, ok := vals["last_used"]; ok && lastUsed != "" {
+		lu, err := time.Parse(time.RFC3339, lastUsed)
 		if err != nil {
 			return SessionModel{}, fmt.Errorf("error parsing last_used: %w", err)
 		}
@@ -319,4 +301,38 @@ func parseSession(sessionID string, vals map[string]string) (SessionModel, error
 	}
 
 	return res, nil
+}
+
+func (s Sessions) Terminate(ctx context.Context, accountID uuid.UUID) error {
+	// Формируем ключ для индекса сессий аккаунта.
+	accountSessionsKey := fmt.Sprintf("%s:account:%s", sessionsCollection, accountID.String())
+
+	// Получаем список sessionID, связанных с этим аккаунтом.
+	sessionIDs, err := s.client.SMembers(ctx, accountSessionsKey).Result()
+	if err != nil {
+		return fmt.Errorf("error getting sessions for account %s: %w", accountID.String(), err)
+	}
+
+	// Если сессий нет, можно сразу вернуть.
+	if len(sessionIDs) == 0 {
+		return nil
+	}
+
+	// Открываем пайплайн для группового удаления.
+	pipe := s.client.Pipeline()
+	for _, sid := range sessionIDs {
+		// Для каждого sessionID формируем ключ хэша сессии.
+		sessionKey := fmt.Sprintf("%s:id:%s", sessionsCollection, sid)
+		pipe.Del(ctx, sessionKey)
+	}
+
+	// Удаляем индексный ключ для аккаунта.
+	pipe.Del(ctx, accountSessionsKey)
+
+	// Выполняем пайплайн.
+	if _, err := pipe.Exec(ctx); err != nil {
+		return fmt.Errorf("error deleting sessions for account %s: %w", accountID.String(), err)
+	}
+
+	return nil
 }
