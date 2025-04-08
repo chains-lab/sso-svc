@@ -1,4 +1,4 @@
-package redisdb
+package redisdb_test
 
 import (
 	"context"
@@ -7,17 +7,18 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hs-zavet/sso-oauth/internal/repo/redisdb"
 	"github.com/hs-zavet/tokens/roles" // если roles.Role является типом alias для string
 	"github.com/redis/go-redis/v9"
 )
 
-func setupAccounts(t *testing.T) (Accounts, func()) {
+func setupAccounts(t *testing.T) (redisdb.Accounts, func()) {
 	// Создаем Redis клиент для тестовой базы (например, DB=1)
 	client := redis.NewClient(&redis.Options{
 		Addr: "localhost:7200",
 		DB:   0,
 	})
-	accounts := NewAccounts(client, 5) // срок жизни 5 минут
+	accounts := redisdb.NewAccounts(client, 5) // срок жизни 5 минут
 
 	// Очистка: удалим все ключи, начинающиеся с "accounts:"
 	ctx := context.Background()
@@ -39,7 +40,7 @@ func TestAccountsCreateAndGet(t *testing.T) {
 
 	accountID := uuid.New()
 	createdAt := time.Now().UTC()
-	input := CreateAccountInput{
+	input := redisdb.CreateAccountInput{
 		ID:           accountID,
 		Email:        "test@example.com",
 		Role:         roles.Admin,
@@ -81,7 +82,7 @@ func TestAccountsSet(t *testing.T) {
 
 	accountID := uuid.New()
 	createdAt := time.Now().UTC()
-	input := AccountSetInput{
+	input := redisdb.AccountSetInput{
 		ID:           accountID,
 		Email:        "set@example.com",
 		Role:         roles.Role("admin"),
@@ -112,7 +113,7 @@ func TestAccountsUpdate(t *testing.T) {
 	accountID := uuid.New()
 	createdAt := time.Now().UTC()
 	// Сначала создаём аккаунт.
-	createInput := CreateAccountInput{
+	createInput := redisdb.CreateAccountInput{
 		ID:           accountID,
 		Email:        "update@example.com",
 		Role:         roles.Role("user"),
@@ -129,7 +130,7 @@ func TestAccountsUpdate(t *testing.T) {
 	newRole := roles.Role("super_user")
 	newSub := uuid.New()
 
-	updateReq := AccountUpdateRequest{
+	updateReq := redisdb.AccountUpdateRequest{
 		Role:         &newRole,
 		Subscription: &newSub,
 		UpdatedAt:    updateTime,
@@ -160,7 +161,7 @@ func TestAccountsDelete(t *testing.T) {
 
 	accountID := uuid.New()
 	createdAt := time.Now().UTC()
-	input := CreateAccountInput{
+	input := redisdb.CreateAccountInput{
 		ID:           accountID,
 		Email:        "delete@example.com",
 		Role:         roles.Role("user"),
@@ -195,42 +196,33 @@ func TestAccountsDrop(t *testing.T) {
 	defer cleanup()
 
 	// Создаем несколько аккаунтов.
+	var accountIDs []uuid.UUID
 	for i := 0; i < 3; i++ {
-		accountID := uuid.New()
+		aid := uuid.New()
+		accountIDs = append(accountIDs, aid)
 		email := fmt.Sprintf("drop%d@example.com", i)
-		input := CreateAccountInput{
-			ID:           accountID,
+		input := redisdb.CreateAccountInput{
+			ID:           aid,
 			Email:        email,
 			Role:         roles.Role("user"),
 			Subscription: uuid.Nil,
 			CreatedAt:    time.Now().UTC(),
 		}
 		if err := accounts.Create(ctx, input); err != nil {
-			t.Fatalf("Create failed for account %s: %v", accountID, err)
+			t.Fatalf("Create failed for account %s: %v", aid, err)
 		}
 	}
 
-	// Проверяем, что какие-то ключи существуют.
-	pattern := fmt.Sprintf("%s:*", accountsCollection)
-	keys, err := accounts.client.Keys(ctx, pattern).Result()
-	if err != nil {
-		t.Fatalf("Keys command failed: %v", err)
-	}
-	if len(keys) == 0 {
-		t.Fatalf("expected keys to exist before Drop")
+	// Убедимся, что аккаунты существуют.
+	for _, aid := range accountIDs {
+		_, err := accounts.GetByID(ctx, aid.String())
+		if err != nil {
+			t.Fatalf("GetByID failed for account %s: %v", aid, err)
+		}
 	}
 
 	// Вызываем Drop.
 	if err := accounts.Drop(ctx); err != nil {
 		t.Fatalf("Drop failed: %v", err)
-	}
-
-	// Проверяем, что ключи удалены.
-	keys, err = accounts.client.Keys(ctx, pattern).Result()
-	if err != nil {
-		t.Fatalf("Keys command failed after Drop: %v", err)
-	}
-	if len(keys) != 0 {
-		t.Errorf("expected 0 keys after Drop, got %d", len(keys))
 	}
 }

@@ -1,4 +1,4 @@
-package redisdb
+package redisdb_test
 
 import (
 	"context"
@@ -7,18 +7,19 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hs-zavet/sso-oauth/internal/repo/redisdb"
 	"github.com/redis/go-redis/v9"
 )
 
 // setupSessions создаёт Redis-клиент для тестовой базы (например, DB=2)
 // и возвращает инстанс Sessions с указанным временем жизни (например, 5 минут).
 // После тестов вызывается cleanup для закрытия клиента.
-func setupSessions(t *testing.T) (Sessions, func()) {
+func setupSessions(t *testing.T) (redisdb.Sessions, func()) {
 	client := redis.NewClient(&redis.Options{
 		Addr: "localhost:6379",
 		DB:   0, // используем тестовую базу, чтобы не портить продакшн-данные
 	})
-	sess := NewSessions(client, 5) // 5 минут времени жизни
+	sess := redisdb.NewSessions(client, 5) // 5 минут времени жизни
 
 	// Очистим все ключи, начинающиеся с "sessions:"
 	ctx := context.Background()
@@ -42,7 +43,7 @@ func TestSessions_CreateAndGetByID(t *testing.T) {
 	createdAt := time.Now().UTC()
 	lastUsed := createdAt.Add(1 * time.Minute)
 
-	input := SessionCreateInput{
+	input := redisdb.SessionCreateInput{
 		ID:        id,
 		AccountID: accountID,
 		Token:     "test-token",
@@ -82,7 +83,7 @@ func TestSessions_GetByAccountID(t *testing.T) {
 	// Создаем две сессии для одного аккаунта.
 	sessionIDs := []uuid.UUID{uuid.New(), uuid.New()}
 	for _, sid := range sessionIDs {
-		input := SessionCreateInput{
+		input := redisdb.SessionCreateInput{
 			ID:        sid,
 			AccountID: accountID,
 			Token:     fmt.Sprintf("token-%s", sid.String()[:8]),
@@ -127,7 +128,7 @@ func TestSessions_Update(t *testing.T) {
 	lastUsed := createdAt.Add(1 * time.Minute)
 
 	// Создаем первоначальную сессию.
-	input := SessionCreateInput{
+	input := redisdb.SessionCreateInput{
 		ID:        id,
 		AccountID: accountID,
 		Token:     "initial-token",
@@ -142,7 +143,7 @@ func TestSessions_Update(t *testing.T) {
 	// Формируем данные для обновления.
 	newToken := "updated-token"
 	newLastUsed := time.Now().UTC().Add(2 * time.Minute)
-	updateInput := SessionUpdateInput{
+	updateInput := redisdb.SessionUpdateInput{
 		Token:    &newToken,
 		LastUsed: newLastUsed,
 	}
@@ -176,7 +177,7 @@ func TestSessions_Delete(t *testing.T) {
 	createdAt := time.Now().UTC()
 	lastUsed := createdAt.Add(1 * time.Minute)
 
-	input := SessionCreateInput{
+	input := redisdb.SessionCreateInput{
 		ID:        id,
 		AccountID: accountID,
 		Token:     "token-to-delete",
@@ -212,7 +213,7 @@ func TestSessions_Terminate(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		sid := uuid.New()
 		sessionIDs = append(sessionIDs, sid)
-		input := SessionCreateInput{
+		input := redisdb.SessionCreateInput{
 			ID:        sid,
 			AccountID: accountID,
 			Token:     fmt.Sprintf("token-%d", i),
