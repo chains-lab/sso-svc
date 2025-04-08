@@ -34,17 +34,12 @@ func (a App) Login(ctx context.Context, request LoginRequest) (models.Session, e
 			}
 		}
 
-		role, err := roles.ParseRole(account.Role)
+		refresh, err := a.jwt.GenerateRefresh(account.ID, sessionID, account.ID, account.Role)
 		if err != nil {
 			return err
 		}
 
-		refresh, err := a.jwt.GenerateRefresh(account.ID, sessionID, account.ID, role)
-		if err != nil {
-			return err
-		}
-
-		access, err := a.jwt.GenerateAccess(account.ID, sessionID, account.ID, role)
+		access, err := a.jwt.GenerateAccess(account.ID, sessionID, account.ID, account.Role)
 		if err != nil {
 			return err
 		}
@@ -116,17 +111,12 @@ func (a App) Refresh(ctx context.Context, accountID, sessionID uuid.UUID, reques
 		return models.Session{}, fmt.Errorf("token does not match")
 	}
 
-	role, err := roles.ParseRole(account.Role)
+	access, err := a.jwt.GenerateAccess(session.AccountID, session.ID, account.Subscription, account.Role)
 	if err != nil {
 		return models.Session{}, err
 	}
 
-	access, err := a.jwt.GenerateAccess(session.AccountID, session.ID, account.Subscription, role)
-	if err != nil {
-		return models.Session{}, err
-	}
-
-	refresh, err := a.jwt.GenerateRefresh(session.AccountID, session.ID, account.Subscription, role)
+	refresh, err := a.jwt.GenerateRefresh(session.AccountID, session.ID, account.Subscription, account.Role)
 	if err != nil {
 		return models.Session{}, err
 	}
@@ -137,7 +127,7 @@ func (a App) Refresh(ctx context.Context, accountID, sessionID uuid.UUID, reques
 	}
 
 	err = a.sessions.Update(ctx, sessionID, repo.SessionUpdateRequest{
-		Token:    refreshCrypto,
+		Token:    &refreshCrypto,
 		LastUsed: LastUsed,
 	})
 	if err != nil {
@@ -176,12 +166,7 @@ func (a App) TerminateByAdmin(ctx context.Context, userID uuid.UUID) error {
 		return err
 	}
 
-	role, err := roles.ParseRole(user.Role)
-	if err != nil {
-		return err
-	}
-
-	if role == roles.SuperUser {
+	if user.Role == roles.SuperUser {
 		return fmt.Errorf("cannot delete superuser")
 	}
 
@@ -207,12 +192,7 @@ func (a App) DeleteSessionByAdmin(ctx context.Context, sessionID, initiatorID, i
 		return err
 	}
 
-	role, err := roles.ParseRole(user.Role)
-	if err != nil {
-		return err
-	}
-
-	if role == roles.SuperUser {
+	if user.Role == roles.SuperUser {
 		return fmt.Errorf("cannot delete superuser")
 	}
 

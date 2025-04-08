@@ -297,7 +297,7 @@ func parseSession(sessionID string, vals map[string]string) (SessionModel, error
 		if err != nil {
 			return SessionModel{}, fmt.Errorf("error parsing last_used: %w", err)
 		}
-		res.LastUsed = &lu
+		res.LastUsed = lu
 	}
 
 	return res, nil

@@ -63,7 +63,7 @@ func (a Accounts) Create(ctx context.Context, input CreateAccountInput) error {
 
 	data := map[string]interface{}{
 		"email":        input.Email,
-		"role":         input.Role,
+		"role":         string(input.Role),
 		"subscription": input.Subscription.String(),
 		"created_at":   input.CreatedAt.Format(time.RFC3339),
 	}
@@ -115,7 +115,7 @@ func (a Accounts) Set(ctx context.Context, input AccountSetInput) error {
 
 	data := map[string]interface{}{
 		"email":        input.Email,
-		"role":         input.Role,
+		"role":         string(input.Role),
 		"subscription": input.Subscription.String(),
 		"created_at":   input.CreatedAt.Format(time.RFC3339),
 	}
@@ -165,7 +165,7 @@ func (a Accounts) Update(ctx context.Context, accountID uuid.UUID, input Account
 
 	data := make(map[string]interface{})
 	if input.Role != nil {
-		data["role"] = *input.Role
+		data["role"] = string(*input.Role)
 	}
 	if input.Subscription != nil {
 		data["subscription"] = input.Subscription.String()

@@ -18,7 +18,7 @@ func (a App) AccountCreate(ctx context.Context, email string) error {
 	err := a.accounts.Create(ctx, repo.AccountCreateRequest{
 		ID:           ID,
 		Email:        email,
-		Role:         string(roles.User),
+		Role:         roles.User,
 		Subscription: uuid.Nil,
 		CreatedAt:    CreatedAt,
 	})
@@ -34,7 +34,7 @@ func (a App) AccountUpdateSubscription(ctx context.Context, ID uuid.UUID, subscr
 	UpdatedAt := time.Now().UTC()
 
 	err := a.accounts.Update(ctx, ID, repo.AccountUpdateRequest{
-		Subscription: subscriptionID,
+		Subscription: &subscriptionID,
 		UpdatedAt:    UpdatedAt,
 	})
 
@@ -53,7 +53,7 @@ func (a App) AccountUpdateRole(ctx context.Context, ID uuid.UUID, role, initiato
 	}
 
 	err := a.accounts.Update(ctx, ID, repo.AccountUpdateRequest{
-		Role:      string(role),
+		Role:      &role,
 		UpdatedAt: UpdatedAt,
 	})
 
@@ -70,15 +70,10 @@ func (a App) AccountGetByID(ctx context.Context, ID uuid.UUID) (models.Account, 
 		return models.Account{}, err
 	}
 
-	role, err := roles.ParseRole(account.Role)
-	if err != nil {
-		return models.Account{}, err
-	}
-
 	return models.Account{
 		ID:           account.ID,
 		Email:        account.Email,
-		Role:         role,
+		Role:         account.Role,
 		Subscription: account.Subscription,
 		CreatedAt:    account.CreatedAt,
 		UpdatedAt:    account.UpdatedAt,
@@ -91,15 +86,10 @@ func (a App) AccountGetByEmail(ctx context.Context, email string) (models.Accoun
 		return models.Account{}, err
 	}
 
-	role, err := roles.ParseRole(account.Role)
-	if err != nil {
-		return models.Account{}, err
-	}
-
 	return models.Account{
 		ID:           account.ID,
 		Email:        account.Email,
-		Role:         role,
+		Role:         account.Role,
 		Subscription: account.Subscription,
 		CreatedAt:    account.CreatedAt,
 		UpdatedAt:    account.UpdatedAt,
