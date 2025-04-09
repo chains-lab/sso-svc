@@ -18,9 +18,9 @@ func (h *Handler) LoginSimple(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type emailReq struct {
-		Email string  `json:"email"`
-		Role  string  `json:"role"`
-		Sub   *string `json:"sub,omitempty"`
+		Email string `json:"email"`
+		//Role  string  `json:"role"`
+		//Sub   *string `json:"sub,omitempty"`
 	}
 	var req emailReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -30,8 +30,8 @@ func (h *Handler) LoginSimple(w http.ResponseWriter, r *http.Request) {
 
 	errs := validation.Errors{
 		"email": validation.Validate(req.Email, validation.Required),
-		"role":  validation.Validate(req.Role, validation.NilOrNotEmpty),
-		"sub":   validation.Validate(req.Sub, validation.NilOrNotEmpty),
+		//"role":  validation.Validate(req.Role, validation.NilOrNotEmpty),
+		//"sub":   validation.Validate(req.Sub, validation.NilOrNotEmpty),
 	}
 	if errs.Filter() != nil {
 		httpkit.RenderErr(w, problems.BadRequest(errs.Filter())...)
@@ -42,9 +42,11 @@ func (h *Handler) LoginSimple(w http.ResponseWriter, r *http.Request) {
 		Email: req.Email,
 	})
 	if err != nil {
+		h.log.WithError(err).Error("error getting session")
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
+	h.log.Infof("got session: %+v", res)
 	httpkit.Render(w, responses.TokensPair(res.Access, res.Refresh))
 }

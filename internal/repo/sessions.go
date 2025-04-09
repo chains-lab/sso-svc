@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -40,6 +41,8 @@ type sessionSQL interface {
 
 	Transaction(fn func(ctx context.Context) error) error
 	Page(limit, offset uint64) sqldb.SessionsQ
+
+	Drop(ctx context.Context) error
 }
 
 type sessionsRedis interface {
@@ -181,10 +184,17 @@ func (s SessionsRepo) Terminate(ctx context.Context, accountID uuid.UUID) error 
 
 	err := s.sql.New().FilterAccountID(accountID).Delete(ctxSync)
 	if err != nil {
-		return err
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil
+		default:
+			return err
+		}
 	}
 
 	err = s.redis.Terminate(ctx, accountID)
+	if err != nil {
+	}
 
 	return nil
 }
@@ -288,4 +298,19 @@ func (s SessionsRepo) GetByAccountID(ctx context.Context, accountID uuid.UUID) (
 
 func (s SessionsRepo) Transaction(fn func(ctx context.Context) error) error {
 	return s.sql.Transaction(fn)
+}
+
+func (s SessionsRepo) Drop(ctx context.Context) error {
+	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
+	defer cancel()
+
+	if err := s.sql.Drop(ctxSync); err != nil {
+		return err
+	}
+
+	if err := s.redis.Drop(ctx); err != nil {
+		return err
+	}
+
+	return nil
 }

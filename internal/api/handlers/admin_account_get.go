@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/hs-zavet/comtools/httpkit"
 	"github.com/hs-zavet/comtools/httpkit/problems"
 	"github.com/hs-zavet/sso-oauth/internal/api/responses"
+	"github.com/hs-zavet/sso-oauth/internal/app/ape"
 )
 
 func (h *Handler) AdminAccountGet(w http.ResponseWriter, r *http.Request) {
@@ -20,8 +22,16 @@ func (h *Handler) AdminAccountGet(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.app.AccountGetByID(r.Context(), accountID)
 	if err != nil {
-		httpkit.RenderErr(w, problems.InternalError())
-		return
+		switch {
+		case errors.Is(err, ape.ErrAccountNotFound):
+			h.log.WithError(err).Errorf("account id: %s", accountID)
+			httpkit.RenderErr(w, problems.NotFound("account not found"))
+			return
+		default:
+			h.log.WithError(err).Errorf("error getting account id: %s", accountID)
+			httpkit.RenderErr(w, problems.InternalError())
+			return
+		}
 	}
 	httpkit.Render(w, responses.Account(res))
 }

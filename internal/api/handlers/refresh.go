@@ -12,6 +12,7 @@ import (
 	"github.com/hs-zavet/sso-oauth/internal/api/requests"
 	"github.com/hs-zavet/sso-oauth/internal/api/responses"
 	"github.com/hs-zavet/sso-oauth/internal/app"
+	"github.com/hs-zavet/sso-oauth/internal/app/ape"
 	"github.com/hs-zavet/tokens"
 )
 
@@ -37,7 +38,7 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 
 	tokenString := parts[1]
 
-	accountData, err := tokens.VerifyUserJWT(r.Context(), tokenString, h.cfg.JWT.AccessToken.SecretKey)
+	accountData, err := tokens.VerifyAccountsJWT(r.Context(), tokenString, h.cfg.JWT.AccessToken.SecretKey)
 	if err != nil && !errors.Is(err, jwt.ErrTokenExpired) {
 		httpkit.RenderErr(w, problems.Unauthorized())
 		return
@@ -60,7 +61,20 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 		Client: r.Header.Get("User-Agent"),
 	})
 	if err != nil {
-		httpkit.RenderErr(w, problems.InternalError())
+		switch {
+		case errors.Is(err, ape.ErrSessionNotFound):
+			h.log.WithError(err).Errorf("session not found session id: %s", sessionID)
+			httpkit.RenderErr(w, problems.Unauthorized("Session not found"))
+		case errors.Is(err, ape.ErrSessionsClientMismatch):
+			h.log.WithError(err).Errorf("session client mismatch session id: %s", sessionID)
+			httpkit.RenderErr(w, problems.Unauthorized("Session client mismatch"))
+		case errors.Is(err, ape.ErrSessionsTokenMismatch):
+			h.log.WithError(err).Errorf("session token mismatch session id: %s", sessionID)
+			httpkit.RenderErr(w, problems.Conflict("Token is not valid"))
+		default:
+			h.log.WithError(err).Error("error refreshing session")
+			httpkit.RenderErr(w, problems.InternalError())
+		}
 		return
 	}
 

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"errors"
 	"net/http"
 
@@ -9,11 +8,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/hs-zavet/comtools/httpkit"
 	"github.com/hs-zavet/comtools/httpkit/problems"
+	"github.com/hs-zavet/sso-oauth/internal/app/ape"
 	"github.com/hs-zavet/tokens"
 )
 
 func (h *Handler) AdminSessionsTerminate(w http.ResponseWriter, r *http.Request) {
-	data, err := tokens.GetAccountData(r.Context())
+	data, err := tokens.GetAccountTokenData(r.Context())
 	if err != nil {
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
 		return
@@ -31,11 +31,20 @@ func (h *Handler) AdminSessionsTerminate(w http.ResponseWriter, r *http.Request)
 
 	err = h.app.TerminateByAdmin(r.Context(), accountID)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, ape.ErrSessionNotFound):
+			h.log.WithError(err).Errorf("error terminating session for account id: %s", accountID)
 			httpkit.RenderErr(w, problems.NotFound())
-			return
+		case errors.Is(err, ape.ErrSessionCannotDeleteForSuperUserByOtherUser):
+			h.log.WithError(err).Errorf("error terminating session for account id: %s", accountID)
+			httpkit.RenderErr(w, problems.Forbidden("You cannot terminate superuser session"))
+		case errors.Is(err, ape.ErrAccountNotFound):
+			h.log.WithError(err).Errorf("error terminating session for account id: %s", accountID)
+			httpkit.RenderErr(w, problems.NotFound("Account not found"))
+		default:
+			h.log.WithError(err).Errorf("error terminating session for account id: %s", accountID)
+			httpkit.RenderErr(w, problems.InternalError())
 		}
-		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 

@@ -237,3 +237,21 @@ func (s SessionsQ) Page(limit, offset uint64) SessionsQ {
 	s.selector = s.selector.Limit(limit).Offset(offset)
 	return s
 }
+
+func (s SessionsQ) Drop(ctx context.Context) error {
+	query, args, err := s.deleter.ToSql()
+	if err != nil {
+		return fmt.Errorf("building drop query for accounts: %w", err)
+	}
+
+	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
+		_, err = tx.ExecContext(ctx, query, args...)
+	} else {
+		_, err = s.db.ExecContext(ctx, query, args...)
+	}
+	if err != nil {
+		return fmt.Errorf("error executing drop query: %w", err)
+	}
+
+	return nil
+}

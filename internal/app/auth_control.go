@@ -2,12 +2,15 @@ package app
 
 import (
 	"context"
-	"fmt"
+	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hs-zavet/sso-oauth/internal/app/ape"
 	"github.com/hs-zavet/sso-oauth/internal/app/models"
 	"github.com/hs-zavet/sso-oauth/internal/repo"
+	"github.com/hs-zavet/tokens/roles"
 )
 
 type LoginRequest struct {
@@ -22,7 +25,7 @@ func (a App) Login(ctx context.Context, request LoginRequest) (models.Session, e
 	err := a.accounts.Transaction(func(ctx context.Context) error {
 		account, err := a.accounts.GetByEmail(ctx, request.Email)
 		if err != nil {
-			err = a.AccountCreate(ctx, request.Email)
+			err = a.AccountCreate(ctx, request.Email, roles.User)
 			if err != nil {
 				return err
 			}
@@ -53,6 +56,7 @@ func (a App) Login(ctx context.Context, request LoginRequest) (models.Session, e
 			AccountID: account.ID,
 			Token:     refreshCrypto,
 			Client:    request.Client,
+			CreatedAt: time.Now().UTC(),
 		})
 		if err != nil {
 			return err
@@ -98,7 +102,7 @@ func (a App) Refresh(ctx context.Context, accountID, sessionID uuid.UUID, reques
 	}
 
 	if session.Client != request.Client {
-		return models.Session{}, fmt.Errorf("client does not match")
+		return models.Session{}, ape.ErrSessionsClientMismatch
 	}
 
 	refreshToken, err := a.jwt.DecryptRefresh(session.Token)
@@ -107,7 +111,7 @@ func (a App) Refresh(ctx context.Context, accountID, sessionID uuid.UUID, reques
 	}
 
 	if refreshToken != request.Token {
-		return models.Session{}, fmt.Errorf("token does not match")
+		return models.Session{}, ape.ErrSessionsTokenMismatch
 	}
 
 	access, err := a.jwt.GenerateAccess(session.AccountID, session.ID, account.Subscription, account.Role)
@@ -130,6 +134,7 @@ func (a App) Refresh(ctx context.Context, accountID, sessionID uuid.UUID, reques
 		LastUsed: LastUsed,
 	})
 	if err != nil {
+
 		return models.Session{}, err
 	}
 
@@ -145,5 +150,15 @@ func (a App) Refresh(ctx context.Context, accountID, sessionID uuid.UUID, reques
 }
 
 func (a App) Logout(ctx context.Context, sessionID uuid.UUID) error {
-	return a.sessions.Delete(ctx, sessionID)
+
+	err := a.sessions.Delete(ctx, sessionID)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ape.ErrSessionNotFound
+		default:
+			return err
+		}
+	}
+	return nil
 }

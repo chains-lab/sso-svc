@@ -257,3 +257,21 @@ func (a AccountQ) Page(limit, offset uint64) AccountQ {
 	a.selector = a.selector.Limit(limit).Offset(offset)
 	return a
 }
+
+func (a AccountQ) Drop(ctx context.Context) error {
+	query, args, err := a.deleter.ToSql()
+	if err != nil {
+		return fmt.Errorf("building drop query for accounts: %w", err)
+	}
+
+	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
+		_, err = tx.ExecContext(ctx, query, args...)
+	} else {
+		_, err = a.db.ExecContext(ctx, query, args...)
+	}
+	if err != nil {
+		return fmt.Errorf("error executing drop query: %w", err)
+	}
+
+	return nil
+}

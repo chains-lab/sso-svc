@@ -45,7 +45,9 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 	auth := tokens.AuthMdl(a.cfg.JWT.AccessToken.SecretKey)
 	admin := tokens.AccessGrant(a.cfg.JWT.AccessToken.SecretKey, roles.Admin, roles.SuperUser)
 
-	a.router.Route("/re-news/sso", func(r chi.Router) {
+	a.log.WithField("module", "api").Info("Starting API server")
+
+	a.router.Route("/hs-news/sso", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/public", func(r chi.Router) {
 				r.Post("/refresh", a.handlers.Refresh)

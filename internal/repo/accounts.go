@@ -40,6 +40,8 @@ type accountSQL interface {
 
 	Page(limit, offset uint64) sqldb.AccountQ
 	Transaction(fn func(ctx context.Context) error) error
+
+	Drop(ctx context.Context) error
 }
 
 type accountRedis interface {
@@ -49,6 +51,7 @@ type accountRedis interface {
 	GetByID(ctx context.Context, accountID string) (redisdb.AccountModel, error)
 	GetByEmail(ctx context.Context, email string) (redisdb.AccountModel, error)
 	Delete(ctx context.Context, accountID, email string) error
+
 	Drop(ctx context.Context) error
 }
 
@@ -284,4 +287,19 @@ func (a AccountsRepo) GetByEmail(ctx context.Context, email string) (Account, er
 
 func (a AccountsRepo) Transaction(fn func(ctx context.Context) error) error {
 	return a.sql.Transaction(fn)
+}
+
+func (a AccountsRepo) Drop(ctx context.Context) error {
+	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
+	defer cancel()
+
+	if err := a.sql.Drop(ctxSync); err != nil {
+		return err
+	}
+
+	if err := a.redis.Drop(ctxSync); err != nil {
+		return err
+	}
+
+	return nil
 }

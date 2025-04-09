@@ -47,6 +47,7 @@ type sessionsRepo interface {
 	GetByID(ctx context.Context, ID uuid.UUID) (repo.Session, error)
 	GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]repo.Session, error)
 	Transaction(fn func(ctx context.Context) error) error
+	Drop(ctx context.Context) error
 }
 
 type accountsRepo interface {
@@ -56,6 +57,7 @@ type accountsRepo interface {
 	GetByID(ctx context.Context, ID uuid.UUID) (repo.Account, error)
 	GetByEmail(ctx context.Context, email string) (repo.Account, error)
 	Transaction(fn func(ctx context.Context) error) error
+	Drop(ctx context.Context) error
 }
 
 type JWTManager interface {
