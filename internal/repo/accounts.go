@@ -3,7 +3,6 @@ package repo
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -107,7 +106,7 @@ func (a AccountsRepo) Create(ctx context.Context, input AccountCreateRequest) er
 		Role:         input.Role,
 		Subscription: input.Subscription,
 	}); err != nil {
-		//TODO: log
+		a.log.WithField("database", "redis").Errorf("error creating account in redis: %v", err)
 	}
 
 	return nil
@@ -153,7 +152,7 @@ func (a AccountsRepo) Update(ctx context.Context, ID uuid.UUID, input AccountUpd
 		UpdatedAt:    account.UpdatedAt,
 		CreatedAt:    account.CreatedAt,
 	}); err != nil {
-		//TODO: log
+		a.log.WithField("database", "redis").Errorf("error creating account in redis: %v", err)
 	}
 
 	return nil
@@ -169,7 +168,7 @@ func (a AccountsRepo) Delete(ctx context.Context, ID uuid.UUID) error {
 	}
 
 	if err := a.redis.Delete(ctxSync, account.ID.String(), account.Email); err != nil {
-		//TODO: log
+		a.log.WithField("database", "redis").Errorf("error creating account in redis: %v", err)
 	}
 
 	if err := a.sql.New().FilterID(ID).Delete(ctxSync); err != nil {
@@ -185,22 +184,18 @@ func (a AccountsRepo) GetByID(ctx context.Context, ID uuid.UUID) (Account, error
 
 	redisRes, err := a.redis.GetByID(ctxSync, ID.String())
 	if err != nil {
-		//TODO: log
+		a.log.WithField("database", "redis").Errorf("error creating account in redis: %v", err)
 	} else {
 		res := Account{
 			ID:           redisRes.ID,
 			Email:        redisRes.Email,
 			Subscription: redisRes.Subscription,
 			CreatedAt:    redisRes.CreatedAt,
+			Role:         redisRes.Role,
 		}
 		if redisRes.UpdatedAt != nil {
 			res.UpdatedAt = *redisRes.UpdatedAt
 		}
-		role, err := roles.ParseRole(redisRes.Role)
-		if err != nil {
-			return Account{}, fmt.Errorf("error parsing role from redis: %w", err)
-		}
-		res.Role = role
 		return res, nil
 	}
 
@@ -229,7 +224,7 @@ func (a AccountsRepo) GetByID(ctx context.Context, ID uuid.UUID) (Account, error
 		UpdatedAt:    account.UpdatedAt,
 		CreatedAt:    account.CreatedAt,
 	}); err != nil {
-		//TODO: log
+		a.log.WithField("database", "redis").Errorf("error creating account in redis: %v", err)
 	}
 
 	return res, nil
@@ -241,22 +236,18 @@ func (a AccountsRepo) GetByEmail(ctx context.Context, email string) (Account, er
 
 	redisRes, err := a.redis.GetByEmail(ctxSync, email)
 	if err != nil {
-		//TODO: log
+		a.log.WithField("database", "redis").Errorf("error creating account in redis: %v", err)
 	} else {
 		res := Account{
 			ID:           redisRes.ID,
 			Email:        redisRes.Email,
 			Subscription: redisRes.Subscription,
 			CreatedAt:    redisRes.CreatedAt,
+			Role:         redisRes.Role,
 		}
 		if redisRes.UpdatedAt != nil {
 			res.UpdatedAt = *redisRes.UpdatedAt
 		}
-		role, err := roles.ParseRole(redisRes.Role)
-		if err != nil {
-			return Account{}, fmt.Errorf("error parsing role from redis: %w", err)
-		}
-		res.Role = role
 		return res, nil
 	}
 
@@ -285,7 +276,7 @@ func (a AccountsRepo) GetByEmail(ctx context.Context, email string) (Account, er
 		UpdatedAt:    account.UpdatedAt,
 		CreatedAt:    account.CreatedAt,
 	}); err != nil {
-		//TODO: log
+		a.log.WithField("database", "redis").Errorf("error creating account in redis: %v", err)
 	}
 
 	return res, nil

@@ -1,34 +1,23 @@
-# Этап сборки
-FROM golang:1.23 AS builder
+FROM golang:1.23-alpine AS builder
 
-WORKDIR /app
+WORKDIR /service
 
-# Копируем go.mod и go.sum — отдельно для кэширования зависимостей
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Копируем всё остальное
 COPY . .
 
-# Сборка бинарника из cmd/sso-oauth
-RUN go build -o sso-oauth ./cmd/sso-oauth
+RUN go build -o main ./cmd/sso-oauth
 
-# Финальный образ
-FROM debian:bookworm-slim
+FROM alpine:latest
 
-# Устанавливаем сертификаты, если приложение делает HTTPS-запросы
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+WORKDIR /service
 
-WORKDIR /app
+COPY --from=builder /service/main .
+COPY config_docker.yaml ./config_docker.yaml
 
-# Копируем бинарник из builder-этапа
-COPY --from=builder /app/sso-oauth .
+ENV KV_VIPER_FILE=/service/config_docker.yaml
 
-# Копируем конфиг, если он нужен внутри контейнера
-COPY config_docker.yaml .
+EXPOSE 8001
 
-# Опционально: устанавливаем переменные окружения
-ENV KV_VIPER_FILE=/app/config_docker.yaml
-
-# Запускаем бинарник
-CMD ["./sso-oauth"]
+CMD ["./main", "run", "service"]

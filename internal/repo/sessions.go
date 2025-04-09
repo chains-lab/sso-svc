@@ -112,7 +112,7 @@ func (s SessionsRepo) Create(ctx context.Context, input SessionCreateRequest) er
 		CreatedAt: input.CreatedAt,
 	})
 	if err != nil {
-		//Todo log error
+		s.log.WithField("database", "redis").Errorf("error creating session in redis: %v", err)
 	}
 
 	return nil
@@ -155,7 +155,7 @@ func (s SessionsRepo) Update(ctx context.Context, ID uuid.UUID, input SessionUpd
 		CreatedAt: session.CreatedAt,
 	})
 	if err != nil {
-
+		s.log.WithField("database", "redis").Errorf("error creating session in redis: %v", err)
 	}
 
 	return nil
@@ -195,7 +195,7 @@ func (s SessionsRepo) GetByID(ctx context.Context, ID uuid.UUID) (Session, error
 
 	redisRes, err := s.redis.GetByID(ctx, ID.String())
 	if err != nil {
-		//TODO: log
+		s.log.WithField("database", "redis").Errorf("error creating session in redis: %v", err)
 	} else {
 		return Session{
 			ID:        redisRes.ID,
@@ -220,7 +220,7 @@ func (s SessionsRepo) GetByID(ctx context.Context, ID uuid.UUID) (Session, error
 		LastUsed:  session.LastUsed,
 		CreatedAt: session.CreatedAt,
 	}); err != nil {
-		//TODO: log
+		s.log.WithField("database", "redis").Errorf("error creating session in redis: %v", err)
 	}
 
 	return Session{
@@ -239,7 +239,7 @@ func (s SessionsRepo) GetByAccountID(ctx context.Context, accountID uuid.UUID) (
 
 	redisRes, err := s.redis.GetByAccountID(ctx, accountID.String())
 	if err != nil {
-		//TODO: log
+		s.log.WithField("database", "redis").Errorf("error creating session in redis: %v", err)
 	} else {
 		var result []Session
 		for _, session := range redisRes {
@@ -279,7 +279,7 @@ func (s SessionsRepo) GetByAccountID(ctx context.Context, accountID uuid.UUID) (
 			CreatedAt: session.CreatedAt,
 			LastUsed:  session.LastUsed,
 		}); err != nil {
-			//TODO: log
+			s.log.WithField("database", "redis").Errorf("error creating session in redis: %v", err)
 		}
 	}
 

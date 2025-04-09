@@ -19,7 +19,7 @@ const (
 type AccountModel struct {
 	ID           uuid.UUID  `json:"id"`
 	Email        string     `json:"email"`
-	Role         string     `json:"role"`
+	Role         roles.Role `json:"role"`
 	Subscription uuid.UUID  `json:"subscription,omitempty"`
 	UpdatedAt    *time.Time `db:"updated_at,omitempty"`
 	CreatedAt    time.Time  `json:"created_at"`
@@ -265,10 +265,15 @@ func parseAccount(accountID string, vals map[string]string) (AccountModel, error
 		return AccountModel{}, fmt.Errorf("error parsing subscription: %w", err)
 	}
 
+	role, err := roles.ParseRole(vals["role"])
+	if err != nil {
+		return AccountModel{}, fmt.Errorf("error parsing role: %w", err)
+	}
+
 	res := AccountModel{
 		ID:           ID,
 		Email:        vals["email"],
-		Role:         vals["role"],
+		Role:         role,
 		Subscription: subscription,
 		CreatedAt:    createdAt,
 	}
