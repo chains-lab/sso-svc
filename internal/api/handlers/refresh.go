@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/hs-zavet/comtools/httpkit"
 	"github.com/hs-zavet/comtools/httpkit/problems"
 	"github.com/hs-zavet/sso-oauth/internal/api/requests"
@@ -46,9 +47,15 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 	//accountRole := accountData.Role
 	//subTypeID := accountData.SubID
 
+	accountID, err := uuid.Parse(accountData.Subject)
+	if err != nil {
+		httpkit.RenderErr(w, problems.Unauthorized("Invalid account ID"))
+		return
+	}
+
 	//-------------------------------------------------------------------------//
 
-	session, err := h.app.Refresh(r.Context(), sessionID, app.RefreshRequest{
+	session, err := h.app.Refresh(r.Context(), accountID, sessionID, app.RefreshRequest{
 		Token:  curToken,
 		Client: r.Header.Get("User-Agent"),
 	})

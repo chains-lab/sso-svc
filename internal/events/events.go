@@ -3,29 +3,21 @@ package events
 import (
 	"encoding/json"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 const (
-	ReactionsTopic = "reactions"
-	AccountsTopic  = "accounts"
+	AccountsTopic      = "accounts"
+	SubscriptionsTopic = "subscriptions"
 
-	LikeEventType       = "LIKE"
-	LikeRemoveEventType = "LIKE_REMOVE"
-	RepostEventType     = "REPOST"
-	AccountCreateType   = "ACCOUNT_CREATE"
+	AccountCreateType = "ACCOUNT_CREATE"
+
+	SubscriptionActivateType   = "SUBSCRIPTION_ACTIVATE"
+	SubscriptionDeactivateType = "SUBSCRIPTION_DEACTIVATE"
 )
 
 type InternalEvent struct {
 	EventType string          `json:"event_type"`
 	Data      json.RawMessage `json:"data"`
-}
-
-type Reaction struct {
-	UserID    uuid.UUID `json:"user_id"`
-	ArticleID uuid.UUID `json:"article_id"`
-	Timestamp time.Time `json:"timestamp"`
 }
 
 type AccountCreated struct {

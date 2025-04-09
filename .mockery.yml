@@ -1,0 +1,7 @@
+packages:
+  github.com/hs-zavet/sso-oauth/internal/repo:
+    interfaces:
+      accountRedis:
+      accountSQL:
+      sessionSQL:
+      sessionsRedis:

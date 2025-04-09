@@ -9,6 +9,8 @@ import (
 	"github.com/hs-zavet/sso-oauth/internal/config"
 	"github.com/hs-zavet/sso-oauth/internal/repo/redisdb"
 	"github.com/hs-zavet/sso-oauth/internal/repo/sqldb"
+	"github.com/redis/go-redis/v9"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -24,7 +26,7 @@ type Session struct {
 	LastUsed  time.Time `json:"last_used"`
 }
 
-type SessionSQL interface {
+type sessionSQL interface {
 	New() sqldb.SessionsQ
 	Insert(ctx context.Context, input sqldb.SessionInsertInput) error
 	Update(ctx context.Context, input sqldb.SessionUpdateInput) error
@@ -52,20 +54,28 @@ type sessionsRedis interface {
 }
 
 type SessionsRepo struct {
-	sql   sqldb.SessionsQ
+	sql   sessionSQL
 	redis sessionsRedis
+	log   *logrus.Entry
 }
 
-func NewSessions(cfg config.Config) (SessionsRepo, error) {
+func NewSessions(cfg config.Config, log *logrus.Logger) (SessionsRepo, error) {
 	db, err := sql.Open("postgres", cfg.Database.SQL.URL)
 	if err != nil {
 		return SessionsRepo{}, err
 	}
 
-	sessions := sqldb.NewSessions(db)
+	redisImpl := redisdb.NewSessions(redis.NewClient(&redis.Options{
+		Addr:     cfg.Database.Redis.Addr,
+		Password: cfg.Database.Redis.Password,
+		DB:       cfg.Database.Redis.DB,
+	}), cfg.Database.Redis.Lifetime)
+	sqlImpl := sqldb.NewSessions(db)
 
 	return SessionsRepo{
-		sql: sessions,
+		sql:   sqlImpl,
+		redis: redisImpl,
+		log:   log.WithField("component", "sessions"),
 	}, nil
 }
 

@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func runServices(ctx context.Context, wg *sync.WaitGroup, app app.App, cfg config.Config, log *logrus.Logger) {
+func runServices(ctx context.Context, cfg config.Config, log *logrus.Logger, wg *sync.WaitGroup, app *app.App) {
 	run := func(f func()) {
 		wg.Add(1)
 		go func() {
@@ -19,8 +19,8 @@ func runServices(ctx context.Context, wg *sync.WaitGroup, app app.App, cfg confi
 		}()
 	}
 
-	API := api.NewAPI(cfg, log)
-	run(func() { API.Run(ctx, &app) })
+	API := api.NewAPI(cfg, log, app)
+	run(func() { API.Run(ctx, log) })
 
 	//run(func() { eventlistener.NewListener(cfg, &app) })
 }

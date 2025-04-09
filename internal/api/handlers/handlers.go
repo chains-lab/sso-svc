@@ -34,11 +34,11 @@ type Handler struct {
 	app    App
 	cfg    config.Config
 	google oauth2.Config
-	log    *logrus.Logger
+	log    *logrus.Entry
 }
 
-func NewHandlers(app *app.App, cfg config.Config, log *logrus.Logger) *Handler {
-	return &Handler{
+func NewHandlers(cfg config.Config, log *logrus.Entry, app *app.App) Handler {
+	return Handler{
 		app:    app,
 		cfg:    cfg,
 		google: config.InitGoogleOAuth(cfg),

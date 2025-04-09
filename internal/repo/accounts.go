@@ -12,6 +12,7 @@ import (
 	"github.com/hs-zavet/sso-oauth/internal/repo/sqldb"
 	"github.com/hs-zavet/tokens/roles"
 	"github.com/redis/go-redis/v9"
+	"github.com/sirupsen/logrus"
 )
 
 type Account struct {
@@ -55,9 +56,10 @@ type accountRedis interface {
 type AccountsRepo struct {
 	sql   sqldb.AccountQ
 	redis accountRedis
+	log   *logrus.Entry
 }
 
-func NewAccounts(cfg config.Config) (AccountsRepo, error) {
+func NewAccounts(cfg config.Config, log *logrus.Logger) (AccountsRepo, error) {
 	db, err := sql.Open("postgres", cfg.Database.SQL.URL)
 	if err != nil {
 		return AccountsRepo{}, err
@@ -73,6 +75,7 @@ func NewAccounts(cfg config.Config) (AccountsRepo, error) {
 	return AccountsRepo{
 		sql:   sqlImpl,
 		redis: redisImpl,
+		log:   log.WithField("component", "accounts"),
 	}, nil
 }
 

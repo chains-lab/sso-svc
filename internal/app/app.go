@@ -8,21 +8,23 @@ import (
 	"github.com/hs-zavet/sso-oauth/internal/jwtkit"
 	"github.com/hs-zavet/sso-oauth/internal/repo"
 	"github.com/hs-zavet/tokens/roles"
+	"github.com/sirupsen/logrus"
 )
 
 type App struct {
 	sessions sessionsRepo
 	accounts accountsRepo
 	jwt      JWTManager
+	log      *logrus.Entry
 }
 
-func NewApp(cfg config.Config) (App, error) {
-	sessions, err := repo.NewSessions(cfg)
+func NewApp(cfg config.Config, log *logrus.Logger) (App, error) {
+	sessions, err := repo.NewSessions(cfg, log)
 	if err != nil {
 		return App{}, err
 	}
 
-	accounts, err := repo.NewAccounts(cfg)
+	accounts, err := repo.NewAccounts(cfg, log)
 	if err != nil {
 		return App{}, err
 	}
@@ -33,6 +35,7 @@ func NewApp(cfg config.Config) (App, error) {
 		sessions: sessions,
 		accounts: accounts,
 		jwt:      jwt,
+		log:      log.WithField("component", "app"),
 	}, nil
 }
 
