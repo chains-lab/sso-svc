@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/hs-zavet/sso-oauth/internal/app"
 	"github.com/hs-zavet/sso-oauth/internal/config"
 	"github.com/hs-zavet/sso-oauth/internal/events"
@@ -13,17 +14,22 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type Subscription interface {
+	SubscriptionUpdate(ctx context.Context, AccountID uuid.UUID, subscriptionID uuid.UUID) error
+}
+
 type Listener struct {
+	subscription Subscription
+
 	cfg *config.Config
-	app *app.App
 	log *logrus.Entry
 }
 
 func NewListener(cfg *config.Config, app *app.App, logger *logrus.Logger) *Listener {
 	return &Listener{
-		cfg: cfg,
-		app: app,
-		log: logger.WithField("module", "event-listener"),
+		subscription: app,
+		cfg:          cfg,
+		log:          logger.WithField("module", "event-listener"),
 	}
 }
 
@@ -48,9 +54,29 @@ func (l *Listener) Listen(ctx context.Context, cfg *config.Config) {
 
 			switch event.EventType {
 			case events.SubscriptionActivateType:
-				//l.app.SubscriptionActivate(ctx, event)
+				var subEvent events.SubscriptionEvent
+				if err := json.Unmarshal(event.Data, &subEvent); err != nil {
+					l.log.WithError(err).Error("failed to unmarshal SubscriptionActivateType")
+					continue
+				}
+
+				err := l.subscription.SubscriptionUpdate(ctx, subEvent.AccountID, subEvent.SubscriptionID)
+				if err != nil {
+					l.log.WithError(err).Error("error processing subscription activate event")
+					continue
+				}
 			case events.SubscriptionDeactivateType:
-				//l.app.AccountDeactivate(ctx, event)
+				var subEvent events.SubscriptionEvent
+				if err := json.Unmarshal(event.Data, &subEvent); err != nil {
+					l.log.WithError(err).Error("failed to unmarshal SubscriptionActivateType")
+					continue
+				}
+
+				err := l.subscription.SubscriptionUpdate(ctx, subEvent.AccountID, subEvent.SubscriptionID)
+				if err != nil {
+					l.log.WithError(err).Error("error processing subscription activate event")
+					continue
+				}
 			default:
 				l.log.WithField("event", event).Error("Unknown event type")
 			}

@@ -35,6 +35,13 @@ docker compose --project-name sso-oauth down -v
 docker network inspect re-news-net
 docker network connect re-news-net sso-oauth
 ```
+```bash
+docker-compose -f kafka-docker-compose.yml up -d
+docker-compose -f kafka-docker-compose.yml down
+docker network create news
+
+```
+
 
 ## Starting the re-news Application
 

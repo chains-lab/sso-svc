@@ -3,6 +3,8 @@ package events
 import (
 	"encoding/json"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -25,4 +27,10 @@ type AccountCreated struct {
 	Email     string    `json:"email"`
 	Role      string    `json:"role"`
 	Timestamp time.Time `json:"timestamp"`
+}
+
+type SubscriptionEvent struct {
+	AccountID      uuid.UUID `json:"account_id"`
+	SubscriptionID uuid.UUID `json:"subscription_id"`
+	Timestamp      time.Time `json:"timestamp"`
 }

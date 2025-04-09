@@ -30,21 +30,6 @@ func (a App) AccountCreate(ctx context.Context, email string) error {
 	return nil
 }
 
-func (a App) AccountUpdateSubscription(ctx context.Context, ID uuid.UUID, subscriptionID uuid.UUID) error {
-	UpdatedAt := time.Now().UTC()
-
-	err := a.accounts.Update(ctx, ID, repo.AccountUpdateRequest{
-		Subscription: &subscriptionID,
-		UpdatedAt:    UpdatedAt,
-	})
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (a App) AccountUpdateRole(ctx context.Context, ID uuid.UUID, role, initiatorRole roles.Role) error {
 	UpdatedAt := time.Now().UTC()
 

@@ -14,7 +14,6 @@ import (
 
 type App interface {
 	AccountCreate(ctx context.Context, email string) error
-	AccountUpdateSubscription(ctx context.Context, accountID, subscriptionID uuid.UUID) error
 	AccountUpdateRole(ctx context.Context, accountID uuid.UUID, role, initiatorRole roles.Role) error
 	AccountGetByID(ctx context.Context, accountID uuid.UUID) (models.Account, error)
 	AccountGetByEmail(ctx context.Context, email string) (models.Account, error)
