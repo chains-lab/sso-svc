@@ -6,9 +6,9 @@ import (
 	"errors"
 	"time"
 
+	"github.com/chains-lab/chains-auth/internal/app/ape"
+	"github.com/chains-lab/chains-auth/internal/repo"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/sso-oauth/internal/app/ape"
-	"github.com/hs-zavet/sso-oauth/internal/repo"
 )
 
 func (a App) SubscriptionUpdate(ctx context.Context, AccountID uuid.UUID, subscriptionID uuid.UUID) error {
@@ -22,7 +22,7 @@ func (a App) SubscriptionUpdate(ctx context.Context, AccountID uuid.UUID, subscr
 	}); err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrAccountNotFound
+			return ape.ErrAccountDoseNotExits
 		default:
 			return err
 		}

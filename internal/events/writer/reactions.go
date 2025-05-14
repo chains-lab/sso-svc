@@ -7,8 +7,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/hs-zavet/sso-oauth/internal/config"
-	"github.com/hs-zavet/sso-oauth/internal/events"
+	"github.com/chains-lab/chains-auth/internal/config"
+	"github.com/chains-lab/chains-auth/internal/events"
 	"github.com/segmentio/kafka-go"
 )
 

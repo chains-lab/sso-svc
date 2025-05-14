@@ -1,4 +1,4 @@
-module github.com/hs-zavet/sso-oauth
+module github.com/chains-lab/chains-auth
 
 go 1.23.1
 
@@ -7,19 +7,17 @@ toolchain go1.23.7
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/alecthomas/kingpin v2.2.6+incompatible
+	github.com/chains-lab/gatekit v0.0.2
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
-	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0
-	github.com/hs-zavet/comtools v0.1.21
-	github.com/hs-zavet/tokens v0.7.14
 	github.com/lib/pq v1.10.9
 	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.7.0
 	github.com/segmentio/kafka-go v0.4.47
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.20.0
-	github.com/stretchr/testify v1.10.0
 	golang.org/x/oauth2 v0.25.0
 )
 
@@ -44,7 +42,6 @@ require (
 	github.com/spf13/afero v1.12.0 // indirect
 	github.com/spf13/cast v1.7.1 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
-	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/net v0.39.0 // indirect

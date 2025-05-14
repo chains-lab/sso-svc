@@ -5,11 +5,15 @@ import (
 )
 
 var (
-	ErrAccountNotFound                            = fmt.Errorf("account not found")
-	ErrAccountAlreadyExists                       = fmt.Errorf("account already exists")
-	ErrAccountInvalidRole                         = fmt.Errorf("invalid role")
-	ErrSessionNotFound                            = fmt.Errorf("session not found")
-	ErrSessionsNotFound                           = fmt.Errorf("sessions not found")
+	ErrAccountDoseNotExits  = fmt.Errorf("account does not exist")
+	ErrAccountAlreadyExists = fmt.Errorf("account already exists")
+
+	ErrAccountInvalidRole = fmt.Errorf("invalid role")
+
+	ErrUserHasNoPermissionToUpdateRole = fmt.Errorf("user has no permission to update role")
+
+	ErrSessionDoseNotExits                        = fmt.Errorf("session doses not exist")
+	ErrSessionsForAccountDoseNotExits             = fmt.Errorf("sessions for account doses not exist")
 	ErrSessionsClientMismatch                     = fmt.Errorf("client does not match")
 	ErrSessionsTokenMismatch                      = fmt.Errorf("token does not match")
 	ErrSessionAlreadyExists                       = fmt.Errorf("session already exists")

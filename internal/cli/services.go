@@ -4,9 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/hs-zavet/sso-oauth/internal/api"
-	"github.com/hs-zavet/sso-oauth/internal/app"
-	"github.com/hs-zavet/sso-oauth/internal/config"
+	"github.com/chains-lab/chains-auth/internal/api"
+	"github.com/chains-lab/chains-auth/internal/app"
+	"github.com/chains-lab/chains-auth/internal/config"
 	"github.com/sirupsen/logrus"
 )
 

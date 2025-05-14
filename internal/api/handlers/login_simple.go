@@ -4,17 +4,20 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/chains-lab/chains-auth/internal/api/responses"
+	"github.com/chains-lab/chains-auth/internal/app"
+	"github.com/chains-lab/gatekit/httpkit"
+	"github.com/chains-lab/gatekit/jsonkit"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/hs-zavet/comtools/httpkit"
-	"github.com/hs-zavet/comtools/httpkit/problems"
-	"github.com/hs-zavet/comtools/jsonkit"
-	"github.com/hs-zavet/sso-oauth/internal/api/responses"
-	"github.com/hs-zavet/sso-oauth/internal/app"
 )
 
 func (h *Handler) LoginSimple(w http.ResponseWriter, r *http.Request) {
 	if !h.cfg.Server.TestMode {
-		httpkit.RenderErr(w, problems.Forbidden("Test mode is off"))
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusForbidden,
+			Title:  "Test mode is off",
+			Detail: "Test mode is off",
+		})...)
 	}
 
 	type emailReq struct {
@@ -34,7 +37,10 @@ func (h *Handler) LoginSimple(w http.ResponseWriter, r *http.Request) {
 		//"sub":   validation.Validate(req.Sub, validation.NilOrNotEmpty),
 	}
 	if errs.Filter() != nil {
-		httpkit.RenderErr(w, problems.BadRequest(errs.Filter())...)
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusBadRequest,
+			Error:  errs.Filter(),
+		})...)
 		return
 	}
 
@@ -43,7 +49,9 @@ func (h *Handler) LoginSimple(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		h.log.WithError(err).Error("error getting session")
-		httpkit.RenderErr(w, problems.InternalError())
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusInternalServerError,
+		})...)
 		return
 	}
 

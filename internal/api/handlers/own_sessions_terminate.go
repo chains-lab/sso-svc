@@ -9,7 +9,7 @@ import (
 	"github.com/chains-lab/gatekit/tokens"
 )
 
-func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) SessionsTerminate(w http.ResponseWriter, r *http.Request) {
 	data, err := tokens.GetAccountTokenData(r.Context())
 	if err != nil {
 		h.log.WithError(err).Error("error getting account data from token")
@@ -20,31 +20,24 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.app.Logout(r.Context(), data.SessionID)
+	err = h.app.TerminateByOwner(r.Context(), data.SessionID)
 	if err != nil {
 		switch {
 		case errors.Is(err, ape.ErrSessionDoseNotExits):
-			h.log.WithError(err).Errorf("session not found session id: %s", data.SessionID)
+			h.log.WithError(err).Error("session not found session id: %s", data.SessionID)
 			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
 				Status: http.StatusNotFound,
 				Title:  "Session not found",
-				Detail: "Session dose not exits.",
+				Detail: "Session does not exist.",
 			})...)
-		case errors.Is(err, ape.ErrAccountDoseNotExits):
-			h.log.WithError(err).Errorf("account not found account id: %s", data.AccountID)
-			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
-				Status: http.StatusNotFound,
-				Title:  "Account not found",
-				Detail: "Account does not exist.",
-			})...)
+			return
 		default:
-			h.log.WithError(err).Errorf("error logging out session id: %s", data.SessionID)
+			h.log.WithError(err).Error("error terminating sessions")
 			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
 				Status: http.StatusInternalServerError,
 			})...)
+			return
 		}
-
-		return
 	}
 
 	httpkit.Render(w, http.StatusNoContent)

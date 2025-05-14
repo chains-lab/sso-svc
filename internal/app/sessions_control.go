@@ -6,10 +6,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/chains-lab/chains-auth/internal/app/ape"
+	"github.com/chains-lab/chains-auth/internal/app/models"
+	"github.com/chains-lab/gatekit/roles"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/sso-oauth/internal/app/ape"
-	"github.com/hs-zavet/sso-oauth/internal/app/models"
-	"github.com/hs-zavet/tokens/roles"
 )
 
 func (a App) TerminateByOwner(ctx context.Context, accountUD uuid.UUID) error {
@@ -17,7 +17,7 @@ func (a App) TerminateByOwner(ctx context.Context, accountUD uuid.UUID) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrSessionNotFound
+			return ape.ErrSessionDoseNotExits
 		default:
 			return err
 		}
@@ -33,7 +33,7 @@ func (a App) DeleteSessionByOwner(ctx context.Context, sessionID, initiatorSessi
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrSessionNotFound
+			return ape.ErrSessionDoseNotExits
 		default:
 			return err
 		}
@@ -46,7 +46,7 @@ func (a App) TerminateByAdmin(ctx context.Context, userID uuid.UUID) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrAccountNotFound
+			return ape.ErrAccountDoseNotExits
 		default:
 			return err
 		}
@@ -60,7 +60,7 @@ func (a App) TerminateByAdmin(ctx context.Context, userID uuid.UUID) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrSessionNotFound
+			return ape.ErrSessionDoseNotExits
 		default:
 			return err
 		}
@@ -87,7 +87,7 @@ func (a App) DeleteSessionByAdmin(ctx context.Context, sessionID, initiatorID, i
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrAccountNotFound
+			return ape.ErrAccountDoseNotExits
 		default:
 			return err
 		}
@@ -101,7 +101,7 @@ func (a App) DeleteSessionByAdmin(ctx context.Context, sessionID, initiatorID, i
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrSessionNotFound
+			return ape.ErrSessionDoseNotExits
 		default:
 			return err
 		}
@@ -115,7 +115,7 @@ func (a App) GetSession(ctx context.Context, sessionID uuid.UUID) (models.Sessio
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return models.Session{}, ape.ErrSessionNotFound
+			return models.Session{}, ape.ErrSessionDoseNotExits
 		default:
 			return models.Session{}, err
 		}
@@ -131,11 +131,20 @@ func (a App) GetSession(ctx context.Context, sessionID uuid.UUID) (models.Sessio
 }
 
 func (a App) GetSessions(ctx context.Context, accountID uuid.UUID) ([]models.Session, error) {
+	_, err := a.accounts.GetByID(ctx, accountID)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ape.ErrAccountDoseNotExits
+		default:
+			return nil, err
+		}
+	}
 	sessions, err := a.sessions.GetByAccountID(ctx, accountID)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, ape.ErrSessionsNotFound
+			return nil, ape.ErrSessionsForAccountDoseNotExits
 		default:
 			return nil, err
 		}

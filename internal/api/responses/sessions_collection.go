@@ -1,8 +1,8 @@
 package responses
 
 import (
-	"github.com/hs-zavet/sso-oauth/internal/app/models"
-	"github.com/hs-zavet/sso-oauth/resources"
+	"github.com/chains-lab/chains-auth/internal/app/models"
+	"github.com/chains-lab/chains-auth/resources"
 )
 
 func SessionCollection(sessions []models.Session) resources.SessionsCollection {

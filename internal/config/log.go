@@ -1,11 +1,36 @@
 package config
 
 import (
-	"github.com/hs-zavet/comtools/logkit"
+	"strings"
+
 	"github.com/sirupsen/logrus"
 )
 
+func SetupLogger(level, format string) *logrus.Logger {
+	logger := logrus.New()
+
+	lvl, err := logrus.ParseLevel(strings.ToLower(level))
+	if err != nil {
+		logger.Warnf("invalid log level '%s', defaulting to 'info'", level)
+		lvl = logrus.InfoLevel
+	}
+	logger.SetLevel(lvl)
+
+	switch strings.ToLower(format) {
+	case "json":
+		logger.SetFormatter(&logrus.JSONFormatter{})
+	case "text":
+		fallthrough
+	default:
+		logger.SetFormatter(&logrus.TextFormatter{
+			FullTimestamp: true,
+		})
+	}
+
+	return logger
+}
+
 func Logger(cfg Config) *logrus.Logger {
-	logger := logkit.SetupLogger(cfg.Server.Log.Level, cfg.Server.Log.Format)
+	logger := SetupLogger(cfg.Server.Log.Level, cfg.Server.Log.Format)
 	return logger
 }

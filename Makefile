@@ -29,5 +29,5 @@ migrate-down:
 	migrate -path internal/repo/sqldb/migrations -database $(DB_URL) -verbose down
 
 run-server:
-	KV_VIPER_FILE=$(CONFIG_FILE) go build -o main ./cmd/sso-oauth/main.go
+	KV_VIPER_FILE=$(CONFIG_FILE) go build -o main ./cmd/chains-auth/main.go
 	KV_VIPER_FILE=$(CONFIG_FILE) ./main run service

@@ -6,11 +6,11 @@ import (
 	"errors"
 	"time"
 
+	"github.com/chains-lab/chains-auth/internal/app/ape"
+	"github.com/chains-lab/chains-auth/internal/app/models"
+	"github.com/chains-lab/chains-auth/internal/repo"
+	"github.com/chains-lab/gatekit/roles"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/sso-oauth/internal/app/ape"
-	"github.com/hs-zavet/sso-oauth/internal/app/models"
-	"github.com/hs-zavet/sso-oauth/internal/repo"
-	"github.com/hs-zavet/tokens/roles"
 )
 
 type LoginRequest struct {
@@ -155,7 +155,7 @@ func (a App) Logout(ctx context.Context, sessionID uuid.UUID) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrSessionNotFound
+			return ape.ErrSessionDoseNotExits
 		default:
 			return err
 		}

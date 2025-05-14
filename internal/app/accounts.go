@@ -4,14 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"time"
 
+	"github.com/chains-lab/chains-auth/internal/app/ape"
+	"github.com/chains-lab/chains-auth/internal/app/models"
+	"github.com/chains-lab/chains-auth/internal/repo"
+	"github.com/chains-lab/gatekit/roles"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/sso-oauth/internal/app/ape"
-	"github.com/hs-zavet/sso-oauth/internal/app/models"
-	"github.com/hs-zavet/sso-oauth/internal/repo"
-	"github.com/hs-zavet/tokens/roles"
 )
 
 func (a App) AccountCreate(ctx context.Context, email string, role roles.Role) error {
@@ -28,7 +27,7 @@ func (a App) AccountCreate(ctx context.Context, email string, role roles.Role) e
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrAccountNotFound
+			return ape.ErrAccountAlreadyExists
 		default:
 			return err
 		}
@@ -41,7 +40,7 @@ func (a App) AccountUpdateRole(ctx context.Context, ID uuid.UUID, role, initiato
 	UpdatedAt := time.Now().UTC()
 
 	if roles.CompareRolesUser(role, initiatorRole) != 1 {
-		return fmt.Errorf("user has no permission to update role")
+		return ape.ErrUserHasNoPermissionToUpdateRole
 	}
 
 	err := a.accounts.Update(ctx, ID, repo.AccountUpdateRequest{
@@ -51,7 +50,7 @@ func (a App) AccountUpdateRole(ctx context.Context, ID uuid.UUID, role, initiato
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrAccountNotFound
+			return ape.ErrAccountDoseNotExits
 		default:
 			return err
 		}
@@ -65,7 +64,7 @@ func (a App) AccountGetByID(ctx context.Context, ID uuid.UUID) (models.Account, 
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return models.Account{}, ape.ErrAccountNotFound
+			return models.Account{}, ape.ErrAccountDoseNotExits
 		default:
 			return models.Account{}, err
 		}
@@ -86,7 +85,7 @@ func (a App) AccountGetByEmail(ctx context.Context, email string) (models.Accoun
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return models.Account{}, ape.ErrAccountNotFound
+			return models.Account{}, ape.ErrAccountDoseNotExits
 		default:
 			return models.Account{}, err
 		}

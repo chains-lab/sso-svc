@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/chains-lab/chains-auth/internal/repo/redisdb"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/sso-oauth/internal/repo/redisdb"
 	"github.com/redis/go-redis/v9"
 )
 

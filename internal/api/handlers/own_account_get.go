@@ -2,36 +2,33 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/chains-lab/chains-auth/internal/api/responses"
 	"github.com/chains-lab/chains-auth/internal/app/ape"
 	"github.com/chains-lab/gatekit/httpkit"
-	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
+	"github.com/chains-lab/gatekit/tokens"
 )
 
-func (h *Handler) AdminAccountGet(w http.ResponseWriter, r *http.Request) {
-	accountID, err := uuid.Parse(chi.URLParam(r, "account_id"))
+func (h *Handler) OwnAccountGet(w http.ResponseWriter, r *http.Request) {
+	data, err := tokens.GetAccountTokenData(r.Context())
 	if err != nil {
+		h.log.WithError(err).Error("error getting account data from token")
 		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
-			Status:   http.StatusBadRequest,
-			Detail:   "Account ID must be a valid UUID.",
-			Parametr: "account_id",
+			Status: http.StatusBadRequest,
+			Error:  err,
 		})...)
 		return
 	}
 
-	res, err := h.app.AccountGetByID(r.Context(), accountID)
+	res, err := h.app.AccountGetByID(r.Context(), data.AccountID)
 	if err != nil {
 		switch {
 		case errors.Is(err, ape.ErrAccountDoseNotExits):
 			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
-				Status:   http.StatusNotFound,
-				Title:    "Account not found",
-				Detail:   fmt.Sprintf("Account with ID %s not found.", accountID),
-				Parametr: "account_id",
+				Status: http.StatusNotFound,
+				Title:  "Account not found",
+				Detail: "The requested account does not exist.",
 			})...)
 			return
 		default:
@@ -39,7 +36,7 @@ func (h *Handler) AdminAccountGet(w http.ResponseWriter, r *http.Request) {
 				Status: http.StatusInternalServerError,
 			})...)
 		}
-		h.log.WithError(err).Errorf("error getting account id: %s", accountID)
+		h.log.WithError(err).Errorf("error getting account id: %s", data.AccountID)
 		return
 	}
 

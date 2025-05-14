@@ -1,5 +1,5 @@
 packages:
-  github.com/hs-zavet/sso-oauth/internal/repo:
+  github.com/chains-lab/chains-auth/internal/repo:
     interfaces:
       accountRedis:
       accountSQL:

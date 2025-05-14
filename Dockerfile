@@ -7,7 +7,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o main ./cmd/sso-oauth
+RUN go build -o main ./cmd/chains-auth
 
 FROM alpine:latest
 

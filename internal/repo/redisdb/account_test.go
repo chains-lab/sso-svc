@@ -6,9 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/chains-lab/chains-auth/internal/repo/redisdb"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/sso-oauth/internal/repo/redisdb"
-	"github.com/hs-zavet/tokens/roles" // если roles.Role является типом alias для string
 	"github.com/redis/go-redis/v9"
 )
 

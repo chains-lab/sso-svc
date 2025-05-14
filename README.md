@@ -27,13 +27,13 @@ docker network create re-news-net
 ```
 
 ```bash
-docker compose --project-name sso-oauth up -d
-docker compose --project-name sso-oauth down -v
+docker compose --project-name chains-auth up -d
+docker compose --project-name chains-auth down -v
 ```
 
 ```bash
 docker network inspect re-news-net
-docker network connect re-news-net sso-oauth
+docker network connect re-news-net chains-auth
 ```
 ```bash
 docker-compose -f kafka-docker-compose.yml up -d

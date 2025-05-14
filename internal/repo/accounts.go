@@ -5,11 +5,11 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/chains-lab/chains-auth/internal/config"
+	"github.com/chains-lab/chains-auth/internal/repo/redisdb"
+	"github.com/chains-lab/chains-auth/internal/repo/sqldb"
+	"github.com/chains-lab/gatekit/roles"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/sso-oauth/internal/config"
-	"github.com/hs-zavet/sso-oauth/internal/repo/redisdb"
-	"github.com/hs-zavet/sso-oauth/internal/repo/sqldb"
-	"github.com/hs-zavet/tokens/roles"
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 )
@@ -103,14 +103,12 @@ func (a AccountsRepo) Create(ctx context.Context, input AccountCreateRequest) er
 		return err
 	}
 
-	if err := a.redis.Create(ctxSync, redisdb.CreateAccountInput{
+	_ = a.redis.Create(ctxSync, redisdb.CreateAccountInput{
 		ID:           input.ID,
 		Email:        input.Email,
 		Role:         input.Role,
 		Subscription: input.Subscription,
-	}); err != nil {
-		a.log.WithField("database", "redis").Errorf("error creating account in redis: %v", err)
-	}
+	})
 
 	return nil
 }
@@ -147,17 +145,14 @@ func (a AccountsRepo) Update(ctx context.Context, ID uuid.UUID, input AccountUpd
 		return err
 	}
 
-	if err := a.redis.Set(ctxSync, redisdb.AccountSetInput{
+	_ = a.redis.Set(ctxSync, redisdb.AccountSetInput{
 		ID:           account.ID,
 		Email:        account.Email,
 		Role:         account.Role,
 		Subscription: account.Subscription,
 		UpdatedAt:    account.UpdatedAt,
 		CreatedAt:    account.CreatedAt,
-	}); err != nil {
-		a.log.WithField("database", "redis").Errorf("error creating account in redis: %v", err)
-	}
-
+	})
 	return nil
 }
 

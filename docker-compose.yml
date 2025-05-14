@@ -1,7 +1,7 @@
 services:
-  sso-oauth:
+  chains-auth:
     build: .
-    container_name: sso-oauth
+    container_name: chains-auth
     environment:
       - KV_VIPER_FILE=./config_docker.yaml
     ports:
@@ -9,9 +9,9 @@ services:
     networks:
       - news-net
 
-  sso-oauth-postgres:
+  chains-auth-postgres:
     image: postgres:15
-    container_name:  sso-oauth-postgres
+    container_name:  chains-auth-postgres
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -23,9 +23,9 @@ services:
     networks:
       - news-net
 
-  sso-oauth-redis:
+  chains-auth-redis:
     image: redis:6
-    container_name:  sso-oauth-redis
+    container_name:  chains-auth-redis
     ports:
       - "7201:6379"
     networks:

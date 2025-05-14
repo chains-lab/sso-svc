@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/hs-zavet/sso-oauth/internal/cli"
+	"github.com/chains-lab/chains-auth/internal/cli"
 )
 
 func main() {

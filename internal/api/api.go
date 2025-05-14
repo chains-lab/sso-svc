@@ -5,12 +5,12 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/chains-lab/chains-auth/internal/api/handlers"
+	"github.com/chains-lab/chains-auth/internal/app"
+	"github.com/chains-lab/chains-auth/internal/config"
+	"github.com/chains-lab/gatekit/mdlv"
+	"github.com/chains-lab/gatekit/roles"
 	"github.com/go-chi/chi/v5"
-	"github.com/hs-zavet/sso-oauth/internal/api/handlers"
-	"github.com/hs-zavet/sso-oauth/internal/app"
-	"github.com/hs-zavet/sso-oauth/internal/config"
-	"github.com/hs-zavet/tokens"
-	"github.com/hs-zavet/tokens/roles"
 	"github.com/sirupsen/logrus"
 )
 
@@ -42,12 +42,12 @@ func NewAPI(cfg config.Config, log *logrus.Logger, app *app.App) Api {
 }
 
 func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
-	auth := tokens.AuthMdl(a.cfg.JWT.AccessToken.SecretKey)
-	admin := tokens.AccessGrant(a.cfg.JWT.AccessToken.SecretKey, roles.Admin, roles.SuperUser)
+	auth := mdlv.AuthMdl(a.cfg.JWT.AccessToken.SecretKey, "todo")
+	admin := mdlv.AccessGrant(a.cfg.JWT.AccessToken.SecretKey, "todo", roles.Admin, roles.SuperUser)
 
 	a.log.WithField("module", "api").Info("Starting API server")
 
-	a.router.Route("/hs-news/sso", func(r chi.Router) {
+	a.router.Route("/chains/auth", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/public", func(r chi.Router) {
 				r.Post("/refresh", a.handlers.Refresh)
@@ -60,13 +60,13 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 					r.Use(auth)
 					r.Route("/sessions", func(r chi.Router) {
 						r.Route("/{session_id}", func(r chi.Router) {
-							r.Get("/", a.handlers.SessionGet)
+							r.Get("/", a.handlers.OwnSessionGet)
 							r.Delete("/", a.handlers.SessionDelete)
 						})
 						r.Get("/", a.handlers.SessionsGet)
 						r.Delete("/", a.handlers.SessionsTerminate)
 					})
-					r.Get("/", a.handlers.AccountGet)
+					r.Get("/", a.handlers.OwnAccountGet)
 					r.Delete("/", a.handlers.Logout)
 				})
 			})

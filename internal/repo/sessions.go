@@ -6,10 +6,10 @@ import (
 	"errors"
 	"time"
 
+	"github.com/chains-lab/chains-auth/internal/config"
+	"github.com/chains-lab/chains-auth/internal/repo/redisdb"
+	"github.com/chains-lab/chains-auth/internal/repo/sqldb"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/sso-oauth/internal/config"
-	"github.com/hs-zavet/sso-oauth/internal/repo/redisdb"
-	"github.com/hs-zavet/sso-oauth/internal/repo/sqldb"
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 )

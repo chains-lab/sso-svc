@@ -1,6 +1,6 @@
 package responses
 
-import "github.com/hs-zavet/sso-oauth/resources"
+import "github.com/chains-lab/chains-auth/resources"
 
 func TokensPair(access, refresh string) resources.TokensPair {
 	return resources.TokensPair{

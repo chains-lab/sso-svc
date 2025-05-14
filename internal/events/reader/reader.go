@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/hs-zavet/sso-oauth/internal/events"
+	"github.com/chains-lab/chains-auth/internal/events"
 	"github.com/segmentio/kafka-go"
 	"github.com/sirupsen/logrus"
 )

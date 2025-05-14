@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/chains-lab/gatekit/roles"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/tokens/roles"
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
 )

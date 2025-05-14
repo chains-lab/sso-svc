@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/chains-lab/chains-auth/internal/app"
+	"github.com/chains-lab/chains-auth/internal/config"
+	"github.com/chains-lab/chains-auth/internal/events"
+	"github.com/chains-lab/chains-auth/internal/events/reader"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/sso-oauth/internal/app"
-	"github.com/hs-zavet/sso-oauth/internal/config"
-	"github.com/hs-zavet/sso-oauth/internal/events"
-	"github.com/hs-zavet/sso-oauth/internal/events/reader"
 	"github.com/segmentio/kafka-go"
 	"github.com/sirupsen/logrus"
 )

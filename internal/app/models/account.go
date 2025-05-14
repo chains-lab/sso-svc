@@ -3,8 +3,8 @@ package models
 import (
 	"time"
 
+	"github.com/chains-lab/gatekit/roles"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/tokens/roles"
 )
 
 type Account struct {

@@ -9,9 +9,8 @@ import (
 	"syscall"
 
 	"github.com/alecthomas/kingpin"
-	"github.com/hs-zavet/comtools/logkit"
-	"github.com/hs-zavet/sso-oauth/internal/app"
-	"github.com/hs-zavet/sso-oauth/internal/config"
+	"github.com/chains-lab/chains-auth/internal/app"
+	"github.com/chains-lab/chains-auth/internal/config"
 )
 
 func Run(args []string) bool {
@@ -20,11 +19,11 @@ func Run(args []string) bool {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
-	logger := logkit.SetupLogger(cfg.Server.Log.Level, cfg.Server.Log.Format)
+	logger := config.Logger(cfg)
 	logger.Info("Starting server...")
 
 	var (
-		service        = kingpin.New("sso-oauth", "")
+		service        = kingpin.New("chains-auth", "")
 		runCmd         = service.Command("run", "run command")
 		serviceCmd     = runCmd.Command("service", "run service")
 		migrateCmd     = service.Command("migrate", "migrate command")

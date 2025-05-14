@@ -5,54 +5,76 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/chains-lab/chains-auth/internal/api/responses"
+	"github.com/chains-lab/chains-auth/internal/app/ape"
+	"github.com/chains-lab/gatekit/httpkit"
+	"github.com/chains-lab/gatekit/tokens"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/comtools/httpkit"
-	"github.com/hs-zavet/comtools/httpkit/problems"
-	"github.com/hs-zavet/sso-oauth/internal/api/responses"
-	"github.com/hs-zavet/sso-oauth/internal/app/ape"
-	"github.com/hs-zavet/tokens"
 )
 
 func (h *Handler) AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
 	data, err := tokens.GetAccountTokenData(r.Context())
 	if err != nil {
-		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
+		h.log.WithError(err).Error("error getting account data from token")
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusUnauthorized,
+			Detail: err.Error(),
+		})...)
 		return
 	}
 
 	sessionID, err := uuid.Parse(chi.URLParam(r, "session_id"))
 	if err != nil {
-		httpkit.RenderErr(w, problems.BadRequest(err)...)
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status:   http.StatusBadRequest,
+			Detail:   "Session ID must be a valid UUID.",
+			Parametr: "session_id",
+		})...)
 		return
 	}
 
 	accountID, err := uuid.Parse(chi.URLParam(r, "account_id"))
 	if err != nil {
-		httpkit.RenderErr(w, problems.BadRequest(err)...)
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status:   http.StatusBadRequest,
+			Detail:   "Account ID must be a valid UUID.",
+			Parametr: "account_id",
+		})...)
 		return
 	}
 
 	err = h.app.DeleteSessionByAdmin(r.Context(), sessionID, data.AccountID, data.SessionID)
 	if err != nil {
 		switch {
-		case errors.Is(err, ape.ErrAccountNotFound):
-			h.log.WithError(err).Errorf("error deleting session %s", sessionID)
-			httpkit.RenderErr(w, problems.NotFound("account not found"))
-			return
-		case errors.Is(err, ape.ErrSessionNotFound):
-			h.log.WithError(err).Errorf("error deleting session %s", sessionID)
-			httpkit.RenderErr(w, problems.NotFound("session not found"))
-			return
+		case errors.Is(err, ape.ErrAccountDoseNotExits):
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status:   http.StatusNotFound,
+				Title:    "Account not found",
+				Detail:   "The requested account does not exist.",
+				Parametr: "account_id",
+			})...)
+		case errors.Is(err, ape.ErrSessionDoseNotExits):
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status:   http.StatusNotFound,
+				Title:    "Session not found",
+				Detail:   "The requested session does not exist.",
+				Parametr: "session_id",
+			})...)
 		case errors.Is(err, ape.ErrSessionCannotDeleteForSuperUserByOtherUser):
-			h.log.WithError(err).Errorf("error deleting session %s", sessionID)
-			httpkit.RenderErr(w, problems.Forbidden("session can't be deleted by other user"))
-			return
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusForbidden,
+				Title:  "Forbidden",
+				Detail: "You have not permission to delete this session.",
+			})...)
 		default:
-			h.log.WithError(err).Errorf("error deleting session %s", sessionID)
-			httpkit.RenderErr(w, problems.InternalError())
-			return
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusInternalServerError,
+			})...)
 		}
+
+		h.log.WithError(err).Errorf("error deleting session %s", sessionID)
+		return
 	}
 
 	sessions, err := h.app.GetSessions(r.Context(), accountID)
@@ -60,11 +82,16 @@ func (h *Handler) AdminSessionDelete(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			h.log.WithError(err).Errorf("error deleting session %s", sessionID)
-			httpkit.RenderErr(w, problems.NotFound())
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusNotFound,
+				Title:  "Session not found",
+			})...)
 			return
 		default:
 			h.log.WithError(err).Errorf("error getting session for account %s", accountID)
-			httpkit.RenderErr(w, problems.InternalError())
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusInternalServerError,
+			})...)
 			return
 		}
 	}

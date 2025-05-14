@@ -5,52 +5,66 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/chains-lab/chains-auth/internal/api/requests"
+	"github.com/chains-lab/chains-auth/internal/api/responses"
+	"github.com/chains-lab/chains-auth/internal/app"
+	"github.com/chains-lab/chains-auth/internal/app/ape"
+	"github.com/chains-lab/gatekit/httpkit"
+	"github.com/chains-lab/gatekit/tokens"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/comtools/httpkit"
-	"github.com/hs-zavet/comtools/httpkit/problems"
-	"github.com/hs-zavet/sso-oauth/internal/api/requests"
-	"github.com/hs-zavet/sso-oauth/internal/api/responses"
-	"github.com/hs-zavet/sso-oauth/internal/app"
-	"github.com/hs-zavet/sso-oauth/internal/app/ape"
-	"github.com/hs-zavet/tokens"
 )
 
 func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 	req, err := requests.NewRefresh(r)
 	if err != nil {
-		httpkit.RenderErr(w, problems.BadRequest(err)...)
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusBadRequest,
+			Error:  err,
+		})...)
 		return
 	}
 	curToken := req.Data.Attributes.RefreshToken
 
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
-		httpkit.RenderErr(w, problems.Unauthorized("Missing Authorization header"))
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusUnauthorized,
+			Detail: "Missing Authorization header",
+		})...)
 		return
 	}
 
 	parts := strings.Split(authHeader, " ")
 	if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-		httpkit.RenderErr(w, problems.Unauthorized("Invalid Authorization header format"))
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusUnauthorized,
+			Detail: "Invalid Authorization header",
+		})...)
 		return
 	}
 
 	tokenString := parts[1]
 
-	accountData, err := tokens.VerifyAccountsJWT(r.Context(), tokenString, h.cfg.JWT.AccessToken.SecretKey)
-	if err != nil && !errors.Is(err, jwt.ErrTokenExpired) {
-		httpkit.RenderErr(w, problems.Unauthorized())
+	userData, err := tokens.VerifyAccountsJWT(r.Context(), tokenString, h.cfg.JWT.AccessToken.SecretKey)
+	if err != nil {
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusUnauthorized,
+			Title:  "Unauthorized",
+			Detail: "Token validation failed",
+		})...)
 		return
 	}
 
-	sessionID := accountData.Session
-	//accountRole := accountData.Role
-	//subTypeID := accountData.SubID
+	sessionID := userData.Session
+	//accountRole := userData.Role
+	//subTypeID := userData.SubID
 
-	accountID, err := uuid.Parse(accountData.Subject)
+	accountID, err := uuid.Parse(userData.Subject)
 	if err != nil {
-		httpkit.RenderErr(w, problems.Unauthorized("Invalid account ID"))
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusBadRequest,
+			Detail: "Account ID must be a valid UUID.",
+		})...)
 		return
 	}
 
@@ -62,18 +76,30 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		switch {
-		case errors.Is(err, ape.ErrSessionNotFound):
+		case errors.Is(err, ape.ErrSessionDoseNotExits):
 			h.log.WithError(err).Errorf("session not found session id: %s", sessionID)
-			httpkit.RenderErr(w, problems.Unauthorized("Session not found"))
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusNotFound,
+				Title:  "Session not found",
+				Detail: "Session does not exist.",
+			})...)
 		case errors.Is(err, ape.ErrSessionsClientMismatch):
 			h.log.WithError(err).Errorf("session client mismatch session id: %s", sessionID)
-			httpkit.RenderErr(w, problems.Unauthorized("Session client mismatch"))
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusConflict,
+				Detail: "Session client does not match.",
+			})...)
 		case errors.Is(err, ape.ErrSessionsTokenMismatch):
 			h.log.WithError(err).Errorf("session token mismatch session id: %s", sessionID)
-			httpkit.RenderErr(w, problems.Conflict("Token is not valid"))
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusConflict,
+				Detail: "Session token mismatch.",
+			})...)
 		default:
 			h.log.WithError(err).Error("error refreshing session")
-			httpkit.RenderErr(w, problems.InternalError())
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusInternalServerError,
+			})...)
 		}
 		return
 	}

@@ -8,10 +8,10 @@ import (
 	"io"
 	"time"
 
+	"github.com/chains-lab/chains-auth/internal/config"
+	"github.com/chains-lab/gatekit/roles"
+	"github.com/chains-lab/gatekit/tokens"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/sso-oauth/internal/config"
-	"github.com/hs-zavet/tokens"
-	"github.com/hs-zavet/tokens/roles"
 	"github.com/pkg/errors"
 )
 

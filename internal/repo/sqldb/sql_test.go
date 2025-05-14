@@ -7,9 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/chains-lab/chains-auth/internal/repo/sqldb"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/sso-oauth/internal/repo/sqldb"
-	"github.com/hs-zavet/tokens/roles"
 	_ "github.com/lib/pq"
 )
 
