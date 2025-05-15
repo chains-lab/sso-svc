@@ -7,10 +7,9 @@ toolchain go1.23.7
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/alecthomas/kingpin v2.2.6+incompatible
-	github.com/chains-lab/gatekit v0.0.2
+	github.com/chains-lab/gatekit v0.0.3
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
-	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
 	github.com/pkg/errors v0.9.1
@@ -30,6 +29,7 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
 	github.com/google/jsonapi v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.2 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect

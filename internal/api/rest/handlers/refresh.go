@@ -1,14 +1,12 @@
 package handlers
 
 import (
-	"errors"
 	"net/http"
 	"strings"
 
-	"github.com/chains-lab/chains-auth/internal/api/requests"
-	"github.com/chains-lab/chains-auth/internal/api/responses"
+	"github.com/chains-lab/chains-auth/internal/api/rest/requests"
+	"github.com/chains-lab/chains-auth/internal/api/rest/responses"
 	"github.com/chains-lab/chains-auth/internal/app"
-	"github.com/chains-lab/chains-auth/internal/app/ape"
 	"github.com/chains-lab/gatekit/httpkit"
 	"github.com/chains-lab/gatekit/tokens"
 	"github.com/google/uuid"
@@ -29,6 +27,7 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 	if authHeader == "" {
 		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
 			Status: http.StatusUnauthorized,
+			Code:   "MISSING_AUTHORIZATION_HEADER",
 			Detail: "Missing Authorization header",
 		})...)
 		return
@@ -38,7 +37,8 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 	if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
 		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
 			Status: http.StatusUnauthorized,
-			Detail: "Invalid Authorization header",
+			Code:   "MISSING_AUTHORIZATION_HEADER",
+			Detail: "Missing Authorization header",
 		})...)
 		return
 	}
@@ -49,7 +49,7 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
 			Status: http.StatusUnauthorized,
-			Title:  "Unauthorized",
+			Code:   "TOKEN_VALIDATION_FAILED",
 			Detail: "Token validation failed",
 		})...)
 		return
@@ -70,39 +70,18 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 
 	//-------------------------------------------------------------------------//
 
-	session, err := h.app.Refresh(r.Context(), accountID, sessionID, app.RefreshRequest{
+	requestID := uuid.New()
+	log := h.log.WithField("request_id", requestID)
+
+	session, appErr := h.app.Refresh(r.Context(), accountID, sessionID, app.RefreshRequest{
 		Token:  curToken,
 		Client: r.Header.Get("User-Agent"),
 	})
-	if err != nil {
-		switch {
-		case errors.Is(err, ape.ErrSessionDoseNotExits):
-			h.log.WithError(err).Errorf("session not found session id: %s", sessionID)
-			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
-				Status: http.StatusNotFound,
-				Title:  "Session not found",
-				Detail: "Session does not exist.",
-			})...)
-		case errors.Is(err, ape.ErrSessionsClientMismatch):
-			h.log.WithError(err).Errorf("session client mismatch session id: %s", sessionID)
-			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
-				Status: http.StatusConflict,
-				Detail: "Session client does not match.",
-			})...)
-		case errors.Is(err, ape.ErrSessionsTokenMismatch):
-			h.log.WithError(err).Errorf("session token mismatch session id: %s", sessionID)
-			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
-				Status: http.StatusConflict,
-				Detail: "Session token mismatch.",
-			})...)
-		default:
-			h.log.WithError(err).Error("error refreshing session")
-			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
-				Status: http.StatusInternalServerError,
-			})...)
-		}
+	if appErr != nil {
+		h.controllers.ResultFromApp(w, requestID, appErr)
 		return
 	}
 
+	log.Infof("Session %s refreshed successfully", session.ID)
 	httpkit.Render(w, responses.TokensPair(session.Access, session.Refresh))
 }

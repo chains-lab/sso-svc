@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/chains-lab/chains-auth/internal/api/handlers"
+	"github.com/chains-lab/chains-auth/internal/api/rest/handlers"
 	"github.com/chains-lab/chains-auth/internal/app"
 	"github.com/chains-lab/chains-auth/internal/config"
 	"github.com/chains-lab/gatekit/mdlv"
@@ -49,6 +49,7 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 
 	a.router.Route("/chains/auth", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
+
 			r.Route("/public", func(r chi.Router) {
 				r.Post("/refresh", a.handlers.Refresh)
 				r.Route("/google", func(r chi.Router) {
@@ -60,7 +61,7 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 					r.Use(auth)
 					r.Route("/sessions", func(r chi.Router) {
 						r.Route("/{session_id}", func(r chi.Router) {
-							r.Get("/", a.handlers.OwnSessionGet)
+							r.Get("/", a.handlers.OwnGetSession)
 							r.Delete("/", a.handlers.SessionDelete)
 						})
 						r.Get("/", a.handlers.SessionsGet)

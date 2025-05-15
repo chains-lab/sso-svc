@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/chains-lab/chains-auth/internal/app/ape"
@@ -13,7 +14,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (a App) AccountCreate(ctx context.Context, email string, role roles.Role) error {
+func (a App) CreateAccount(ctx context.Context, email string, role roles.Role) *ape.Error {
 	ID := uuid.New()
 	CreatedAt := time.Now().UTC()
 
@@ -27,20 +28,20 @@ func (a App) AccountCreate(ctx context.Context, email string, role roles.Role) e
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrAccountAlreadyExists
+			return ape.ErrorAccountAlreadyExists(err)
 		default:
-			return err
+			return ape.ErrorInternalServer(err)
 		}
 	}
 
 	return nil
 }
 
-func (a App) AccountUpdateRole(ctx context.Context, ID uuid.UUID, role, initiatorRole roles.Role) error {
+func (a App) UpdateAccountRole(ctx context.Context, ID uuid.UUID, role, initiatorRole roles.Role) *ape.Error {
 	UpdatedAt := time.Now().UTC()
 
 	if roles.CompareRolesUser(role, initiatorRole) != 1 {
-		return ape.ErrUserHasNoPermissionToUpdateRole
+		return ape.ErrorUserNoPermissionToUpdateRole(fmt.Errorf("user has no permission to update role"))
 	}
 
 	err := a.accounts.Update(ctx, ID, repo.AccountUpdateRequest{
@@ -50,23 +51,23 @@ func (a App) AccountUpdateRole(ctx context.Context, ID uuid.UUID, role, initiato
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrAccountDoseNotExits
+			return ape.ErrorAccountDoesNotExistByID(ID, err)
 		default:
-			return err
+			return ape.ErrorInternalServer(err)
 		}
 	}
 
 	return nil
 }
 
-func (a App) AccountGetByID(ctx context.Context, ID uuid.UUID) (models.Account, error) {
+func (a App) GetAccountByID(ctx context.Context, ID uuid.UUID) (models.Account, *ape.Error) {
 	account, err := a.accounts.GetByID(ctx, ID)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return models.Account{}, ape.ErrAccountDoseNotExits
+			return models.Account{}, ape.ErrorAccountDoesNotExistByID(ID, err)
 		default:
-			return models.Account{}, err
+			return models.Account{}, ape.ErrorInternalServer(err)
 		}
 	}
 
@@ -80,14 +81,14 @@ func (a App) AccountGetByID(ctx context.Context, ID uuid.UUID) (models.Account, 
 	}, nil
 }
 
-func (a App) AccountGetByEmail(ctx context.Context, email string) (models.Account, error) {
+func (a App) GetAccountByEmail(ctx context.Context, email string) (models.Account, *ape.Error) {
 	account, err := a.accounts.GetByEmail(ctx, email)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return models.Account{}, ape.ErrAccountDoseNotExits
+			return models.Account{}, ape.ErrorAccountDoesNotExistByEmail(email, err)
 		default:
-			return models.Account{}, err
+			return models.Account{}, ape.ErrorInternalServer(err)
 		}
 	}
 

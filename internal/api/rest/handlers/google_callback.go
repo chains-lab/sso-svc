@@ -5,20 +5,25 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/chains-lab/chains-auth/internal/api/responses"
+	"github.com/chains-lab/chains-auth/internal/api/rest/responses"
 	"github.com/chains-lab/chains-auth/internal/app"
 	"github.com/chains-lab/chains-auth/internal/app/ape"
 	"github.com/chains-lab/gatekit/httpkit"
-	"github.com/pkg/errors"
+	"github.com/google/uuid"
 )
 
 func (h *Handler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
+	requestID := uuid.New()
+	log := h.log.WithField("request_id", requestID)
+
 	code := r.URL.Query().Get("code")
 	if code == "" {
 		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
-			Status:   http.StatusBadRequest,
-			Detail:   "Code is required.",
-			Parametr: "code",
+			Status:    http.StatusBadRequest,
+			Code:      ape.CodeInvalidRequestQuery,
+			Title:     "Invalid request query",
+			Detail:    "Code is required.",
+			Parameter: "code",
 		})...)
 		return
 	}
@@ -28,7 +33,7 @@ func (h *Handler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
 			Status: http.StatusInternalServerError,
 		})...)
-		h.log.WithError(err).Errorf("error exchanging code for account id: %s", code)
+		log.WithError(err).Errorf("error exchanging code for account id: %s", code)
 		return
 	}
 
@@ -38,7 +43,7 @@ func (h *Handler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
 			Status: http.StatusInternalServerError,
 		})...)
-		h.log.WithError(err).Errorf("error getting account info from google")
+		log.WithError(err).Errorf("error getting account info from google")
 		return
 	}
 	defer func(Body io.ReadCloser) {
@@ -47,7 +52,7 @@ func (h *Handler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
 				Status: http.StatusInternalServerError,
 			})...)
-			h.log.WithError(err).Errorf("error closing response body")
+			log.WithError(err).Errorf("error closing response body")
 			return
 		}
 	}(resp.Body)
@@ -61,20 +66,20 @@ func (h *Handler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
 			Status: http.StatusInternalServerError,
 		})...)
-		h.log.WithError(err).Errorf("error decoding account info from google")
+		log.WithError(err).Errorf("error decoding account info from google")
 		return
 	}
 
-	_, err = h.app.AccountGetByEmail(r.Context(), accountInfo.Email)
-	if errors.Is(err, ape.ErrAccountDoseNotExits) {
-		session, err := h.app.Login(r.Context(), app.LoginRequest{
+	_, appErr := h.app.GetAccountByEmail(r.Context(), accountInfo.Email)
+	if appErr.Code == ape.CodeAccountDoesNotExist {
+		session, appErr := h.app.Login(r.Context(), app.LoginRequest{
 			Email: accountInfo.Email,
 		})
-		if err != nil {
+		if appErr != nil {
 			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
 				Status: http.StatusInternalServerError,
 			})...)
-			h.log.WithError(err).Errorf("error get account for email: %s", accountInfo.Email)
+			log.WithError(appErr.Unwrap()).Errorf("error get account for email: %s", accountInfo.Email)
 			return
 		}
 
@@ -82,17 +87,17 @@ func (h *Handler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := h.app.Login(r.Context(), app.LoginRequest{
+	session, appErr := h.app.Login(r.Context(), app.LoginRequest{
 		Email: accountInfo.Email,
 	})
-	if err != nil {
+	if appErr != nil {
 		switch {
 		default:
 			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
 				Status: http.StatusInternalServerError,
 			})...)
 		}
-		h.log.WithError(err).Errorf("error logging in for email: %s", accountInfo.Email)
+		log.WithError(appErr.Unwrap()).Errorf("error logging in for email: %s", accountInfo.Email)
 		return
 	}
 

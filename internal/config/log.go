@@ -29,8 +29,3 @@ func SetupLogger(level, format string) *logrus.Logger {
 
 	return logger
 }
-
-func Logger(cfg Config) *logrus.Logger {
-	logger := SetupLogger(cfg.Server.Log.Level, cfg.Server.Log.Format)
-	return logger
-}

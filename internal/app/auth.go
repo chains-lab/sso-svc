@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/chains-lab/chains-auth/internal/app/ape"
@@ -18,14 +19,24 @@ type LoginRequest struct {
 	Client string
 }
 
-func (a App) Login(ctx context.Context, request LoginRequest) (models.Session, error) {
+func (a App) Login(ctx context.Context, request LoginRequest) (models.Session, *ape.Error) {
 	sessionID := uuid.New()
 	var result models.Session
 
-	err := a.accounts.Transaction(func(ctx context.Context) error {
+	txErr := a.accounts.Transaction(func(ctx context.Context) error {
+
 		account, err := a.accounts.GetByEmail(ctx, request.Email)
 		if err != nil {
-			err = a.AccountCreate(ctx, request.Email, roles.User)
+			ID := uuid.New()
+			CreatedAt := time.Now().UTC()
+
+			err := a.accounts.Create(ctx, repo.AccountCreateRequest{
+				ID:           ID,
+				Email:        request.Email,
+				Role:         roles.User,
+				Subscription: uuid.Nil,
+				CreatedAt:    CreatedAt,
+			})
 			if err != nil {
 				return err
 			}
@@ -76,8 +87,11 @@ func (a App) Login(ctx context.Context, request LoginRequest) (models.Session, e
 		return nil
 	})
 
-	if err != nil {
-		return models.Session{}, err
+	if txErr != nil {
+		switch {
+		default:
+			return models.Session{}, ape.ErrorInternalServer(txErr)
+		}
 	}
 
 	return result, nil
@@ -88,45 +102,45 @@ type RefreshRequest struct {
 	Client string `json:"client"`
 }
 
-func (a App) Refresh(ctx context.Context, accountID, sessionID uuid.UUID, request RefreshRequest) (models.Session, error) {
+func (a App) Refresh(ctx context.Context, accountID, sessionID uuid.UUID, request RefreshRequest) (models.Session, *ape.Error) {
 	LastUsed := time.Now().UTC()
 
-	session, err := a.sessions.GetByID(ctx, sessionID)
-	if err != nil {
-		return models.Session{}, err
+	session, appErr := a.GetSession(ctx, sessionID)
+	if appErr != nil {
+		return models.Session{}, appErr
 	}
 
-	account, err := a.accounts.GetByID(ctx, session.AccountID)
-	if err != nil {
-		return models.Session{}, err
+	account, appErr := a.GetAccountByID(ctx, session.AccountID)
+	if appErr != nil {
+		return models.Session{}, appErr
 	}
 
 	if session.Client != request.Client {
-		return models.Session{}, ape.ErrSessionsClientMismatch
+		return models.Session{}, ape.ErrorSessionClientMismatch(fmt.Errorf("session client mismatch"))
 	}
 
-	refreshToken, err := a.jwt.DecryptRefresh(session.Token)
+	refreshToken, err := a.jwt.DecryptRefresh(session.Refresh)
 	if err != nil {
-		return models.Session{}, err
+		return models.Session{}, ape.ErrorInternalServer(err)
 	}
 
 	if refreshToken != request.Token {
-		return models.Session{}, ape.ErrSessionsTokenMismatch
+		return models.Session{}, ape.ErrorSessionTokenMismatch(err)
 	}
 
 	access, err := a.jwt.GenerateAccess(session.AccountID, session.ID, account.Subscription, account.Role)
 	if err != nil {
-		return models.Session{}, err
+		return models.Session{}, ape.ErrorInternalServer(err)
 	}
 
 	refresh, err := a.jwt.GenerateRefresh(session.AccountID, session.ID, account.Subscription, account.Role)
 	if err != nil {
-		return models.Session{}, err
+		return models.Session{}, ape.ErrorInternalServer(err)
 	}
 
 	refreshCrypto, err := a.jwt.EncryptRefresh(refresh)
 	if err != nil {
-		return models.Session{}, err
+		return models.Session{}, ape.ErrorInternalServer(err)
 	}
 
 	err = a.sessions.Update(ctx, sessionID, repo.SessionUpdateRequest{
@@ -134,8 +148,7 @@ func (a App) Refresh(ctx context.Context, accountID, sessionID uuid.UUID, reques
 		LastUsed: LastUsed,
 	})
 	if err != nil {
-
-		return models.Session{}, err
+		return models.Session{}, ape.ErrorInternalServer(err)
 	}
 
 	return models.Session{
@@ -149,15 +162,19 @@ func (a App) Refresh(ctx context.Context, accountID, sessionID uuid.UUID, reques
 	}, nil
 }
 
-func (a App) Logout(ctx context.Context, sessionID uuid.UUID) error {
+func (a App) Logout(ctx context.Context, sessionID uuid.UUID) *ape.Error {
+	_, appErr := a.GetSession(ctx, sessionID)
+	if appErr != nil {
+		return appErr
+	}
 
 	err := a.sessions.Delete(ctx, sessionID)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrSessionDoseNotExits
+			return ape.ErrorSessionDoesNotExist(sessionID, err)
 		default:
-			return err
+			return ape.ErrorInternalServer(err)
 		}
 	}
 	return nil
