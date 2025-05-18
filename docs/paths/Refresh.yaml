@@ -21,12 +21,6 @@ post:
     '401':
         $ref: '../spec/components/responses/invalidAuth.yaml'
     '409':
-      description: Refresh token is invalid or expired.
-      content:
-        application/vnd.api+json:
-          schema:
-            $ref: '../spec/components/responses/conflict.yaml'
-    '429':
-      $ref: '../spec/components/responses/tooManyRequests.yaml'
+      $ref: '../spec/components/responses/conflict.yaml'
     '500':
       $ref: '../spec/components/responses/internalError.yaml'

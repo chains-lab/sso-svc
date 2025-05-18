@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (h *Handler) SessionsGet(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) OwnGetSessions(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
 
 	user, err := tokens.GetAccountTokenData(r.Context())

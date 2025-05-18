@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (h *Handler) AdminSessionsTerminate(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) AdminTerminateSessions(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
 
 	user, err := tokens.GetAccountTokenData(r.Context())

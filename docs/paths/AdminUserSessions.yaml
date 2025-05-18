@@ -11,11 +11,19 @@ get:
       type: string
   responses:
     '200':
-      description: User successfully logout
+      description: Account sessions successfully get
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '../spec/components/schemas/SessionsCollection.yaml'
     '400':
       $ref: '../spec/components/responses/invalidParameter.yaml'
-    '429':
-      $ref: '../spec/components/responses/tooManyRequests.yaml'
+    '401':
+      $ref: '../spec/components/responses/invalidAuth.yaml'
+    '403':
+      $ref: '../spec/components/responses/forbidden.yaml'
+    '404':
+      $ref: '../spec/components/responses/notFound.yaml'
     '500':
       $ref: '../spec/components/responses/internalError.yaml'
 
@@ -35,11 +43,11 @@ delete:
       description: User successfully logout
     '400':
       $ref: '../spec/components/responses/invalidParameter.yaml'
+    '401':
+      $ref: '../spec/components/responses/invalidAuth.yaml'
     '403':
       $ref: '../spec/components/responses/forbidden.yaml'
     '404':
       $ref: '../spec/components/responses/notFound.yaml'
-    '429':
-      $ref: '../spec/components/responses/tooManyRequests.yaml'
     '500':
       $ref: '../spec/components/responses/internalError.yaml'

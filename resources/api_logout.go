@@ -19,47 +19,49 @@ import (
 )
 
 
-// TestAPIService TestAPI service
-type TestAPIService service
+// LogoutAPIService LogoutAPI service
+type LogoutAPIService service
 
-type ApiTestPostRequest struct {
+type ApiReNewsChainsAuthV1OwnLogoutPostRequest struct {
 	ctx context.Context
-	ApiService *TestAPIService
+	ApiService *LogoutAPIService
 }
 
-func (r ApiTestPostRequest) Execute() (*http.Response, error) {
-	return r.ApiService.TestPostExecute(r)
+func (r ApiReNewsChainsAuthV1OwnLogoutPostRequest) Execute() (*TokensPair, *http.Response, error) {
+	return r.ApiService.ReNewsChainsAuthV1OwnLogoutPostExecute(r)
 }
 
 /*
-TestPost Method for TestPost
+ReNewsChainsAuthV1OwnLogoutPost Method for ReNewsChainsAuthV1OwnLogoutPost
 
-Test
+Endpoint to logout user
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiTestPostRequest
+ @return ApiReNewsChainsAuthV1OwnLogoutPostRequest
 */
-func (a *TestAPIService) TestPost(ctx context.Context) ApiTestPostRequest {
-	return ApiTestPostRequest{
+func (a *LogoutAPIService) ReNewsChainsAuthV1OwnLogoutPost(ctx context.Context) ApiReNewsChainsAuthV1OwnLogoutPostRequest {
+	return ApiReNewsChainsAuthV1OwnLogoutPostRequest{
 		ApiService: a,
 		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-func (a *TestAPIService) TestPostExecute(r ApiTestPostRequest) (*http.Response, error) {
+//  @return TokensPair
+func (a *LogoutAPIService) ReNewsChainsAuthV1OwnLogoutPostExecute(r ApiReNewsChainsAuthV1OwnLogoutPostRequest) (*TokensPair, *http.Response, error) {
 	var (
 		localVarHTTPMethod   = http.MethodPost
 		localVarPostBody     interface{}
 		formFiles            []formFile
+		localVarReturnValue  *TokensPair
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "TestAPIService.TestPost")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "LogoutAPIService.ReNewsChainsAuthV1OwnLogoutPost")
 	if err != nil {
-		return nil, &GenericOpenAPIError{error: err.Error()}
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/test"
+	localVarPath := localBasePath + "/re-news/chains/auth/v1/own/logout"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -75,7 +77,7 @@ func (a *TestAPIService) TestPostExecute(r ApiTestPostRequest) (*http.Response, 
 	}
 
 	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{}
+	localVarHTTPHeaderAccepts := []string{"application/vnd.api+json"}
 
 	// set Accept header
 	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
@@ -84,19 +86,19 @@ func (a *TestAPIService) TestPostExecute(r ApiTestPostRequest) (*http.Response, 
 	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
-		return nil, err
+		return localVarReturnValue, nil, err
 	}
 
 	localVarHTTPResponse, err := a.client.callAPI(req)
 	if err != nil || localVarHTTPResponse == nil {
-		return localVarHTTPResponse, err
+		return localVarReturnValue, localVarHTTPResponse, err
 	}
 
 	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
 	localVarHTTPResponse.Body.Close()
 	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
 	if err != nil {
-		return localVarHTTPResponse, err
+		return localVarReturnValue, localVarHTTPResponse, err
 	}
 
 	if localVarHTTPResponse.StatusCode >= 300 {
@@ -104,8 +106,17 @@ func (a *TestAPIService) TestPostExecute(r ApiTestPostRequest) (*http.Response, 
 			body:  localVarBody,
 			error: localVarHTTPResponse.Status,
 		}
-		return localVarHTTPResponse, newErr
+		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
 
-	return localVarHTTPResponse, nil
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
 }

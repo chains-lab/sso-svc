@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (h *Handler) SessionsTerminate(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) OwnTerminateSessions(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
 
 	user, err := tokens.GetAccountTokenData(r.Context())

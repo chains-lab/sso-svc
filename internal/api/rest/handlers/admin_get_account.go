@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (h *Handler) AdminAccountGet(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) AdminGetAccount(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
 
 	accountID, err := uuid.Parse(chi.URLParam(r, "account_id"))

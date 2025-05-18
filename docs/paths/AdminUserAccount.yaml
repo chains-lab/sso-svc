@@ -1,0 +1,29 @@
+get:
+  tags:
+    - Admin
+  summary: admin get user
+  description: Endpoint to get user
+  parameters:
+    - name: account_id
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Account successfully get
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '../spec/components/schemas/Account.yaml'
+    '400':
+      $ref: '../spec/components/responses/invalidParameter.yaml'
+    '401':
+      $ref: '../spec/components/responses/invalidAuth.yaml'
+    '403':
+      $ref: '../spec/components/responses/forbidden.yaml'
+    '404':
+      $ref: '../spec/components/responses/notFound.yaml'
+    '500':
+      $ref: '../spec/components/responses/internalError.yaml'
+

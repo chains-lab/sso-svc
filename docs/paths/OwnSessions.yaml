@@ -12,8 +12,8 @@ get:
             $ref: '../spec/components/schemas/SessionsCollection.yaml'
     '401':
       $ref: '../spec/components/responses/invalidAuth.yaml'
-    '429':
-      $ref: '../spec/components/responses/tooManyRequests.yaml'
+    '403':
+      $ref: '../spec/components/responses/forbidden.yaml'
     '500':
       $ref: '../spec/components/responses/internalError.yaml'
 
@@ -23,13 +23,17 @@ delete:
   summary: Terminate user's sessions
   description: Endpoint to terminate user's sessions
   responses:
-    '204':
-      description: Session successfully terminated
+    '201':
+      description: Updated username successfully
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '../spec/components/schemas/SessionsCollection.yaml'
     '401':
       $ref: '../spec/components/responses/invalidAuth.yaml'
+    '403':
+      $ref: '../spec/components/responses/forbidden.yaml'
     '404':
       $ref: '../spec/components/responses/notFound.yaml'
-    '429':
-     $ref: '../spec/components/responses/tooManyRequests.yaml'
     '500':
      $ref: '../spec/components/responses/internalError.yaml'

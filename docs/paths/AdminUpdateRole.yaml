@@ -1,6 +1,6 @@
 patch:
   tags:
-    - Admin Role
+    - Admin update Role
   summary: admin role update
   description: Endpoint to update user
   parameters:
@@ -15,15 +15,19 @@ patch:
       schema:
         type: string
   responses:
-    '204':
-      description: User successfully logout
+    '200':
+      description: Account successfully updated
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '../spec/components/schemas/Account.yaml'
     '400':
       $ref: '../spec/components/responses/invalidParameter.yaml'
     '401':
       $ref: '../spec/components/responses/invalidAuth.yaml'
     '403':
       $ref: '../spec/components/responses/forbidden.yaml'
-    '429':
-      $ref: '../spec/components/responses/tooManyRequests.yaml'
+    '404':
+      $ref: '../spec/components/responses/notFound.yaml'
     '500':
       $ref: '../spec/components/responses/internalError.yaml'

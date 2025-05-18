@@ -50,39 +50,43 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 	a.router.Route("/chains/auth", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 
-			r.Route("/public", func(r chi.Router) {
-				r.Post("/refresh", a.handlers.Refresh)
-				r.Route("/google", func(r chi.Router) {
-					r.Get("/login", a.handlers.GoogleLogin)
-					r.Get("/callback", a.handlers.GoogleCallback)
-				})
+			r.Route("/own", func(r chi.Router) {
+				r.Use(auth)
 
-				r.Route("/account", func(r chi.Router) {
-					r.Use(auth)
-					r.Route("/sessions", func(r chi.Router) {
-						r.Route("/{session_id}", func(r chi.Router) {
-							r.Get("/", a.handlers.OwnGetSession)
-							r.Delete("/", a.handlers.SessionDelete)
-						})
-						r.Get("/", a.handlers.SessionsGet)
-						r.Delete("/", a.handlers.SessionsTerminate)
+				r.Post("/refresh", a.handlers.Refresh)
+
+				r.Get("/login", a.handlers.GoogleLogin)
+				r.Get("/callback", a.handlers.GoogleCallback)
+
+				r.Delete("/logout", a.handlers.Logout)
+
+				r.Get("/", a.handlers.OwnAccountGet)
+
+				r.Route("/sessions", func(r chi.Router) {
+					r.Route("/{session_id}", func(r chi.Router) {
+						r.Get("/", a.handlers.OwnGetSession)
+						r.Delete("/", a.handlers.DeleteSession)
 					})
-					r.Get("/", a.handlers.OwnAccountGet)
-					r.Delete("/", a.handlers.Logout)
+
+					r.Get("/", a.handlers.OwnGetSessions)
+					r.Delete("/", a.handlers.OwnTerminateSessions)
 				})
 			})
 
-			r.Route("/private", func(r chi.Router) {
-				r.Route("/account", func(r chi.Router) {
-					r.Use(admin)
-					r.Route("/{account_id}", func(r chi.Router) {
-						r.Route("/sessions", func(r chi.Router) {
-							r.Get("/{session_id}", a.handlers.AdminSessionGet)
-							r.Get("/", a.handlers.AdminSessionsGet)
-							r.Delete("/", a.handlers.AdminSessionsTerminate)
+			r.Route("/admin", func(r chi.Router) {
+				r.Use(admin)
+
+				r.Route("/{account_id}", func(r chi.Router) {
+					r.Get("/", a.handlers.AdminGetAccount)
+					r.Patch("/{role}", a.handlers.AdminUpdateRole)
+
+					r.Route("/sessions", func(r chi.Router) {
+						r.Route("/{session_id}", func(r chi.Router) {
+							r.Get("/", a.handlers.AdminGetSession)
+							r.Delete("/", a.handlers.AdminDeleteSession)
 						})
-						r.Get("/", a.handlers.AdminAccountGet)
-						r.Patch("/{role}", a.handlers.AdminRoleUpdate)
+						r.Get("/", a.handlers.AdminGetSessions)
+						r.Delete("/", a.handlers.AdminTerminateSessions)
 					})
 				})
 			})

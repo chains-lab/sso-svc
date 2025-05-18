@@ -78,7 +78,31 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
-*TestAPI* | [**TestPost**](docs/TestAPI.md#testpost) | **Post** /test | 
+*AccountAPI* | [**ReNewsChainsAuthV1OwnGet**](docs/AccountAPI.md#renewschainsauthv1ownget) | **Get** /re-news/chains/auth/v1/own | Get account
+*AccountAPI* | [**ReNewsChainsAuthV1PublicAccountGet**](docs/AccountAPI.md#renewschainsauthv1publicaccountget) | **Get** /re-news//chains/auth/v1/public/account | Get account
+*AdminAPI* | [**ReNewsChainsAuthV1AdminAccountIdGet**](docs/AdminAPI.md#renewschainsauthv1adminaccountidget) | **Get** /re-news/chains/auth/v1/admin/{account_id} | admin get user
+*AdminAPI* | [**ReNewsChainsAuthV1AdminAccountIdSessionsDelete**](docs/AdminAPI.md#renewschainsauthv1adminaccountidsessionsdelete) | **Delete** /re-news/chains/auth/v1/admin/{account_id}/sessions | admin delete user
+*AdminAPI* | [**ReNewsChainsAuthV1AdminAccountIdSessionsGet**](docs/AdminAPI.md#renewschainsauthv1adminaccountidsessionsget) | **Get** /re-news/chains/auth/v1/admin/{account_id}/sessions | admin get sessions
+*AdminAPI* | [**ReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGet**](docs/AdminAPI.md#renewschainsauthv1adminaccountidsessionssessionidget) | **Get** /re-news/chains/auth/v1/admin/{account_id}/sessions/{session_id} | admin get session
+*AdminAPI* | [**ReNewsChainsAuthV1PrivateAccountAccountIdGet**](docs/AdminAPI.md#renewschainsauthv1privateaccountaccountidget) | **Get** /re-news//chains/auth/v1/private/account/{account_id} | admin get user
+*AdminAPI* | [**ReNewsChainsAuthV1PrivateAccountsAccountIdSessionsDelete**](docs/AdminAPI.md#renewschainsauthv1privateaccountsaccountidsessionsdelete) | **Delete** /re-news//chains/auth/v1/private/accounts/{account_id}/sessions | admin delete user
+*AdminAPI* | [**ReNewsChainsAuthV1PrivateAccountsAccountIdSessionsGet**](docs/AdminAPI.md#renewschainsauthv1privateaccountsaccountidsessionsget) | **Get** /re-news//chains/auth/v1/private/accounts/{account_id}/sessions | admin get sessions
+*AdminAPI* | [**ReNewsChainsAuthV1PrivateAccountsAccountIdSessionsSessionIdGet**](docs/AdminAPI.md#renewschainsauthv1privateaccountsaccountidsessionssessionidget) | **Get** /re-news//chains/auth/v1/private/accounts/{account_id}/sessions/{session_id} | admin get session
+*AdminUpdateRoleAPI* | [**ReNewsChainsAuthV1AdminAccountIdRolePatch**](docs/AdminUpdateRoleAPI.md#renewschainsauthv1adminaccountidrolepatch) | **Patch** /re-news/chains/auth/v1/admin/{account_id}/{role} | admin role update
+*AdminUpdateRoleAPI* | [**ReNewsChainsAuthV1PrivateAccountsAccountIdRolePatch**](docs/AdminUpdateRoleAPI.md#renewschainsauthv1privateaccountsaccountidrolepatch) | **Patch** /re-news//chains/auth/v1/private/accounts/{account_id}/{role} | admin role update
+*LoginAPI* | [**ReNewsChainsAuthV1OwnGoogleLoginPost**](docs/LoginAPI.md#renewschainsauthv1owngoogleloginpost) | **Post** /re-news//chains/auth/v1/own/google/login | 
+*LoginAPI* | [**ReNewsChainsAuthV1OwnLoginPost**](docs/LoginAPI.md#renewschainsauthv1ownloginpost) | **Post** /re-news/chains/auth/v1/own/login | 
+*LoginAPI* | [**ReNewsChainsAuthV1OwnRefreshPost**](docs/LoginAPI.md#renewschainsauthv1ownrefreshpost) | **Post** /re-news/chains/auth/v1/own/refresh | Refresh Access Token
+*LoginAPI* | [**ReNewsChainsAuthV1PublicRefreshPost**](docs/LoginAPI.md#renewschainsauthv1publicrefreshpost) | **Post** /re-news//chains/auth/v1/public/refresh | Refresh Access Token
+*LogoutAPI* | [**ReNewsChainsAuthV1OwnLogoutPost**](docs/LogoutAPI.md#renewschainsauthv1ownlogoutpost) | **Post** /re-news/chains/auth/v1/own/logout | 
+*SessionsAPI* | [**ReNewsChainsAuthV1OwnSessionsDelete**](docs/SessionsAPI.md#renewschainsauthv1ownsessionsdelete) | **Delete** /re-news/chains/auth/v1/own/sessions | Terminate user&#39;s sessions
+*SessionsAPI* | [**ReNewsChainsAuthV1OwnSessionsGet**](docs/SessionsAPI.md#renewschainsauthv1ownsessionsget) | **Get** /re-news/chains/auth/v1/own/sessions | Get user&#39;s sessions
+*SessionsAPI* | [**ReNewsChainsAuthV1OwnSessionsSessionIdDelete**](docs/SessionsAPI.md#renewschainsauthv1ownsessionssessioniddelete) | **Delete** /re-news/chains/auth/v1/own/sessions/{session_id} | Terminate user&#39;s session
+*SessionsAPI* | [**ReNewsChainsAuthV1OwnSessionsSessionIdGet**](docs/SessionsAPI.md#renewschainsauthv1ownsessionssessionidget) | **Get** /re-news/chains/auth/v1/own/sessions/{session_id} | Get user&#39;s session
+*SessionsAPI* | [**ReNewsChainsAuthV1PublicSessionsDelete**](docs/SessionsAPI.md#renewschainsauthv1publicsessionsdelete) | **Delete** /re-news//chains/auth/v1/public/sessions | Terminate user&#39;s sessions
+*SessionsAPI* | [**ReNewsChainsAuthV1PublicSessionsGet**](docs/SessionsAPI.md#renewschainsauthv1publicsessionsget) | **Get** /re-news//chains/auth/v1/public/sessions | Get user&#39;s sessions
+*SessionsAPI* | [**ReNewsChainsAuthV1PublicSessionsSessionIdDelete**](docs/SessionsAPI.md#renewschainsauthv1publicsessionssessioniddelete) | **Delete** /re-news//chains/auth/v1/public/sessions/{session_id} | Terminate user&#39;s session
+*SessionsAPI* | [**ReNewsChainsAuthV1PublicSessionsSessionIdGet**](docs/SessionsAPI.md#renewschainsauthv1publicsessionssessionidget) | **Get** /re-news//chains/auth/v1/public/sessions/{session_id} | Get user&#39;s session
 
 
 ## Documentation For Models
@@ -89,6 +113,9 @@ Class | Method | HTTP request | Description
  - [Account](docs/Account.md)
  - [AccountData](docs/AccountData.md)
  - [AccountDataAttributes](docs/AccountDataAttributes.md)
+ - [ReNewsChainsAuthV1OwnGet400Response](docs/ReNewsChainsAuthV1OwnGet400Response.md)
+ - [ReNewsChainsAuthV1OwnGet400ResponseErrorsInner](docs/ReNewsChainsAuthV1OwnGet400ResponseErrorsInner.md)
+ - [ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta](docs/ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta.md)
  - [RefreshToken](docs/RefreshToken.md)
  - [RefreshTokenData](docs/RefreshTokenData.md)
  - [RefreshTokenDataAttributes](docs/RefreshTokenDataAttributes.md)

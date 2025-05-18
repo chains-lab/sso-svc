@@ -10,14 +10,20 @@ get:
       schema:
         type: string
   responses:
+    '200':
+      description: Account sessions successfully get
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '../spec/components/schemas/Session.yaml'
     '201':
       description: Updated username successfully
     '401':
       $ref: '../spec/components/responses/invalidAuth.yaml'
     '403':
       $ref: '../spec/components/responses/forbidden.yaml'
-    '429':
-      $ref: '../spec/components/responses/tooManyRequests.yaml'
+    '404':
+      $ref: '../spec/components/responses/notFound.yaml'
     '500':
       $ref: '../spec/components/responses/internalError.yaml'
 
@@ -45,7 +51,5 @@ delete:
       $ref: '../spec/components/responses/forbidden.yaml'
     '404':
       $ref: '../spec/components/responses/notFound.yaml'
-    '429':
-      $ref: '../spec/components/responses/tooManyRequests.yaml'
     '500':
       $ref: '../spec/components/responses/internalError.yaml'

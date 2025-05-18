@@ -6,14 +6,728 @@ info:
 servers:
 - url: /
 paths:
-  /test:
+  /re-news/chains/auth/v1/own:
+    get:
+      description: Endpoint to get account
+      responses:
+        "200":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: Account successfully get
+        "400":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/_re_news_chains_auth_v1_own_get_400_response'
+          description: One of the parameters is invalid. Refer to the response body
+            for details.
+        "401":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400/content/application~1vnd.api%2Bjson/schema'
+          description: You must provide a valid authorization params.
+        "403":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400/content/application~1vnd.api%2Bjson/schema'
+          description: Forbidden
+        "404":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400/content/application~1vnd.api%2Bjson/schema'
+          description: Requested resource does not exist.
+        "500":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400/content/application~1vnd.api%2Bjson/schema'
+          description: Internal server error
+      summary: Get account
+      tags:
+      - Account
+  /re-news/chains/auth/v1/own/refresh:
     post:
-      description: Test
+      description: Endpoint to refresh an expired access token using a valid refresh
+        token.
+      requestBody:
+        content:
+          application/vnd.api+json:
+            schema:
+              $ref: '#/components/schemas/RefreshToken'
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/TokensPair'
+          description: Access token successfully refreshed.
+        "400":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+        "409":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400/content/application~1vnd.api%2Bjson/schema'
+          description: Conflict
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      summary: Refresh Access Token
+      tags:
+      - Login
+  /re-news/chains/auth/v1/own/login:
+    post:
+      description: Endpoint to login use google account
       responses:
         "201":
-          description: successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/TokensPair'
+          description: User successfully login
+        "400":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
       tags:
-      - Test
+      - Login
+  /re-news/chains/auth/v1/own/logout:
+    post:
+      description: Endpoint to logout user
+      responses:
+        "201":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/TokensPair'
+          description: User successfully logout
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+      tags:
+      - Logout
+  /re-news/chains/auth/v1/own/sessions:
+    delete:
+      description: Endpoint to terminate user's sessions
+      responses:
+        "201":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/SessionsCollection'
+          description: Updated username successfully
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+        "403":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+        "404":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      summary: Terminate user's sessions
+      tags:
+      - Sessions
+    get:
+      description: Endpoint to get user's sessions
+      responses:
+        "201":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/SessionsCollection'
+          description: Updated username successfully
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+        "403":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      summary: Get user's sessions
+      tags:
+      - Sessions
+  /re-news/chains/auth/v1/own/sessions/{session_id}:
+    delete:
+      description: Endpoint to terminate user's session
+      parameters:
+      - explode: false
+        in: path
+        name: session_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "201":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/SessionsCollection'
+          description: Updated username successfully
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+        "403":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+        "404":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      summary: Terminate user's session
+      tags:
+      - Sessions
+    get:
+      description: Endpoint to get user's session
+      parameters:
+      - explode: false
+        in: path
+        name: session_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Session'
+          description: Account sessions successfully get
+        "201":
+          description: Updated username successfully
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+        "403":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+        "404":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      summary: Get user's session
+      tags:
+      - Sessions
+  /re-news/chains/auth/v1/admin/{account_id}:
+    get:
+      description: Endpoint to get user
+      parameters:
+      - explode: false
+        in: path
+        name: account_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: Account successfully get
+        "400":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+        "403":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+        "404":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      summary: admin get user
+      tags:
+      - Admin
+  /re-news/chains/auth/v1/admin/{account_id}/{role}:
+    patch:
+      description: Endpoint to update user
+      parameters:
+      - explode: false
+        in: path
+        name: account_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: role
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: Account successfully updated
+        "400":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+        "403":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+        "404":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      summary: admin role update
+      tags:
+      - Admin update Role
+  /re-news/chains/auth/v1/admin/{account_id}/sessions:
+    delete:
+      description: Endpoint to delete user if you admin
+      parameters:
+      - explode: false
+        in: path
+        name: account_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: User successfully logout
+        "400":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+        "403":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+        "404":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      summary: admin delete user
+      tags:
+      - Admin
+    get:
+      description: Endpoint to get user if you admin
+      parameters:
+      - explode: false
+        in: path
+        name: account_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/SessionsCollection'
+          description: Account sessions successfully get
+        "400":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+        "403":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+        "404":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      summary: admin get sessions
+      tags:
+      - Admin
+  /re-news/chains/auth/v1/admin/{account_id}/sessions/{session_id}:
+    get:
+      description: Endpoint to get user if you admin
+      parameters:
+      - explode: false
+        in: path
+        name: account_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: session_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Session'
+          description: Account sessions successfully get
+        "400":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+        "403":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+        "404":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      summary: admin get session
+      tags:
+      - Admin
+  /re-news//chains/auth/v1/own/google/login:
+    post:
+      description: Endpoint to login use google account
+      responses:
+        "201":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/TokensPair'
+          description: User successfully login
+        "400":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      tags:
+      - Login
+  /re-news//chains/auth/v1/public/refresh:
+    post:
+      description: Endpoint to refresh an expired access token using a valid refresh
+        token.
+      requestBody:
+        content:
+          application/vnd.api+json:
+            schema:
+              $ref: '#/components/schemas/RefreshToken'
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/TokensPair'
+          description: Access token successfully refreshed.
+        "400":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+        "409":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400/content/application~1vnd.api%2Bjson/schema'
+          description: Conflict
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      summary: Refresh Access Token
+      tags:
+      - Login
+  /re-news//chains/auth/v1/public/account:
+    get:
+      description: Endpoint to get account
+      responses:
+        "200":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: Account successfully get
+        "400":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/_re_news_chains_auth_v1_own_get_400_response'
+          description: One of the parameters is invalid. Refer to the response body
+            for details.
+        "401":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400/content/application~1vnd.api%2Bjson/schema'
+          description: You must provide a valid authorization params.
+        "403":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400/content/application~1vnd.api%2Bjson/schema'
+          description: Forbidden
+        "404":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400/content/application~1vnd.api%2Bjson/schema'
+          description: Requested resource does not exist.
+        "500":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400/content/application~1vnd.api%2Bjson/schema'
+          description: Internal server error
+      summary: Get account
+      tags:
+      - Account
+  /re-news//chains/auth/v1/public/sessions:
+    delete:
+      description: Endpoint to terminate user's sessions
+      responses:
+        "201":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/SessionsCollection'
+          description: Updated username successfully
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+        "403":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+        "404":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      summary: Terminate user's sessions
+      tags:
+      - Sessions
+    get:
+      description: Endpoint to get user's sessions
+      responses:
+        "201":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/SessionsCollection'
+          description: Updated username successfully
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+        "403":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      summary: Get user's sessions
+      tags:
+      - Sessions
+  /re-news//chains/auth/v1/public/sessions/{session_id}:
+    delete:
+      description: Endpoint to terminate user's session
+      parameters:
+      - explode: false
+        in: path
+        name: session_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "201":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/SessionsCollection'
+          description: Updated username successfully
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+        "403":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+        "404":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      summary: Terminate user's session
+      tags:
+      - Sessions
+    get:
+      description: Endpoint to get user's session
+      parameters:
+      - explode: false
+        in: path
+        name: session_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Session'
+          description: Account sessions successfully get
+        "201":
+          description: Updated username successfully
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+        "403":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+        "404":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      summary: Get user's session
+      tags:
+      - Sessions
+  /re-news//chains/auth/v1/private/account/{account_id}:
+    get:
+      description: Endpoint to get user
+      parameters:
+      - explode: false
+        in: path
+        name: account_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: Account successfully get
+        "400":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+        "403":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+        "404":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      summary: admin get user
+      tags:
+      - Admin
+  /re-news//chains/auth/v1/private/accounts/{account_id}/{role}:
+    patch:
+      description: Endpoint to update user
+      parameters:
+      - explode: false
+        in: path
+        name: account_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: role
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: Account successfully updated
+        "400":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+        "403":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+        "404":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      summary: admin role update
+      tags:
+      - Admin update Role
+  /re-news//chains/auth/v1/private/accounts/{account_id}/sessions:
+    delete:
+      description: Endpoint to delete user if you admin
+      parameters:
+      - explode: false
+        in: path
+        name: account_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: User successfully logout
+        "400":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+        "403":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+        "404":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      summary: admin delete user
+      tags:
+      - Admin
+    get:
+      description: Endpoint to get user if you admin
+      parameters:
+      - explode: false
+        in: path
+        name: account_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/SessionsCollection'
+          description: Account sessions successfully get
+        "400":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+        "403":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+        "404":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      summary: admin get sessions
+      tags:
+      - Admin
+  /re-news//chains/auth/v1/private/accounts/{account_id}/sessions/{session_id}:
+    get:
+      description: Endpoint to get user if you admin
+      parameters:
+      - explode: false
+        in: path
+        name: account_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: session_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Session'
+          description: Account sessions successfully get
+        "400":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+        "401":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+        "403":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+        "404":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+        "500":
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+      summary: admin get session
+      tags:
+      - Admin
 components:
   schemas:
     TokensPair:
@@ -101,6 +815,67 @@ components:
           $ref: '#/components/schemas/Account_data'
       required:
       - data
+      type: object
+    _re_news_chains_auth_v1_own_get_400_response_errors_inner_meta:
+      properties:
+        parameter:
+          description: Parameter is the name of the query parameter or request body
+            field that caused the error
+          example: email
+          type: string
+        pointer:
+          description: "Pointer is a JSON Pointer [RFC6901] to the associated entity\
+            \ in the request document. It may be empty if no specific entity is identified."
+          example: /data/attributes/email
+          type: string
+      required:
+      - parameter
+      - pointer
+      type: object
+    _re_news_chains_auth_v1_own_get_400_response_errors_inner:
+      properties:
+        status:
+          description: Status is the HTTP status code applicable to this problem
+          enum:
+          - 400
+          - 401
+          - 403
+          - 404
+          - 409
+          - 500
+          example: 400
+          type: integer
+        title:
+          description: "Title is a short, human-readable summary of the problem"
+          example: Bad Request
+          type: string
+        code:
+          description: "Code is an application-specific error code, expressed as a\
+            \ string"
+          example: invalid_request
+          type: string
+        detail:
+          description: Detail is a human-readable explanation specific to this occurrence
+            of the problem
+          example: Request body was expected
+          type: string
+        meta:
+          $ref: '#/components/schemas/_re_news_chains_auth_v1_own_get_400_response_errors_inner_meta'
+      required:
+      - code
+      - status
+      - title
+      type: object
+    _re_news_chains_auth_v1_own_get_400_response:
+      description: Standard JSON:API error
+      properties:
+        errors:
+          description: Non empty array of errors occurred during request processing
+          items:
+            $ref: '#/components/schemas/_re_news_chains_auth_v1_own_get_400_response_errors_inner'
+          type: array
+      required:
+      - errors
       type: object
     TokensPair_data_attributes:
       properties:

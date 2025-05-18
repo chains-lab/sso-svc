@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (h *Handler) AdminRoleUpdate(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) AdminUpdateRole(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
 
 	user, err := tokens.GetAccountTokenData(r.Context())

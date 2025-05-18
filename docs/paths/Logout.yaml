@@ -1,0 +1,13 @@
+post:
+  tags:
+    - Logout
+  description: Endpoint to logout user
+  responses:
+    '201':
+      description: User successfully logout
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '../spec/components/schemas/TokensPair.yaml'
+    '401':
+      $ref: '../spec/components/responses/invalidAuth.yaml'

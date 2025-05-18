@@ -10,18 +10,9 @@ properties:
       type: object
       required:
         - title
+        - code
         - status
       properties:
-        title:
-          type: string
-          description: 'Title is a short, human-readable summary of the problem'
-          example: Bad Request
-        detail:
-          type: string
-          description: >-
-            Detail is a human-readable explanation specific to this occurrence
-            of the problem
-          example: "Request body was expected"
         status:
           type: integer
           description: Status is the HTTP status code applicable to this problem
@@ -33,3 +24,38 @@ properties:
             - 404
             - 409
             - 500
+        title:
+          type: string
+          description: 'Title is a short, human-readable summary of the problem'
+          example: Bad Request
+        code:
+          type: string
+          description: >-
+            Code is an application-specific error code, expressed as a
+            string
+          example: invalid_request
+        detail:
+          type: string
+          description: >-
+            Detail is a human-readable explanation specific to this occurrence
+            of the problem
+          example: "Request body was expected"
+        meta:
+          type: object
+          required:
+          - parameter
+          - pointer
+          properties:
+            parameter:
+              type: string
+              description: >-
+                Parameter is the name of the query parameter or request body
+                field that caused the error
+              example: email
+            pointer:
+              type: string
+              description: >-
+                Pointer is a JSON Pointer [RFC6901] to the associated entity in
+                the request document. It may be empty if no specific entity is
+                identified.
+              example: /data/attributes/email
