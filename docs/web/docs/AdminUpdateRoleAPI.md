@@ -4,13 +4,13 @@ All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**ReNewsChainsAuthV1AdminAccountIdRolePost**](AdminUpdateRoleAPI.md#ReNewsChainsAuthV1AdminAccountIdRolePost) | **Post** /re-news/chains/auth/v1/admin/{account_id}/{role} | admin role update
+[**ReNewsChainsAuthV1AdminUserIdRolePost**](AdminUpdateRoleAPI.md#ReNewsChainsAuthV1AdminUserIdRolePost) | **Post** /re-news/chains/auth/v1/admin/{user_id}/{role} | admin role update
 
 
 
-## ReNewsChainsAuthV1AdminAccountIdRolePost
+## ReNewsChainsAuthV1AdminUserIdRolePost
 
-> Account ReNewsChainsAuthV1AdminAccountIdRolePost(ctx, accountId, role).Execute()
+> User ReNewsChainsAuthV1AdminUserIdRolePost(ctx, userId, role).Execute()
 
 admin role update
 
@@ -29,18 +29,18 @@ import (
 )
 
 func main() {
-	accountId := "accountId_example" // string | 
+	userId := "userId_example" // string | 
 	role := "role_example" // string | 
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.AdminUpdateRoleAPI.ReNewsChainsAuthV1AdminAccountIdRolePost(context.Background(), accountId, role).Execute()
+	resp, r, err := apiClient.AdminUpdateRoleAPI.ReNewsChainsAuthV1AdminUserIdRolePost(context.Background(), userId, role).Execute()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error when calling `AdminUpdateRoleAPI.ReNewsChainsAuthV1AdminAccountIdRolePost``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error when calling `AdminUpdateRoleAPI.ReNewsChainsAuthV1AdminUserIdRolePost``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	// response from `ReNewsChainsAuthV1AdminAccountIdRolePost`: Account
-	fmt.Fprintf(os.Stdout, "Response from `AdminUpdateRoleAPI.ReNewsChainsAuthV1AdminAccountIdRolePost`: %v\n", resp)
+	// response from `ReNewsChainsAuthV1AdminUserIdRolePost`: User
+	fmt.Fprintf(os.Stdout, "Response from `AdminUpdateRoleAPI.ReNewsChainsAuthV1AdminUserIdRolePost`: %v\n", resp)
 }
 ```
 
@@ -50,12 +50,12 @@ func main() {
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
 **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-**accountId** | **string** |  | 
+**userId** | **string** |  | 
 **role** | **string** |  | 
 
 ### Other Parameters
 
-Other parameters are passed through a pointer to a apiReNewsChainsAuthV1AdminAccountIdRolePostRequest struct via the builder pattern
+Other parameters are passed through a pointer to a apiReNewsChainsAuthV1AdminUserIdRolePostRequest struct via the builder pattern
 
 
 Name | Type | Description  | Notes
@@ -65,7 +65,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**Account**](Account.md)
+[**User**](User.md)
 
 ### Authorization
 

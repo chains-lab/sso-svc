@@ -1,7 +1,7 @@
 packages:
   github.com/chains-lab/chains-auth/internal/repo:
     interfaces:
-      accountRedis:
-      accountSQL:
+      userRedis:
+      userSQL:
       sessionSQL:
       sessionsRedis:

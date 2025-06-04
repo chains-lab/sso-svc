@@ -4,7 +4,7 @@ post:
   summary: admin role update
   description: Endpoint to update user
   parameters:
-    - name: account_id
+    - name: user_id
       in: path
       required: true
       schema:
@@ -16,11 +16,11 @@ post:
         type: string
   responses:
     '200':
-      description: Account successfully updated
+      description: User successfully updated
       content:
         application/vnd.api+json:
           schema:
-            $ref: '../spec/components/schemas/Account.yaml'
+            $ref: '../spec/components/schemas/User.yaml'
     '400':
       $ref: '../spec/components/responses/invalidParameter.yaml'
     '401':

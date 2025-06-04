@@ -12,11 +12,11 @@ import (
 )
 
 const (
-	accountsCollection = "accounts"
-	emailIndexKey      = "accounts:emails"
+	usersCollection = "users"
+	emailIndexKey   = "users:emails"
 )
 
-type AccountModel struct {
+type UserModel struct {
 	ID           uuid.UUID  `json:"id"`
 	Email        string     `json:"email"`
 	Role         roles.Role `json:"role"`
@@ -25,20 +25,20 @@ type AccountModel struct {
 	CreatedAt    time.Time  `json:"created_at"`
 }
 
-type Accounts struct {
+type Users struct {
 	client   *redis.Client
 	lifeTime time.Duration
 }
 
-// NewAccounts создаёт новый инстанс, lifetime задается в минутах.
-func NewAccounts(client *redis.Client, lifetime int) Accounts {
-	return Accounts{
+// NewUsers создаёт новый инстанс, lifetime задается в минутах.
+func NewUsers(client *redis.Client, lifetime int) Users {
+	return Users{
 		client:   client,
 		lifeTime: time.Duration(lifetime) * time.Minute,
 	}
 }
 
-type CreateAccountInput struct {
+type CreateUserInput struct {
 	ID           uuid.UUID  `json:"id"`
 	Email        string     `json:"email"`
 	Role         roles.Role `json:"role"`
@@ -47,18 +47,18 @@ type CreateAccountInput struct {
 }
 
 // Create пытается создать новый аккаунт.
-// Записывает данные аккаунта в hash по ключу "accounts:id:<ID>"
-// И в индексный hash "accounts:emails" устанавливает поле email = accountID.
-func (a Accounts) Create(ctx context.Context, input CreateAccountInput) error {
-	accountKey := fmt.Sprintf("%s:id:%s", accountsCollection, input.ID.String())
+// Записывает данные аккаунта в hash по ключу "users:id:<ID>"
+// И в индексный hash "users:emails" устанавливает поле email = userID.
+func (a Users) Create(ctx context.Context, input CreateUserInput) error {
+	userKey := fmt.Sprintf("%s:id:%s", usersCollection, input.ID.String())
 
-	// Проверяем существование аккаунта по accountKey.
-	exists, err := a.client.Exists(ctx, accountKey).Result()
+	// Проверяем существование аккаунта по userKey.
+	exists, err := a.client.Exists(ctx, userKey).Result()
 	if err != nil {
-		return fmt.Errorf("error checking account existence: %w", err)
+		return fmt.Errorf("error checking user existence: %w", err)
 	}
 	if exists > 0 {
-		return errors.New("account already exists")
+		return errors.New("user already exists")
 	}
 
 	data := map[string]interface{}{
@@ -68,18 +68,18 @@ func (a Accounts) Create(ctx context.Context, input CreateAccountInput) error {
 		"created_at":   input.CreatedAt.Format(time.RFC3339),
 	}
 
-	if err := a.client.HSet(ctx, accountKey, data).Err(); err != nil {
-		return fmt.Errorf("error adding account to Redis: %w", err)
+	if err := a.client.HSet(ctx, userKey, data).Err(); err != nil {
+		return fmt.Errorf("error adding user to Redis: %w", err)
 	}
 
-	// Устанавливаем индекс: в hash emailIndexKey поле = email, значение = accountID.
+	// Устанавливаем индекс: в hash emailIndexKey поле = email, значение = userID.
 	if err := a.client.HSet(ctx, emailIndexKey, input.Email, input.ID.String()).Err(); err != nil {
 		return fmt.Errorf("error creating email index: %w", err)
 	}
 
 	if a.lifeTime > 0 {
 		pipe := a.client.Pipeline()
-		pipe.Expire(ctx, accountKey, a.lifeTime)
+		pipe.Expire(ctx, userKey, a.lifeTime)
 		pipe.Expire(ctx, emailIndexKey, a.lifeTime)
 		if _, err := pipe.Exec(ctx); err != nil {
 			return fmt.Errorf("error setting expiration for keys: %w", err)
@@ -89,7 +89,7 @@ func (a Accounts) Create(ctx context.Context, input CreateAccountInput) error {
 	return nil
 }
 
-type AccountSetInput struct {
+type UserSetInput struct {
 	ID           uuid.UUID  `json:"id"`
 	Email        string     `json:"email"`
 	Role         roles.Role `json:"role"`
@@ -100,12 +100,12 @@ type AccountSetInput struct {
 
 // Set перезаписывает данные аккаунта полностью.
 // Если аккаунт уже существует, старые данные удаляются, затем создаются новые.
-func (a Accounts) Set(ctx context.Context, input AccountSetInput) error {
-	accountKey := fmt.Sprintf("%s:id:%s", accountsCollection, input.ID.String())
+func (a Users) Set(ctx context.Context, input UserSetInput) error {
+	userKey := fmt.Sprintf("%s:id:%s", usersCollection, input.ID.String())
 
-	// Удаляем существующую запись по accountKey.
-	if err := a.client.Del(ctx, accountKey).Err(); err != nil {
-		//return fmt.Errorf("error deleting existing account key: %w", err)
+	// Удаляем существующую запись по userKey.
+	if err := a.client.Del(ctx, userKey).Err(); err != nil {
+		//return fmt.Errorf("error deleting existing user key: %w", err)
 	}
 
 	// Обновляем индекс email: в emailIndexKey ставим для поля input.Email значение input.ID.
@@ -123,8 +123,8 @@ func (a Accounts) Set(ctx context.Context, input AccountSetInput) error {
 		data["updated_at"] = input.UpdatedAt.Format(time.RFC3339)
 	}
 
-	if err := a.client.HSet(ctx, accountKey, data).Err(); err != nil {
-		return fmt.Errorf("error setting account in Redis: %w", err)
+	if err := a.client.HSet(ctx, userKey, data).Err(); err != nil {
+		return fmt.Errorf("error setting user in Redis: %w", err)
 	}
 
 	if err := a.client.HSet(ctx, emailIndexKey, input.Email, input.ID.String()).Err(); err != nil {
@@ -133,7 +133,7 @@ func (a Accounts) Set(ctx context.Context, input AccountSetInput) error {
 
 	if a.lifeTime > 0 {
 		pipe := a.client.Pipeline()
-		pipe.Expire(ctx, accountKey, a.lifeTime)
+		pipe.Expire(ctx, userKey, a.lifeTime)
 		pipe.Expire(ctx, emailIndexKey, a.lifeTime)
 		if _, err := pipe.Exec(ctx); err != nil {
 			return fmt.Errorf("error setting expiration for keys: %w", err)
@@ -142,25 +142,25 @@ func (a Accounts) Set(ctx context.Context, input AccountSetInput) error {
 	return nil
 }
 
-type AccountUpdateRequest struct {
+type UserUpdateRequest struct {
 	Role         *roles.Role `json:"role"`
 	Subscription *uuid.UUID  `json:"subscription,omitempty"`
 	UpdatedAt    time.Time   `json:"updated_at,omitempty"`
 }
 
-// Update обновляет поля аккаунта. Обновляются данные в основном hash по accountKey.
+// Update обновляет поля аккаунта. Обновляются данные в основном hash по userKey.
 // Индексный hash (emailIndexKey) обновляется только если email изменен – в данном запросе email
 // передается отдельно как параметр для идентификации текущего индекса.
-func (a Accounts) Update(ctx context.Context, accountID uuid.UUID, input AccountUpdateRequest) error {
-	accountKey := fmt.Sprintf("%s:id:%s", accountsCollection, accountID.String())
+func (a Users) Update(ctx context.Context, userID uuid.UUID, input UserUpdateRequest) error {
+	userKey := fmt.Sprintf("%s:id:%s", usersCollection, userID.String())
 
-	// Проверяем, существует ли запись по accountKey.
-	exists, err := a.client.Exists(ctx, accountKey).Result()
+	// Проверяем, существует ли запись по userKey.
+	exists, err := a.client.Exists(ctx, userKey).Result()
 	if err != nil {
-		return fmt.Errorf("error checking account existence: %w", err)
+		return fmt.Errorf("error checking user existence: %w", err)
 	}
 	if exists == 0 {
-		return fmt.Errorf("account not found, id=%s", accountID.String())
+		return fmt.Errorf("user not found, id=%s", userID.String())
 	}
 
 	data := make(map[string]interface{})
@@ -174,68 +174,68 @@ func (a Accounts) Update(ctx context.Context, accountID uuid.UUID, input Account
 	data["updated_at"] = input.UpdatedAt.Format(time.RFC3339)
 
 	pipe := a.client.Pipeline()
-	pipe.HSet(ctx, accountKey, data)
-	// Поскольку индексный hash хранит mapping email -> accountID и email здесь не меняется,
+	pipe.HSet(ctx, userKey, data)
+	// Поскольку индексный hash хранит mapping email -> userID и email здесь не меняется,
 	// можно также обновить срок жизни для этого индекса.
-	pipe.Expire(ctx, accountKey, a.lifeTime)
+	pipe.Expire(ctx, userKey, a.lifeTime)
 	pipe.Expire(ctx, emailIndexKey, a.lifeTime)
 	_, err = pipe.Exec(ctx)
 	if err != nil {
-		return fmt.Errorf("error updating account in Redis: %w", err)
+		return fmt.Errorf("error updating user in Redis: %w", err)
 	}
 	return nil
 }
 
-// GetByID возвращает аккаунт по accountID, используя основной ключ.
-func (a Accounts) GetByID(ctx context.Context, accountID string) (AccountModel, error) {
-	accountKey := fmt.Sprintf("%s:id:%s", accountsCollection, accountID)
-	vals, err := a.client.HGetAll(ctx, accountKey).Result()
+// GetByID возвращает аккаунт по userID, используя основной ключ.
+func (a Users) GetByID(ctx context.Context, userID string) (UserModel, error) {
+	userKey := fmt.Sprintf("%s:id:%s", usersCollection, userID)
+	vals, err := a.client.HGetAll(ctx, userKey).Result()
 	if err != nil {
-		return AccountModel{}, fmt.Errorf("error getting account from Redis: %w", err)
+		return UserModel{}, fmt.Errorf("error getting user from Redis: %w", err)
 	}
 	if len(vals) == 0 {
-		return AccountModel{}, fmt.Errorf("account not found, id=%s", accountID)
+		return UserModel{}, fmt.Errorf("user not found, id=%s", userID)
 	}
-	return parseAccount(accountID, vals)
+	return parseUser(userID, vals)
 }
 
 // GetByEmail возвращает аккаунт по email, используя индексный hash.
-func (a Accounts) GetByEmail(ctx context.Context, email string) (AccountModel, error) {
-	accountID, err := a.client.HGet(ctx, emailIndexKey, email).Result()
+func (a Users) GetByEmail(ctx context.Context, email string) (UserModel, error) {
+	userID, err := a.client.HGet(ctx, emailIndexKey, email).Result()
 	if err != nil {
-		return AccountModel{}, fmt.Errorf("error getting accountID by email: %w", err)
+		return UserModel{}, fmt.Errorf("error getting userID by email: %w", err)
 	}
-	return a.GetByID(ctx, accountID)
+	return a.GetByID(ctx, userID)
 }
 
 // Delete удаляет запись аккаунта и удаляет соответствующую запись из индексного хеша.
-func (a Accounts) Delete(ctx context.Context, accountID, email string) error {
-	accountKey := fmt.Sprintf("%s:id:%s", accountsCollection, accountID)
+func (a Users) Delete(ctx context.Context, userID, email string) error {
+	userKey := fmt.Sprintf("%s:id:%s", usersCollection, userID)
 	// Не нужно формировать отдельный emailKey, поскольку индекс хранится в одном хеше.
 
 	// Проверяем существование записи.
-	exists, err := a.client.Exists(ctx, accountKey).Result()
+	exists, err := a.client.Exists(ctx, userKey).Result()
 	if err != nil {
-		return fmt.Errorf("error checking account existence in Redis: %w", err)
+		return fmt.Errorf("error checking user existence in Redis: %w", err)
 	}
 	if exists == 0 {
 		return redis.Nil
 	}
 
 	pipe := a.client.Pipeline()
-	pipe.Del(ctx, accountKey)
+	pipe.Del(ctx, userKey)
 	// Удаляем поле email из индексного хеша.
 	pipe.HDel(ctx, emailIndexKey, email)
 	_, err = pipe.Exec(ctx)
 	if err != nil {
-		return fmt.Errorf("error deleting account keys from Redis: %w", err)
+		return fmt.Errorf("error deleting user keys from Redis: %w", err)
 	}
 	return nil
 }
 
 // Drop удаляет все ключи, связанные с аккаунтами, по шаблону.
-func (a Accounts) Drop(ctx context.Context) error {
-	pattern := fmt.Sprintf("%s:*", accountsCollection)
+func (a Users) Drop(ctx context.Context) error {
+	pattern := fmt.Sprintf("%s:*", usersCollection)
 	keys, err := a.client.Keys(ctx, pattern).Result()
 	if err != nil {
 		return fmt.Errorf("error fetching keys with pattern %s: %w", pattern, err)
@@ -249,28 +249,28 @@ func (a Accounts) Drop(ctx context.Context) error {
 	return nil
 }
 
-func parseAccount(accountID string, vals map[string]string) (AccountModel, error) {
+func parseUser(userID string, vals map[string]string) (UserModel, error) {
 	createdAt, err := time.Parse(time.RFC3339, vals["created_at"])
 	if err != nil {
-		return AccountModel{}, fmt.Errorf("error parsing created_at: %w", err)
+		return UserModel{}, fmt.Errorf("error parsing created_at: %w", err)
 	}
 
-	ID, err := uuid.Parse(accountID)
+	ID, err := uuid.Parse(userID)
 	if err != nil {
-		return AccountModel{}, fmt.Errorf("error parsing AccountID: %w", err)
+		return UserModel{}, fmt.Errorf("error parsing UserID: %w", err)
 	}
 
 	subscription, err := uuid.Parse(vals["subscription"])
 	if err != nil {
-		return AccountModel{}, fmt.Errorf("error parsing subscription: %w", err)
+		return UserModel{}, fmt.Errorf("error parsing subscription: %w", err)
 	}
 
 	role, err := roles.ParseRole(vals["role"])
 	if err != nil {
-		return AccountModel{}, fmt.Errorf("error parsing role: %w", err)
+		return UserModel{}, fmt.Errorf("error parsing role: %w", err)
 	}
 
-	res := AccountModel{
+	res := UserModel{
 		ID:           ID,
 		Email:        vals["email"],
 		Role:         role,
@@ -281,7 +281,7 @@ func parseAccount(accountID string, vals map[string]string) (AccountModel, error
 	if lastUsed, ok := vals["updated_at"]; ok && lastUsed != "" {
 		ua, err := time.Parse(time.RFC3339, lastUsed)
 		if err != nil {
-			return AccountModel{}, fmt.Errorf("error parsing last_used: %w", err)
+			return UserModel{}, fmt.Errorf("error parsing last_used: %w", err)
 		}
 		res.UpdatedAt = &ua
 	}

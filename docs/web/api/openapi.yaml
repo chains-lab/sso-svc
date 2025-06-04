@@ -8,14 +8,14 @@ servers:
 paths:
   /chains/auth/v1/own:
     get:
-      description: Endpoint to get account
+      description: Endpoint to get user
       responses:
         "201":
           content:
             application/vnd.api+json:
               schema:
-                $ref: '#/components/schemas/Account'
-          description: Account successfully get
+                $ref: '#/components/schemas/User'
+          description: User successfully get
         "400":
           content:
             application/vnd.api+json:
@@ -47,9 +47,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Errors'
           description: Internal server error
-      summary: Get account
+      summary: Get user
       tags:
-      - Account
+      - User
   /re-news/chains/auth/v1/own/refresh:
     post:
       description: Endpoint to refresh an expired access token using a valid refresh
@@ -97,7 +97,7 @@ paths:
       - Sessions
   /re-news/chains/auth/v1/own/login:
     post:
-      description: Endpoint to login use google account
+      description: Endpoint to login use google user
       responses:
         "302":
           description: Redirect to Google callback endpoint
@@ -117,7 +117,7 @@ paths:
       - Login
   /re-news/chains/auth/v1/own/callback:
     post:
-      description: Endpoint to login use google account
+      description: Endpoint to login use google user
       responses:
         "201":
           content:
@@ -288,7 +288,7 @@ paths:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/Session'
-          description: Account sessions successfully get
+          description: User sessions successfully get
         "201":
           description: Updated username successfully
         "401":
@@ -318,12 +318,12 @@ paths:
       summary: Get user's session
       tags:
       - Sessions
-  /re-news/chains/auth/v1/admin/{account_id}:
+  /re-news/chains/auth/v1/admin/{user_id}:
     get:
       description: Endpoint to get user
       parameters:
       - in: path
-        name: account_id
+        name: user_id
         required: true
         schema:
           type: string
@@ -332,8 +332,8 @@ paths:
           content:
             application/vnd.api+json:
               schema:
-                $ref: '#/components/schemas/Account'
-          description: Account successfully get
+                $ref: '#/components/schemas/User'
+          description: User successfully get
         "400":
           content:
             application/vnd.api+json:
@@ -368,12 +368,12 @@ paths:
       summary: admin get user
       tags:
       - Admin
-  /re-news/chains/auth/v1/admin/{account_id}/{role}:
+  /re-news/chains/auth/v1/admin/{user_id}/{role}:
     post:
       description: Endpoint to update user
       parameters:
       - in: path
-        name: account_id
+        name: user_id
         required: true
         schema:
           type: string
@@ -387,8 +387,8 @@ paths:
           content:
             application/vnd.api+json:
               schema:
-                $ref: '#/components/schemas/Account'
-          description: Account successfully updated
+                $ref: '#/components/schemas/User'
+          description: User successfully updated
         "400":
           content:
             application/vnd.api+json:
@@ -423,12 +423,12 @@ paths:
       summary: admin role update
       tags:
       - Admin
-  /re-news/chains/auth/v1/admin/{account_id}/sessions:
+  /re-news/chains/auth/v1/admin/{user_id}/sessions:
     delete:
       description: Endpoint to delete user if you admin
       parameters:
       - in: path
-        name: account_id
+        name: user_id
         required: true
         schema:
           type: string
@@ -473,7 +473,7 @@ paths:
       description: Endpoint to get user if you admin
       parameters:
       - in: path
-        name: account_id
+        name: user_id
         required: true
         schema:
           type: string
@@ -483,7 +483,7 @@ paths:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/SessionsCollection'
-          description: Account sessions successfully get
+          description: User sessions successfully get
         "400":
           content:
             application/vnd.api+json:
@@ -518,12 +518,12 @@ paths:
       summary: admin get sessions
       tags:
       - Admin
-  /re-news/chains/auth/v1/admin/{account_id}/sessions/{session_id}:
+  /re-news/chains/auth/v1/admin/{user_id}/sessions/{session_id}:
     get:
       description: Endpoint to get user if you admin
       parameters:
       - in: path
-        name: account_id
+        name: user_id
         required: true
         schema:
           type: string
@@ -538,7 +538,7 @@ paths:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/Session'
-          description: Account sessions successfully get
+          description: User sessions successfully get
         "400":
           content:
             application/vnd.api+json:
@@ -649,7 +649,7 @@ components:
           type: string
         type:
           enum:
-          - account_session
+          - user_session
           type: string
         attributes:
           $ref: '#/components/schemas/SessionAttributes'
@@ -660,8 +660,8 @@ components:
       type: object
     SessionAttributes:
       properties:
-        account_id:
-          description: account id
+        user_id:
+          description: user id
           format: uuid
           type: string
         client:
@@ -679,11 +679,11 @@ components:
           format: date-time
           type: string
       required:
-      - account_id
       - client
       - created_at
       - ip
       - last_used
+      - user_id
       type: object
     SessionsCollection:
       properties:
@@ -692,10 +692,10 @@ components:
       required:
       - data
       type: object
-    Account:
+    User:
       properties:
         data:
-          $ref: '#/components/schemas/Account_data'
+          $ref: '#/components/schemas/User_data'
       required:
       - data
       type: object
@@ -790,7 +790,7 @@ components:
       properties:
         type:
           enum:
-          - account_sessions
+          - user_sessions
           type: string
         attributes:
           $ref: '#/components/schemas/SessionsCollection_data_attributes'
@@ -798,7 +798,7 @@ components:
       - attributes
       - type
       type: object
-    Account_data_attributes:
+    User_data_attributes:
       properties:
         email:
           description: Email
@@ -824,17 +824,17 @@ components:
       - subscription
       - updated_at
       type: object
-    Account_data:
+    User_data:
       properties:
         id:
-          description: Account ID
+          description: User ID
           type: string
         type:
           enum:
-          - account
+          - user
           type: string
         attributes:
-          $ref: '#/components/schemas/Account_data_attributes'
+          $ref: '#/components/schemas/User_data_attributes'
       required:
       - attributes
       - id

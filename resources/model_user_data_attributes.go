@@ -17,11 +17,11 @@ import (
 	"fmt"
 )
 
-// checks if the AccountDataAttributes type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &AccountDataAttributes{}
+// checks if the UserDataAttributes type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &UserDataAttributes{}
 
-// AccountDataAttributes struct for AccountDataAttributes
-type AccountDataAttributes struct {
+// UserDataAttributes struct for UserDataAttributes
+type UserDataAttributes struct {
 	// Email
 	Email string `json:"email"`
 	// Role
@@ -34,14 +34,14 @@ type AccountDataAttributes struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-type _AccountDataAttributes AccountDataAttributes
+type _UserDataAttributes UserDataAttributes
 
-// NewAccountDataAttributes instantiates a new AccountDataAttributes object
+// NewUserDataAttributes instantiates a new UserDataAttributes object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewAccountDataAttributes(email string, role string, subscription string, createdAt time.Time, updatedAt time.Time) *AccountDataAttributes {
-	this := AccountDataAttributes{}
+func NewUserDataAttributes(email string, role string, subscription string, createdAt time.Time, updatedAt time.Time) *UserDataAttributes {
+	this := UserDataAttributes{}
 	this.Email = email
 	this.Role = role
 	this.Subscription = subscription
@@ -50,16 +50,16 @@ func NewAccountDataAttributes(email string, role string, subscription string, cr
 	return &this
 }
 
-// NewAccountDataAttributesWithDefaults instantiates a new AccountDataAttributes object
+// NewUserDataAttributesWithDefaults instantiates a new UserDataAttributes object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewAccountDataAttributesWithDefaults() *AccountDataAttributes {
-	this := AccountDataAttributes{}
+func NewUserDataAttributesWithDefaults() *UserDataAttributes {
+	this := UserDataAttributes{}
 	return &this
 }
 
 // GetEmail returns the Email field value
-func (o *AccountDataAttributes) GetEmail() string {
+func (o *UserDataAttributes) GetEmail() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -70,7 +70,7 @@ func (o *AccountDataAttributes) GetEmail() string {
 
 // GetEmailOk returns a tuple with the Email field value
 // and a boolean to check if the value has been set.
-func (o *AccountDataAttributes) GetEmailOk() (*string, bool) {
+func (o *UserDataAttributes) GetEmailOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -78,12 +78,12 @@ func (o *AccountDataAttributes) GetEmailOk() (*string, bool) {
 }
 
 // SetEmail sets field value
-func (o *AccountDataAttributes) SetEmail(v string) {
+func (o *UserDataAttributes) SetEmail(v string) {
 	o.Email = v
 }
 
 // GetRole returns the Role field value
-func (o *AccountDataAttributes) GetRole() string {
+func (o *UserDataAttributes) GetRole() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -94,7 +94,7 @@ func (o *AccountDataAttributes) GetRole() string {
 
 // GetRoleOk returns a tuple with the Role field value
 // and a boolean to check if the value has been set.
-func (o *AccountDataAttributes) GetRoleOk() (*string, bool) {
+func (o *UserDataAttributes) GetRoleOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -102,12 +102,12 @@ func (o *AccountDataAttributes) GetRoleOk() (*string, bool) {
 }
 
 // SetRole sets field value
-func (o *AccountDataAttributes) SetRole(v string) {
+func (o *UserDataAttributes) SetRole(v string) {
 	o.Role = v
 }
 
 // GetSubscription returns the Subscription field value
-func (o *AccountDataAttributes) GetSubscription() string {
+func (o *UserDataAttributes) GetSubscription() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -118,7 +118,7 @@ func (o *AccountDataAttributes) GetSubscription() string {
 
 // GetSubscriptionOk returns a tuple with the Subscription field value
 // and a boolean to check if the value has been set.
-func (o *AccountDataAttributes) GetSubscriptionOk() (*string, bool) {
+func (o *UserDataAttributes) GetSubscriptionOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -126,12 +126,12 @@ func (o *AccountDataAttributes) GetSubscriptionOk() (*string, bool) {
 }
 
 // SetSubscription sets field value
-func (o *AccountDataAttributes) SetSubscription(v string) {
+func (o *UserDataAttributes) SetSubscription(v string) {
 	o.Subscription = v
 }
 
 // GetCreatedAt returns the CreatedAt field value
-func (o *AccountDataAttributes) GetCreatedAt() time.Time {
+func (o *UserDataAttributes) GetCreatedAt() time.Time {
 	if o == nil {
 		var ret time.Time
 		return ret
@@ -142,7 +142,7 @@ func (o *AccountDataAttributes) GetCreatedAt() time.Time {
 
 // GetCreatedAtOk returns a tuple with the CreatedAt field value
 // and a boolean to check if the value has been set.
-func (o *AccountDataAttributes) GetCreatedAtOk() (*time.Time, bool) {
+func (o *UserDataAttributes) GetCreatedAtOk() (*time.Time, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -150,12 +150,12 @@ func (o *AccountDataAttributes) GetCreatedAtOk() (*time.Time, bool) {
 }
 
 // SetCreatedAt sets field value
-func (o *AccountDataAttributes) SetCreatedAt(v time.Time) {
+func (o *UserDataAttributes) SetCreatedAt(v time.Time) {
 	o.CreatedAt = v
 }
 
 // GetUpdatedAt returns the UpdatedAt field value
-func (o *AccountDataAttributes) GetUpdatedAt() time.Time {
+func (o *UserDataAttributes) GetUpdatedAt() time.Time {
 	if o == nil {
 		var ret time.Time
 		return ret
@@ -166,7 +166,7 @@ func (o *AccountDataAttributes) GetUpdatedAt() time.Time {
 
 // GetUpdatedAtOk returns a tuple with the UpdatedAt field value
 // and a boolean to check if the value has been set.
-func (o *AccountDataAttributes) GetUpdatedAtOk() (*time.Time, bool) {
+func (o *UserDataAttributes) GetUpdatedAtOk() (*time.Time, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -174,11 +174,11 @@ func (o *AccountDataAttributes) GetUpdatedAtOk() (*time.Time, bool) {
 }
 
 // SetUpdatedAt sets field value
-func (o *AccountDataAttributes) SetUpdatedAt(v time.Time) {
+func (o *UserDataAttributes) SetUpdatedAt(v time.Time) {
 	o.UpdatedAt = v
 }
 
-func (o AccountDataAttributes) MarshalJSON() ([]byte, error) {
+func (o UserDataAttributes) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -186,7 +186,7 @@ func (o AccountDataAttributes) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o AccountDataAttributes) ToMap() (map[string]interface{}, error) {
+func (o UserDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["email"] = o.Email
 	toSerialize["role"] = o.Role
@@ -196,7 +196,7 @@ func (o AccountDataAttributes) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-func (o *AccountDataAttributes) UnmarshalJSON(data []byte) (err error) {
+func (o *UserDataAttributes) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
@@ -222,53 +222,53 @@ func (o *AccountDataAttributes) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varAccountDataAttributes := _AccountDataAttributes{}
+	varUserDataAttributes := _UserDataAttributes{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varAccountDataAttributes)
+	err = decoder.Decode(&varUserDataAttributes)
 
 	if err != nil {
 		return err
 	}
 
-	*o = AccountDataAttributes(varAccountDataAttributes)
+	*o = UserDataAttributes(varUserDataAttributes)
 
 	return err
 }
 
-type NullableAccountDataAttributes struct {
-	value *AccountDataAttributes
+type NullableUserDataAttributes struct {
+	value *UserDataAttributes
 	isSet bool
 }
 
-func (v NullableAccountDataAttributes) Get() *AccountDataAttributes {
+func (v NullableUserDataAttributes) Get() *UserDataAttributes {
 	return v.value
 }
 
-func (v *NullableAccountDataAttributes) Set(val *AccountDataAttributes) {
+func (v *NullableUserDataAttributes) Set(val *UserDataAttributes) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableAccountDataAttributes) IsSet() bool {
+func (v NullableUserDataAttributes) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableAccountDataAttributes) Unset() {
+func (v *NullableUserDataAttributes) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableAccountDataAttributes(val *AccountDataAttributes) *NullableAccountDataAttributes {
-	return &NullableAccountDataAttributes{value: val, isSet: true}
+func NewNullableUserDataAttributes(val *UserDataAttributes) *NullableUserDataAttributes {
+	return &NullableUserDataAttributes{value: val, isSet: true}
 }
 
-func (v NullableAccountDataAttributes) MarshalJSON() ([]byte, error) {
+func (v NullableUserDataAttributes) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableAccountDataAttributes) UnmarshalJSON(src []byte) error {
+func (v *NullableUserDataAttributes) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

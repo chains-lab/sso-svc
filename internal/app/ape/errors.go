@@ -17,20 +17,20 @@ func (e *Error) Unwrap() error {
 	return e.cause
 }
 
-func ErrorAccountDoesNotExist(accountID uuid.UUID, err error) *Error {
+func ErrorUserDoesNotExist(userID uuid.UUID, err error) *Error {
 	return &Error{
-		Code:    CodeAccountDoesNotExist,
-		Title:   "Account does not exist",
-		Details: fmt.Sprintf("The requested account %s does not exist.", accountID),
+		Code:    CodeUserDoesNotExist,
+		Title:   "User does not exist",
+		Details: fmt.Sprintf("The requested user %s does not exist.", userID),
 		cause:   err,
 	}
 }
 
-func ErrorAccountDoesNotExistByEmail(email string, err error) *Error {
+func ErrorUserDoesNotExistByEmail(email string, err error) *Error {
 	return &Error{
-		Code:    CodeAccountDoesNotExist,
-		Title:   "Account does not exist",
-		Details: fmt.Sprintf("The requested account with email %s does not exist.", email),
+		Code:    CodeUserDoesNotExist,
+		Title:   "User does not exist",
+		Details: fmt.Sprintf("The requested user with email %s does not exist.", email),
 		cause:   err,
 	}
 }
@@ -44,19 +44,19 @@ func ErrorSessionDoesNotExist(sessionID uuid.UUID, err error) *Error {
 	}
 }
 
-func ErrorAccountAlreadyExists(cause error) *Error {
+func ErrorUserAlreadyExists(cause error) *Error {
 	return &Error{
-		Code:    CodeAccountAlreadyExists,
-		Title:   "Account Already Exists",
-		Details: "Account already exists",
+		Code:    CodeUserAlreadyExists,
+		Title:   "User Already Exists",
+		Details: "User already exists",
 		cause:   cause,
 	}
 }
 
-func ErrorAccountInvalidRole(cause error) *Error {
+func ErrorUserInvalidRole(cause error) *Error {
 	return &Error{
-		Code:    CodeAccountInvalidRole,
-		Title:   "Invalid Account Role",
+		Code:    CodeUserInvalidRole,
+		Title:   "Invalid User Role",
 		Details: "Invalid role",
 		cause:   cause,
 	}
@@ -71,11 +71,11 @@ func ErrorUserNoPermissionToUpdateRole(cause error) *Error {
 	}
 }
 
-func ErrorSessionsForAccountNotExist(cause error) *Error {
+func ErrorSessionsForUserNotExist(cause error) *Error {
 	return &Error{
-		Code:    CodeSessionsForAccountNotExist,
-		Title:   "Sessions for Account Not Found",
-		Details: "Sessions for account does not exist",
+		Code:    CodeSessionsForUserNotExist,
+		Title:   "Sessions for User Not Found",
+		Details: "Sessions for user does not exist",
 		cause:   cause,
 	}
 }
@@ -116,11 +116,11 @@ func ErrorSessionCannotBeCurrent(cause error) *Error {
 	}
 }
 
-func ErrorSessionCannotBeCurrentAccount(cause error) *Error {
+func ErrorSessionCannotBeCurrentUser(cause error) *Error {
 	return &Error{
-		Code:    CodeSessionCannotBeCurrentAccount,
-		Title:   "Session Cannot Be Current Account",
-		Details: "Session cannot be current account",
+		Code:    CodeSessionCannotBeCurrentUser,
+		Title:   "Session Cannot Be Current User",
+		Details: "Session cannot be current user",
 		cause:   cause,
 	}
 }

@@ -1,7 +1,7 @@
 post:
   tags:
     - Login
-  description: Endpoint to login use google account
+  description: Endpoint to login use google user
   responses:
     '302':
       description: Redirect to Google callback endpoint

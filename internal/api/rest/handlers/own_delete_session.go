@@ -13,7 +13,7 @@ import (
 func (h *Handlers) DeleteSession(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
 
-	user, err := tokens.GetAccountTokenData(r.Context())
+	user, err := tokens.GetUserTokenData(r.Context())
 	if err != nil {
 		h.presenter.InvalidToken(w, requestID, err)
 		return
@@ -33,7 +33,7 @@ func (h *Handlers) DeleteSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessions, appErr := h.app.GetAccountSessions(r.Context(), user.AccountID)
+	sessions, appErr := h.app.GetUserSessions(r.Context(), user.UserID)
 	if appErr != nil {
 		h.presenter.AppError(w, requestID, appErr)
 		return

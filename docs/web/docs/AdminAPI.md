@@ -4,17 +4,17 @@ All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**ReNewsChainsAuthV1AdminAccountIdGet**](AdminAPI.md#ReNewsChainsAuthV1AdminAccountIdGet) | **Get** /re-news/chains/auth/v1/admin/{account_id} | admin get user
-[**ReNewsChainsAuthV1AdminAccountIdRolePost**](AdminAPI.md#ReNewsChainsAuthV1AdminAccountIdRolePost) | **Post** /re-news/chains/auth/v1/admin/{account_id}/{role} | admin role update
-[**ReNewsChainsAuthV1AdminAccountIdSessionsDelete**](AdminAPI.md#ReNewsChainsAuthV1AdminAccountIdSessionsDelete) | **Delete** /re-news/chains/auth/v1/admin/{account_id}/sessions | admin delete user
-[**ReNewsChainsAuthV1AdminAccountIdSessionsGet**](AdminAPI.md#ReNewsChainsAuthV1AdminAccountIdSessionsGet) | **Get** /re-news/chains/auth/v1/admin/{account_id}/sessions | admin get sessions
-[**ReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGet**](AdminAPI.md#ReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGet) | **Get** /re-news/chains/auth/v1/admin/{account_id}/sessions/{session_id} | admin get session
+[**ReNewsChainsAuthV1AdminUserIdGet**](AdminAPI.md#ReNewsChainsAuthV1AdminUserIdGet) | **Get** /re-news/chains/auth/v1/admin/{user_id} | admin get user
+[**ReNewsChainsAuthV1AdminUserIdRolePost**](AdminAPI.md#ReNewsChainsAuthV1AdminUserIdRolePost) | **Post** /re-news/chains/auth/v1/admin/{user_id}/{role} | admin role update
+[**ReNewsChainsAuthV1AdminUserIdSessionsDelete**](AdminAPI.md#ReNewsChainsAuthV1AdminUserIdSessionsDelete) | **Delete** /re-news/chains/auth/v1/admin/{user_id}/sessions | admin delete user
+[**ReNewsChainsAuthV1AdminUserIdSessionsGet**](AdminAPI.md#ReNewsChainsAuthV1AdminUserIdSessionsGet) | **Get** /re-news/chains/auth/v1/admin/{user_id}/sessions | admin get sessions
+[**ReNewsChainsAuthV1AdminUserIdSessionsSessionIdGet**](AdminAPI.md#ReNewsChainsAuthV1AdminUserIdSessionsSessionIdGet) | **Get** /re-news/chains/auth/v1/admin/{user_id}/sessions/{session_id} | admin get session
 
 
 
-## ReNewsChainsAuthV1AdminAccountIdGet
+## ReNewsChainsAuthV1AdminUserIdGet
 
-> Account ReNewsChainsAuthV1AdminAccountIdGet(ctx, accountId).Execute()
+> User ReNewsChainsAuthV1AdminUserIdGet(ctx, userId).Execute()
 
 admin get user
 
@@ -33,17 +33,17 @@ import (
 )
 
 func main() {
-	accountId := "accountId_example" // string | 
+	userId := "userId_example" // string | 
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.AdminAPI.ReNewsChainsAuthV1AdminAccountIdGet(context.Background(), accountId).Execute()
+	resp, r, err := apiClient.AdminAPI.ReNewsChainsAuthV1AdminUserIdGet(context.Background(), userId).Execute()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error when calling `AdminAPI.ReNewsChainsAuthV1AdminAccountIdGet``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error when calling `AdminAPI.ReNewsChainsAuthV1AdminUserIdGet``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	// response from `ReNewsChainsAuthV1AdminAccountIdGet`: Account
-	fmt.Fprintf(os.Stdout, "Response from `AdminAPI.ReNewsChainsAuthV1AdminAccountIdGet`: %v\n", resp)
+	// response from `ReNewsChainsAuthV1AdminUserIdGet`: User
+	fmt.Fprintf(os.Stdout, "Response from `AdminAPI.ReNewsChainsAuthV1AdminUserIdGet`: %v\n", resp)
 }
 ```
 
@@ -53,11 +53,11 @@ func main() {
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
 **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-**accountId** | **string** |  | 
+**userId** | **string** |  | 
 
 ### Other Parameters
 
-Other parameters are passed through a pointer to a apiReNewsChainsAuthV1AdminAccountIdGetRequest struct via the builder pattern
+Other parameters are passed through a pointer to a apiReNewsChainsAuthV1AdminUserIdGetRequest struct via the builder pattern
 
 
 Name | Type | Description  | Notes
@@ -66,7 +66,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**Account**](Account.md)
+[**User**](User.md)
 
 ### Authorization
 
@@ -82,9 +82,9 @@ No authorization required
 [[Back to README]](../README.md)
 
 
-## ReNewsChainsAuthV1AdminAccountIdRolePost
+## ReNewsChainsAuthV1AdminUserIdRolePost
 
-> Account ReNewsChainsAuthV1AdminAccountIdRolePost(ctx, accountId, role).Execute()
+> User ReNewsChainsAuthV1AdminUserIdRolePost(ctx, userId, role).Execute()
 
 admin role update
 
@@ -103,18 +103,18 @@ import (
 )
 
 func main() {
-	accountId := "accountId_example" // string | 
+	userId := "userId_example" // string | 
 	role := "role_example" // string | 
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.AdminAPI.ReNewsChainsAuthV1AdminAccountIdRolePost(context.Background(), accountId, role).Execute()
+	resp, r, err := apiClient.AdminAPI.ReNewsChainsAuthV1AdminUserIdRolePost(context.Background(), userId, role).Execute()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error when calling `AdminAPI.ReNewsChainsAuthV1AdminAccountIdRolePost``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error when calling `AdminAPI.ReNewsChainsAuthV1AdminUserIdRolePost``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	// response from `ReNewsChainsAuthV1AdminAccountIdRolePost`: Account
-	fmt.Fprintf(os.Stdout, "Response from `AdminAPI.ReNewsChainsAuthV1AdminAccountIdRolePost`: %v\n", resp)
+	// response from `ReNewsChainsAuthV1AdminUserIdRolePost`: User
+	fmt.Fprintf(os.Stdout, "Response from `AdminAPI.ReNewsChainsAuthV1AdminUserIdRolePost`: %v\n", resp)
 }
 ```
 
@@ -124,12 +124,12 @@ func main() {
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
 **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-**accountId** | **string** |  | 
+**userId** | **string** |  | 
 **role** | **string** |  | 
 
 ### Other Parameters
 
-Other parameters are passed through a pointer to a apiReNewsChainsAuthV1AdminAccountIdRolePostRequest struct via the builder pattern
+Other parameters are passed through a pointer to a apiReNewsChainsAuthV1AdminUserIdRolePostRequest struct via the builder pattern
 
 
 Name | Type | Description  | Notes
@@ -139,7 +139,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**Account**](Account.md)
+[**User**](User.md)
 
 ### Authorization
 
@@ -155,9 +155,9 @@ No authorization required
 [[Back to README]](../README.md)
 
 
-## ReNewsChainsAuthV1AdminAccountIdSessionsDelete
+## ReNewsChainsAuthV1AdminUserIdSessionsDelete
 
-> ReNewsChainsAuthV1AdminAccountIdSessionsDelete(ctx, accountId).Execute()
+> ReNewsChainsAuthV1AdminUserIdSessionsDelete(ctx, userId).Execute()
 
 admin delete user
 
@@ -176,13 +176,13 @@ import (
 )
 
 func main() {
-	accountId := "accountId_example" // string | 
+	userId := "userId_example" // string | 
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	r, err := apiClient.AdminAPI.ReNewsChainsAuthV1AdminAccountIdSessionsDelete(context.Background(), accountId).Execute()
+	r, err := apiClient.AdminAPI.ReNewsChainsAuthV1AdminUserIdSessionsDelete(context.Background(), userId).Execute()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error when calling `AdminAPI.ReNewsChainsAuthV1AdminAccountIdSessionsDelete``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error when calling `AdminAPI.ReNewsChainsAuthV1AdminUserIdSessionsDelete``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
 }
@@ -194,11 +194,11 @@ func main() {
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
 **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-**accountId** | **string** |  | 
+**userId** | **string** |  | 
 
 ### Other Parameters
 
-Other parameters are passed through a pointer to a apiReNewsChainsAuthV1AdminAccountIdSessionsDeleteRequest struct via the builder pattern
+Other parameters are passed through a pointer to a apiReNewsChainsAuthV1AdminUserIdSessionsDeleteRequest struct via the builder pattern
 
 
 Name | Type | Description  | Notes
@@ -223,9 +223,9 @@ No authorization required
 [[Back to README]](../README.md)
 
 
-## ReNewsChainsAuthV1AdminAccountIdSessionsGet
+## ReNewsChainsAuthV1AdminUserIdSessionsGet
 
-> SessionsCollection ReNewsChainsAuthV1AdminAccountIdSessionsGet(ctx, accountId).Execute()
+> SessionsCollection ReNewsChainsAuthV1AdminUserIdSessionsGet(ctx, userId).Execute()
 
 admin get sessions
 
@@ -244,17 +244,17 @@ import (
 )
 
 func main() {
-	accountId := "accountId_example" // string | 
+	userId := "userId_example" // string | 
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.AdminAPI.ReNewsChainsAuthV1AdminAccountIdSessionsGet(context.Background(), accountId).Execute()
+	resp, r, err := apiClient.AdminAPI.ReNewsChainsAuthV1AdminUserIdSessionsGet(context.Background(), userId).Execute()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error when calling `AdminAPI.ReNewsChainsAuthV1AdminAccountIdSessionsGet``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error when calling `AdminAPI.ReNewsChainsAuthV1AdminUserIdSessionsGet``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	// response from `ReNewsChainsAuthV1AdminAccountIdSessionsGet`: SessionsCollection
-	fmt.Fprintf(os.Stdout, "Response from `AdminAPI.ReNewsChainsAuthV1AdminAccountIdSessionsGet`: %v\n", resp)
+	// response from `ReNewsChainsAuthV1AdminUserIdSessionsGet`: SessionsCollection
+	fmt.Fprintf(os.Stdout, "Response from `AdminAPI.ReNewsChainsAuthV1AdminUserIdSessionsGet`: %v\n", resp)
 }
 ```
 
@@ -264,11 +264,11 @@ func main() {
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
 **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-**accountId** | **string** |  | 
+**userId** | **string** |  | 
 
 ### Other Parameters
 
-Other parameters are passed through a pointer to a apiReNewsChainsAuthV1AdminAccountIdSessionsGetRequest struct via the builder pattern
+Other parameters are passed through a pointer to a apiReNewsChainsAuthV1AdminUserIdSessionsGetRequest struct via the builder pattern
 
 
 Name | Type | Description  | Notes
@@ -293,9 +293,9 @@ No authorization required
 [[Back to README]](../README.md)
 
 
-## ReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGet
+## ReNewsChainsAuthV1AdminUserIdSessionsSessionIdGet
 
-> Session ReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGet(ctx, accountId, sessionId).Execute()
+> Session ReNewsChainsAuthV1AdminUserIdSessionsSessionIdGet(ctx, userId, sessionId).Execute()
 
 admin get session
 
@@ -314,18 +314,18 @@ import (
 )
 
 func main() {
-	accountId := "accountId_example" // string | 
+	userId := "userId_example" // string | 
 	sessionId := "sessionId_example" // string | 
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.AdminAPI.ReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGet(context.Background(), accountId, sessionId).Execute()
+	resp, r, err := apiClient.AdminAPI.ReNewsChainsAuthV1AdminUserIdSessionsSessionIdGet(context.Background(), userId, sessionId).Execute()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error when calling `AdminAPI.ReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGet``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error when calling `AdminAPI.ReNewsChainsAuthV1AdminUserIdSessionsSessionIdGet``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	// response from `ReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGet`: Session
-	fmt.Fprintf(os.Stdout, "Response from `AdminAPI.ReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGet`: %v\n", resp)
+	// response from `ReNewsChainsAuthV1AdminUserIdSessionsSessionIdGet`: Session
+	fmt.Fprintf(os.Stdout, "Response from `AdminAPI.ReNewsChainsAuthV1AdminUserIdSessionsSessionIdGet`: %v\n", resp)
 }
 ```
 
@@ -335,12 +335,12 @@ func main() {
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
 **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-**accountId** | **string** |  | 
+**userId** | **string** |  | 
 **sessionId** | **string** |  | 
 
 ### Other Parameters
 
-Other parameters are passed through a pointer to a apiReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGetRequest struct via the builder pattern
+Other parameters are passed through a pointer to a apiReNewsChainsAuthV1AdminUserIdSessionsSessionIdGetRequest struct via the builder pattern
 
 
 Name | Type | Description  | Notes

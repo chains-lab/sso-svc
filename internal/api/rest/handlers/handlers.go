@@ -16,19 +16,19 @@ import (
 )
 
 type App interface {
-	UpdateAccountRole(ctx context.Context, accountID uuid.UUID, role, initiatorRole roles.Role) *ape.Error
+	UpdateUserRole(ctx context.Context, userID uuid.UUID, role, initiatorRole roles.Role) *ape.Error
 
-	GetAccountByID(ctx context.Context, accountID uuid.UUID) (models.Account, *ape.Error)
-	GetAccountByEmail(ctx context.Context, email string) (models.Account, *ape.Error)
+	GetUserByID(ctx context.Context, userID uuid.UUID) (models.User, *ape.Error)
+	GetUserByEmail(ctx context.Context, email string) (models.User, *ape.Error)
 
 	GetSession(ctx context.Context, sessionID uuid.UUID) (models.Session, *ape.Error)
-	GetAccountSessions(ctx context.Context, accountID uuid.UUID) ([]models.Session, *ape.Error)
+	GetUserSessions(ctx context.Context, userID uuid.UUID) ([]models.Session, *ape.Error)
 
 	Login(ctx context.Context, email, client string) (models.Session, *ape.Error)
-	Refresh(ctx context.Context, accountID, sessionID uuid.UUID, client, token string) (models.Session, *ape.Error)
+	Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, token string) (models.Session, *ape.Error)
 	Logout(ctx context.Context, sessionID uuid.UUID) *ape.Error
 
-	TerminateSessionsByOwner(ctx context.Context, accountID uuid.UUID) *ape.Error
+	TerminateSessionsByOwner(ctx context.Context, userID uuid.UUID) *ape.Error
 	DeleteSessionByOwner(ctx context.Context, sessionID, initiatorSessionID uuid.UUID) *ape.Error
 	TerminateSessionsByAdmin(ctx context.Context, userID uuid.UUID) *ape.Error
 	DeleteSessionByAdmin(ctx context.Context, sessionID, initiatorID, initiatorSessionID uuid.UUID) *ape.Error

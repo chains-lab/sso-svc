@@ -60,7 +60,7 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 
 				r.Delete("/logout", a.handlers.Logout)
 
-				r.Get("/", a.handlers.OwnAccountGet)
+				r.Get("/", a.handlers.OwnUserGet)
 
 				r.Route("/sessions", func(r chi.Router) {
 					r.Route("/{session_id}", func(r chi.Router) {
@@ -76,8 +76,8 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 			r.Route("/admin", func(r chi.Router) {
 				r.Use(admin)
 
-				r.Route("/{account_id}", func(r chi.Router) {
-					r.Get("/", a.handlers.AdminGetAccount)
+				r.Route("/{user_id}", func(r chi.Router) {
+					r.Get("/", a.handlers.AdminGetUser)
 					r.Patch("/{role}", a.handlers.AdminUpdateRole)
 
 					r.Route("/sessions", func(r chi.Router) {

@@ -20,7 +20,7 @@ const (
 
 type Session struct {
 	ID        uuid.UUID `json:"id"`
-	AccountID uuid.UUID `json:"account_id"`
+	UserID    uuid.UUID `json:"user_id"`
 	Token     string    `json:"token"`
 	Client    string    `json:"client"`
 	CreatedAt time.Time `json:"created_at"`
@@ -37,7 +37,7 @@ type sessionSQL interface {
 	Get(ctx context.Context) (sqldb.SessionModel, error)
 
 	FilterID(id uuid.UUID) sqldb.SessionsQ
-	FilterAccountID(accountID uuid.UUID) sqldb.SessionsQ
+	FilterUserID(userID uuid.UUID) sqldb.SessionsQ
 
 	Transaction(fn func(ctx context.Context) error) error
 	Page(limit, offset uint64) sqldb.SessionsQ
@@ -49,10 +49,10 @@ type sessionsRedis interface {
 	Set(ctx context.Context, input redisdb.SessionCreateInput) error
 	Create(ctx context.Context, input redisdb.SessionCreateInput) error
 	GetByID(ctx context.Context, sessionID string) (redisdb.SessionModel, error)
-	GetByAccountID(ctx context.Context, accountID string) ([]redisdb.SessionModel, error)
+	GetByUserID(ctx context.Context, userID string) ([]redisdb.SessionModel, error)
 	Update(ctx context.Context, sessionID, userID uuid.UUID, update redisdb.SessionUpdateInput) error
 	Delete(ctx context.Context, sessionID uuid.UUID) error
-	Terminate(ctx context.Context, accountID uuid.UUID) error
+	Terminate(ctx context.Context, userID uuid.UUID) error
 	Drop(ctx context.Context) error
 }
 
@@ -84,7 +84,7 @@ func NewSessions(cfg config.Config, log *logrus.Logger) (SessionsRepo, error) {
 
 type SessionCreateRequest struct {
 	ID        uuid.UUID `json:"id"`
-	AccountID uuid.UUID `json:"account_id"`
+	UserID    uuid.UUID `json:"user_id"`
 	Token     string    `json:"token"`
 	Client    string    `json:"client"`
 	CreatedAt time.Time `json:"created_at"`
@@ -96,7 +96,7 @@ func (s SessionsRepo) Create(ctx context.Context, input SessionCreateRequest) er
 
 	err := s.sql.New().Insert(ctxSync, sqldb.SessionInsertInput{
 		ID:        input.ID,
-		AccountID: input.AccountID,
+		UserID:    input.UserID,
 		Token:     input.Token,
 		Client:    input.Client,
 		LastUsed:  input.CreatedAt,
@@ -108,7 +108,7 @@ func (s SessionsRepo) Create(ctx context.Context, input SessionCreateRequest) er
 
 	err = s.redis.Create(ctx, redisdb.SessionCreateInput{
 		ID:        input.ID,
-		AccountID: input.AccountID,
+		UserID:    input.UserID,
 		Token:     input.Token,
 		Client:    input.Client,
 		LastUsed:  input.CreatedAt,
@@ -151,7 +151,7 @@ func (s SessionsRepo) Update(ctx context.Context, ID uuid.UUID, input SessionUpd
 
 	err = s.redis.Set(ctx, redisdb.SessionCreateInput{
 		ID:        session.ID,
-		AccountID: session.AccountID,
+		UserID:    session.UserID,
 		Token:     session.Token,
 		Client:    session.Client,
 		LastUsed:  session.LastUsed,
@@ -178,11 +178,11 @@ func (s SessionsRepo) Delete(ctx context.Context, sessionID uuid.UUID) error {
 	return nil
 }
 
-func (s SessionsRepo) Terminate(ctx context.Context, accountID uuid.UUID) error {
+func (s SessionsRepo) Terminate(ctx context.Context, userID uuid.UUID) error {
 	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
 
-	err := s.sql.New().FilterAccountID(accountID).Delete(ctxSync)
+	err := s.sql.New().FilterUserID(userID).Delete(ctxSync)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -192,7 +192,7 @@ func (s SessionsRepo) Terminate(ctx context.Context, accountID uuid.UUID) error 
 		}
 	}
 
-	err = s.redis.Terminate(ctx, accountID)
+	err = s.redis.Terminate(ctx, userID)
 	if err != nil {
 	}
 
@@ -209,7 +209,7 @@ func (s SessionsRepo) GetByID(ctx context.Context, ID uuid.UUID) (Session, error
 	} else {
 		return Session{
 			ID:        redisRes.ID,
-			AccountID: redisRes.AccountID,
+			UserID:    redisRes.UserID,
 			Token:     redisRes.Token,
 			Client:    redisRes.Client,
 			CreatedAt: redisRes.CreatedAt,
@@ -224,7 +224,7 @@ func (s SessionsRepo) GetByID(ctx context.Context, ID uuid.UUID) (Session, error
 
 	if err := s.redis.Set(ctxSync, redisdb.SessionCreateInput{
 		ID:        session.ID,
-		AccountID: session.AccountID,
+		UserID:    session.UserID,
 		Token:     session.Token,
 		Client:    session.Client,
 		LastUsed:  session.LastUsed,
@@ -235,7 +235,7 @@ func (s SessionsRepo) GetByID(ctx context.Context, ID uuid.UUID) (Session, error
 
 	return Session{
 		ID:        session.ID,
-		AccountID: session.AccountID,
+		UserID:    session.UserID,
 		Token:     session.Token,
 		Client:    session.Client,
 		CreatedAt: session.CreatedAt,
@@ -243,11 +243,11 @@ func (s SessionsRepo) GetByID(ctx context.Context, ID uuid.UUID) (Session, error
 	}, nil
 }
 
-func (s SessionsRepo) GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]Session, error) {
+func (s SessionsRepo) GetByUserID(ctx context.Context, userID uuid.UUID) ([]Session, error) {
 	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
 
-	redisRes, err := s.redis.GetByAccountID(ctx, accountID.String())
+	redisRes, err := s.redis.GetByUserID(ctx, userID.String())
 	if err != nil {
 		s.log.WithField("database", "redis").Errorf("error creating session in redis: %v", err)
 	} else {
@@ -255,7 +255,7 @@ func (s SessionsRepo) GetByAccountID(ctx context.Context, accountID uuid.UUID) (
 		for _, session := range redisRes {
 			result = append(result, Session{
 				ID:        session.ID,
-				AccountID: session.AccountID,
+				UserID:    session.UserID,
 				Token:     session.Token,
 				Client:    session.Client,
 				CreatedAt: session.CreatedAt,
@@ -265,7 +265,7 @@ func (s SessionsRepo) GetByAccountID(ctx context.Context, accountID uuid.UUID) (
 		return result, nil
 	}
 
-	sessions, err := s.sql.New().FilterAccountID(accountID).Select(ctxSync)
+	sessions, err := s.sql.New().FilterUserID(userID).Select(ctxSync)
 	if err != nil {
 		return nil, err
 	}
@@ -274,7 +274,7 @@ func (s SessionsRepo) GetByAccountID(ctx context.Context, accountID uuid.UUID) (
 	for _, session := range sessions {
 		result = append(result, Session{
 			ID:        session.ID,
-			AccountID: session.AccountID,
+			UserID:    session.UserID,
 			Token:     session.Token,
 			Client:    session.Client,
 			CreatedAt: session.CreatedAt,
@@ -283,7 +283,7 @@ func (s SessionsRepo) GetByAccountID(ctx context.Context, accountID uuid.UUID) (
 
 		if err := s.redis.Set(ctxSync, redisdb.SessionCreateInput{
 			ID:        session.ID,
-			AccountID: session.AccountID,
+			UserID:    session.UserID,
 			Token:     session.Token,
 			Client:    session.Client,
 			CreatedAt: session.CreatedAt,

@@ -4,18 +4,18 @@ get:
   summary: admin get user
   description: Endpoint to get user
   parameters:
-    - name: account_id
+    - name: user_id
       in: path
       required: true
       schema:
         type: string
   responses:
     '200':
-      description: Account successfully get
+      description: User successfully get
       content:
         application/vnd.api+json:
           schema:
-            $ref: '../spec/components/schemas/Account.yaml'
+            $ref: '../spec/components/schemas/User.yaml'
     '400':
       $ref: '../spec/components/responses/invalidParameter.yaml'
     '401':

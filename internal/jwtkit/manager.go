@@ -114,7 +114,7 @@ func (m Manager) GenerateAccess(
 ) (string, error) {
 	return tokens.GenerateUserJWT(tokens.GenerateUserJwtRequest{
 		Issuer:       m.iss,
-		Account:      userID,
+		User:         userID,
 		Session:      sessionID,
 		Subscription: subTypeID,
 		Role:         idn,
@@ -130,7 +130,7 @@ func (m Manager) GenerateRefresh(
 ) (string, error) {
 	return tokens.GenerateUserJWT(tokens.GenerateUserJwtRequest{
 		Issuer:       m.iss,
-		Account:      userID,
+		User:         userID,
 		Session:      sessionID,
 		Subscription: subTypeID,
 		Role:         idn,

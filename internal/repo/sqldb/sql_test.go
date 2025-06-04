@@ -24,7 +24,7 @@ func setupTestDB(t *testing.T) *sql.DB {
 }
 
 func cleanupTables(t *testing.T, db *sql.DB) {
-	tables := []string{"accounts", "sessions"}
+	tables := []string{"users", "sessions"}
 	for _, table := range tables {
 		_, err := db.Exec(fmt.Sprintf("DELETE FROM %s", table))
 		if err != nil {
@@ -33,7 +33,7 @@ func cleanupTables(t *testing.T, db *sql.DB) {
 	}
 }
 
-func TestIntegration_AccountAndSession(t *testing.T) {
+func TestIntegration_UserAndSession(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
 	cleanupTables(t, db)
@@ -41,13 +41,13 @@ func TestIntegration_AccountAndSession(t *testing.T) {
 	ctx := context.Background()
 
 	// Создаем объекты для работы с аккаунтами и сессиями.
-	accountQ := sqldb.NewAccounts(db)
+	userQ := sqldb.NewUsers(db)
 	sessionsQ := sqldb.NewSessions(db)
 
 	// 1. Создаем аккаунт.
 	accID := uuid.New()
 	accCreatedAt := time.Now().UTC()
-	accInput := sqldb.AccountInsertInput{
+	accInput := sqldb.UserInsertInput{
 		ID:           accID,
 		Email:        "integration@example.com",
 		Role:         roles.Role("user"),
@@ -55,17 +55,17 @@ func TestIntegration_AccountAndSession(t *testing.T) {
 		CreatedAt:    accCreatedAt,
 	}
 
-	if err := accountQ.Insert(ctx, accInput); err != nil {
-		t.Fatalf("Account Insert failed: %v", err)
+	if err := userQ.Insert(ctx, accInput); err != nil {
+		t.Fatalf("User Insert failed: %v", err)
 	}
 
 	// Проверяем создание аккаунта.
-	account, err := accountQ.FilterID(accID).Get(ctx)
+	user, err := userQ.FilterID(accID).Get(ctx)
 	if err != nil {
-		t.Fatalf("Account GetByID failed: %v", err)
+		t.Fatalf("User GetByID failed: %v", err)
 	}
-	if account.Email != accInput.Email {
-		t.Errorf("expected email %s, got %s", accInput.Email, account.Email)
+	if user.Email != accInput.Email {
+		t.Errorf("expected email %s, got %s", accInput.Email, user.Email)
 	}
 
 	// 2. Создаем сессию для этого аккаунта.
@@ -74,7 +74,7 @@ func TestIntegration_AccountAndSession(t *testing.T) {
 	lastUsed := sessCreatedAt.Add(1 * time.Minute)
 	sessionInput := sqldb.SessionInsertInput{
 		ID:        sessID,
-		AccountID: accID,
+		UserID:    accID,
 		Token:     "test-token",
 		Client:    "web",
 		CreatedAt: sessCreatedAt,
@@ -97,38 +97,38 @@ func TestIntegration_AccountAndSession(t *testing.T) {
 	//	t.Errorf("expected created_at %v, got %v", sessCreatedAt, session.CreatedAt)
 	//}
 
-	// Проверяем получение сессии по AccountID.
-	sessions, err := sessionsQ.FilterAccountID(accID).Select(ctx)
+	// Проверяем получение сессии по UserID.
+	sessions, err := sessionsQ.FilterUserID(accID).Select(ctx)
 	if err != nil {
-		t.Fatalf("Sessions Select by AccountID failed: %v", err)
+		t.Fatalf("Sessions Select by UserID failed: %v", err)
 	}
 	if len(sessions) != 1 {
-		t.Errorf("expected 1 session for account, got %d", len(sessions))
+		t.Errorf("expected 1 session for user, got %d", len(sessions))
 	}
 
 	// 3. Обновляем аккаунт.
 	newRole := roles.Role("admin")
 	updateTime := time.Now().UTC()
-	accUpdate := sqldb.AccountUpdateInput{
+	accUpdate := sqldb.UserUpdateInput{
 		Role:         &newRole,
 		Subscription: nil, // оставляем без изменений
 		UpdatedAt:    updateTime,
 	}
 	// Применяем фильтр по ID.
-	if err := accountQ.FilterID(accID).Update(ctx, accUpdate); err != nil {
-		t.Fatalf("Account Update failed: %v", err)
+	if err := userQ.FilterID(accID).Update(ctx, accUpdate); err != nil {
+		t.Fatalf("User Update failed: %v", err)
 	}
 
-	updatedAccount, err := accountQ.FilterID(accID).Get(ctx)
+	updatedUser, err := userQ.FilterID(accID).Get(ctx)
 	if err != nil {
-		t.Fatalf("Account GetByID after update failed: %v", err)
+		t.Fatalf("User GetByID after update failed: %v", err)
 	}
-	if updatedAccount.Role != newRole {
-		t.Errorf("expected updated role %s, got %s", newRole, updatedAccount.Role)
+	if updatedUser.Role != newRole {
+		t.Errorf("expected updated role %s, got %s", newRole, updatedUser.Role)
 	}
 	// Если поле updated_at не было установлено ранее, оно должно быть равно updateTime.
-	//if updatedAccount.UpdatedAt == nil || !updatedAccount.UpdatedAt.Equal(updateTime) {
-	//	t.Errorf("expected updated_at %v, got %v", updateTime, updatedAccount.UpdatedAt)
+	//if updatedUser.UpdatedAt == nil || !updatedUser.UpdatedAt.Equal(updateTime) {
+	//	t.Errorf("expected updated_at %v, got %v", updateTime, updatedUser.UpdatedAt)
 	//}
 
 	// 4. Обновляем сессию.
@@ -160,11 +160,11 @@ func TestIntegration_AccountAndSession(t *testing.T) {
 	}
 
 	// 6. Удаляем аккаунт.
-	if err := accountQ.FilterID(accID).Delete(ctx); err != nil {
-		t.Fatalf("Account Delete failed: %v", err)
+	if err := userQ.FilterID(accID).Delete(ctx); err != nil {
+		t.Fatalf("User Delete failed: %v", err)
 	}
-	_, err = accountQ.FilterID(accID).Get(ctx)
+	_, err = userQ.FilterID(accID).Get(ctx)
 	if err == nil {
-		t.Errorf("expected error fetching deleted account, got none")
+		t.Errorf("expected error fetching deleted user, got none")
 	}
 }

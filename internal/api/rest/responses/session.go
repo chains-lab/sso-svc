@@ -8,10 +8,10 @@ import (
 func Session(session models.Session) resources.Session {
 	return resources.Session{
 		Data: resources.SessionData{
-			Type: resources.AccountSessionType,
+			Type: resources.UserSessionType,
 			Id:   session.ID.String(),
 			Attributes: resources.SessionAttributes{
-				AccountId: session.AccountID.String(),
+				UserId:    session.UserID.String(),
 				Client:    session.Client,
 				Ip:        session.IP,
 				CreatedAt: session.CreatedAt,

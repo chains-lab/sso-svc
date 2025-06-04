@@ -38,7 +38,7 @@ func (h *Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
 
 	tokenString := parts[1]
 
-	userData, err := tokens.VerifyAccountsJWT(r.Context(), tokenString, h.cfg.JWT.AccessToken.SecretKey)
+	userData, err := tokens.VerifyUserJWT(r.Context(), tokenString, h.cfg.JWT.AccessToken.SecretKey)
 	if err != nil {
 		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
 			Status: http.StatusUnauthorized,
@@ -50,9 +50,9 @@ func (h *Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
 
 	sessionID := userData.Session
 
-	accountID, err := uuid.Parse(userData.Subject)
+	userID, err := uuid.Parse(userData.Subject)
 	if err != nil {
-		h.presenter.InvalidParameter(w, uuid.Nil, err, "account_id")
+		h.presenter.InvalidParameter(w, uuid.Nil, err, "user_id")
 		return
 	}
 
@@ -65,10 +65,10 @@ func (h *Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
 	}
 
 	curToken := req.Data.Attributes.RefreshToken
-	
+
 	log := h.log.WithField("request_id", requestID)
 
-	session, appErr := h.app.Refresh(r.Context(), accountID, sessionID, r.Header.Get("User-Agent"), curToken)
+	session, appErr := h.app.Refresh(r.Context(), userID, sessionID, r.Header.Get("User-Agent"), curToken)
 	if appErr != nil {
 		h.presenter.AppError(w, requestID, appErr)
 		return

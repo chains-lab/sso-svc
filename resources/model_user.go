@@ -16,38 +16,38 @@ import (
 	"fmt"
 )
 
-// checks if the Account type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &Account{}
+// checks if the User type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &User{}
 
-// Account struct for Account
-type Account struct {
-	Data AccountData `json:"data"`
+// User struct for User
+type User struct {
+	Data UserData `json:"data"`
 }
 
-type _Account Account
+type _User User
 
-// NewAccount instantiates a new Account object
+// NewUser instantiates a new User object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewAccount(data AccountData) *Account {
-	this := Account{}
+func NewUser(data UserData) *User {
+	this := User{}
 	this.Data = data
 	return &this
 }
 
-// NewAccountWithDefaults instantiates a new Account object
+// NewUserWithDefaults instantiates a new User object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewAccountWithDefaults() *Account {
-	this := Account{}
+func NewUserWithDefaults() *User {
+	this := User{}
 	return &this
 }
 
 // GetData returns the Data field value
-func (o *Account) GetData() AccountData {
+func (o *User) GetData() UserData {
 	if o == nil {
-		var ret AccountData
+		var ret UserData
 		return ret
 	}
 
@@ -56,7 +56,7 @@ func (o *Account) GetData() AccountData {
 
 // GetDataOk returns a tuple with the Data field value
 // and a boolean to check if the value has been set.
-func (o *Account) GetDataOk() (*AccountData, bool) {
+func (o *User) GetDataOk() (*UserData, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -64,11 +64,11 @@ func (o *Account) GetDataOk() (*AccountData, bool) {
 }
 
 // SetData sets field value
-func (o *Account) SetData(v AccountData) {
+func (o *User) SetData(v UserData) {
 	o.Data = v
 }
 
-func (o Account) MarshalJSON() ([]byte, error) {
+func (o User) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -76,13 +76,13 @@ func (o Account) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o Account) ToMap() (map[string]interface{}, error) {
+func (o User) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["data"] = o.Data
 	return toSerialize, nil
 }
 
-func (o *Account) UnmarshalJSON(data []byte) (err error) {
+func (o *User) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
@@ -104,53 +104,53 @@ func (o *Account) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varAccount := _Account{}
+	varUser := _User{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varAccount)
+	err = decoder.Decode(&varUser)
 
 	if err != nil {
 		return err
 	}
 
-	*o = Account(varAccount)
+	*o = User(varUser)
 
 	return err
 }
 
-type NullableAccount struct {
-	value *Account
+type NullableUser struct {
+	value *User
 	isSet bool
 }
 
-func (v NullableAccount) Get() *Account {
+func (v NullableUser) Get() *User {
 	return v.value
 }
 
-func (v *NullableAccount) Set(val *Account) {
+func (v *NullableUser) Set(val *User) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableAccount) IsSet() bool {
+func (v NullableUser) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableAccount) Unset() {
+func (v *NullableUser) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableAccount(val *Account) *NullableAccount {
-	return &NullableAccount{value: val, isSet: true}
+func NewNullableUser(val *User) *NullableUser {
+	return &NullableUser{value: val, isSet: true}
 }
 
-func (v NullableAccount) MarshalJSON() ([]byte, error) {
+func (v NullableUser) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableAccount) UnmarshalJSON(src []byte) error {
+func (v *NullableUser) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

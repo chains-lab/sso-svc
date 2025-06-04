@@ -13,7 +13,7 @@ import (
 func (h *Handlers) AdminDeleteSession(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
 
-	user, err := tokens.GetAccountTokenData(r.Context())
+	user, err := tokens.GetUserTokenData(r.Context())
 	if err != nil {
 		h.presenter.InvalidToken(w, requestID, err)
 		return
@@ -25,24 +25,24 @@ func (h *Handlers) AdminDeleteSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accountID, err := uuid.Parse(chi.URLParam(r, "account_id"))
+	userID, err := uuid.Parse(chi.URLParam(r, "user_id"))
 	if err != nil {
-		h.presenter.InvalidParameter(w, requestID, err, "account_id")
+		h.presenter.InvalidParameter(w, requestID, err, "user_id")
 		return
 	}
 
-	appErr := h.app.DeleteSessionByAdmin(r.Context(), sessionID, user.AccountID, user.SessionID)
+	appErr := h.app.DeleteSessionByAdmin(r.Context(), sessionID, user.UserID, user.SessionID)
 	if appErr != nil {
 		h.presenter.AppError(w, requestID, appErr)
 		return
 	}
 
-	sessions, appErr := h.app.GetAccountSessions(r.Context(), accountID)
+	sessions, appErr := h.app.GetUserSessions(r.Context(), userID)
 	if appErr != nil {
 		h.presenter.AppError(w, requestID, appErr)
 		return
 	}
 
-	h.log.WithField("request_id", requestID).Infof("delete session %s for account %s by admin: %s", sessionID, accountID, user.AccountID)
+	h.log.WithField("request_id", requestID).Infof("delete session %s for user %s by admin: %s", sessionID, userID, user.UserID)
 	httpkit.Render(w, responses.SessionCollection(sessions))
 }

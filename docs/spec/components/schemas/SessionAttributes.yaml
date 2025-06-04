@@ -1,15 +1,15 @@
 type: object
 required:
-  - account_id
+  - user_id
   - client
   - ip
   - created_at
   - last_used
 properties:
-  account_id:
+  user_id:
     type: string
     format: uuid
-    description: "account id"
+    description: "user id"
   client:
     type: string
     description: "client name and version"

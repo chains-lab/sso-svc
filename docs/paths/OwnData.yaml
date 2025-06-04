@@ -1,15 +1,15 @@
 get:
   tags:
-    - Account
-  summary: Get account
-  description: Endpoint to get account
+    - User
+  summary: Get user
+  description: Endpoint to get user
   responses:
     '201':
-      description: Account successfully get
+      description: User successfully get
       content:
         application/vnd.api+json:
           schema:
-            $ref: '../spec/components/schemas/Account.yaml'
+            $ref: '../spec/components/schemas/User.yaml'
     '400':
       $ref: '../spec/components/responses/invalidParameter.yaml'
     '401':

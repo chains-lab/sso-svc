@@ -39,13 +39,13 @@ func TestSessions_CreateAndGetByID(t *testing.T) {
 	defer cleanup()
 
 	id := uuid.New()
-	accountID := uuid.New()
+	userID := uuid.New()
 	createdAt := time.Now().UTC()
 	lastUsed := createdAt.Add(1 * time.Minute)
 
 	input := redisdb.SessionCreateInput{
 		ID:        id,
-		AccountID: accountID,
+		UserID:    userID,
 		Token:     "test-token",
 		Client:    "test-client",
 		CreatedAt: createdAt,
@@ -63,8 +63,8 @@ func TestSessions_CreateAndGetByID(t *testing.T) {
 	if got.ID != id {
 		t.Errorf("expected session id %v, got %v", id, got.ID)
 	}
-	if got.AccountID != accountID {
-		t.Errorf("expected account id %v, got %v", accountID, got.AccountID)
+	if got.UserID != userID {
+		t.Errorf("expected user id %v, got %v", userID, got.UserID)
 	}
 	if got.Token != input.Token {
 		t.Errorf("expected token %s, got %s", input.Token, got.Token)
@@ -74,18 +74,18 @@ func TestSessions_CreateAndGetByID(t *testing.T) {
 	}
 }
 
-func TestSessions_GetByAccountID(t *testing.T) {
+func TestSessions_GetByUserID(t *testing.T) {
 	ctx := context.Background()
 	sess, cleanup := setupSessions(t)
 	defer cleanup()
 
-	accountID := uuid.New()
+	userID := uuid.New()
 	// Создаем две сессии для одного аккаунта.
 	sessionIDs := []uuid.UUID{uuid.New(), uuid.New()}
 	for _, sid := range sessionIDs {
 		input := redisdb.SessionCreateInput{
 			ID:        sid,
-			AccountID: accountID,
+			UserID:    userID,
 			Token:     fmt.Sprintf("token-%s", sid.String()[:8]),
 			Client:    "test-client",
 			CreatedAt: time.Now().UTC(),
@@ -96,9 +96,9 @@ func TestSessions_GetByAccountID(t *testing.T) {
 		}
 	}
 
-	sessions, err := sess.GetByAccountID(ctx, accountID.String())
+	sessions, err := sess.GetByUserID(ctx, userID.String())
 	if err != nil {
-		t.Fatalf("GetByAccountID failed: %v", err)
+		t.Fatalf("GetByUserID failed: %v", err)
 	}
 	if len(sessions) != len(sessionIDs) {
 		t.Errorf("expected %d sessions, got %d", len(sessionIDs), len(sessions))
@@ -123,14 +123,14 @@ func TestSessions_Update(t *testing.T) {
 	defer cleanup()
 
 	id := uuid.New()
-	accountID := uuid.New()
+	userID := uuid.New()
 	createdAt := time.Now().UTC()
 	lastUsed := createdAt.Add(1 * time.Minute)
 
 	// Создаем первоначальную сессию.
 	input := redisdb.SessionCreateInput{
 		ID:        id,
-		AccountID: accountID,
+		UserID:    userID,
 		Token:     "initial-token",
 		Client:    "test-client",
 		CreatedAt: createdAt,
@@ -148,8 +148,8 @@ func TestSessions_Update(t *testing.T) {
 		LastUsed: newLastUsed,
 	}
 
-	// Обновляем сессию; также проверяется принадлежность: мы передаем accountID.
-	if err := sess.Update(ctx, id, accountID, updateInput); err != nil {
+	// Обновляем сессию; также проверяется принадлежность: мы передаем userID.
+	if err := sess.Update(ctx, id, userID, updateInput); err != nil {
 		t.Fatalf("Update failed: %v", err)
 	}
 
@@ -173,13 +173,13 @@ func TestSessions_Delete(t *testing.T) {
 	defer cleanup()
 
 	id := uuid.New()
-	accountID := uuid.New()
+	userID := uuid.New()
 	createdAt := time.Now().UTC()
 	lastUsed := createdAt.Add(1 * time.Minute)
 
 	input := redisdb.SessionCreateInput{
 		ID:        id,
-		AccountID: accountID,
+		UserID:    userID,
 		Token:     "token-to-delete",
 		Client:    "test-client",
 		CreatedAt: createdAt,
@@ -206,7 +206,7 @@ func TestSessions_Terminate(t *testing.T) {
 	sess, cleanup := setupSessions(t)
 	defer cleanup()
 
-	accountID := uuid.New()
+	userID := uuid.New()
 
 	// Создаем несколько сессий для одного аккаунта.
 	var sessionIDs []uuid.UUID
@@ -215,7 +215,7 @@ func TestSessions_Terminate(t *testing.T) {
 		sessionIDs = append(sessionIDs, sid)
 		input := redisdb.SessionCreateInput{
 			ID:        sid,
-			AccountID: accountID,
+			UserID:    userID,
 			Token:     fmt.Sprintf("token-%d", i),
 			Client:    "test-client",
 			CreatedAt: time.Now().UTC(),
@@ -227,23 +227,23 @@ func TestSessions_Terminate(t *testing.T) {
 	}
 
 	// Убедимся, что сессии существуют.
-	sessionsBefore, err := sess.GetByAccountID(ctx, accountID.String())
+	sessionsBefore, err := sess.GetByUserID(ctx, userID.String())
 	if err != nil {
-		t.Fatalf("GetByAccountID failed: %v", err)
+		t.Fatalf("GetByUserID failed: %v", err)
 	}
 	if len(sessionsBefore) != len(sessionIDs) {
 		t.Fatalf("expected %d sessions before termination, got %d", len(sessionIDs), len(sessionsBefore))
 	}
 
 	// Вызываем Terminate — удаляем все сессии для аккаунта.
-	if err := sess.Terminate(ctx, accountID); err != nil {
+	if err := sess.Terminate(ctx, userID); err != nil {
 		t.Fatalf("Terminate failed: %v", err)
 	}
 
 	// Проверяем, что сессии для аккаунта отсутствуют.
-	sessionsAfter, err := sess.GetByAccountID(ctx, accountID.String())
+	sessionsAfter, err := sess.GetByUserID(ctx, userID.String())
 	if err != nil {
-		t.Fatalf("GetByAccountID failed after termination: %v", err)
+		t.Fatalf("GetByUserID failed after termination: %v", err)
 	}
 	if len(sessionsAfter) != 0 {
 		t.Errorf("expected 0 sessions after termination, got %d", len(sessionsAfter))

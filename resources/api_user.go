@@ -19,27 +19,27 @@ import (
 )
 
 
-// AccountAPIService AccountAPI service
-type AccountAPIService service
+// UserAPIService UserAPI service
+type UserAPIService service
 
 type ApiChainsAuthV1OwnGetRequest struct {
 	ctx context.Context
-	ApiService *AccountAPIService
+	ApiService *UserAPIService
 }
 
-func (r ApiChainsAuthV1OwnGetRequest) Execute() (*Account, *http.Response, error) {
+func (r ApiChainsAuthV1OwnGetRequest) Execute() (*User, *http.Response, error) {
 	return r.ApiService.ChainsAuthV1OwnGetExecute(r)
 }
 
 /*
-ChainsAuthV1OwnGet Get account
+ChainsAuthV1OwnGet Get user
 
-Endpoint to get account
+Endpoint to get user
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  @return ApiChainsAuthV1OwnGetRequest
 */
-func (a *AccountAPIService) ChainsAuthV1OwnGet(ctx context.Context) ApiChainsAuthV1OwnGetRequest {
+func (a *UserAPIService) ChainsAuthV1OwnGet(ctx context.Context) ApiChainsAuthV1OwnGetRequest {
 	return ApiChainsAuthV1OwnGetRequest{
 		ApiService: a,
 		ctx: ctx,
@@ -47,16 +47,16 @@ func (a *AccountAPIService) ChainsAuthV1OwnGet(ctx context.Context) ApiChainsAut
 }
 
 // Execute executes the request
-//  @return Account
-func (a *AccountAPIService) ChainsAuthV1OwnGetExecute(r ApiChainsAuthV1OwnGetRequest) (*Account, *http.Response, error) {
+//  @return User
+func (a *UserAPIService) ChainsAuthV1OwnGetExecute(r ApiChainsAuthV1OwnGetRequest) (*User, *http.Response, error) {
 	var (
 		localVarHTTPMethod   = http.MethodGet
 		localVarPostBody     interface{}
 		formFiles            []formFile
-		localVarReturnValue  *Account
+		localVarReturnValue  *User
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AccountAPIService.ChainsAuthV1OwnGet")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "UserAPIService.ChainsAuthV1OwnGet")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}

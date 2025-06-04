@@ -4,7 +4,7 @@ get:
   summary: admin get session
   description: Endpoint to get user if you admin
   parameters:
-    - name: account_id
+    - name: user_id
       in: path
       required: true
       schema:
@@ -16,7 +16,7 @@ get:
         type: string
   responses:
     '200':
-      description: Account sessions successfully get
+      description: User sessions successfully get
       content:
         application/vnd.api+json:
           schema:

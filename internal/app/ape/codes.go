@@ -12,16 +12,16 @@ const (
 
 	//Specific error codes
 
-	CodeAccountDoesNotExist                 = "ACCOUNT_DOES_NOT_EXIST"
+	CodeUserDoesNotExist                    = "ACCOUNT_DOES_NOT_EXIST"
 	CodeSessionDoesNotExist                 = "SESSION_DOES_NOT_EXIST"
-	CodeAccountAlreadyExists                = "ACCOUNT_ALREADY_EXISTS"
-	CodeAccountInvalidRole                  = "ACCOUNT_INVALID_ROLE"
+	CodeUserAlreadyExists                   = "ACCOUNT_ALREADY_EXISTS"
+	CodeUserInvalidRole                     = "ACCOUNT_INVALID_ROLE"
 	CodeUserNoPermissionToUpdateRole        = "USER_NO_PERMISSION_UPDATE_ROLE"
-	CodeSessionsForAccountNotExist          = "SESSIONS_FOR_ACCOUNT_NOT_EXIST"
+	CodeSessionsForUserNotExist             = "SESSIONS_FOR_ACCOUNT_NOT_EXIST"
 	CodeSessionClientMismatch               = "SESSIONS_CLIENT_MISMATCH"
 	CodeSessionTokenMismatch                = "SESSIONS_TOKEN_MISMATCH"
 	CodeSessionAlreadyExists                = "SESSION_ALREADY_EXISTS"
 	CodeSessionCannotBeCurrent              = "SESSION_CANNOT_BE_CURRENT"
-	CodeSessionCannotBeCurrentAccount       = "SESSION_CANNOT_BE_CURRENT_ACCOUNT"
+	CodeSessionCannotBeCurrentUser          = "SESSION_CANNOT_BE_CURRENT_ACCOUNT"
 	CodeSessionCannotDeleteSuperUserByOther = "SESSION_CANNOT_DELETE_SUPERUSER_BY_OTHER"
 )

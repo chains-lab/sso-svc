@@ -78,12 +78,11 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
-*AccountAPI* | [**ChainsAuthV1OwnGet**](docs/AccountAPI.md#chainsauthv1ownget) | **Get** /chains/auth/v1/own | Get account
-*AdminAPI* | [**ReNewsChainsAuthV1AdminAccountIdGet**](docs/AdminAPI.md#renewschainsauthv1adminaccountidget) | **Get** /re-news/chains/auth/v1/admin/{account_id} | admin get user
-*AdminAPI* | [**ReNewsChainsAuthV1AdminAccountIdRolePost**](docs/AdminAPI.md#renewschainsauthv1adminaccountidrolepost) | **Post** /re-news/chains/auth/v1/admin/{account_id}/{role} | admin role update
-*AdminAPI* | [**ReNewsChainsAuthV1AdminAccountIdSessionsDelete**](docs/AdminAPI.md#renewschainsauthv1adminaccountidsessionsdelete) | **Delete** /re-news/chains/auth/v1/admin/{account_id}/sessions | admin delete user
-*AdminAPI* | [**ReNewsChainsAuthV1AdminAccountIdSessionsGet**](docs/AdminAPI.md#renewschainsauthv1adminaccountidsessionsget) | **Get** /re-news/chains/auth/v1/admin/{account_id}/sessions | admin get sessions
-*AdminAPI* | [**ReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGet**](docs/AdminAPI.md#renewschainsauthv1adminaccountidsessionssessionidget) | **Get** /re-news/chains/auth/v1/admin/{account_id}/sessions/{session_id} | admin get session
+*AdminAPI* | [**ReNewsChainsAuthV1AdminUserIdGet**](docs/AdminAPI.md#renewschainsauthv1adminuseridget) | **Get** /re-news/chains/auth/v1/admin/{user_id} | admin get user
+*AdminAPI* | [**ReNewsChainsAuthV1AdminUserIdRolePost**](docs/AdminAPI.md#renewschainsauthv1adminuseridrolepost) | **Post** /re-news/chains/auth/v1/admin/{user_id}/{role} | admin role update
+*AdminAPI* | [**ReNewsChainsAuthV1AdminUserIdSessionsDelete**](docs/AdminAPI.md#renewschainsauthv1adminuseridsessionsdelete) | **Delete** /re-news/chains/auth/v1/admin/{user_id}/sessions | admin delete user
+*AdminAPI* | [**ReNewsChainsAuthV1AdminUserIdSessionsGet**](docs/AdminAPI.md#renewschainsauthv1adminuseridsessionsget) | **Get** /re-news/chains/auth/v1/admin/{user_id}/sessions | admin get sessions
+*AdminAPI* | [**ReNewsChainsAuthV1AdminUserIdSessionsSessionIdGet**](docs/AdminAPI.md#renewschainsauthv1adminuseridsessionssessionidget) | **Get** /re-news/chains/auth/v1/admin/{user_id}/sessions/{session_id} | admin get session
 *LoginAPI* | [**ReNewsChainsAuthV1OwnCallbackPost**](docs/LoginAPI.md#renewschainsauthv1owncallbackpost) | **Post** /re-news/chains/auth/v1/own/callback | 
 *LoginAPI* | [**ReNewsChainsAuthV1OwnLoginPost**](docs/LoginAPI.md#renewschainsauthv1ownloginpost) | **Post** /re-news/chains/auth/v1/own/login | 
 *LoginAPI* | [**ReNewsChainsAuthV1OwnLogoutPost**](docs/LoginAPI.md#renewschainsauthv1ownlogoutpost) | **Post** /re-news/chains/auth/v1/own/logout | 
@@ -92,6 +91,7 @@ Class | Method | HTTP request | Description
 *SessionsAPI* | [**ReNewsChainsAuthV1OwnSessionsGet**](docs/SessionsAPI.md#renewschainsauthv1ownsessionsget) | **Get** /re-news/chains/auth/v1/own/sessions | Get user&#39;s sessions
 *SessionsAPI* | [**ReNewsChainsAuthV1OwnSessionsSessionIdDelete**](docs/SessionsAPI.md#renewschainsauthv1ownsessionssessioniddelete) | **Delete** /re-news/chains/auth/v1/own/sessions/{session_id} | Terminate user&#39;s session
 *SessionsAPI* | [**ReNewsChainsAuthV1OwnSessionsSessionIdGet**](docs/SessionsAPI.md#renewschainsauthv1ownsessionssessionidget) | **Get** /re-news/chains/auth/v1/own/sessions/{session_id} | Get user&#39;s session
+*UserAPI* | [**ChainsAuthV1OwnGet**](docs/UserAPI.md#chainsauthv1ownget) | **Get** /chains/auth/v1/own | Get user
 
 
 ## Documentation For Models
@@ -99,9 +99,6 @@ Class | Method | HTTP request | Description
  - [AccessToken](docs/AccessToken.md)
  - [AccessTokenData](docs/AccessTokenData.md)
  - [AccessTokenDataAttributes](docs/AccessTokenDataAttributes.md)
- - [Account](docs/Account.md)
- - [AccountData](docs/AccountData.md)
- - [AccountDataAttributes](docs/AccountDataAttributes.md)
  - [Errors](docs/Errors.md)
  - [ErrorsErrorsInner](docs/ErrorsErrorsInner.md)
  - [ErrorsErrorsInnerMeta](docs/ErrorsErrorsInnerMeta.md)
@@ -117,6 +114,9 @@ Class | Method | HTTP request | Description
  - [TokensPair](docs/TokensPair.md)
  - [TokensPairData](docs/TokensPairData.md)
  - [TokensPairDataAttributes](docs/TokensPairDataAttributes.md)
+ - [User](docs/User.md)
+ - [UserData](docs/UserData.md)
+ - [UserDataAttributes](docs/UserDataAttributes.md)
 
 
 ## Documentation For Authorization

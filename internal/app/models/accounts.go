@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type Account struct {
+type User struct {
 	ID           uuid.UUID  `json:"id"`
 	Email        string     `json:"email"`
 	Role         roles.Role `json:"role"`

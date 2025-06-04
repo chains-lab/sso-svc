@@ -12,13 +12,13 @@ import (
 func (h *Handlers) AdminGetSessions(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
 
-	accountID, err := uuid.Parse(chi.URLParam(r, "account_id"))
+	userID, err := uuid.Parse(chi.URLParam(r, "user_id"))
 	if err != nil {
-		h.presenter.InvalidParameter(w, requestID, err, "account_id")
+		h.presenter.InvalidParameter(w, requestID, err, "user_id")
 		return
 	}
 
-	sessions, appErr := h.app.GetAccountSessions(r.Context(), accountID)
+	sessions, appErr := h.app.GetUserSessions(r.Context(), userID)
 	if appErr != nil {
 		h.presenter.AppError(w, requestID, appErr)
 		return

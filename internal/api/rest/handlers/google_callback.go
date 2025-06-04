@@ -26,7 +26,7 @@ func (h *Handlers) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
 			Status: http.StatusInternalServerError,
 		})...)
-		log.WithError(err).Errorf("error exchanging code for account id: %s", code)
+		log.WithError(err).Errorf("error exchanging code for user id: %s", code)
 		return
 	}
 
@@ -36,7 +36,7 @@ func (h *Handlers) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
 			Status: http.StatusInternalServerError,
 		})...)
-		log.WithError(err).Errorf("error getting account info from google")
+		log.WithError(err).Errorf("error getting user info from google")
 		return
 	}
 	defer func(Body io.ReadCloser) {
@@ -50,24 +50,24 @@ func (h *Handlers) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		}
 	}(resp.Body)
 
-	var accountInfo struct {
+	var userInfo struct {
 		Email   string `json:"email"`
 		Name    string `json:"name"`
 		Picture string `json:"picture"`
 	}
-	if err = json.NewDecoder(resp.Body).Decode(&accountInfo); err != nil {
+	if err = json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
 		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
 			Status: http.StatusInternalServerError,
 		})...)
-		log.WithError(err).Errorf("error decoding account info from google")
+		log.WithError(err).Errorf("error decoding user info from google")
 		return
 	}
 
-	session, appErr := h.app.Login(r.Context(), accountInfo.Email, r.Header.Get("User-Agent"))
+	session, appErr := h.app.Login(r.Context(), userInfo.Email, r.Header.Get("User-Agent"))
 	if appErr != nil {
 		h.presenter.AppError(w, requestID, appErr)
 	}
 
-	h.log.WithField("request_id", requestID).Infof("User %s logged in with Google", accountInfo.Email)
+	h.log.WithField("request_id", requestID).Infof("User %s logged in with Google", userInfo.Email)
 	httpkit.Render(w, responses.TokensPair(session.Access, session.Refresh))
 }

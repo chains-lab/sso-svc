@@ -8,7 +8,7 @@ import (
 
 type App struct {
 	sessions domain.Sessions
-	accounts domain.Accounts
+	users    domain.Users
 	log      *logrus.Entry
 }
 
@@ -19,15 +19,15 @@ func NewApp(cfg config.Config, log *logrus.Logger) (App, error) {
 		return App{}, err
 	}
 
-	accounts, err := domain.NewAccount(cfg, log)
+	users, err := domain.NewUser(cfg, log)
 	if err != nil {
-		log.WithError(err).Error("failed to create accounts domain")
+		log.WithError(err).Error("failed to create users domain")
 		return App{}, err
 	}
 
 	return App{
 		sessions: sessions,
-		accounts: accounts,
+		users:    users,
 		log:      log.WithField("component", "app"),
 	}, nil
 }

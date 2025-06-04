@@ -4,14 +4,14 @@ get:
   summary: admin get sessions
   description: Endpoint to get user if you admin
   parameters:
-  - name: account_id
+  - name: user_id
     in: path
     required: true
     schema:
       type: string
   responses:
     '200':
-      description: Account sessions successfully get
+      description: User sessions successfully get
       content:
         application/vnd.api+json:
           schema:
@@ -33,7 +33,7 @@ delete:
   summary: admin delete user
   description: Endpoint to delete user if you admin
   parameters:
-  - name: account_id
+  - name: user_id
     in: path
     required: true
     schema:

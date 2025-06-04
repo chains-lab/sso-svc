@@ -9,20 +9,20 @@ import (
 	"github.com/google/uuid"
 )
 
-func (h *Handlers) OwnAccountGet(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) OwnUserGet(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
 
-	user, err := tokens.GetAccountTokenData(r.Context())
+	user, err := tokens.GetUserTokenData(r.Context())
 	if err != nil {
 		h.presenter.InvalidToken(w, requestID, err)
 		return
 	}
 
-	res, appErr := h.app.GetAccountByID(r.Context(), user.AccountID)
+	res, appErr := h.app.GetUserByID(r.Context(), user.UserID)
 	if appErr != nil {
 		h.presenter.AppError(w, requestID, appErr)
 		return
 	}
 
-	httpkit.Render(w, responses.Account(res))
+	httpkit.Render(w, responses.User(res))
 }

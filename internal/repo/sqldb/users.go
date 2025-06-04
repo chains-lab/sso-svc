@@ -11,9 +11,9 @@ import (
 	"github.com/google/uuid"
 )
 
-const accountsTable = "accounts"
+const usersTable = "users"
 
-type AccountModel struct {
+type UserModel struct {
 	ID           uuid.UUID  `db:"id"`
 	Email        string     `db:"email"`
 	Role         roles.Role `db:"role"`
@@ -22,7 +22,7 @@ type AccountModel struct {
 	CreatedAt    time.Time  `db:"created_at"`
 }
 
-type AccountQ struct {
+type UserQ struct {
 	db       *sql.DB
 	selector sq.SelectBuilder
 	inserter sq.InsertBuilder
@@ -31,23 +31,23 @@ type AccountQ struct {
 	counter  sq.SelectBuilder
 }
 
-func NewAccounts(db *sql.DB) AccountQ {
+func NewUsers(db *sql.DB) UserQ {
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	return AccountQ{
+	return UserQ{
 		db:       db,
-		selector: builder.Select("*").From(accountsTable),
-		inserter: builder.Insert(accountsTable),
-		updater:  builder.Update(accountsTable),
-		deleter:  builder.Delete(accountsTable),
-		counter:  builder.Select("COUNT(*) AS count").From(accountsTable),
+		selector: builder.Select("*").From(usersTable),
+		inserter: builder.Insert(usersTable),
+		updater:  builder.Update(usersTable),
+		deleter:  builder.Delete(usersTable),
+		counter:  builder.Select("COUNT(*) AS count").From(usersTable),
 	}
 }
 
-func (a AccountQ) New() AccountQ {
-	return NewAccounts(a.db)
+func (a UserQ) New() UserQ {
+	return NewUsers(a.db)
 }
 
-type AccountInsertInput struct {
+type UserInsertInput struct {
 	ID           uuid.UUID
 	Email        string
 	Role         roles.Role
@@ -55,7 +55,7 @@ type AccountInsertInput struct {
 	CreatedAt    time.Time
 }
 
-func (a AccountQ) Insert(ctx context.Context, input AccountInsertInput) error {
+func (a UserQ) Insert(ctx context.Context, input UserInsertInput) error {
 	values := map[string]interface{}{
 		"id":           input.ID,
 		"email":        input.Email,
@@ -66,7 +66,7 @@ func (a AccountQ) Insert(ctx context.Context, input AccountInsertInput) error {
 
 	query, args, err := a.inserter.SetMap(values).ToSql()
 	if err != nil {
-		return fmt.Errorf("building insert query for accounts: %w", err)
+		return fmt.Errorf("building insert query for users: %w", err)
 	}
 
 	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
@@ -80,13 +80,13 @@ func (a AccountQ) Insert(ctx context.Context, input AccountInsertInput) error {
 	return nil
 }
 
-type AccountUpdateInput struct {
+type UserUpdateInput struct {
 	Role         *roles.Role
 	Subscription *uuid.UUID
 	UpdatedAt    time.Time
 }
 
-func (a AccountQ) Update(ctx context.Context, input AccountUpdateInput) error {
+func (a UserQ) Update(ctx context.Context, input UserUpdateInput) error {
 	values := map[string]interface{}{
 		"role":         input.Role,
 		"subscription": input.Subscription,
@@ -95,7 +95,7 @@ func (a AccountQ) Update(ctx context.Context, input AccountUpdateInput) error {
 
 	query, args, err := a.updater.SetMap(values).ToSql()
 	if err != nil {
-		return fmt.Errorf("building update query for accounts: %w", err)
+		return fmt.Errorf("building update query for users: %w", err)
 	}
 
 	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
@@ -109,10 +109,10 @@ func (a AccountQ) Update(ctx context.Context, input AccountUpdateInput) error {
 	return nil
 }
 
-func (a AccountQ) Delete(ctx context.Context) error {
+func (a UserQ) Delete(ctx context.Context) error {
 	query, args, err := a.deleter.ToSql()
 	if err != nil {
-		return fmt.Errorf("building delete query for accounts: %w", err)
+		return fmt.Errorf("building delete query for users: %w", err)
 	}
 
 	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
@@ -127,10 +127,10 @@ func (a AccountQ) Delete(ctx context.Context) error {
 	return nil
 }
 
-func (a AccountQ) Select(ctx context.Context) ([]AccountModel, error) {
+func (a UserQ) Select(ctx context.Context) ([]UserModel, error) {
 	query, args, err := a.selector.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("building select query for accounts: %w", err)
+		return nil, fmt.Errorf("building select query for users: %w", err)
 	}
 
 	rows, err := a.db.QueryContext(ctx, query, args...)
@@ -139,9 +139,9 @@ func (a AccountQ) Select(ctx context.Context) ([]AccountModel, error) {
 	}
 	defer rows.Close()
 
-	var accounts []AccountModel
+	var users []UserModel
 	for rows.Next() {
-		var acc AccountModel
+		var acc UserModel
 		err := rows.Scan(
 			&acc.ID,
 			&acc.Email,
@@ -151,18 +151,18 @@ func (a AccountQ) Select(ctx context.Context) ([]AccountModel, error) {
 			&acc.CreatedAt,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("scanning account: %w", err)
+			return nil, fmt.Errorf("scanning user: %w", err)
 		}
-		accounts = append(accounts, acc)
+		users = append(users, acc)
 	}
 
-	return accounts, nil
+	return users, nil
 }
 
-func (a AccountQ) Count(ctx context.Context) (int, error) {
+func (a UserQ) Count(ctx context.Context) (int, error) {
 	query, args, err := a.counter.ToSql()
 	if err != nil {
-		return 0, fmt.Errorf("building count query for accounts: %w", err)
+		return 0, fmt.Errorf("building count query for users: %w", err)
 	}
 
 	var count int
@@ -174,13 +174,13 @@ func (a AccountQ) Count(ctx context.Context) (int, error) {
 	return count, nil
 }
 
-func (a AccountQ) Get(ctx context.Context) (AccountModel, error) {
+func (a UserQ) Get(ctx context.Context) (UserModel, error) {
 	query, args, err := a.selector.Limit(1).ToSql()
 	if err != nil {
-		return AccountModel{}, fmt.Errorf("building get query for accounts: %w", err)
+		return UserModel{}, fmt.Errorf("building get query for users: %w", err)
 	}
 
-	var acc AccountModel
+	var acc UserModel
 	err = a.db.QueryRowContext(ctx, query, args...).Scan(
 		&acc.ID,
 		&acc.Email,
@@ -190,13 +190,13 @@ func (a AccountQ) Get(ctx context.Context) (AccountModel, error) {
 		&acc.CreatedAt,
 	)
 	if err != nil {
-		return AccountModel{}, err
+		return UserModel{}, err
 	}
 
 	return acc, nil
 }
 
-func (a AccountQ) FilterID(id uuid.UUID) AccountQ {
+func (a UserQ) FilterID(id uuid.UUID) UserQ {
 	a.selector = a.selector.Where(sq.Eq{"id": id})
 	a.counter = a.counter.Where(sq.Eq{"id": id})
 	a.deleter = a.deleter.Where(sq.Eq{"id": id})
@@ -204,7 +204,7 @@ func (a AccountQ) FilterID(id uuid.UUID) AccountQ {
 	return a
 }
 
-func (a AccountQ) FilterEmail(email string) AccountQ {
+func (a UserQ) FilterEmail(email string) UserQ {
 	a.selector = a.selector.Where(sq.Eq{"email": email})
 	a.counter = a.counter.Where(sq.Eq{"email": email})
 	a.deleter = a.deleter.Where(sq.Eq{"email": email})
@@ -212,7 +212,7 @@ func (a AccountQ) FilterEmail(email string) AccountQ {
 	return a
 }
 
-func (a AccountQ) FilterRole(role roles.Role) AccountQ {
+func (a UserQ) FilterRole(role roles.Role) UserQ {
 	a.selector = a.selector.Where(sq.Eq{"role": role})
 	a.counter = a.counter.Where(sq.Eq{"role": role})
 	a.deleter = a.deleter.Where(sq.Eq{"role": role})
@@ -220,7 +220,7 @@ func (a AccountQ) FilterRole(role roles.Role) AccountQ {
 	return a
 }
 
-func (a AccountQ) FilterSubscription(subscription uuid.UUID) AccountQ {
+func (a UserQ) FilterSubscription(subscription uuid.UUID) UserQ {
 	a.selector = a.selector.Where(sq.Eq{"subscription": subscription})
 	a.counter = a.counter.Where(sq.Eq{"subscription": subscription})
 	a.deleter = a.deleter.Where(sq.Eq{"subscription": subscription})
@@ -228,7 +228,7 @@ func (a AccountQ) FilterSubscription(subscription uuid.UUID) AccountQ {
 	return a
 }
 
-func (a AccountQ) Transaction(fn func(ctx context.Context) error) error {
+func (a UserQ) Transaction(fn func(ctx context.Context) error) error {
 	ctx := context.Background()
 
 	tx, err := a.db.BeginTx(ctx, nil)
@@ -252,16 +252,16 @@ func (a AccountQ) Transaction(fn func(ctx context.Context) error) error {
 	return nil
 }
 
-func (a AccountQ) Page(limit, offset uint64) AccountQ {
+func (a UserQ) Page(limit, offset uint64) UserQ {
 	a.counter = a.counter.Limit(limit).Offset(offset)
 	a.selector = a.selector.Limit(limit).Offset(offset)
 	return a
 }
 
-func (a AccountQ) Drop(ctx context.Context) error {
+func (a UserQ) Drop(ctx context.Context) error {
 	query, args, err := a.deleter.ToSql()
 	if err != nil {
-		return fmt.Errorf("building drop query for accounts: %w", err)
+		return fmt.Errorf("building drop query for users: %w", err)
 	}
 
 	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {

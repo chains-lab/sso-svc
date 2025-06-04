@@ -6,7 +6,7 @@ info:
 
 paths:
   /chains/auth/v1/own:
-    $ref: './paths/OwnAccount.yaml'
+    $ref: './paths/OwnData.yaml'
 
   /re-news/chains/auth/v1/own/refresh:
     $ref: './paths/Refresh.yaml'
@@ -28,16 +28,16 @@ paths:
 
     #Admins
 
-  /re-news/chains/auth/v1/admin/{account_id}:
-    $ref: './paths/AdminUserAccount.yaml'
+  /re-news/chains/auth/v1/admin/{user_id}:
+    $ref: './paths/AdminGetUser.yaml'
 
-  /re-news/chains/auth/v1/admin/{account_id}/{role}:
+  /re-news/chains/auth/v1/admin/{user_id}/{role}:
     $ref: './paths/AdminUpdateRole.yaml'
 
-  /re-news/chains/auth/v1/admin/{account_id}/sessions:
+  /re-news/chains/auth/v1/admin/{user_id}/sessions:
     $ref: './paths/AdminUserSessions.yaml'
 
-  /re-news/chains/auth/v1/admin/{account_id}/sessions/{session_id}:
+  /re-news/chains/auth/v1/admin/{user_id}/sessions/{session_id}:
     $ref: './paths/AdminUserSession.yaml'
 
 components:
@@ -56,5 +56,5 @@ components:
       $ref: './spec/components/schemas/SessionAttributes.yaml'
     SessionsCollection:
       $ref: './spec/components/schemas/SessionsCollection.yaml'
-    Account:
-      $ref: './spec/components/schemas/Account.yaml'
+    User:
+      $ref: './spec/components/schemas/User.yaml'

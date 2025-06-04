@@ -21,9 +21,9 @@ type sessionsRepo interface {
 	Create(ctx context.Context, input repo.SessionCreateRequest) error
 	Update(ctx context.Context, ID uuid.UUID, input repo.SessionUpdateRequest) error
 	Delete(ctx context.Context, ID uuid.UUID) error
-	Terminate(ctx context.Context, accountID uuid.UUID) error
+	Terminate(ctx context.Context, userID uuid.UUID) error
 	GetByID(ctx context.Context, ID uuid.UUID) (repo.Session, error)
-	GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]repo.Session, error)
+	GetByUserID(ctx context.Context, userID uuid.UUID) ([]repo.Session, error)
 	Transaction(fn func(ctx context.Context) error) error
 	Drop(ctx context.Context) error
 }
@@ -67,12 +67,12 @@ func NewSession(cfg config.Config, log *logrus.Logger) (Sessions, error) {
 	}, nil
 }
 
-func (s Sessions) Terminate(ctx context.Context, accountUD uuid.UUID) *ape.Error {
-	err := s.repo.Terminate(ctx, accountUD)
+func (s Sessions) Terminate(ctx context.Context, userUD uuid.UUID) *ape.Error {
+	err := s.repo.Terminate(ctx, userUD)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrorSessionsForAccountNotExist(err)
+			return ape.ErrorSessionsForUserNotExist(err)
 		default:
 			return ape.ErrorInternal(err)
 		}
@@ -106,19 +106,19 @@ func (s Sessions) Get(ctx context.Context, sessionID uuid.UUID) (models.Session,
 
 	return models.Session{
 		ID:        session.ID,
-		AccountID: session.AccountID,
+		UserID:    session.UserID,
 		Client:    session.Client,
 		LastUsed:  session.LastUsed,
 		CreatedAt: session.CreatedAt,
 	}, nil
 }
 
-func (s Sessions) GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]models.Session, *ape.Error) {
-	sessions, err := s.repo.GetByAccountID(ctx, accountID)
+func (s Sessions) GetByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, *ape.Error) {
+	sessions, err := s.repo.GetByUserID(ctx, userID)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, ape.ErrorSessionsForAccountNotExist(err)
+			return nil, ape.ErrorSessionsForUserNotExist(err)
 		default:
 			return nil, ape.ErrorInternal(err)
 		}
@@ -128,7 +128,7 @@ func (s Sessions) GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]mo
 	for i, session := range sessions {
 		result[i] = models.Session{
 			ID:        session.ID,
-			AccountID: session.AccountID,
+			UserID:    session.UserID,
 			Client:    session.Client,
 			LastUsed:  session.LastUsed,
 			CreatedAt: session.CreatedAt,
@@ -138,17 +138,17 @@ func (s Sessions) GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]mo
 	return result, nil
 }
 
-func (s Sessions) Create(ctx context.Context, account models.Account, client string) (models.Session, *ape.Error) {
+func (s Sessions) Create(ctx context.Context, user models.User, client string) (models.Session, *ape.Error) {
 	id := uuid.New()
 	createdAt := time.Now().UTC()
-	token, err := s.jwt.GenerateRefresh(account.ID, id, account.Subscription, account.Role)
+	token, err := s.jwt.GenerateRefresh(user.ID, id, user.Subscription, user.Role)
 	if err != nil {
 		return models.Session{}, ape.ErrorInternal(err)
 	}
 
 	err = s.repo.Create(ctx, repo.SessionCreateRequest{
 		ID:        id,
-		AccountID: account.ID,
+		UserID:    user.ID,
 		Token:     token,
 		Client:    client,
 		CreatedAt: createdAt,
@@ -156,7 +156,7 @@ func (s Sessions) Create(ctx context.Context, account models.Account, client str
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return models.Session{}, ape.ErrorAccountDoesNotExist(id, err)
+			return models.Session{}, ape.ErrorUserDoesNotExist(id, err)
 		default:
 			return models.Session{}, ape.ErrorInternal(err)
 		}
@@ -164,7 +164,7 @@ func (s Sessions) Create(ctx context.Context, account models.Account, client str
 
 	return models.Session{
 		ID:        id,
-		AccountID: account.ID,
+		UserID:    user.ID,
 		Client:    client,
 		LastUsed:  createdAt,
 		CreatedAt: createdAt,
@@ -172,7 +172,7 @@ func (s Sessions) Create(ctx context.Context, account models.Account, client str
 
 }
 
-func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, account models.Account, client, token string) (models.Session, *ape.Error) {
+func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.User, client, token string) (models.Session, *ape.Error) {
 	session, appErr := s.Get(ctx, sessionID)
 	if appErr != nil {
 		return models.Session{}, appErr
@@ -182,12 +182,12 @@ func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, account mode
 		return models.Session{}, ape.ErrorSessionClientMismatch(fmt.Errorf("session client mismatch"))
 	}
 
-	access, err := s.jwt.GenerateAccess(session.AccountID, session.ID, account.Subscription, account.Role)
+	access, err := s.jwt.GenerateAccess(session.UserID, session.ID, user.Subscription, user.Role)
 	if err != nil {
 		return models.Session{}, ape.ErrorInternal(err)
 	}
 
-	refresh, err := s.jwt.GenerateRefresh(session.AccountID, session.ID, account.Subscription, account.Role)
+	refresh, err := s.jwt.GenerateRefresh(session.UserID, session.ID, user.Subscription, user.Role)
 	if err != nil {
 		return models.Session{}, ape.ErrorInternal(err)
 	}
@@ -213,7 +213,7 @@ func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, account mode
 
 	return models.Session{
 		ID:        session.ID,
-		AccountID: session.AccountID,
+		UserID:    session.UserID,
 		Access:    access,
 		Refresh:   refresh,
 		Client:    session.Client,

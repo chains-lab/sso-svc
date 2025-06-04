@@ -7,8 +7,8 @@ import (
 )
 
 type Session struct {
-	ID        uuid.UUID `json:"id"`
-	AccountID uuid.UUID `json:"account_id"`
+	ID     uuid.UUID `json:"id"`
+	UserID uuid.UUID `json:"user_id"`
 
 	Access  string `json:"token"`
 	Refresh string `json:"refresh_at"`

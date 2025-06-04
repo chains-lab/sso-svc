@@ -14,7 +14,7 @@ const sessionsTable = "sessions"
 
 type SessionModel struct {
 	ID        uuid.UUID `db:"id"`
-	AccountID uuid.UUID `db:"account_id"`
+	UserID    uuid.UUID `db:"user_id"`
 	Token     string    `db:"token"`
 	Client    string    `db:"client"`
 	LastUsed  time.Time `db:"last_used"`
@@ -48,7 +48,7 @@ func (s SessionsQ) New() SessionsQ {
 
 type SessionInsertInput struct {
 	ID        uuid.UUID
-	AccountID uuid.UUID
+	UserID    uuid.UUID
 	Token     string
 	Client    string
 	LastUsed  time.Time
@@ -58,7 +58,7 @@ type SessionInsertInput struct {
 func (s SessionsQ) Insert(ctx context.Context, input SessionInsertInput) error {
 	values := map[string]interface{}{
 		"id":         input.ID,
-		"account_id": input.AccountID,
+		"user_id":    input.UserID,
 		"token":      input.Token,
 		"client":     input.Client,
 		"last_used":  input.LastUsed,
@@ -67,7 +67,7 @@ func (s SessionsQ) Insert(ctx context.Context, input SessionInsertInput) error {
 
 	query, args, err := s.inserter.SetMap(values).ToSql()
 	if err != nil {
-		return fmt.Errorf("building insert query for accounts: %w", err)
+		return fmt.Errorf("building insert query for users: %w", err)
 	}
 
 	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
@@ -94,7 +94,7 @@ func (s SessionsQ) Update(ctx context.Context, input SessionUpdateInput) error {
 
 	query, args, err := s.updater.SetMap(values).ToSql()
 	if err != nil {
-		return fmt.Errorf("building update query for accounts: %w", err)
+		return fmt.Errorf("building update query for users: %w", err)
 	}
 
 	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
@@ -142,7 +142,7 @@ func (s SessionsQ) Select(ctx context.Context) ([]SessionModel, error) {
 		var sess SessionModel
 		err = rows.Scan(
 			&sess.ID,
-			&sess.AccountID,
+			&sess.UserID,
 			&sess.Token,
 			&sess.Client,
 			&sess.CreatedAt,
@@ -180,7 +180,7 @@ func (s SessionsQ) Get(ctx context.Context) (SessionModel, error) {
 	var sess SessionModel
 	err = row.Scan(
 		&sess.ID,
-		&sess.AccountID,
+		&sess.UserID,
 		&sess.Token,
 		&sess.Client,
 		&sess.CreatedAt,
@@ -200,11 +200,11 @@ func (s SessionsQ) FilterID(id uuid.UUID) SessionsQ {
 	return s
 }
 
-func (s SessionsQ) FilterAccountID(accountID uuid.UUID) SessionsQ {
-	s.selector = s.selector.Where(sq.Eq{"account_id": accountID})
-	s.counter = s.counter.Where(sq.Eq{"account_id": accountID})
-	s.deleter = s.deleter.Where(sq.Eq{"account_id": accountID})
-	s.updater = s.updater.Where(sq.Eq{"account_id": accountID})
+func (s SessionsQ) FilterUserID(userID uuid.UUID) SessionsQ {
+	s.selector = s.selector.Where(sq.Eq{"user_id": userID})
+	s.counter = s.counter.Where(sq.Eq{"user_id": userID})
+	s.deleter = s.deleter.Where(sq.Eq{"user_id": userID})
+	s.updater = s.updater.Where(sq.Eq{"user_id": userID})
 	return s
 }
 
@@ -241,7 +241,7 @@ func (s SessionsQ) Page(limit, offset uint64) SessionsQ {
 func (s SessionsQ) Drop(ctx context.Context) error {
 	query, args, err := s.deleter.ToSql()
 	if err != nil {
-		return fmt.Errorf("building drop query for accounts: %w", err)
+		return fmt.Errorf("building drop query for users: %w", err)
 	}
 
 	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {

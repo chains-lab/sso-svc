@@ -34,7 +34,7 @@ func (r ApiReNewsChainsAuthV1OwnCallbackPostRequest) Execute() (*TokensPair, *ht
 /*
 ReNewsChainsAuthV1OwnCallbackPost Method for ReNewsChainsAuthV1OwnCallbackPost
 
-Endpoint to login use google account
+Endpoint to login use google user
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  @return ApiReNewsChainsAuthV1OwnCallbackPostRequest
@@ -154,7 +154,7 @@ func (r ApiReNewsChainsAuthV1OwnLoginPostRequest) Execute() (*http.Response, err
 /*
 ReNewsChainsAuthV1OwnLoginPost Method for ReNewsChainsAuthV1OwnLoginPost
 
-Endpoint to login use google account
+Endpoint to login use google user
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  @return ApiReNewsChainsAuthV1OwnLoginPostRequest

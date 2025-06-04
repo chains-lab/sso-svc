@@ -12,7 +12,7 @@ func SessionCollection(sessions []models.Session) resources.SessionsCollection {
 	}
 	return resources.SessionsCollection{
 		Data: resources.SessionsCollectionData{
-			Type: resources.AccountSessionsType,
+			Type: resources.UserSessionsType,
 			Attributes: resources.SessionsCollectionDataAttributes{
 				Sessions: data,
 			},

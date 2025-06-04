@@ -26,22 +26,22 @@ func (p Presenter) AppError(w http.ResponseWriter, requestID uuid.UUID, appErr *
 
 	switch appErr.Code {
 	// 404 Not Found
-	case ape.CodeAccountDoesNotExist,
+	case ape.CodeUserDoesNotExist,
 		ape.CodeSessionDoesNotExist,
-		ape.CodeSessionsForAccountNotExist:
+		ape.CodeSessionsForUserNotExist:
 		base.Status = http.StatusNotFound
 
 	// 409 Conflict
-	case ape.CodeAccountAlreadyExists,
+	case ape.CodeUserAlreadyExists,
 		ape.CodeSessionAlreadyExists,
 		ape.CodeSessionClientMismatch,
 		ape.CodeSessionTokenMismatch:
 		base.Status = http.StatusConflict
 
 	// 400 Bad Request
-	case ape.CodeAccountInvalidRole,
+	case ape.CodeUserInvalidRole,
 		ape.CodeSessionCannotBeCurrent,
-		ape.CodeSessionCannotBeCurrentAccount,
+		ape.CodeSessionCannotBeCurrentUser,
 		ape.CodeInvalidRequestBody,
 		ape.CodeInvalidRequestQuery,
 		ape.CodeInvalidRequestHeader,

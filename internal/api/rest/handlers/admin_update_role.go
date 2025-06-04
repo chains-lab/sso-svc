@@ -13,15 +13,15 @@ import (
 func (h *Handlers) AdminUpdateRole(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
 
-	user, err := tokens.GetAccountTokenData(r.Context())
+	user, err := tokens.GetUserTokenData(r.Context())
 	if err != nil {
 		h.presenter.InvalidToken(w, requestID, err)
 		return
 	}
 
-	updatedAccountID, err := uuid.Parse(chi.URLParam(r, "account_id"))
+	updatedUserID, err := uuid.Parse(chi.URLParam(r, "user_id"))
 	if err != nil {
-		h.presenter.InvalidParameter(w, requestID, err, "account_id")
+		h.presenter.InvalidParameter(w, requestID, err, "user_id")
 		return
 	}
 
@@ -31,12 +31,12 @@ func (h *Handlers) AdminUpdateRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appErr := h.app.UpdateAccountRole(r.Context(), updatedAccountID, updatedRole, user.Role)
+	appErr := h.app.UpdateUserRole(r.Context(), updatedUserID, updatedRole, user.Role)
 	if appErr != nil {
 		h.presenter.AppError(w, requestID, appErr)
 		return
 	}
 
-	h.log.WithField("request_id", requestID).Infof("account %s role updated to %s by %s", updatedAccountID, updatedRole, user.AccountID)
+	h.log.WithField("request_id", requestID).Infof("user %s role updated to %s by %s", updatedUserID, updatedRole, user.UserID)
 	httpkit.Render(w, http.StatusOK)
 }

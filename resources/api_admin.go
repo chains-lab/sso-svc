@@ -23,50 +23,50 @@ import (
 // AdminAPIService AdminAPI service
 type AdminAPIService service
 
-type ApiReNewsChainsAuthV1AdminAccountIdGetRequest struct {
+type ApiReNewsChainsAuthV1AdminUserIdGetRequest struct {
 	ctx context.Context
 	ApiService *AdminAPIService
-	accountId string
+	userId string
 }
 
-func (r ApiReNewsChainsAuthV1AdminAccountIdGetRequest) Execute() (*Account, *http.Response, error) {
-	return r.ApiService.ReNewsChainsAuthV1AdminAccountIdGetExecute(r)
+func (r ApiReNewsChainsAuthV1AdminUserIdGetRequest) Execute() (*User, *http.Response, error) {
+	return r.ApiService.ReNewsChainsAuthV1AdminUserIdGetExecute(r)
 }
 
 /*
-ReNewsChainsAuthV1AdminAccountIdGet admin get user
+ReNewsChainsAuthV1AdminUserIdGet admin get user
 
 Endpoint to get user
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param accountId
- @return ApiReNewsChainsAuthV1AdminAccountIdGetRequest
+ @param userId
+ @return ApiReNewsChainsAuthV1AdminUserIdGetRequest
 */
-func (a *AdminAPIService) ReNewsChainsAuthV1AdminAccountIdGet(ctx context.Context, accountId string) ApiReNewsChainsAuthV1AdminAccountIdGetRequest {
-	return ApiReNewsChainsAuthV1AdminAccountIdGetRequest{
+func (a *AdminAPIService) ReNewsChainsAuthV1AdminUserIdGet(ctx context.Context, userId string) ApiReNewsChainsAuthV1AdminUserIdGetRequest {
+	return ApiReNewsChainsAuthV1AdminUserIdGetRequest{
 		ApiService: a,
 		ctx: ctx,
-		accountId: accountId,
+		userId: userId,
 	}
 }
 
 // Execute executes the request
-//  @return Account
-func (a *AdminAPIService) ReNewsChainsAuthV1AdminAccountIdGetExecute(r ApiReNewsChainsAuthV1AdminAccountIdGetRequest) (*Account, *http.Response, error) {
+//  @return User
+func (a *AdminAPIService) ReNewsChainsAuthV1AdminUserIdGetExecute(r ApiReNewsChainsAuthV1AdminUserIdGetRequest) (*User, *http.Response, error) {
 	var (
 		localVarHTTPMethod   = http.MethodGet
 		localVarPostBody     interface{}
 		formFiles            []formFile
-		localVarReturnValue  *Account
+		localVarReturnValue  *User
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AdminAPIService.ReNewsChainsAuthV1AdminAccountIdGet")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AdminAPIService.ReNewsChainsAuthV1AdminUserIdGet")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/re-news/chains/auth/v1/admin/{account_id}"
-	localVarPath = strings.Replace(localVarPath, "{"+"account_id"+"}", url.PathEscape(parameterValueToString(r.accountId, "accountId")), -1)
+	localVarPath := localBasePath + "/re-news/chains/auth/v1/admin/{user_id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"user_id"+"}", url.PathEscape(parameterValueToString(r.userId, "userId")), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -180,53 +180,53 @@ func (a *AdminAPIService) ReNewsChainsAuthV1AdminAccountIdGetExecute(r ApiReNews
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type ApiReNewsChainsAuthV1AdminAccountIdRolePostRequest struct {
+type ApiReNewsChainsAuthV1AdminUserIdRolePostRequest struct {
 	ctx context.Context
 	ApiService *AdminAPIService
-	accountId string
+	userId string
 	role string
 }
 
-func (r ApiReNewsChainsAuthV1AdminAccountIdRolePostRequest) Execute() (*Account, *http.Response, error) {
-	return r.ApiService.ReNewsChainsAuthV1AdminAccountIdRolePostExecute(r)
+func (r ApiReNewsChainsAuthV1AdminUserIdRolePostRequest) Execute() (*User, *http.Response, error) {
+	return r.ApiService.ReNewsChainsAuthV1AdminUserIdRolePostExecute(r)
 }
 
 /*
-ReNewsChainsAuthV1AdminAccountIdRolePost admin role update
+ReNewsChainsAuthV1AdminUserIdRolePost admin role update
 
 Endpoint to update user
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param accountId
+ @param userId
  @param role
- @return ApiReNewsChainsAuthV1AdminAccountIdRolePostRequest
+ @return ApiReNewsChainsAuthV1AdminUserIdRolePostRequest
 */
-func (a *AdminAPIService) ReNewsChainsAuthV1AdminAccountIdRolePost(ctx context.Context, accountId string, role string) ApiReNewsChainsAuthV1AdminAccountIdRolePostRequest {
-	return ApiReNewsChainsAuthV1AdminAccountIdRolePostRequest{
+func (a *AdminAPIService) ReNewsChainsAuthV1AdminUserIdRolePost(ctx context.Context, userId string, role string) ApiReNewsChainsAuthV1AdminUserIdRolePostRequest {
+	return ApiReNewsChainsAuthV1AdminUserIdRolePostRequest{
 		ApiService: a,
 		ctx: ctx,
-		accountId: accountId,
+		userId: userId,
 		role: role,
 	}
 }
 
 // Execute executes the request
-//  @return Account
-func (a *AdminAPIService) ReNewsChainsAuthV1AdminAccountIdRolePostExecute(r ApiReNewsChainsAuthV1AdminAccountIdRolePostRequest) (*Account, *http.Response, error) {
+//  @return User
+func (a *AdminAPIService) ReNewsChainsAuthV1AdminUserIdRolePostExecute(r ApiReNewsChainsAuthV1AdminUserIdRolePostRequest) (*User, *http.Response, error) {
 	var (
 		localVarHTTPMethod   = http.MethodPost
 		localVarPostBody     interface{}
 		formFiles            []formFile
-		localVarReturnValue  *Account
+		localVarReturnValue  *User
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AdminAPIService.ReNewsChainsAuthV1AdminAccountIdRolePost")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AdminAPIService.ReNewsChainsAuthV1AdminUserIdRolePost")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/re-news/chains/auth/v1/admin/{account_id}/{role}"
-	localVarPath = strings.Replace(localVarPath, "{"+"account_id"+"}", url.PathEscape(parameterValueToString(r.accountId, "accountId")), -1)
+	localVarPath := localBasePath + "/re-news/chains/auth/v1/admin/{user_id}/{role}"
+	localVarPath = strings.Replace(localVarPath, "{"+"user_id"+"}", url.PathEscape(parameterValueToString(r.userId, "userId")), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"role"+"}", url.PathEscape(parameterValueToString(r.role, "role")), -1)
 
 	localVarHeaderParams := make(map[string]string)
@@ -341,48 +341,48 @@ func (a *AdminAPIService) ReNewsChainsAuthV1AdminAccountIdRolePostExecute(r ApiR
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type ApiReNewsChainsAuthV1AdminAccountIdSessionsDeleteRequest struct {
+type ApiReNewsChainsAuthV1AdminUserIdSessionsDeleteRequest struct {
 	ctx context.Context
 	ApiService *AdminAPIService
-	accountId string
+	userId string
 }
 
-func (r ApiReNewsChainsAuthV1AdminAccountIdSessionsDeleteRequest) Execute() (*http.Response, error) {
-	return r.ApiService.ReNewsChainsAuthV1AdminAccountIdSessionsDeleteExecute(r)
+func (r ApiReNewsChainsAuthV1AdminUserIdSessionsDeleteRequest) Execute() (*http.Response, error) {
+	return r.ApiService.ReNewsChainsAuthV1AdminUserIdSessionsDeleteExecute(r)
 }
 
 /*
-ReNewsChainsAuthV1AdminAccountIdSessionsDelete admin delete user
+ReNewsChainsAuthV1AdminUserIdSessionsDelete admin delete user
 
 Endpoint to delete user if you admin
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param accountId
- @return ApiReNewsChainsAuthV1AdminAccountIdSessionsDeleteRequest
+ @param userId
+ @return ApiReNewsChainsAuthV1AdminUserIdSessionsDeleteRequest
 */
-func (a *AdminAPIService) ReNewsChainsAuthV1AdminAccountIdSessionsDelete(ctx context.Context, accountId string) ApiReNewsChainsAuthV1AdminAccountIdSessionsDeleteRequest {
-	return ApiReNewsChainsAuthV1AdminAccountIdSessionsDeleteRequest{
+func (a *AdminAPIService) ReNewsChainsAuthV1AdminUserIdSessionsDelete(ctx context.Context, userId string) ApiReNewsChainsAuthV1AdminUserIdSessionsDeleteRequest {
+	return ApiReNewsChainsAuthV1AdminUserIdSessionsDeleteRequest{
 		ApiService: a,
 		ctx: ctx,
-		accountId: accountId,
+		userId: userId,
 	}
 }
 
 // Execute executes the request
-func (a *AdminAPIService) ReNewsChainsAuthV1AdminAccountIdSessionsDeleteExecute(r ApiReNewsChainsAuthV1AdminAccountIdSessionsDeleteRequest) (*http.Response, error) {
+func (a *AdminAPIService) ReNewsChainsAuthV1AdminUserIdSessionsDeleteExecute(r ApiReNewsChainsAuthV1AdminUserIdSessionsDeleteRequest) (*http.Response, error) {
 	var (
 		localVarHTTPMethod   = http.MethodDelete
 		localVarPostBody     interface{}
 		formFiles            []formFile
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AdminAPIService.ReNewsChainsAuthV1AdminAccountIdSessionsDelete")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AdminAPIService.ReNewsChainsAuthV1AdminUserIdSessionsDelete")
 	if err != nil {
 		return nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/re-news/chains/auth/v1/admin/{account_id}/sessions"
-	localVarPath = strings.Replace(localVarPath, "{"+"account_id"+"}", url.PathEscape(parameterValueToString(r.accountId, "accountId")), -1)
+	localVarPath := localBasePath + "/re-news/chains/auth/v1/admin/{user_id}/sessions"
+	localVarPath = strings.Replace(localVarPath, "{"+"user_id"+"}", url.PathEscape(parameterValueToString(r.userId, "userId")), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -487,36 +487,36 @@ func (a *AdminAPIService) ReNewsChainsAuthV1AdminAccountIdSessionsDeleteExecute(
 	return localVarHTTPResponse, nil
 }
 
-type ApiReNewsChainsAuthV1AdminAccountIdSessionsGetRequest struct {
+type ApiReNewsChainsAuthV1AdminUserIdSessionsGetRequest struct {
 	ctx context.Context
 	ApiService *AdminAPIService
-	accountId string
+	userId string
 }
 
-func (r ApiReNewsChainsAuthV1AdminAccountIdSessionsGetRequest) Execute() (*SessionsCollection, *http.Response, error) {
-	return r.ApiService.ReNewsChainsAuthV1AdminAccountIdSessionsGetExecute(r)
+func (r ApiReNewsChainsAuthV1AdminUserIdSessionsGetRequest) Execute() (*SessionsCollection, *http.Response, error) {
+	return r.ApiService.ReNewsChainsAuthV1AdminUserIdSessionsGetExecute(r)
 }
 
 /*
-ReNewsChainsAuthV1AdminAccountIdSessionsGet admin get sessions
+ReNewsChainsAuthV1AdminUserIdSessionsGet admin get sessions
 
 Endpoint to get user if you admin
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param accountId
- @return ApiReNewsChainsAuthV1AdminAccountIdSessionsGetRequest
+ @param userId
+ @return ApiReNewsChainsAuthV1AdminUserIdSessionsGetRequest
 */
-func (a *AdminAPIService) ReNewsChainsAuthV1AdminAccountIdSessionsGet(ctx context.Context, accountId string) ApiReNewsChainsAuthV1AdminAccountIdSessionsGetRequest {
-	return ApiReNewsChainsAuthV1AdminAccountIdSessionsGetRequest{
+func (a *AdminAPIService) ReNewsChainsAuthV1AdminUserIdSessionsGet(ctx context.Context, userId string) ApiReNewsChainsAuthV1AdminUserIdSessionsGetRequest {
+	return ApiReNewsChainsAuthV1AdminUserIdSessionsGetRequest{
 		ApiService: a,
 		ctx: ctx,
-		accountId: accountId,
+		userId: userId,
 	}
 }
 
 // Execute executes the request
 //  @return SessionsCollection
-func (a *AdminAPIService) ReNewsChainsAuthV1AdminAccountIdSessionsGetExecute(r ApiReNewsChainsAuthV1AdminAccountIdSessionsGetRequest) (*SessionsCollection, *http.Response, error) {
+func (a *AdminAPIService) ReNewsChainsAuthV1AdminUserIdSessionsGetExecute(r ApiReNewsChainsAuthV1AdminUserIdSessionsGetRequest) (*SessionsCollection, *http.Response, error) {
 	var (
 		localVarHTTPMethod   = http.MethodGet
 		localVarPostBody     interface{}
@@ -524,13 +524,13 @@ func (a *AdminAPIService) ReNewsChainsAuthV1AdminAccountIdSessionsGetExecute(r A
 		localVarReturnValue  *SessionsCollection
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AdminAPIService.ReNewsChainsAuthV1AdminAccountIdSessionsGet")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AdminAPIService.ReNewsChainsAuthV1AdminUserIdSessionsGet")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/re-news/chains/auth/v1/admin/{account_id}/sessions"
-	localVarPath = strings.Replace(localVarPath, "{"+"account_id"+"}", url.PathEscape(parameterValueToString(r.accountId, "accountId")), -1)
+	localVarPath := localBasePath + "/re-news/chains/auth/v1/admin/{user_id}/sessions"
+	localVarPath = strings.Replace(localVarPath, "{"+"user_id"+"}", url.PathEscape(parameterValueToString(r.userId, "userId")), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -644,39 +644,39 @@ func (a *AdminAPIService) ReNewsChainsAuthV1AdminAccountIdSessionsGetExecute(r A
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type ApiReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGetRequest struct {
+type ApiReNewsChainsAuthV1AdminUserIdSessionsSessionIdGetRequest struct {
 	ctx context.Context
 	ApiService *AdminAPIService
-	accountId string
+	userId string
 	sessionId string
 }
 
-func (r ApiReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGetRequest) Execute() (*Session, *http.Response, error) {
-	return r.ApiService.ReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGetExecute(r)
+func (r ApiReNewsChainsAuthV1AdminUserIdSessionsSessionIdGetRequest) Execute() (*Session, *http.Response, error) {
+	return r.ApiService.ReNewsChainsAuthV1AdminUserIdSessionsSessionIdGetExecute(r)
 }
 
 /*
-ReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGet admin get session
+ReNewsChainsAuthV1AdminUserIdSessionsSessionIdGet admin get session
 
 Endpoint to get user if you admin
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param accountId
+ @param userId
  @param sessionId
- @return ApiReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGetRequest
+ @return ApiReNewsChainsAuthV1AdminUserIdSessionsSessionIdGetRequest
 */
-func (a *AdminAPIService) ReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGet(ctx context.Context, accountId string, sessionId string) ApiReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGetRequest {
-	return ApiReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGetRequest{
+func (a *AdminAPIService) ReNewsChainsAuthV1AdminUserIdSessionsSessionIdGet(ctx context.Context, userId string, sessionId string) ApiReNewsChainsAuthV1AdminUserIdSessionsSessionIdGetRequest {
+	return ApiReNewsChainsAuthV1AdminUserIdSessionsSessionIdGetRequest{
 		ApiService: a,
 		ctx: ctx,
-		accountId: accountId,
+		userId: userId,
 		sessionId: sessionId,
 	}
 }
 
 // Execute executes the request
 //  @return Session
-func (a *AdminAPIService) ReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGetExecute(r ApiReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGetRequest) (*Session, *http.Response, error) {
+func (a *AdminAPIService) ReNewsChainsAuthV1AdminUserIdSessionsSessionIdGetExecute(r ApiReNewsChainsAuthV1AdminUserIdSessionsSessionIdGetRequest) (*Session, *http.Response, error) {
 	var (
 		localVarHTTPMethod   = http.MethodGet
 		localVarPostBody     interface{}
@@ -684,13 +684,13 @@ func (a *AdminAPIService) ReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGetEx
 		localVarReturnValue  *Session
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AdminAPIService.ReNewsChainsAuthV1AdminAccountIdSessionsSessionIdGet")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AdminAPIService.ReNewsChainsAuthV1AdminUserIdSessionsSessionIdGet")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/re-news/chains/auth/v1/admin/{account_id}/sessions/{session_id}"
-	localVarPath = strings.Replace(localVarPath, "{"+"account_id"+"}", url.PathEscape(parameterValueToString(r.accountId, "accountId")), -1)
+	localVarPath := localBasePath + "/re-news/chains/auth/v1/admin/{user_id}/sessions/{session_id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"user_id"+"}", url.PathEscape(parameterValueToString(r.userId, "userId")), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"session_id"+"}", url.PathEscape(parameterValueToString(r.sessionId, "sessionId")), -1)
 
 	localVarHeaderParams := make(map[string]string)

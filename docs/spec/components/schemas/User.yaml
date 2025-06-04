@@ -11,10 +11,10 @@ properties:
     properties:
       id:
         type: string
-        description: "Account ID"
+        description: "User ID"
       type:
         type: string
-        enum: [ account ]
+        enum: [ user ]
       attributes:
         type: object
         required:

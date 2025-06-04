@@ -11,7 +11,7 @@ get:
         type: string
   responses:
     '200':
-      description: Account sessions successfully get
+      description: User sessions successfully get
       content:
         application/vnd.api+json:
           schema:
