@@ -21,6 +21,4 @@ func runServices(ctx context.Context, cfg config.Config, log *logrus.Logger, wg 
 
 	API := api.NewAPI(cfg, log, app)
 	run(func() { API.Run(ctx, log) })
-
-	//run(func() { eventlistener.NewListener(cfg, &app) })
 }

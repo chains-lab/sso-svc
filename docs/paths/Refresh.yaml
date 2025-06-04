@@ -1,6 +1,6 @@
 post:
   tags:
-    - Login
+    - Sessions
   summary: Refresh Access Token
   description: Endpoint to refresh an expired access token using a valid refresh token.
   requestBody:
@@ -19,8 +19,8 @@ post:
     '400':
       $ref: '../spec/components/responses/invalidParameter.yaml'
     '401':
-        $ref: '../spec/components/responses/invalidAuth.yaml'
+      $ref: '../spec/components/responses/unauthorized.yaml'
     '409':
       $ref: '../spec/components/responses/conflict.yaml'
     '500':
-      $ref: '../spec/components/responses/internalError.yaml'
+      $ref: '../spec/components/responses/internal.yaml'

@@ -1,6 +1,6 @@
-patch:
+post:
   tags:
-    - Admin update Role
+    - Admin
   summary: admin role update
   description: Endpoint to update user
   parameters:
@@ -24,10 +24,10 @@ patch:
     '400':
       $ref: '../spec/components/responses/invalidParameter.yaml'
     '401':
-      $ref: '../spec/components/responses/invalidAuth.yaml'
+      $ref: '../spec/components/responses/unauthorized.yaml'
     '403':
       $ref: '../spec/components/responses/forbidden.yaml'
     '404':
       $ref: '../spec/components/responses/notFound.yaml'
     '500':
-      $ref: '../spec/components/responses/internalError.yaml'
+      $ref: '../spec/components/responses/internal.yaml'

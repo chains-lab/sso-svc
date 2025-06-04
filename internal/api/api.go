@@ -17,7 +17,7 @@ import (
 type Api struct {
 	server   *http.Server
 	router   *chi.Mux
-	handlers handlers.Handler
+	handlers handlers.Handlers
 
 	log *logrus.Entry
 	cfg config.Config

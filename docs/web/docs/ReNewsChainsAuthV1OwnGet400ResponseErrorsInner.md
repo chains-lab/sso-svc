@@ -7,14 +7,14 @@ Name | Type | Description | Notes
 **Status** | **int32** | Status is the HTTP status code applicable to this problem | 
 **Title** | **string** | Title is a short, human-readable summary of the problem | 
 **Code** | **string** | Code is an application-specific error code, expressed as a string | 
-**Detail** | Pointer to **string** | Detail is a human-readable explanation specific to this occurrence of the problem | [optional] 
-**Meta** | Pointer to [**ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta**](ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta.md) |  | [optional] 
+**Detail** | **string** | Detail is a human-readable explanation specific to this occurrence of the problem | 
+**Meta** | [**ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta**](ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta.md) |  | 
 
 ## Methods
 
 ### NewReNewsChainsAuthV1OwnGet400ResponseErrorsInner
 
-`func NewReNewsChainsAuthV1OwnGet400ResponseErrorsInner(status int32, title string, code string, ) *ReNewsChainsAuthV1OwnGet400ResponseErrorsInner`
+`func NewReNewsChainsAuthV1OwnGet400ResponseErrorsInner(status int32, title string, code string, detail string, meta ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta, ) *ReNewsChainsAuthV1OwnGet400ResponseErrorsInner`
 
 NewReNewsChainsAuthV1OwnGet400ResponseErrorsInner instantiates a new ReNewsChainsAuthV1OwnGet400ResponseErrorsInner object
 This constructor will assign default values to properties that have it defined,
@@ -108,11 +108,6 @@ and a boolean to check if the value has been set.
 
 SetDetail sets Detail field to given value.
 
-### HasDetail
-
-`func (o *ReNewsChainsAuthV1OwnGet400ResponseErrorsInner) HasDetail() bool`
-
-HasDetail returns a boolean if a field has been set.
 
 ### GetMeta
 
@@ -133,11 +128,6 @@ and a boolean to check if the value has been set.
 
 SetMeta sets Meta field to given value.
 
-### HasMeta
-
-`func (o *ReNewsChainsAuthV1OwnGet400ResponseErrorsInner) HasMeta() bool`
-
-HasMeta returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

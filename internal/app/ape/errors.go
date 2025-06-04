@@ -17,7 +17,7 @@ func (e *Error) Unwrap() error {
 	return e.cause
 }
 
-func ErrorAccountDoesNotExistByID(accountID uuid.UUID, err error) *Error {
+func ErrorAccountDoesNotExist(accountID uuid.UUID, err error) *Error {
 	return &Error{
 		Code:    CodeAccountDoesNotExist,
 		Title:   "Account does not exist",
@@ -30,7 +30,7 @@ func ErrorAccountDoesNotExistByEmail(email string, err error) *Error {
 	return &Error{
 		Code:    CodeAccountDoesNotExist,
 		Title:   "Account does not exist",
-		Details: fmt.Sprintf("The requested account %s does not exist.", email),
+		Details: fmt.Sprintf("The requested account with email %s does not exist.", email),
 		cause:   err,
 	}
 }
@@ -134,7 +134,7 @@ func ErrorSessionCannotDeleteSuperUserByOther(cause error) *Error {
 	}
 }
 
-func ErrorInternalServer(cause error) *Error {
+func ErrorInternal(cause error) *Error {
 	return &Error{
 		Code:    CodeInternal,
 		Title:   "Internal Server Error",

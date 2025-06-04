@@ -1,4 +1,4 @@
-package controllers
+package presenter
 
 import (
 	"net/http"
@@ -8,9 +8,9 @@ import (
 	"github.com/google/uuid"
 )
 
-func (h Controller) ResultFromApp(w http.ResponseWriter, requestID uuid.UUID, appErr *ape.Error) {
+func (p Presenter) AppError(w http.ResponseWriter, requestID uuid.UUID, appErr *ape.Error) {
 	errorID := uuid.New()
-	h.log.WithField("request_id", requestID).
+	p.log.WithField("request_id", requestID).
 		WithField("error_id", errorID).
 		WithField("code", appErr.Code).
 		WithError(appErr.Unwrap()).
@@ -25,40 +25,41 @@ func (h Controller) ResultFromApp(w http.ResponseWriter, requestID uuid.UUID, ap
 	}
 
 	switch appErr.Code {
-	// resource not found
+	// 404 Not Found
 	case ape.CodeAccountDoesNotExist,
 		ape.CodeSessionDoesNotExist,
 		ape.CodeSessionsForAccountNotExist:
 		base.Status = http.StatusNotFound
 
-	// conflict / already exists
+	// 409 Conflict
 	case ape.CodeAccountAlreadyExists,
 		ape.CodeSessionAlreadyExists,
 		ape.CodeSessionClientMismatch,
 		ape.CodeSessionTokenMismatch:
 		base.Status = http.StatusConflict
 
-	// bad request
+	// 400 Bad Request
 	case ape.CodeAccountInvalidRole,
 		ape.CodeSessionCannotBeCurrent,
-		ape.CodeSessionCannotBeCurrentAccount:
+		ape.CodeSessionCannotBeCurrentAccount,
+		ape.CodeInvalidRequestBody,
+		ape.CodeInvalidRequestQuery,
+		ape.CodeInvalidRequestHeader,
+		ape.CodeInvalidRequestPath:
 		base.Status = http.StatusBadRequest
 
-	// forbidden
+	// 403 Forbidden
 	case ape.CodeUserNoPermissionToUpdateRole,
 		ape.CodeSessionCannotDeleteSuperUserByOther:
 		base.Status = http.StatusForbidden
 
-	// internal
-	case ape.CodeInternal:
-		base.Status = http.StatusInternalServerError
+	// 401 Unauthorized
+	case ape.UnauthorizedError:
+		base.Status = http.StatusUnauthorized
 
-	// catch-all
+	// 500 Internal Server Error (fallback for any other code)
 	default:
 		base.Status = http.StatusInternalServerError
-		base.Code = ape.CodeInternal
-		base.Title = "Internal server error"
-		base.Detail = "An unexpected error occurred"
 	}
 
 	httpkit.RenderErr(w, httpkit.ResponseError(base)...)

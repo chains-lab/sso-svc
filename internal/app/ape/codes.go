@@ -3,11 +3,11 @@ package ape
 const (
 	//General error codes
 
+	CodeInternal             = "INTERNAL_SERVER_ERROR"
 	CodeInvalidRequestBody   = "INVALID_REQUEST_BODY"
 	CodeInvalidRequestQuery  = "INVALID_REQUEST_QUERY"
 	CodeInvalidRequestHeader = "INVALID_REQUEST_HEADER"
 	CodeInvalidRequestPath   = "INVALID_REQUEST_PATH"
-	CodeInvalidRequestMethod = "INVALID_REQUEST_METHOD"
 	UnauthorizedError        = "UNAUTHORIZED"
 
 	//Specific error codes
@@ -24,5 +24,4 @@ const (
 	CodeSessionCannotBeCurrent              = "SESSION_CANNOT_BE_CURRENT"
 	CodeSessionCannotBeCurrentAccount       = "SESSION_CANNOT_BE_CURRENT_ACCOUNT"
 	CodeSessionCannotDeleteSuperUserByOther = "SESSION_CANNOT_DELETE_SUPERUSER_BY_OTHER"
-	CodeInternal                            = "INTERNAL_SERVER_ERROR"
 )

@@ -2,29 +2,22 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/chains-lab/chains-auth/internal/api/rest/responses"
-	"github.com/chains-lab/chains-auth/internal/app"
-	"github.com/chains-lab/chains-auth/internal/app/ape"
 	"github.com/chains-lab/gatekit/httpkit"
 	"github.com/google/uuid"
 )
 
-func (h *Handler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
 	log := h.log.WithField("request_id", requestID)
 
 	code := r.URL.Query().Get("code")
 	if code == "" {
-		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
-			Status:    http.StatusBadRequest,
-			Code:      ape.CodeInvalidRequestQuery,
-			Title:     "Invalid request query",
-			Detail:    "Code is required.",
-			Parameter: "code",
-		})...)
+		h.presenter.InvalidQuery(w, requestID, "code", fmt.Errorf("missing code"))
 		return
 	}
 
@@ -70,36 +63,11 @@ func (h *Handler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, appErr := h.app.GetAccountByEmail(r.Context(), accountInfo.Email)
-	if appErr.Code == ape.CodeAccountDoesNotExist {
-		session, appErr := h.app.Login(r.Context(), app.LoginRequest{
-			Email: accountInfo.Email,
-		})
-		if appErr != nil {
-			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
-				Status: http.StatusInternalServerError,
-			})...)
-			log.WithError(appErr.Unwrap()).Errorf("error get account for email: %s", accountInfo.Email)
-			return
-		}
-
-		httpkit.Render(w, responses.TokensPair(session.Access, session.Refresh))
-		return
-	}
-
-	session, appErr := h.app.Login(r.Context(), app.LoginRequest{
-		Email: accountInfo.Email,
-	})
+	session, appErr := h.app.Login(r.Context(), accountInfo.Email, r.Header.Get("User-Agent"))
 	if appErr != nil {
-		switch {
-		default:
-			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
-				Status: http.StatusInternalServerError,
-			})...)
-		}
-		log.WithError(appErr.Unwrap()).Errorf("error logging in for email: %s", accountInfo.Email)
-		return
+		h.presenter.AppError(w, requestID, appErr)
 	}
 
+	h.log.WithField("request_id", requestID).Infof("User %s logged in with Google", accountInfo.Email)
 	httpkit.Render(w, responses.TokensPair(session.Access, session.Refresh))
 }

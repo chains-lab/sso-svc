@@ -53,11 +53,7 @@ type APIClient struct {
 
 	AdminAPI *AdminAPIService
 
-	AdminUpdateRoleAPI *AdminUpdateRoleAPIService
-
 	LoginAPI *LoginAPIService
-
-	LogoutAPI *LogoutAPIService
 
 	SessionsAPI *SessionsAPIService
 }
@@ -80,9 +76,7 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	// API Services
 	c.AccountAPI = (*AccountAPIService)(&c.common)
 	c.AdminAPI = (*AdminAPIService)(&c.common)
-	c.AdminUpdateRoleAPI = (*AdminUpdateRoleAPIService)(&c.common)
 	c.LoginAPI = (*LoginAPIService)(&c.common)
-	c.LogoutAPI = (*LogoutAPIService)(&c.common)
 	c.SessionsAPI = (*SessionsAPIService)(&c.common)
 
 	return c

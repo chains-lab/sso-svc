@@ -9,9 +9,11 @@ properties:
     items:
       type: object
       required:
+        - status
         - title
         - code
-        - status
+        - detail
+        - meta
       properties:
         status:
           type: integer
@@ -22,7 +24,11 @@ properties:
             - 401
             - 403
             - 404
+            - 405
+            - 408
             - 409
+            - 415
+            - 429
             - 500
         title:
           type: string
@@ -43,19 +49,38 @@ properties:
         meta:
           type: object
           required:
-          - parameter
-          - pointer
+            - error_id
+            - request_id
+            - timestamp
           properties:
+            error_id:
+              type: string
+              description: >-
+                  Error ID is a unique identifier for the error, used for
+                  debugging and tracing
+              example: 0987654321fedcba
+            request_id:
+              type: string
+              description: >-
+                Request ID is a unique identifier for the request, used for
+                debugging and tracing
+              example: 1234567890abcdef
             parameter:
               type: string
               description: >-
-                Parameter is the name of the query parameter or request body
-                field that caused the error
+                  Parameter is the name of the request parameter that caused the
+                  error, if applicable
               example: email
             pointer:
               type: string
               description: >-
-                Pointer is a JSON Pointer [RFC6901] to the associated entity in
-                the request document. It may be empty if no specific entity is
-                identified.
+                  Pointer is a JSON Pointer that identifies the part of the request
+                  document that caused the error, if applicable
               example: /data/attributes/email
+            timestamp:
+              type: string
+              format: date-time
+              description: >-
+                Timestamp is the time when the error occurred, in ISO 8601
+                format
+              example: '2023-10-01T12:34:56Z'

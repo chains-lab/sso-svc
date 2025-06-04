@@ -10,30 +10,30 @@ import (
 	"github.com/google/uuid"
 )
 
-func (h *Handler) AdminUpdateRole(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) AdminUpdateRole(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
 
 	user, err := tokens.GetAccountTokenData(r.Context())
 	if err != nil {
-		h.controllers.TokenData(w, requestID, err)
+		h.presenter.InvalidToken(w, requestID, err)
 		return
 	}
 
 	updatedAccountID, err := uuid.Parse(chi.URLParam(r, "account_id"))
 	if err != nil {
-		h.controllers.ParameterFromURL(w, requestID, err, "account_id")
+		h.presenter.InvalidParameter(w, requestID, err, "account_id")
 		return
 	}
 
 	updatedRole, err := roles.ParseRole(chi.URLParam(r, "role"))
 	if err != nil {
-		h.controllers.ParameterFromURL(w, requestID, err, "role")
+		h.presenter.InvalidParameter(w, requestID, err, "role")
 		return
 	}
 
 	appErr := h.app.UpdateAccountRole(r.Context(), updatedAccountID, updatedRole, user.Role)
 	if appErr != nil {
-		h.controllers.ResultFromApp(w, requestID, appErr)
+		h.presenter.AppError(w, requestID, appErr)
 		return
 	}
 

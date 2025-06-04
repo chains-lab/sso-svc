@@ -1,6 +1,6 @@
 post:
   tags:
-    - Logout
+    - Login
   description: Endpoint to logout user
   responses:
     '201':
@@ -9,5 +9,7 @@ post:
         application/vnd.api+json:
           schema:
             $ref: '../spec/components/schemas/TokensPair.yaml'
+    '404':
+      $ref: '../spec/components/responses/notFound.yaml'
     '401':
-      $ref: '../spec/components/responses/invalidAuth.yaml'
+      $ref: '../spec/components/responses/unauthorized.yaml'

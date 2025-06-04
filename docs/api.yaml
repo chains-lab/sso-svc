@@ -5,13 +5,16 @@ info:
   version: 0.0.1
 
 paths:
-  /re-news/chains/auth/v1/own:
+  /chains/auth/v1/own:
     $ref: './paths/OwnAccount.yaml'
 
   /re-news/chains/auth/v1/own/refresh:
     $ref: './paths/Refresh.yaml'
 
   /re-news/chains/auth/v1/own/login:
+    $ref: './paths/Login.yaml'
+
+  /re-news/chains/auth/v1/own/callback:
     $ref: './paths/LoginCallback.yaml'
 
   /re-news/chains/auth/v1/own/logout:
@@ -22,6 +25,8 @@ paths:
 
   /re-news/chains/auth/v1/own/sessions/{session_id}:
     $ref: './paths/OwnSession.yaml'
+
+    #Admins
 
   /re-news/chains/auth/v1/admin/{account_id}:
     $ref: './paths/AdminUserAccount.yaml'
@@ -34,36 +39,6 @@ paths:
 
   /re-news/chains/auth/v1/admin/{account_id}/sessions/{session_id}:
     $ref: './paths/AdminUserSession.yaml'
-
-  #Admins
-
-  /re-news//chains/auth/v1/own/google/login:
-    $ref: './paths/LoginCallback.yaml'
-
-  /re-news//chains/auth/v1/public/refresh:
-    $ref: './paths/Refresh.yaml'
-
-  /re-news//chains/auth/v1/public/account:
-    $ref: './paths/OwnAccount.yaml'
-
-  /re-news//chains/auth/v1/public/sessions:
-    $ref: './paths/OwnSessions.yaml'
-
-  /re-news//chains/auth/v1/public/sessions/{session_id}:
-    $ref: './paths/OwnSession.yaml'
-
-  /re-news//chains/auth/v1/private/account/{account_id}:
-    $ref: './paths/AdminUserAccount.yaml'
-
-  /re-news//chains/auth/v1/private/accounts/{account_id}/{role}:
-    $ref: './paths/AdminUpdateRole.yaml'
-
-  /re-news//chains/auth/v1/private/accounts/{account_id}/sessions:
-    $ref: './paths/AdminUserSessions.yaml'
-
-  /re-news//chains/auth/v1/private/accounts/{account_id}/sessions/{session_id}:
-    $ref: './paths/AdminUserSession.yaml'
-
 
 components:
   schemas:

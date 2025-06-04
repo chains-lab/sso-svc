@@ -9,24 +9,24 @@ import (
 	"github.com/google/uuid"
 )
 
-func (h *Handler) AdminTerminateSessions(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) AdminTerminateSessions(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
 
 	user, err := tokens.GetAccountTokenData(r.Context())
 	if err != nil {
-		h.controllers.TokenData(w, requestID, err)
+		h.presenter.InvalidToken(w, requestID, err)
 		return
 	}
 
 	accountID, err := uuid.Parse(chi.URLParam(r, "account_id"))
 	if err != nil {
-		h.controllers.ParameterFromURL(w, requestID, err, "account_id")
+		h.presenter.InvalidParameter(w, requestID, err, "account_id")
 		return
 	}
 
 	appErr := h.app.TerminateSessionsByAdmin(r.Context(), accountID)
 	if appErr != nil {
-		h.controllers.ResultFromApp(w, requestID, appErr)
+		h.presenter.AppError(w, requestID, appErr)
 		return
 	}
 

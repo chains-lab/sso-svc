@@ -9,18 +9,18 @@ import (
 	"github.com/google/uuid"
 )
 
-func (h *Handler) OwnGetSession(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) OwnGetSession(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
 
 	user, err := tokens.GetAccountTokenData(r.Context())
 	if err != nil {
-		h.controllers.TokenData(w, requestID, err)
+		h.presenter.InvalidToken(w, requestID, err)
 		return
 	}
 
 	session, appErr := h.app.GetSession(r.Context(), user.SessionID)
 	if appErr != nil {
-		h.controllers.ResultFromApp(w, requestID, appErr)
+		h.presenter.AppError(w, requestID, appErr)
 		return
 	}
 

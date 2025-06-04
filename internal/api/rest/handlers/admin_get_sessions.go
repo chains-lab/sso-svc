@@ -9,18 +9,18 @@ import (
 	"github.com/google/uuid"
 )
 
-func (h *Handler) AdminGetSessions(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) AdminGetSessions(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
 
 	accountID, err := uuid.Parse(chi.URLParam(r, "account_id"))
 	if err != nil {
-		h.controllers.ParameterFromURL(w, requestID, err, "account_id")
+		h.presenter.InvalidParameter(w, requestID, err, "account_id")
 		return
 	}
 
-	sessions, appErr := h.app.GetSessions(r.Context(), accountID)
+	sessions, appErr := h.app.GetAccountSessions(r.Context(), accountID)
 	if appErr != nil {
-		h.controllers.ResultFromApp(w, requestID, appErr)
+		h.presenter.AppError(w, requestID, appErr)
 		return
 	}
 

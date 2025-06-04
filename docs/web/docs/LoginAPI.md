@@ -4,16 +4,15 @@ All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**ReNewsChainsAuthV1OwnGoogleLoginPost**](LoginAPI.md#ReNewsChainsAuthV1OwnGoogleLoginPost) | **Post** /re-news//chains/auth/v1/own/google/login | 
+[**ReNewsChainsAuthV1OwnCallbackPost**](LoginAPI.md#ReNewsChainsAuthV1OwnCallbackPost) | **Post** /re-news/chains/auth/v1/own/callback | 
 [**ReNewsChainsAuthV1OwnLoginPost**](LoginAPI.md#ReNewsChainsAuthV1OwnLoginPost) | **Post** /re-news/chains/auth/v1/own/login | 
-[**ReNewsChainsAuthV1OwnRefreshPost**](LoginAPI.md#ReNewsChainsAuthV1OwnRefreshPost) | **Post** /re-news/chains/auth/v1/own/refresh | Refresh Access Token
-[**ReNewsChainsAuthV1PublicRefreshPost**](LoginAPI.md#ReNewsChainsAuthV1PublicRefreshPost) | **Post** /re-news//chains/auth/v1/public/refresh | Refresh Access Token
+[**ReNewsChainsAuthV1OwnLogoutPost**](LoginAPI.md#ReNewsChainsAuthV1OwnLogoutPost) | **Post** /re-news/chains/auth/v1/own/logout | 
 
 
 
-## ReNewsChainsAuthV1OwnGoogleLoginPost
+## ReNewsChainsAuthV1OwnCallbackPost
 
-> TokensPair ReNewsChainsAuthV1OwnGoogleLoginPost(ctx).Execute()
+> TokensPair ReNewsChainsAuthV1OwnCallbackPost(ctx).Execute()
 
 
 
@@ -35,13 +34,13 @@ func main() {
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.LoginAPI.ReNewsChainsAuthV1OwnGoogleLoginPost(context.Background()).Execute()
+	resp, r, err := apiClient.LoginAPI.ReNewsChainsAuthV1OwnCallbackPost(context.Background()).Execute()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error when calling `LoginAPI.ReNewsChainsAuthV1OwnGoogleLoginPost``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error when calling `LoginAPI.ReNewsChainsAuthV1OwnCallbackPost``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	// response from `ReNewsChainsAuthV1OwnGoogleLoginPost`: TokensPair
-	fmt.Fprintf(os.Stdout, "Response from `LoginAPI.ReNewsChainsAuthV1OwnGoogleLoginPost`: %v\n", resp)
+	// response from `ReNewsChainsAuthV1OwnCallbackPost`: TokensPair
+	fmt.Fprintf(os.Stdout, "Response from `LoginAPI.ReNewsChainsAuthV1OwnCallbackPost`: %v\n", resp)
 }
 ```
 
@@ -51,7 +50,7 @@ This endpoint does not need any parameter.
 
 ### Other Parameters
 
-Other parameters are passed through a pointer to a apiReNewsChainsAuthV1OwnGoogleLoginPostRequest struct via the builder pattern
+Other parameters are passed through a pointer to a apiReNewsChainsAuthV1OwnCallbackPostRequest struct via the builder pattern
 
 
 ### Return type
@@ -74,7 +73,7 @@ No authorization required
 
 ## ReNewsChainsAuthV1OwnLoginPost
 
-> TokensPair ReNewsChainsAuthV1OwnLoginPost(ctx).Execute()
+> ReNewsChainsAuthV1OwnLoginPost(ctx).Execute()
 
 
 
@@ -96,13 +95,11 @@ func main() {
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.LoginAPI.ReNewsChainsAuthV1OwnLoginPost(context.Background()).Execute()
+	r, err := apiClient.LoginAPI.ReNewsChainsAuthV1OwnLoginPost(context.Background()).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `LoginAPI.ReNewsChainsAuthV1OwnLoginPost``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	// response from `ReNewsChainsAuthV1OwnLoginPost`: TokensPair
-	fmt.Fprintf(os.Stdout, "Response from `LoginAPI.ReNewsChainsAuthV1OwnLoginPost`: %v\n", resp)
 }
 ```
 
@@ -117,7 +114,7 @@ Other parameters are passed through a pointer to a apiReNewsChainsAuthV1OwnLogin
 
 ### Return type
 
-[**TokensPair**](TokensPair.md)
+ (empty response body)
 
 ### Authorization
 
@@ -133,77 +130,11 @@ No authorization required
 [[Back to README]](../README.md)
 
 
-## ReNewsChainsAuthV1OwnRefreshPost
+## ReNewsChainsAuthV1OwnLogoutPost
 
-> TokensPair ReNewsChainsAuthV1OwnRefreshPost(ctx).RefreshToken(refreshToken).Execute()
-
-Refresh Access Token
+> TokensPair ReNewsChainsAuthV1OwnLogoutPost(ctx).Execute()
 
 
-
-### Example
-
-```go
-package main
-
-import (
-	"context"
-	"fmt"
-	"os"
-	openapiclient "github.com/GIT_USER_ID/GIT_REPO_ID"
-)
-
-func main() {
-	refreshToken := *openapiclient.NewRefreshToken(*openapiclient.NewRefreshTokenData("Type_example", *openapiclient.NewRefreshTokenDataAttributes("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."))) // RefreshToken | 
-
-	configuration := openapiclient.NewConfiguration()
-	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.LoginAPI.ReNewsChainsAuthV1OwnRefreshPost(context.Background()).RefreshToken(refreshToken).Execute()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error when calling `LoginAPI.ReNewsChainsAuthV1OwnRefreshPost``: %v\n", err)
-		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
-	}
-	// response from `ReNewsChainsAuthV1OwnRefreshPost`: TokensPair
-	fmt.Fprintf(os.Stdout, "Response from `LoginAPI.ReNewsChainsAuthV1OwnRefreshPost`: %v\n", resp)
-}
-```
-
-### Path Parameters
-
-
-
-### Other Parameters
-
-Other parameters are passed through a pointer to a apiReNewsChainsAuthV1OwnRefreshPostRequest struct via the builder pattern
-
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **refreshToken** | [**RefreshToken**](RefreshToken.md) |  | 
-
-### Return type
-
-[**TokensPair**](TokensPair.md)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
-- **Content-Type**: application/vnd.api+json
-- **Accept**: application/vnd.api+json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
-[[Back to Model list]](../README.md#documentation-for-models)
-[[Back to README]](../README.md)
-
-
-## ReNewsChainsAuthV1PublicRefreshPost
-
-> TokensPair ReNewsChainsAuthV1PublicRefreshPost(ctx).RefreshToken(refreshToken).Execute()
-
-Refresh Access Token
 
 
 
@@ -220,32 +151,27 @@ import (
 )
 
 func main() {
-	refreshToken := *openapiclient.NewRefreshToken(*openapiclient.NewRefreshTokenData("Type_example", *openapiclient.NewRefreshTokenDataAttributes("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."))) // RefreshToken | 
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.LoginAPI.ReNewsChainsAuthV1PublicRefreshPost(context.Background()).RefreshToken(refreshToken).Execute()
+	resp, r, err := apiClient.LoginAPI.ReNewsChainsAuthV1OwnLogoutPost(context.Background()).Execute()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error when calling `LoginAPI.ReNewsChainsAuthV1PublicRefreshPost``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error when calling `LoginAPI.ReNewsChainsAuthV1OwnLogoutPost``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	// response from `ReNewsChainsAuthV1PublicRefreshPost`: TokensPair
-	fmt.Fprintf(os.Stdout, "Response from `LoginAPI.ReNewsChainsAuthV1PublicRefreshPost`: %v\n", resp)
+	// response from `ReNewsChainsAuthV1OwnLogoutPost`: TokensPair
+	fmt.Fprintf(os.Stdout, "Response from `LoginAPI.ReNewsChainsAuthV1OwnLogoutPost`: %v\n", resp)
 }
 ```
 
 ### Path Parameters
 
-
+This endpoint does not need any parameter.
 
 ### Other Parameters
 
-Other parameters are passed through a pointer to a apiReNewsChainsAuthV1PublicRefreshPostRequest struct via the builder pattern
+Other parameters are passed through a pointer to a apiReNewsChainsAuthV1OwnLogoutPostRequest struct via the builder pattern
 
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **refreshToken** | [**RefreshToken**](RefreshToken.md) |  | 
 
 ### Return type
 
@@ -257,7 +183,7 @@ No authorization required
 
 ### HTTP request headers
 
-- **Content-Type**: application/vnd.api+json
+- **Content-Type**: Not defined
 - **Accept**: application/vnd.api+json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)

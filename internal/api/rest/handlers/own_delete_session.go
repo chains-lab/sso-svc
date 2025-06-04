@@ -10,18 +10,18 @@ import (
 	"github.com/google/uuid"
 )
 
-func (h *Handler) DeleteSession(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) DeleteSession(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
 
 	user, err := tokens.GetAccountTokenData(r.Context())
 	if err != nil {
-		h.controllers.TokenData(w, requestID, err)
+		h.presenter.InvalidToken(w, requestID, err)
 		return
 	}
 
 	sessionForDeleteId, err := uuid.Parse(chi.URLParam(r, "session_id"))
 	if err != nil {
-		h.controllers.ParameterFromURL(w, requestID, err, "session_id")
+		h.presenter.InvalidParameter(w, requestID, err, "session_id")
 		return
 	}
 
@@ -29,13 +29,13 @@ func (h *Handler) DeleteSession(w http.ResponseWriter, r *http.Request) {
 
 	appErr := h.app.DeleteSessionByOwner(r.Context(), sessionForDeleteId, initiatorSessionID)
 	if appErr != nil {
-		h.controllers.ResultFromApp(w, requestID, appErr)
+		h.presenter.AppError(w, requestID, appErr)
 		return
 	}
 
-	sessions, appErr := h.app.GetSessions(r.Context(), user.AccountID)
+	sessions, appErr := h.app.GetAccountSessions(r.Context(), user.AccountID)
 	if appErr != nil {
-		h.controllers.ResultFromApp(w, requestID, appErr)
+		h.presenter.AppError(w, requestID, appErr)
 		return
 	}
 

@@ -1,0 +1,15 @@
+post:
+  tags:
+    - Login
+  description: Endpoint to login use google account
+  responses:
+    '302':
+      description: Redirect to Google callback endpoint
+      headers:
+        Location:
+          description: URL for redirection
+          schema:
+            type: string
+            example: /re-news/chains/auth/v1/own/callback
+    '500':
+      $ref: '../spec/components/responses/internal.yaml'

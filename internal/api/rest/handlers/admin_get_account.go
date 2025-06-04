@@ -9,18 +9,18 @@ import (
 	"github.com/google/uuid"
 )
 
-func (h *Handler) AdminGetAccount(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) AdminGetAccount(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
 
 	accountID, err := uuid.Parse(chi.URLParam(r, "account_id"))
 	if err != nil {
-		h.controllers.ParameterFromURL(w, requestID, err, "account_id")
+		h.presenter.InvalidParameter(w, requestID, err, "account_id")
 		return
 	}
 
 	res, appErr := h.app.GetAccountByID(r.Context(), accountID)
 	if appErr != nil {
-		h.controllers.ResultFromApp(w, requestID, appErr)
+		h.presenter.AppError(w, requestID, appErr)
 		return
 	}
 

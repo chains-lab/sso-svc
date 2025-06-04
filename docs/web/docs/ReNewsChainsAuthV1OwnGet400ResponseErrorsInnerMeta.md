@@ -4,14 +4,17 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Parameter** | **string** | Parameter is the name of the query parameter or request body field that caused the error | 
-**Pointer** | **string** | Pointer is a JSON Pointer [RFC6901] to the associated entity in the request document. It may be empty if no specific entity is identified. | 
+**ErrorId** | **string** | Error ID is a unique identifier for the error, used for debugging and tracing | 
+**RequestId** | **string** | Request ID is a unique identifier for the request, used for debugging and tracing | 
+**Parameter** | Pointer to **string** | Parameter is the name of the request parameter that caused the error, if applicable | [optional] 
+**Pointer** | Pointer to **string** | Pointer is a JSON Pointer that identifies the part of the request document that caused the error, if applicable | [optional] 
+**Timestamp** | **time.Time** | Timestamp is the time when the error occurred, in ISO 8601 format | 
 
 ## Methods
 
 ### NewReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta
 
-`func NewReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta(parameter string, pointer string, ) *ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta`
+`func NewReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta(errorId string, requestId string, timestamp time.Time, ) *ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta`
 
 NewReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta instantiates a new ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta object
 This constructor will assign default values to properties that have it defined,
@@ -25,6 +28,46 @@ will change when the set of required properties is changed
 NewReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMetaWithDefaults instantiates a new ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta object
 This constructor will only assign default values to properties that have it defined,
 but it doesn't guarantee that properties required by API are set
+
+### GetErrorId
+
+`func (o *ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta) GetErrorId() string`
+
+GetErrorId returns the ErrorId field if non-nil, zero value otherwise.
+
+### GetErrorIdOk
+
+`func (o *ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta) GetErrorIdOk() (*string, bool)`
+
+GetErrorIdOk returns a tuple with the ErrorId field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetErrorId
+
+`func (o *ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta) SetErrorId(v string)`
+
+SetErrorId sets ErrorId field to given value.
+
+
+### GetRequestId
+
+`func (o *ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta) GetRequestId() string`
+
+GetRequestId returns the RequestId field if non-nil, zero value otherwise.
+
+### GetRequestIdOk
+
+`func (o *ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta) GetRequestIdOk() (*string, bool)`
+
+GetRequestIdOk returns a tuple with the RequestId field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetRequestId
+
+`func (o *ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta) SetRequestId(v string)`
+
+SetRequestId sets RequestId field to given value.
+
 
 ### GetParameter
 
@@ -45,6 +88,11 @@ and a boolean to check if the value has been set.
 
 SetParameter sets Parameter field to given value.
 
+### HasParameter
+
+`func (o *ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta) HasParameter() bool`
+
+HasParameter returns a boolean if a field has been set.
 
 ### GetPointer
 
@@ -64,6 +112,31 @@ and a boolean to check if the value has been set.
 `func (o *ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta) SetPointer(v string)`
 
 SetPointer sets Pointer field to given value.
+
+### HasPointer
+
+`func (o *ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta) HasPointer() bool`
+
+HasPointer returns a boolean if a field has been set.
+
+### GetTimestamp
+
+`func (o *ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta) GetTimestamp() time.Time`
+
+GetTimestamp returns the Timestamp field if non-nil, zero value otherwise.
+
+### GetTimestampOk
+
+`func (o *ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta) GetTimestampOk() (*time.Time, bool)`
+
+GetTimestampOk returns a tuple with the Timestamp field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetTimestamp
+
+`func (o *ReNewsChainsAuthV1OwnGet400ResponseErrorsInnerMeta) SetTimestamp(v time.Time)`
+
+SetTimestamp sets Timestamp field to given value.
 
 
 

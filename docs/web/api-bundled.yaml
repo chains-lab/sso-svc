@@ -4,104 +4,23 @@ info:
   description: SSO REST API for Cifra app
   version: 0.0.1
 paths:
-  /re-news/chains/auth/v1/own:
+  /chains/auth/v1/own:
     get:
       tags:
         - Account
       summary: Get account
       description: Endpoint to get account
       responses:
-        '200':
+        '201':
           description: Account successfully get
           content:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/Account'
-        '400':
-          description: One of the parameters is invalid. Refer to the response body for details.
-          content:
-            application/vnd.api+json:
-              schema:
-                description: 'Standard JSON:API error'
-                type: object
-                required:
-                  - errors
-                properties:
-                  errors:
-                    type: array
-                    description: Non empty array of errors occurred during request processing
-                    items:
-                      type: object
-                      required:
-                        - title
-                        - code
-                        - status
-                      properties:
-                        status:
-                          type: integer
-                          description: Status is the HTTP status code applicable to this problem
-                          example: 400
-                          enum:
-                            - 400
-                            - 401
-                            - 403
-                            - 404
-                            - 409
-                            - 500
-                        title:
-                          type: string
-                          description: 'Title is a short, human-readable summary of the problem'
-                          example: Bad Request
-                        code:
-                          type: string
-                          description: 'Code is an application-specific error code, expressed as a string'
-                          example: invalid_request
-                        detail:
-                          type: string
-                          description: Detail is a human-readable explanation specific to this occurrence of the problem
-                          example: Request body was expected
-                        meta:
-                          type: object
-                          required:
-                            - parameter
-                            - pointer
-                          properties:
-                            parameter:
-                              type: string
-                              description: Parameter is the name of the query parameter or request body field that caused the error
-                              example: email
-                            pointer:
-                              type: string
-                              description: 'Pointer is a JSON Pointer [RFC6901] to the associated entity in the request document. It may be empty if no specific entity is identified.'
-                              example: /data/attributes/email
-        '401':
-          description: You must provide a valid authorization params.
-          content:
-            application/vnd.api+json:
-              schema:
-                $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400/content/application~1vnd.api%2Bjson/schema'
-        '403':
-          description: Forbidden
-          content:
-            application/vnd.api+json:
-              schema:
-                $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400/content/application~1vnd.api%2Bjson/schema'
-        '404':
-          description: Requested resource does not exist.
-          content:
-            application/vnd.api+json:
-              schema:
-                $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400/content/application~1vnd.api%2Bjson/schema'
-        '500':
-          description: Internal server error
-          content:
-            application/vnd.api+json:
-              schema:
-                $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400/content/application~1vnd.api%2Bjson/schema'
   /re-news/chains/auth/v1/own/refresh:
     post:
       tags:
-        - Login
+        - Sessions
       summary: Refresh Access Token
       description: Endpoint to refresh an expired access token using a valid refresh token.
       requestBody:
@@ -118,18 +37,113 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokensPair'
         '400':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+          description: One of the parameters is invalid. Refer to the response body for details.
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1login/post/responses/500/content/application~1vnd.api%2Bjson/schema'
         '401':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1logout/post/responses/401'
         '409':
           description: Conflict
           content:
             application/vnd.api+json:
               schema:
-                $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400/content/application~1vnd.api%2Bjson/schema'
+                $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1login/post/responses/500/content/application~1vnd.api%2Bjson/schema'
         '500':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1login/post/responses/500'
   /re-news/chains/auth/v1/own/login:
+    post:
+      tags:
+        - Login
+      description: Endpoint to login use google account
+      responses:
+        '302':
+          description: Redirect to Google callback endpoint
+          headers:
+            Location:
+              description: URL for redirection
+              schema:
+                type: string
+                example: /re-news/chains/auth/v1/own/callback
+        '500':
+          description: Internal server error
+          content:
+            application/vnd.api+json:
+              schema:
+                description: 'Standard JSON:API error'
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    description: Non empty array of errors occurred during request processing
+                    items:
+                      type: object
+                      required:
+                        - status
+                        - title
+                        - code
+                        - detail
+                        - meta
+                      properties:
+                        status:
+                          type: integer
+                          description: Status is the HTTP status code applicable to this problem
+                          example: 400
+                          enum:
+                            - 400
+                            - 401
+                            - 403
+                            - 404
+                            - 405
+                            - 408
+                            - 409
+                            - 415
+                            - 429
+                            - 500
+                        title:
+                          type: string
+                          description: 'Title is a short, human-readable summary of the problem'
+                          example: Bad Request
+                        code:
+                          type: string
+                          description: 'Code is an application-specific error code, expressed as a string'
+                          example: invalid_request
+                        detail:
+                          type: string
+                          description: Detail is a human-readable explanation specific to this occurrence of the problem
+                          example: Request body was expected
+                        meta:
+                          type: object
+                          required:
+                            - error_id
+                            - request_id
+                            - timestamp
+                          properties:
+                            error_id:
+                              type: string
+                              description: 'Error ID is a unique identifier for the error, used for debugging and tracing'
+                              example: 0987654321fedcba
+                            request_id:
+                              type: string
+                              description: 'Request ID is a unique identifier for the request, used for debugging and tracing'
+                              example: 1234567890abcdef
+                            parameter:
+                              type: string
+                              description: 'Parameter is the name of the request parameter that caused the error, if applicable'
+                              example: email
+                            pointer:
+                              type: string
+                              description: 'Pointer is a JSON Pointer that identifies the part of the request document that caused the error, if applicable'
+                              example: /data/attributes/email
+                            timestamp:
+                              type: string
+                              format: date-time
+                              description: 'Timestamp is the time when the error occurred, in ISO 8601 format'
+                              example: '2023-10-01T12:34:56Z'
+  /re-news/chains/auth/v1/own/callback:
     post:
       tags:
         - Login
@@ -142,13 +156,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokensPair'
         '400':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1refresh/post/responses/400'
         '500':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1login/post/responses/500'
   /re-news/chains/auth/v1/own/logout:
     post:
       tags:
-        - Logout
+        - Login
       description: Endpoint to logout user
       responses:
         '201':
@@ -158,7 +172,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokensPair'
         '401':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+          description: You must provide a valid authorization params.
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1login/post/responses/500/content/application~1vnd.api%2Bjson/schema'
+        '404':
+          description: Requested resource does not exist.
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1login/post/responses/500/content/application~1vnd.api%2Bjson/schema'
   /re-news/chains/auth/v1/own/sessions:
     get:
       tags:
@@ -173,11 +197,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessionsCollection'
         '401':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1logout/post/responses/401'
         '403':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+          description: Forbidden
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1login/post/responses/500/content/application~1vnd.api%2Bjson/schema'
         '500':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1login/post/responses/500'
     delete:
       tags:
         - Sessions
@@ -191,13 +219,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessionsCollection'
         '401':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1logout/post/responses/401'
         '403':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1sessions/get/responses/403'
         '404':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1logout/post/responses/404'
         '500':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1login/post/responses/500'
   '/re-news/chains/auth/v1/own/sessions/{session_id}':
     get:
       tags:
@@ -220,13 +248,13 @@ paths:
         '201':
           description: Updated username successfully
         '401':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1logout/post/responses/401'
         '403':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1sessions/get/responses/403'
         '404':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1logout/post/responses/404'
         '500':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1login/post/responses/500'
     delete:
       tags:
         - Sessions
@@ -246,13 +274,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessionsCollection'
         '401':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1logout/post/responses/401'
         '403':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1sessions/get/responses/403'
         '404':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1logout/post/responses/404'
         '500':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1login/post/responses/500'
   '/re-news/chains/auth/v1/admin/{account_id}':
     get:
       tags:
@@ -273,19 +301,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/Account'
         '400':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1refresh/post/responses/400'
         '401':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1logout/post/responses/401'
         '403':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1sessions/get/responses/403'
         '404':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1logout/post/responses/404'
         '500':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1login/post/responses/500'
   '/re-news/chains/auth/v1/admin/{account_id}/{role}':
-    patch:
+    post:
       tags:
-        - Admin update Role
+        - Admin
       summary: admin role update
       description: Endpoint to update user
       parameters:
@@ -307,15 +335,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/Account'
         '400':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1refresh/post/responses/400'
         '401':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1logout/post/responses/401'
         '403':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1sessions/get/responses/403'
         '404':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1logout/post/responses/404'
         '500':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1login/post/responses/500'
   '/re-news/chains/auth/v1/admin/{account_id}/sessions':
     get:
       tags:
@@ -336,15 +364,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessionsCollection'
         '400':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1refresh/post/responses/400'
         '401':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1logout/post/responses/401'
         '403':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1sessions/get/responses/403'
         '404':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1logout/post/responses/404'
         '500':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1login/post/responses/500'
     delete:
       tags:
         - Admin
@@ -360,15 +388,15 @@ paths:
         '204':
           description: User successfully logout
         '400':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1refresh/post/responses/400'
         '401':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1logout/post/responses/401'
         '403':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1sessions/get/responses/403'
         '404':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1logout/post/responses/404'
         '500':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1login/post/responses/500'
   '/re-news/chains/auth/v1/admin/{account_id}/sessions/{session_id}':
     get:
       tags:
@@ -394,33 +422,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/Session'
         '400':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/400'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1refresh/post/responses/400'
         '401':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/401'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1logout/post/responses/401'
         '403':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/403'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1sessions/get/responses/403'
         '404':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/404'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1logout/post/responses/404'
         '500':
-          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own/get/responses/500'
-  /re-news//chains/auth/v1/own/google/login:
-    $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1login'
-  /re-news//chains/auth/v1/public/refresh:
-    $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1refresh'
-  /re-news//chains/auth/v1/public/account:
-    $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own'
-  /re-news//chains/auth/v1/public/sessions:
-    $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1sessions'
-  '/re-news//chains/auth/v1/public/sessions/{session_id}':
-    $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1sessions~1%7Bsession_id%7D'
-  '/re-news//chains/auth/v1/private/account/{account_id}':
-    $ref: '#/paths/~1re-news~1chains~1auth~1v1~1admin~1%7Baccount_id%7D'
-  '/re-news//chains/auth/v1/private/accounts/{account_id}/{role}':
-    $ref: '#/paths/~1re-news~1chains~1auth~1v1~1admin~1%7Baccount_id%7D~1%7Brole%7D'
-  '/re-news//chains/auth/v1/private/accounts/{account_id}/sessions':
-    $ref: '#/paths/~1re-news~1chains~1auth~1v1~1admin~1%7Baccount_id%7D~1sessions'
-  '/re-news//chains/auth/v1/private/accounts/{account_id}/sessions/{session_id}':
-    $ref: '#/paths/~1re-news~1chains~1auth~1v1~1admin~1%7Baccount_id%7D~1sessions~1%7Bsession_id%7D'
+          $ref: '#/paths/~1re-news~1chains~1auth~1v1~1own~1login/post/responses/500'
 components:
   schemas:
     TokensPair:

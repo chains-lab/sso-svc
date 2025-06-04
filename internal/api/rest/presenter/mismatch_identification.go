@@ -1,4 +1,4 @@
-package controllers
+package presenter
 
 import (
 	"fmt"
@@ -9,10 +9,10 @@ import (
 	"github.com/google/uuid"
 )
 
-func (h Controller) CheckURLAndJSONResource(w http.ResponseWriter, requestID uuid.UUID, parameter, pointer string) {
+func (p Presenter) MismatchIdentification(w http.ResponseWriter, requestID uuid.UUID, parameter, pointer string) {
 	ErrorID := uuid.New()
 
-	h.log.WithField("request_id", requestID).
+	p.log.WithField("request_id", requestID).
 		WithField("error_id", ErrorID).
 		WithError(fmt.Errorf("invalid URL or JSON resource ID"))
 
@@ -26,5 +26,6 @@ func (h Controller) CheckURLAndJSONResource(w http.ResponseWriter, requestID uui
 		Parameter: parameter,
 		Pointer:   pointer,
 	})...)
+
 	return
 }

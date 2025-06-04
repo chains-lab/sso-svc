@@ -5,14 +5,13 @@ import (
 	"net/http"
 
 	"github.com/chains-lab/chains-auth/internal/api/rest/responses"
-	"github.com/chains-lab/chains-auth/internal/app"
 	"github.com/chains-lab/gatekit/httpkit"
 	"github.com/chains-lab/gatekit/jsonkit"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/google/uuid"
 )
 
-func (h *Handler) LoginSimple(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) LoginSimple(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
 	log := h.log.WithField("request_id", requestID)
 
@@ -48,9 +47,7 @@ func (h *Handler) LoginSimple(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, appErr := h.app.Login(r.Context(), app.LoginRequest{
-		Email: req.Email,
-	})
+	res, appErr := h.app.Login(r.Context(), req.Email, "test")
 	if appErr != nil {
 		log.WithError(appErr.Unwrap()).Error("error getting session")
 		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{

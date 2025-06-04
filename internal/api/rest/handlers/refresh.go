@@ -6,22 +6,15 @@ import (
 
 	"github.com/chains-lab/chains-auth/internal/api/rest/requests"
 	"github.com/chains-lab/chains-auth/internal/api/rest/responses"
-	"github.com/chains-lab/chains-auth/internal/app"
 	"github.com/chains-lab/gatekit/httpkit"
 	"github.com/chains-lab/gatekit/tokens"
 	"github.com/google/uuid"
 )
 
-func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
-	req, err := requests.NewRefresh(r)
-	if err != nil {
-		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
-			Status: http.StatusBadRequest,
-			Error:  err,
-		})...)
-		return
-	}
-	curToken := req.Data.Attributes.RefreshToken
+func (h *Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
+	requestID := uuid.New()
+
+	//------------------------------- COPY FROM MDLV ------------------------------------------//
 
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
@@ -56,29 +49,28 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sessionID := userData.Session
-	//accountRole := userData.Role
-	//subTypeID := userData.SubID
 
 	accountID, err := uuid.Parse(userData.Subject)
 	if err != nil {
-		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
-			Status: http.StatusBadRequest,
-			Detail: "Account ID must be a valid UUID.",
-		})...)
+		h.presenter.InvalidParameter(w, uuid.Nil, err, "account_id")
 		return
 	}
 
-	//-------------------------------------------------------------------------//
+	//-------------------------------END COPY FROM MDLV------------------------------------------//
 
-	requestID := uuid.New()
+	req, err := requests.NewRefresh(r)
+	if err != nil {
+		h.presenter.InvalidPointer(w, requestID, err)
+		return
+	}
+
+	curToken := req.Data.Attributes.RefreshToken
+	
 	log := h.log.WithField("request_id", requestID)
 
-	session, appErr := h.app.Refresh(r.Context(), accountID, sessionID, app.RefreshRequest{
-		Token:  curToken,
-		Client: r.Header.Get("User-Agent"),
-	})
+	session, appErr := h.app.Refresh(r.Context(), accountID, sessionID, r.Header.Get("User-Agent"), curToken)
 	if appErr != nil {
-		h.controllers.ResultFromApp(w, requestID, appErr)
+		h.presenter.AppError(w, requestID, appErr)
 		return
 	}
 

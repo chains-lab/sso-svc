@@ -12,4 +12,4 @@ post:
     '400':
       $ref: '../spec/components/responses/invalidParameter.yaml'
     '500':
-      $ref: '../spec/components/responses/internalError.yaml'
+      $ref: '../spec/components/responses/internal.yaml'

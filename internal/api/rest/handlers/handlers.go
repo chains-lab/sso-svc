@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/chains-lab/chains-auth/internal/api/rest/controllers"
+	"github.com/chains-lab/chains-auth/internal/api/rest/presenter"
 	"github.com/chains-lab/chains-auth/internal/app"
 	"github.com/chains-lab/chains-auth/internal/app/ape"
 	"github.com/chains-lab/chains-auth/internal/app/models"
@@ -16,17 +16,16 @@ import (
 )
 
 type App interface {
-	CreateAccount(ctx context.Context, email string, role roles.Role) *ape.Error
 	UpdateAccountRole(ctx context.Context, accountID uuid.UUID, role, initiatorRole roles.Role) *ape.Error
 
 	GetAccountByID(ctx context.Context, accountID uuid.UUID) (models.Account, *ape.Error)
 	GetAccountByEmail(ctx context.Context, email string) (models.Account, *ape.Error)
 
 	GetSession(ctx context.Context, sessionID uuid.UUID) (models.Session, *ape.Error)
-	GetSessions(ctx context.Context, accountID uuid.UUID) ([]models.Session, *ape.Error)
+	GetAccountSessions(ctx context.Context, accountID uuid.UUID) ([]models.Session, *ape.Error)
 
-	Login(ctx context.Context, request app.LoginRequest) (models.Session, *ape.Error)
-	Refresh(ctx context.Context, accountID, sessionID uuid.UUID, request app.RefreshRequest) (models.Session, *ape.Error)
+	Login(ctx context.Context, email, client string) (models.Session, *ape.Error)
+	Refresh(ctx context.Context, accountID, sessionID uuid.UUID, client, token string) (models.Session, *ape.Error)
 	Logout(ctx context.Context, sessionID uuid.UUID) *ape.Error
 
 	TerminateSessionsByOwner(ctx context.Context, accountID uuid.UUID) *ape.Error
@@ -35,27 +34,29 @@ type App interface {
 	DeleteSessionByAdmin(ctx context.Context, sessionID, initiatorID, initiatorSessionID uuid.UUID) *ape.Error
 }
 
-type Controller interface {
-	TokenData(w http.ResponseWriter, requestID uuid.UUID, err error)
-	ParameterFromURL(w http.ResponseWriter, requestID uuid.UUID, err error, parameter string)
-	ResultFromApp(w http.ResponseWriter, requestID uuid.UUID, appErr *ape.Error)
-	CheckURLAndJSONResource(w http.ResponseWriter, requestID uuid.UUID, parameter, pointer string)
+type Presenter interface {
+	InvalidPointer(w http.ResponseWriter, requestID uuid.UUID, err error)
+	InvalidToken(w http.ResponseWriter, requestID uuid.UUID, err error)
+	InvalidParameter(w http.ResponseWriter, requestID uuid.UUID, err error, parameter string)
+	InvalidQuery(w http.ResponseWriter, requestID uuid.UUID, query string, err error)
+	MismatchIdentification(w http.ResponseWriter, requestID uuid.UUID, parameter, pointer string)
+	AppError(w http.ResponseWriter, requestID uuid.UUID, appErr *ape.Error)
 }
 
-type Handler struct {
-	app         App
-	controllers Controller
-	log         *logrus.Entry
-	cfg         config.Config
-	google      oauth2.Config
+type Handlers struct {
+	app       App
+	presenter Presenter
+	log       *logrus.Entry
+	cfg       config.Config
+	google    oauth2.Config
 }
 
-func NewHandlers(cfg config.Config, log *logrus.Entry, app *app.App) Handler {
-	return Handler{
-		app:         app,
-		cfg:         cfg,
-		google:      config.InitGoogleOAuth(cfg),
-		controllers: controllers.NewController(log),
-		log:         log,
+func NewHandlers(cfg config.Config, log *logrus.Entry, app *app.App) Handlers {
+	return Handlers{
+		app:       app,
+		cfg:       cfg,
+		google:    config.InitGoogleOAuth(cfg),
+		presenter: presenter.NewPresenter(log),
+		log:       log,
 	}
 }
