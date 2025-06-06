@@ -68,12 +68,12 @@ func (h *Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
 
 	log := h.log.WithField("request_id", requestID)
 
-	session, appErr := h.app.Refresh(r.Context(), userID, sessionID, r.Header.Get("User-Agent"), curToken)
+	session, tokensPair, appErr := h.app.Refresh(r.Context(), userID, sessionID, r.Header.Get("User-Agent"), curToken)
 	if appErr != nil {
 		h.presenter.AppError(w, requestID, appErr)
 		return
 	}
 
 	log.Infof("Session %s refreshed successfully", session.ID)
-	httpkit.Render(w, responses.TokensPair(session.Access, session.Refresh))
+	httpkit.Render(w, responses.TokensPair(tokensPair.Access, tokensPair.Refresh))
 }

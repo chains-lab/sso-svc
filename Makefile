@@ -1,4 +1,4 @@
-DB_URL=postgresql://postgres:postgres@localhost:7001/postgres?sslmode=disable
+DB_URL=postgresql://postgres:postgres@localhost:7000/postgres?sslmode=disable
 OPENAPI_GENERATOR := java -jar ~/openapi-generator-cli.jar
 CONFIG_FILE := ./config_local.yaml
 API_SRC := ./docs/api.yaml

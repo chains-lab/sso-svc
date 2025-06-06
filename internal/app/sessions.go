@@ -10,7 +10,17 @@ import (
 	"github.com/chains-lab/chains-auth/internal/app/models"
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 )
+
+type sessionsDomain interface {
+	Terminate(ctx context.Context, userUD uuid.UUID) *ape.Error
+	Delete(ctx context.Context, sessionID uuid.UUID) *ape.Error
+	Get(ctx context.Context, sessionID uuid.UUID) (models.Session, *ape.Error)
+	GetByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, *ape.Error)
+	Create(ctx context.Context, user models.User, client string) (models.Session, models.TokensPair, *ape.Error)
+	Refresh(ctx context.Context, sessionID uuid.UUID, user models.User, client, token string) (models.Session, models.TokensPair, *ape.Error)
+}
 
 func (a App) TerminateSessionsByOwner(ctx context.Context, userID uuid.UUID) *ape.Error {
 	_, appError := a.GetUserByID(ctx, userID)
@@ -109,7 +119,7 @@ func (a App) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]models.Se
 	return sessions, nil
 }
 
-func (a App) Login(ctx context.Context, email, client string) (models.Session, *ape.Error) {
+func (a App) Login(ctx context.Context, email, client string) (models.Session, models.TokensPair, *ape.Error) {
 	user, appErr := a.users.GetByEmail(ctx, email)
 	if appErr != nil {
 
@@ -119,53 +129,59 @@ func (a App) Login(ctx context.Context, email, client string) (models.Session, *
 			if appErr != nil {
 				switch {
 				case errors.Is(appErr.Unwrap(), sql.ErrNoRows):
-					return models.Session{}, ape.ErrorUserDoesNotExistByEmail(email, appErr.Unwrap())
+					return models.Session{}, models.TokensPair{}, ape.ErrorUserDoesNotExistByEmail(email, appErr.Unwrap())
 				default:
-					return models.Session{}, ape.ErrorInternal(appErr.Unwrap())
+					return models.Session{}, models.TokensPair{}, ape.ErrorInternal(appErr.Unwrap())
 				}
 			}
+
+			logrus.Info("test")
 
 			user, appErr = a.users.GetByEmail(ctx, email)
 			if appErr != nil {
 
 				// It a good return internal error here anyway, because we already created the user in logic above
-				return models.Session{}, ape.ErrorInternal(appErr.Unwrap())
+				return models.Session{}, models.TokensPair{}, ape.ErrorInternal(appErr.Unwrap())
 			}
 
-			session, appErr := a.sessions.Create(ctx, user, client)
+			logrus.Info("test")
+
+			session, tokensPair, appErr := a.sessions.Create(ctx, user, client)
 			if appErr != nil {
 
 				// If we fail to create a session after creating an user, we should return an internal error
-				return models.Session{}, ape.ErrorInternal(appErr.Unwrap())
+				return models.Session{}, models.TokensPair{}, ape.ErrorInternal(appErr.Unwrap())
 			}
 
-			return session, nil
+			logrus.Info("test")
+
+			return session, tokensPair, nil
 		}
 
-		return models.Session{}, ape.ErrorInternal(appErr.Unwrap())
+		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(appErr.Unwrap())
 	}
 
 	//Login flow
-	session, appErr := a.sessions.Create(ctx, user, client)
+	session, tokensPair, appErr := a.sessions.Create(ctx, user, client)
 	if appErr != nil {
-		return models.Session{}, appErr
+		return models.Session{}, models.TokensPair{}, appErr
 	}
 
-	return session, nil
+	return session, tokensPair, nil
 }
 
-func (a App) Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, token string) (models.Session, *ape.Error) {
+func (a App) Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, token string) (models.Session, models.TokensPair, *ape.Error) {
 	user, appErr := a.GetUserByID(ctx, userID)
 	if appErr != nil {
-		return models.Session{}, appErr
+		return models.Session{}, models.TokensPair{}, appErr
 	}
 
-	session, appErr := a.sessions.Refresh(ctx, sessionID, user, client, token)
+	session, tokensPair, appErr := a.sessions.Refresh(ctx, sessionID, user, client, token)
 	if appErr != nil {
-		return models.Session{}, appErr
+		return models.Session{}, models.TokensPair{}, appErr
 	}
 
-	return session, nil
+	return session, tokensPair, nil
 }
 
 func (a App) Logout(ctx context.Context, sessionID uuid.UUID) *ape.Error {

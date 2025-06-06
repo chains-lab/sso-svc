@@ -42,8 +42,8 @@ func NewSessions(db *sql.DB) SessionsQ {
 	}
 }
 
-func (s SessionsQ) New() SessionsQ {
-	return NewSessions(s.db)
+func (q SessionsQ) New() SessionsQ {
+	return NewSessions(q.db)
 }
 
 type SessionInsertInput struct {
@@ -55,7 +55,7 @@ type SessionInsertInput struct {
 	CreatedAt time.Time
 }
 
-func (s SessionsQ) Insert(ctx context.Context, input SessionInsertInput) error {
+func (q SessionsQ) Insert(ctx context.Context, input SessionInsertInput) error {
 	values := map[string]interface{}{
 		"id":         input.ID,
 		"user_id":    input.UserID,
@@ -65,7 +65,7 @@ func (s SessionsQ) Insert(ctx context.Context, input SessionInsertInput) error {
 		"created_at": input.CreatedAt,
 	}
 
-	query, args, err := s.inserter.SetMap(values).ToSql()
+	query, args, err := q.inserter.SetMap(values).ToSql()
 	if err != nil {
 		return fmt.Errorf("building insert query for users: %w", err)
 	}
@@ -73,7 +73,7 @@ func (s SessionsQ) Insert(ctx context.Context, input SessionInsertInput) error {
 	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
 		_, err = tx.ExecContext(ctx, query, args...)
 	} else {
-		_, err = s.db.ExecContext(ctx, query, args...)
+		_, err = q.db.ExecContext(ctx, query, args...)
 	}
 	if err != nil {
 		return err
@@ -86,13 +86,13 @@ type SessionUpdateInput struct {
 	LastUsed time.Time
 }
 
-func (s SessionsQ) Update(ctx context.Context, input SessionUpdateInput) error {
+func (q SessionsQ) Update(ctx context.Context, input SessionUpdateInput) error {
 	values := map[string]interface{}{
 		"token":     input.Token,
 		"last_used": input.LastUsed,
 	}
 
-	query, args, err := s.updater.SetMap(values).ToSql()
+	query, args, err := q.updater.SetMap(values).ToSql()
 	if err != nil {
 		return fmt.Errorf("building update query for users: %w", err)
 	}
@@ -100,7 +100,7 @@ func (s SessionsQ) Update(ctx context.Context, input SessionUpdateInput) error {
 	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
 		_, err = tx.ExecContext(ctx, query, args...)
 	} else {
-		_, err = s.db.ExecContext(ctx, query, args...)
+		_, err = q.db.ExecContext(ctx, query, args...)
 	}
 	if err != nil {
 		return err
@@ -108,8 +108,8 @@ func (s SessionsQ) Update(ctx context.Context, input SessionUpdateInput) error {
 	return nil
 }
 
-func (s SessionsQ) Delete(ctx context.Context) error {
-	query, args, err := s.deleter.ToSql()
+func (q SessionsQ) Delete(ctx context.Context) error {
+	query, args, err := q.deleter.ToSql()
 	if err != nil {
 		return fmt.Errorf("building delete query for sessions: %w", err)
 	}
@@ -117,7 +117,7 @@ func (s SessionsQ) Delete(ctx context.Context) error {
 	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
 		_, err = tx.ExecContext(ctx, query, args...)
 	} else {
-		_, err = s.db.ExecContext(ctx, query, args...)
+		_, err = q.db.ExecContext(ctx, query, args...)
 	}
 	if err != nil {
 		return err
@@ -125,13 +125,13 @@ func (s SessionsQ) Delete(ctx context.Context) error {
 	return nil
 }
 
-func (s SessionsQ) Select(ctx context.Context) ([]SessionModel, error) {
-	query, args, err := s.selector.ToSql()
+func (q SessionsQ) Select(ctx context.Context) ([]SessionModel, error) {
+	query, args, err := q.selector.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("building select query for sessions: %w", err)
 	}
 
-	rows, err := s.db.QueryContext(ctx, query, args...)
+	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -156,27 +156,27 @@ func (s SessionsQ) Select(ctx context.Context) ([]SessionModel, error) {
 	return sessions, nil
 }
 
-func (s SessionsQ) Count(ctx context.Context) (int, error) {
-	query, args, err := s.counter.ToSql()
+func (q SessionsQ) Count(ctx context.Context) (int, error) {
+	query, args, err := q.counter.ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("building count query for sessions: %w", err)
 	}
 
 	var count int
-	err = s.db.QueryRowContext(ctx, query, args...).Scan(&count)
+	err = q.db.QueryRowContext(ctx, query, args...).Scan(&count)
 	if err != nil {
 		return 0, err
 	}
 	return count, nil
 }
 
-func (s SessionsQ) Get(ctx context.Context) (SessionModel, error) {
-	query, args, err := s.selector.Limit(1).ToSql()
+func (q SessionsQ) Get(ctx context.Context) (SessionModel, error) {
+	query, args, err := q.selector.Limit(1).ToSql()
 	if err != nil {
 		return SessionModel{}, fmt.Errorf("building get query for sessions: %w", err)
 	}
 
-	row := s.db.QueryRowContext(ctx, query, args...)
+	row := q.db.QueryRowContext(ctx, query, args...)
 	var sess SessionModel
 	err = row.Scan(
 		&sess.ID,
@@ -192,26 +192,26 @@ func (s SessionsQ) Get(ctx context.Context) (SessionModel, error) {
 	return sess, nil
 }
 
-func (s SessionsQ) FilterID(id uuid.UUID) SessionsQ {
-	s.selector = s.selector.Where(sq.Eq{"id": id})
-	s.counter = s.counter.Where(sq.Eq{"id": id})
-	s.deleter = s.deleter.Where(sq.Eq{"id": id})
-	s.updater = s.updater.Where(sq.Eq{"id": id})
-	return s
+func (q SessionsQ) FilterID(id uuid.UUID) SessionsQ {
+	q.selector = q.selector.Where(sq.Eq{"id": id})
+	q.counter = q.counter.Where(sq.Eq{"id": id})
+	q.deleter = q.deleter.Where(sq.Eq{"id": id})
+	q.updater = q.updater.Where(sq.Eq{"id": id})
+	return q
 }
 
-func (s SessionsQ) FilterUserID(userID uuid.UUID) SessionsQ {
-	s.selector = s.selector.Where(sq.Eq{"user_id": userID})
-	s.counter = s.counter.Where(sq.Eq{"user_id": userID})
-	s.deleter = s.deleter.Where(sq.Eq{"user_id": userID})
-	s.updater = s.updater.Where(sq.Eq{"user_id": userID})
-	return s
+func (q SessionsQ) FilterUserID(userID uuid.UUID) SessionsQ {
+	q.selector = q.selector.Where(sq.Eq{"user_id": userID})
+	q.counter = q.counter.Where(sq.Eq{"user_id": userID})
+	q.deleter = q.deleter.Where(sq.Eq{"user_id": userID})
+	q.updater = q.updater.Where(sq.Eq{"user_id": userID})
+	return q
 }
 
-func (s SessionsQ) Transaction(fn func(ctx context.Context) error) error {
+func (q SessionsQ) Transaction(fn func(ctx context.Context) error) error {
 	ctx := context.Background()
 
-	tx, err := s.db.BeginTx(ctx, nil)
+	tx, err := q.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("failed to start transaction: %w", err)
 	}
@@ -232,14 +232,14 @@ func (s SessionsQ) Transaction(fn func(ctx context.Context) error) error {
 	return nil
 }
 
-func (s SessionsQ) Page(limit, offset uint64) SessionsQ {
-	s.counter = s.counter.Limit(limit).Offset(offset)
-	s.selector = s.selector.Limit(limit).Offset(offset)
-	return s
+func (q SessionsQ) Page(limit, offset uint64) SessionsQ {
+	q.counter = q.counter.Limit(limit).Offset(offset)
+	q.selector = q.selector.Limit(limit).Offset(offset)
+	return q
 }
 
-func (s SessionsQ) Drop(ctx context.Context) error {
-	query, args, err := s.deleter.ToSql()
+func (q SessionsQ) Drop(ctx context.Context) error {
+	query, args, err := q.deleter.ToSql()
 	if err != nil {
 		return fmt.Errorf("building drop query for users: %w", err)
 	}
@@ -247,7 +247,7 @@ func (s SessionsQ) Drop(ctx context.Context) error {
 	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
 		_, err = tx.ExecContext(ctx, query, args...)
 	} else {
-		_, err = s.db.ExecContext(ctx, query, args...)
+		_, err = q.db.ExecContext(ctx, query, args...)
 	}
 	if err != nil {
 		return fmt.Errorf("error executing drop query: %w", err)

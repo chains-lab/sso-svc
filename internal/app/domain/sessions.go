@@ -107,6 +107,7 @@ func (s Sessions) Get(ctx context.Context, sessionID uuid.UUID) (models.Session,
 	return models.Session{
 		ID:        session.ID,
 		UserID:    session.UserID,
+		Token:     session.Token,
 		Client:    session.Client,
 		LastUsed:  session.LastUsed,
 		CreatedAt: session.CreatedAt,
@@ -129,6 +130,7 @@ func (s Sessions) GetByUserID(ctx context.Context, userID uuid.UUID) ([]models.S
 		result[i] = models.Session{
 			ID:        session.ID,
 			UserID:    session.UserID,
+			Token:     session.Token,
 			Client:    session.Client,
 			LastUsed:  session.LastUsed,
 			CreatedAt: session.CreatedAt,
@@ -138,67 +140,91 @@ func (s Sessions) GetByUserID(ctx context.Context, userID uuid.UUID) ([]models.S
 	return result, nil
 }
 
-func (s Sessions) Create(ctx context.Context, user models.User, client string) (models.Session, *ape.Error) {
+func (s Sessions) Create(ctx context.Context, user models.User, client string) (models.Session, models.TokensPair, *ape.Error) {
 	id := uuid.New()
 	createdAt := time.Now().UTC()
-	token, err := s.jwt.GenerateRefresh(user.ID, id, user.Subscription, user.Role)
+
+	if user.ID == uuid.Nil {
+		return models.Session{}, models.TokensPair{}, ape.ErrorUserDoesNotExist(user.ID, fmt.Errorf("user ID is nil"))
+	}
+
+	refresh, err := s.jwt.GenerateRefresh(user.ID, id, user.Subscription, user.Role)
 	if err != nil {
-		return models.Session{}, ape.ErrorInternal(err)
+		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
+	}
+
+	refreshCrypto, err := s.jwt.EncryptRefresh(refresh)
+	if err != nil {
+		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
+	}
+
+	access, err := s.jwt.GenerateAccess(user.ID, id, user.Subscription, user.Role)
+	if err != nil {
+		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
 	}
 
 	err = s.repo.Create(ctx, repo.SessionCreateRequest{
 		ID:        id,
 		UserID:    user.ID,
-		Token:     token,
+		Token:     refreshCrypto,
 		Client:    client,
 		CreatedAt: createdAt,
 	})
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return models.Session{}, ape.ErrorUserDoesNotExist(id, err)
+			return models.Session{}, models.TokensPair{}, ape.ErrorUserDoesNotExist(id, err)
 		default:
-			return models.Session{}, ape.ErrorInternal(err)
+			return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
 		}
 	}
 
 	return models.Session{
-		ID:        id,
-		UserID:    user.ID,
-		Client:    client,
-		LastUsed:  createdAt,
-		CreatedAt: createdAt,
-	}, nil
+			ID:        id,
+			UserID:    user.ID,
+			Client:    client,
+			Token:     refreshCrypto,
+			LastUsed:  createdAt,
+			CreatedAt: createdAt,
+		}, models.TokensPair{
+			Refresh: refresh,
+			Access:  access,
+		}, nil
 
 }
 
-func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.User, client, token string) (models.Session, *ape.Error) {
+func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.User, client, token string) (models.Session, models.TokensPair, *ape.Error) {
 	session, appErr := s.Get(ctx, sessionID)
 	if appErr != nil {
-		return models.Session{}, appErr
+		return models.Session{}, models.TokensPair{}, appErr
 	}
 
 	if session.Client != client {
-		return models.Session{}, ape.ErrorSessionClientMismatch(fmt.Errorf("session client mismatch"))
+		return models.Session{}, models.TokensPair{}, ape.ErrorSessionClientMismatch(fmt.Errorf("session client mismatch"))
 	}
 
 	access, err := s.jwt.GenerateAccess(session.UserID, session.ID, user.Subscription, user.Role)
 	if err != nil {
-		return models.Session{}, ape.ErrorInternal(err)
+		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
 	}
 
-	refresh, err := s.jwt.GenerateRefresh(session.UserID, session.ID, user.Subscription, user.Role)
+	oldRefresh, err := s.jwt.DecryptRefresh(session.Token)
 	if err != nil {
-		return models.Session{}, ape.ErrorInternal(err)
+		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
 	}
 
-	refreshCrypto, err := s.jwt.EncryptRefresh(refresh)
+	if oldRefresh != token {
+		return models.Session{}, models.TokensPair{}, ape.ErrorSessionTokenMismatch(fmt.Errorf("token mismatch"))
+	}
+
+	newRefresh, err := s.jwt.GenerateRefresh(session.UserID, session.ID, user.Subscription, user.Role)
 	if err != nil {
-		return models.Session{}, ape.ErrorInternal(err)
+		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
 	}
 
-	if refreshCrypto != token {
-		return models.Session{}, ape.ErrorSessionTokenMismatch(fmt.Errorf("token mismatch"))
+	refreshCrypto, err := s.jwt.EncryptRefresh(newRefresh)
+	if err != nil {
+		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
 	}
 
 	LastUsed := time.Now().UTC()
@@ -208,16 +234,18 @@ func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.
 		LastUsed: LastUsed,
 	})
 	if err != nil {
-		return models.Session{}, ape.ErrorInternal(err)
+		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
 	}
 
 	return models.Session{
-		ID:        session.ID,
-		UserID:    session.UserID,
-		Access:    access,
-		Refresh:   refresh,
-		Client:    session.Client,
-		LastUsed:  LastUsed,
-		CreatedAt: session.CreatedAt,
-	}, nil
+			ID:        session.ID,
+			UserID:    session.UserID,
+			Client:    session.Client,
+			Token:     refreshCrypto,
+			LastUsed:  LastUsed,
+			CreatedAt: session.CreatedAt,
+		}, models.TokensPair{
+			Refresh: newRefresh,
+			Access:  access,
+		}, nil
 }

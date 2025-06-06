@@ -47,7 +47,7 @@ func (h *Handlers) LoginSimple(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, appErr := h.app.Login(r.Context(), req.Email, "test")
+	session, tokensPair, appErr := h.app.Login(r.Context(), req.Email, r.Header.Get("User-Agent"))
 	if appErr != nil {
 		log.WithError(appErr.Unwrap()).Error("error getting session")
 		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
@@ -56,6 +56,6 @@ func (h *Handlers) LoginSimple(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Infof("got session: %+v", res)
-	httpkit.Render(w, responses.TokensPair(res.Access, res.Refresh))
+	log.Debugf("got session: %+v", session)
+	httpkit.Render(w, responses.TokensPair(tokensPair.Access, tokensPair.Refresh))
 }

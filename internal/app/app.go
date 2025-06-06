@@ -7,8 +7,8 @@ import (
 )
 
 type App struct {
-	sessions domain.Sessions
-	users    domain.Users
+	sessions sessionsDomain
+	users    usersDomain
 	log      *logrus.Entry
 }
 

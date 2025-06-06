@@ -173,7 +173,7 @@ paths:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/SessionsCollection'
-          description: Updated username successfully
+          description: successfully
         "401":
           content:
             application/vnd.api+json:
@@ -209,7 +209,7 @@ paths:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/SessionsCollection'
-          description: Updated username successfully
+          description: Successfully
         "401":
           content:
             application/vnd.api+json:
@@ -246,7 +246,7 @@ paths:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/SessionsCollection'
-          description: Updated username successfully
+          description: successfully
         "401":
           content:
             application/vnd.api+json:
@@ -283,14 +283,12 @@ paths:
         schema:
           type: string
       responses:
-        "200":
+        "201":
           content:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/Session'
           description: User sessions successfully get
-        "201":
-          description: Updated username successfully
         "401":
           content:
             application/vnd.api+json:

@@ -18,7 +18,7 @@ type User struct {
 	ID           uuid.UUID  `json:"id"`
 	Email        string     `json:"email"`
 	Role         roles.Role `json:"role"`
-	Subscription uuid.UUID  `json:"subscription,omitempty"`
+	Subscription uuid.UUID  `json:"subscription"`
 	UpdatedAt    time.Time  `json:"updated_at"`
 	CreatedAt    time.Time  `json:"created_at"`
 }
@@ -48,8 +48,10 @@ type usersRedis interface {
 	Create(ctx context.Context, input redisdb.CreateUserInput) error
 	Set(ctx context.Context, input redisdb.UserSetInput) error
 	Update(ctx context.Context, userID uuid.UUID, input redisdb.UserUpdateRequest) error
+
 	GetByID(ctx context.Context, userID string) (redisdb.UserModel, error)
 	GetByEmail(ctx context.Context, email string) (redisdb.UserModel, error)
+
 	Delete(ctx context.Context, userID, email string) error
 
 	Drop(ctx context.Context) error
@@ -85,7 +87,7 @@ type UserCreateRequest struct {
 	ID           uuid.UUID  `json:"id"`
 	Email        string     `json:"email"`
 	Role         roles.Role `json:"role"`
-	Subscription uuid.UUID  `json:"subscription,omitempty"`
+	Subscription uuid.UUID  `json:"subscription"`
 	CreatedAt    time.Time  `json:"created_at"`
 }
 
@@ -115,7 +117,7 @@ func (a UsersRepo) Create(ctx context.Context, input UserCreateRequest) error {
 
 type UserUpdateRequest struct {
 	Role         *roles.Role `json:"role"`
-	Subscription *uuid.UUID  `json:"subscription,omitempty"`
+	Subscription *uuid.UUID  `json:"subscription"`
 	UpdatedAt    time.Time   `json:"updated_at"`
 }
 
@@ -132,11 +134,7 @@ func (a UsersRepo) Update(ctx context.Context, ID uuid.UUID, input UserUpdateReq
 	}
 	sqlInput.UpdatedAt = input.UpdatedAt
 
-	if err := a.sql.New().FilterID(ID).Update(ctxSync, sqldb.UserUpdateInput{
-		Role:         input.Role,
-		Subscription: input.Subscription,
-		UpdatedAt:    input.UpdatedAt,
-	}); err != nil {
+	if err := a.sql.New().FilterID(ID).Update(ctxSync, sqlInput); err != nil {
 		return err
 	}
 
@@ -166,7 +164,7 @@ func (a UsersRepo) Delete(ctx context.Context, ID uuid.UUID) error {
 	}
 
 	if err := a.redis.Delete(ctxSync, user.ID.String(), user.Email); err != nil {
-		a.log.WithField("database", "redis").Errorf("error creating user in redis: %v", err)
+		a.log.WithField("database", "redis").Errorf("error delete user in redis: %v", err)
 	}
 
 	if err := a.sql.New().FilterID(ID).Delete(ctxSync); err != nil {
@@ -182,7 +180,7 @@ func (a UsersRepo) GetByID(ctx context.Context, ID uuid.UUID) (User, error) {
 
 	redisRes, err := a.redis.GetByID(ctxSync, ID.String())
 	if err != nil {
-		a.log.WithField("database", "redis").Errorf("error creating user in redis: %v", err)
+		a.log.WithField("database", "redis").Errorf("error get user by id in redis: %v", err)
 	} else {
 		res := User{
 			ID:           redisRes.ID,
@@ -222,7 +220,7 @@ func (a UsersRepo) GetByID(ctx context.Context, ID uuid.UUID) (User, error) {
 		UpdatedAt:    user.UpdatedAt,
 		CreatedAt:    user.CreatedAt,
 	}); err != nil {
-		a.log.WithField("database", "redis").Errorf("error creating user in redis: %v", err)
+		a.log.WithField("database", "redis").Errorf("error set user in redis: %v", err)
 	}
 
 	return res, nil
@@ -234,7 +232,7 @@ func (a UsersRepo) GetByEmail(ctx context.Context, email string) (User, error) {
 
 	redisRes, err := a.redis.GetByEmail(ctxSync, email)
 	if err != nil {
-		a.log.WithField("database", "redis").Errorf("error creating user in redis: %v", err)
+		a.log.WithField("database", "redis").Errorf("error get user in redis: %v", err)
 	} else {
 		res := User{
 			ID:           redisRes.ID,
@@ -274,7 +272,7 @@ func (a UsersRepo) GetByEmail(ctx context.Context, email string) (User, error) {
 		UpdatedAt:    user.UpdatedAt,
 		CreatedAt:    user.CreatedAt,
 	}); err != nil {
-		a.log.WithField("database", "redis").Errorf("error creating user in redis: %v", err)
+		a.log.WithField("database", "redis").Errorf("error set user in redis: %v", err)
 	}
 
 	return res, nil

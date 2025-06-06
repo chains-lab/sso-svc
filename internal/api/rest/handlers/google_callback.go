@@ -63,11 +63,11 @@ func (h *Handlers) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, appErr := h.app.Login(r.Context(), userInfo.Email, r.Header.Get("User-Agent"))
+	_, tokensPair, appErr := h.app.Login(r.Context(), userInfo.Email, r.Header.Get("User-Agent"))
 	if appErr != nil {
 		h.presenter.AppError(w, requestID, appErr)
 	}
 
-	h.log.WithField("request_id", requestID).Infof("User %s logged in with Google", userInfo.Email)
-	httpkit.Render(w, responses.TokensPair(session.Access, session.Refresh))
+	h.log.Infof("User %s logged in with Google", userInfo.Email)
+	httpkit.Render(w, responses.TokensPair(tokensPair.Access, tokensPair.Refresh))
 }

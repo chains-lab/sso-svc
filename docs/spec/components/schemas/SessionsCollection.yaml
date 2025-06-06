@@ -20,6 +20,3 @@ properties:
             type: array
             items:
               $ref: './SessionData.yaml'
-#TODO: Add links
-#      links:
-#        $ref: './LinksPagination.yaml'

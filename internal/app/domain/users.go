@@ -65,6 +65,8 @@ func (a Users) Create(ctx context.Context, email string, role roles.Role) *ape.E
 		}
 	}
 
+	logrus.Debugf("dwqedqwdqwdqwd")
+
 	return nil
 }
 

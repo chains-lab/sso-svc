@@ -10,6 +10,13 @@ import (
 	"github.com/google/uuid"
 )
 
+type usersDomain interface {
+	Create(ctx context.Context, email string, role roles.Role) *ape.Error
+	UpdateRole(ctx context.Context, ID uuid.UUID, role roles.Role) *ape.Error
+	GetByID(ctx context.Context, ID uuid.UUID) (models.User, *ape.Error)
+	GetByEmail(ctx context.Context, email string) (models.User, *ape.Error)
+}
+
 func (a App) UpdateUserRole(ctx context.Context, ID uuid.UUID, role, initiatorRole roles.Role) *ape.Error {
 	if roles.CompareRolesUser(role, initiatorRole) != 1 {
 		return ape.ErrorUserNoPermissionToUpdateRole(fmt.Errorf("user has no permission to update role"))

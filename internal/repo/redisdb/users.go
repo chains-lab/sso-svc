@@ -72,7 +72,6 @@ func (a Users) Create(ctx context.Context, input CreateUserInput) error {
 		return fmt.Errorf("error adding user to Redis: %w", err)
 	}
 
-	// Устанавливаем индекс: в hash emailIndexKey поле = email, значение = userID.
 	if err := a.client.HSet(ctx, emailIndexKey, input.Email, input.ID.String()).Err(); err != nil {
 		return fmt.Errorf("error creating email index: %w", err)
 	}
@@ -154,7 +153,6 @@ type UserUpdateRequest struct {
 func (a Users) Update(ctx context.Context, userID uuid.UUID, input UserUpdateRequest) error {
 	userKey := fmt.Sprintf("%s:id:%s", usersCollection, userID.String())
 
-	// Проверяем, существует ли запись по userKey.
 	exists, err := a.client.Exists(ctx, userKey).Result()
 	if err != nil {
 		return fmt.Errorf("error checking user existence: %w", err)
@@ -170,13 +168,10 @@ func (a Users) Update(ctx context.Context, userID uuid.UUID, input UserUpdateReq
 	if input.Subscription != nil {
 		data["subscription"] = input.Subscription.String()
 	}
-	// Обновляем временную метку.
 	data["updated_at"] = input.UpdatedAt.Format(time.RFC3339)
 
 	pipe := a.client.Pipeline()
 	pipe.HSet(ctx, userKey, data)
-	// Поскольку индексный hash хранит mapping email -> userID и email здесь не меняется,
-	// можно также обновить срок жизни для этого индекса.
 	pipe.Expire(ctx, userKey, a.lifeTime)
 	pipe.Expire(ctx, emailIndexKey, a.lifeTime)
 	_, err = pipe.Exec(ctx)
@@ -211,9 +206,7 @@ func (a Users) GetByEmail(ctx context.Context, email string) (UserModel, error) 
 // Delete удаляет запись аккаунта и удаляет соответствующую запись из индексного хеша.
 func (a Users) Delete(ctx context.Context, userID, email string) error {
 	userKey := fmt.Sprintf("%s:id:%s", usersCollection, userID)
-	// Не нужно формировать отдельный emailKey, поскольку индекс хранится в одном хеше.
 
-	// Проверяем существование записи.
 	exists, err := a.client.Exists(ctx, userKey).Result()
 	if err != nil {
 		return fmt.Errorf("error checking user existence in Redis: %w", err)
@@ -224,7 +217,6 @@ func (a Users) Delete(ctx context.Context, userID, email string) error {
 
 	pipe := a.client.Pipeline()
 	pipe.Del(ctx, userKey)
-	// Удаляем поле email из индексного хеша.
 	pipe.HDel(ctx, emailIndexKey, email)
 	_, err = pipe.Exec(ctx)
 	if err != nil {
@@ -236,6 +228,7 @@ func (a Users) Delete(ctx context.Context, userID, email string) error {
 // Drop удаляет все ключи, связанные с аккаунтами, по шаблону.
 func (a Users) Drop(ctx context.Context) error {
 	pattern := fmt.Sprintf("%s:*", usersCollection)
+
 	keys, err := a.client.Keys(ctx, pattern).Result()
 	if err != nil {
 		return fmt.Errorf("error fetching keys with pattern %s: %w", pattern, err)

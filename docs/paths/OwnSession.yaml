@@ -10,14 +10,12 @@ get:
       schema:
         type: string
   responses:
-    '200':
+    '201':
       description: User sessions successfully get
       content:
         application/vnd.api+json:
           schema:
             $ref: '../spec/components/schemas/Session.yaml'
-    '201':
-      description: Updated username successfully
     '401':
       $ref: '../spec/components/responses/unauthorized.yaml'
     '403':
@@ -40,7 +38,7 @@ delete:
         type: string
   responses:
     '201':
-      description: Updated username successfully
+      description: successfully
       content:
         application/vnd.api+json:
           schema:

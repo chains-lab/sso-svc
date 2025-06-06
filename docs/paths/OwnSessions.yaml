@@ -5,7 +5,7 @@ get:
   description: Endpoint to get user's sessions
   responses:
     '201':
-      description: Updated username successfully
+      description: Successfully
       content:
         application/vnd.api+json:
           schema:
@@ -24,7 +24,7 @@ delete:
   description: Endpoint to terminate user's sessions
   responses:
     '201':
-      description: Updated username successfully
+      description: successfully
       content:
         application/vnd.api+json:
           schema:
