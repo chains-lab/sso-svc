@@ -10,6 +10,6 @@ post:
           description: URL for redirection
           schema:
             type: string
-            example: /re-news/chains/auth/v1/own/callback
+            example: "/re-news/chains/auth/v1/own/callback"
     '500':
       $ref: '../spec/components/responses/internal.yaml'

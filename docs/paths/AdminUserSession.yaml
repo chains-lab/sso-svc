@@ -3,17 +3,6 @@ get:
     - Admin
   summary: admin get session
   description: Endpoint to get user if you admin
-  parameters:
-    - name: user_id
-      in: path
-      required: true
-      schema:
-        type: string
-    - name: session_id
-      in: path
-      required: true
-      schema:
-        type: string
   responses:
     '200':
       description: User sessions successfully get

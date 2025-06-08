@@ -3,12 +3,6 @@ get:
     - Admin
   summary: admin get sessions
   description: Endpoint to get user if you admin
-  parameters:
-  - name: user_id
-    in: path
-    required: true
-    schema:
-      type: string
   responses:
     '200':
       description: User sessions successfully get
@@ -32,12 +26,6 @@ delete:
       - Admin
   summary: admin delete user
   description: Endpoint to delete user if you admin
-  parameters:
-  - name: user_id
-    in: path
-    required: true
-    schema:
-      type: string
   responses:
     '204':
       description: User successfully logout

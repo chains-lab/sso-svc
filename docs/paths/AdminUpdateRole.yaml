@@ -3,17 +3,6 @@ post:
     - Admin
   summary: admin role update
   description: Endpoint to update user
-  parameters:
-    - name: user_id
-      in: path
-      required: true
-      schema:
-        type: string
-    - name: role
-      in: path
-      required: true
-      schema:
-        type: string
   responses:
     '200':
       description: User successfully updated

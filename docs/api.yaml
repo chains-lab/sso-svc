@@ -1,4 +1,4 @@
-openapi: 3.0.0
+openapi: 3.1.1
 info:
   title: Cifra SSO REST API
   description: SSO REST API for Cifra app
@@ -24,20 +24,60 @@ paths:
     $ref: './paths/OwnSessions.yaml'
 
   /re-news/chains/auth/v1/own/sessions/{session_id}:
+    parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
     $ref: './paths/OwnSession.yaml'
 
     #Admins
 
   /re-news/chains/auth/v1/admin/{user_id}:
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
     $ref: './paths/AdminGetUser.yaml'
 
   /re-news/chains/auth/v1/admin/{user_id}/{role}:
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: role
+        in: path
+        required: true
+        schema:
+          type: string
     $ref: './paths/AdminUpdateRole.yaml'
 
   /re-news/chains/auth/v1/admin/{user_id}/sessions:
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
     $ref: './paths/AdminUserSessions.yaml'
 
   /re-news/chains/auth/v1/admin/{user_id}/sessions/{session_id}:
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
     $ref: './paths/AdminUserSession.yaml'
 
 components:
@@ -58,3 +98,27 @@ components:
       $ref: './spec/components/schemas/SessionsCollection.yaml'
     User:
       $ref: './spec/components/schemas/User.yaml'
+    Errors:
+      $ref: './spec/components/schemas/Errors.yaml'
+
+  responses:
+    InvalidParameter:
+      $ref: './spec/components/responses/invalidParameter.yaml'
+    Unauthorized:
+      $ref: './spec/components/responses/unauthorized.yaml'
+    NotFound:
+      $ref: './spec/components/responses/notFound.yaml'
+    Forbidden:
+      $ref: './spec/components/responses/forbidden.yaml'
+    Internal:
+      $ref: './spec/components/responses/internal.yaml'
+    Conflict:
+      $ref: './spec/components/responses/conflict.yaml'
+    TooManyRequests:
+      $ref: './spec/components/responses/tooManyRequests.yaml'
+    UnsupportedMediaType:
+      $ref: './spec/components/responses/unsupportedMediaType.yaml'
+    InvalidPointer:
+      $ref: './spec/components/responses/invalidPointer.yaml'
+    InvalidQuery:
+      $ref: './spec/components/responses/invalidQuery.yaml'

@@ -19,7 +19,7 @@ import (
 // checks if the Errors type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &Errors{}
 
-// Errors Standard JSON:API error
+// Errors struct for Errors
 type Errors struct {
 	// Non empty array of errors occurred during request processing
 	Errors []ErrorsErrorsInner `json:"errors"`

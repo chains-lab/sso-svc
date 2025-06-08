@@ -3,12 +3,6 @@ get:
     - Admin
   summary: admin get user
   description: Endpoint to get user
-  parameters:
-    - name: user_id
-      in: path
-      required: true
-      schema:
-        type: string
   responses:
     '200':
       description: User successfully get
