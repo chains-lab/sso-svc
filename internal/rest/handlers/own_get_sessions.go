@@ -3,13 +3,13 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/chains-lab/chains-auth/internal/api/rest/responses"
+	"github.com/chains-lab/chains-auth/internal/rest/responses"
 	"github.com/chains-lab/gatekit/httpkit"
 	"github.com/chains-lab/gatekit/tokens"
 	"github.com/google/uuid"
 )
 
-func (h *Handlers) OwnUserGet(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) OwnGetSessions(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
 
 	user, err := tokens.GetUserTokenData(r.Context())
@@ -18,11 +18,11 @@ func (h *Handlers) OwnUserGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, appErr := h.app.GetUserByID(r.Context(), user.UserID)
+	sessions, appErr := h.app.GetUserSessions(r.Context(), user.UserID)
 	if appErr != nil {
 		h.presenter.AppError(w, requestID, appErr)
 		return
 	}
 
-	httpkit.Render(w, responses.User(res))
+	httpkit.Render(w, responses.SessionCollection(sessions))
 }

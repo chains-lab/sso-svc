@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/chains-lab/chains-auth/internal/api/rest/responses"
+	"github.com/chains-lab/chains-auth/internal/rest/responses"
 	"github.com/chains-lab/gatekit/httpkit"
 	"github.com/google/uuid"
 )

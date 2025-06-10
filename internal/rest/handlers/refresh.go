@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/chains-lab/chains-auth/internal/api/rest/requests"
-	"github.com/chains-lab/chains-auth/internal/api/rest/responses"
+	"github.com/chains-lab/chains-auth/internal/rest/requests"
+	"github.com/chains-lab/chains-auth/internal/rest/responses"
 	"github.com/chains-lab/gatekit/httpkit"
 	"github.com/chains-lab/gatekit/tokens"
 	"github.com/google/uuid"

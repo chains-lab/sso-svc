@@ -3,13 +3,13 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/chains-lab/chains-auth/internal/api/rest/responses"
+	"github.com/chains-lab/chains-auth/internal/rest/responses"
 	"github.com/chains-lab/gatekit/httpkit"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
 
-func (h *Handlers) AdminGetSessions(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) AdminGetUser(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
 
 	userID, err := uuid.Parse(chi.URLParam(r, "user_id"))
@@ -18,11 +18,11 @@ func (h *Handlers) AdminGetSessions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessions, appErr := h.app.GetUserSessions(r.Context(), userID)
+	res, appErr := h.app.GetUserByID(r.Context(), userID)
 	if appErr != nil {
 		h.presenter.AppError(w, requestID, appErr)
 		return
 	}
 
-	httpkit.Render(w, responses.SessionCollection(sessions))
+	httpkit.Render(w, responses.User(res))
 }

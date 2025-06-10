@@ -1,20 +1,20 @@
-package api
+package rest
 
 import (
 	"context"
 	"errors"
 	"net/http"
 
-	"github.com/chains-lab/chains-auth/internal/api/rest/handlers"
 	"github.com/chains-lab/chains-auth/internal/app"
 	"github.com/chains-lab/chains-auth/internal/config"
+	"github.com/chains-lab/chains-auth/internal/rest/handlers"
 	"github.com/chains-lab/gatekit/mdlv"
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/go-chi/chi/v5"
 	"github.com/sirupsen/logrus"
 )
 
-type Api struct {
+type Rest struct {
 	server   *http.Server
 	router   *chi.Mux
 	handlers handlers.Handlers
@@ -23,7 +23,7 @@ type Api struct {
 	cfg config.Config
 }
 
-func NewAPI(cfg config.Config, log *logrus.Logger, app *app.App) Api {
+func NewRest(cfg config.Config, log *logrus.Logger, app *app.App) Rest {
 	logger := log.WithField("module", "api")
 	router := chi.NewRouter()
 	server := &http.Server{
@@ -32,7 +32,7 @@ func NewAPI(cfg config.Config, log *logrus.Logger, app *app.App) Api {
 	}
 	hands := handlers.NewHandlers(cfg, logger, app)
 
-	return Api{
+	return Rest{
 		handlers: hands,
 		router:   router,
 		server:   server,
@@ -41,7 +41,7 @@ func NewAPI(cfg config.Config, log *logrus.Logger, app *app.App) Api {
 	}
 }
 
-func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
+func (a *Rest) Run(ctx context.Context, log *logrus.Logger) {
 	auth := mdlv.AuthMdl(a.cfg.JWT.AccessToken.SecretKey, "todo")
 	admin := mdlv.AccessGrant(a.cfg.JWT.AccessToken.SecretKey, "todo", roles.Admin, roles.SuperUser)
 
@@ -101,7 +101,7 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 	a.Stop(ctx, log)
 }
 
-func (a *Api) Start(ctx context.Context, log *logrus.Logger) {
+func (a *Rest) Start(ctx context.Context, log *logrus.Logger) {
 	go func() {
 		a.log.Infof("Starting server on port %s", a.cfg.Server.Port)
 		if err := a.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
@@ -110,7 +110,7 @@ func (a *Api) Start(ctx context.Context, log *logrus.Logger) {
 	}()
 }
 
-func (a *Api) Stop(ctx context.Context, log *logrus.Logger) {
+func (a *Rest) Stop(ctx context.Context, log *logrus.Logger) {
 	a.log.Info("Shutting down server...")
 	if err := a.server.Shutdown(ctx); err != nil {
 		log.Errorf("Server shutdown failed: %v", err)

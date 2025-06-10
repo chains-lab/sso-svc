@@ -4,11 +4,11 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/chains-lab/chains-auth/internal/api/rest/presenter"
 	"github.com/chains-lab/chains-auth/internal/app"
 	"github.com/chains-lab/chains-auth/internal/app/ape"
 	"github.com/chains-lab/chains-auth/internal/app/models"
 	"github.com/chains-lab/chains-auth/internal/config"
+	"github.com/chains-lab/chains-auth/internal/rest/presenter"
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"

@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/chains-lab/chains-auth/internal/api/rest/responses"
+	"github.com/chains-lab/chains-auth/internal/rest/responses"
 	"github.com/chains-lab/gatekit/httpkit"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
