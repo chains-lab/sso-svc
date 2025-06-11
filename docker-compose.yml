@@ -7,7 +7,7 @@ services:
     ports:
       - "8001:8001"
     networks:
-      - news-net
+      - chains-net
 
   chains-auth-postgres:
     image: postgres:15
@@ -21,19 +21,11 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
-      - news-net
-
-  chains-auth-redis:
-    image: redis:6
-    container_name:  chains-auth-redis
-    ports:
-      - "7201:6379"
-    networks:
-      - news-net
+      - chains-net
 
 volumes:
   pgdata:
 
 networks:
-  news-net:
+  chains-net:
     external: true

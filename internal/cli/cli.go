@@ -11,6 +11,7 @@ import (
 	"github.com/alecthomas/kingpin"
 	"github.com/chains-lab/chains-auth/internal/app"
 	"github.com/chains-lab/chains-auth/internal/config"
+	"github.com/chains-lab/chains-auth/internal/migrator"
 )
 
 func Run(args []string) bool {
@@ -50,11 +51,11 @@ func Run(args []string) bool {
 
 	switch cmd {
 	case serviceCmd.FullCommand():
-		runServices(ctx, cfg, logger, &wg, &application)
+		Start(ctx, cfg, logger, &wg, &application)
 	case migrateUpCmd.FullCommand():
-		err = MigrateUp(ctx, cfg)
+		err = migrator.RunUp(cfg)
 	case migrateDownCmd.FullCommand():
-		err = MigrateDown(ctx, cfg)
+		err = migrator.RunDown(cfg)
 	default:
 		logger.Errorf("unknown command %s", cmd)
 		return false

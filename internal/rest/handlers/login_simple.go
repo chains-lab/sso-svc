@@ -7,6 +7,7 @@ import (
 	"github.com/chains-lab/chains-auth/internal/rest/responses"
 	"github.com/chains-lab/gatekit/httpkit"
 	"github.com/chains-lab/gatekit/jsonkit"
+	"github.com/chains-lab/gatekit/roles"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/google/uuid"
 )
@@ -25,7 +26,7 @@ func (h *Handlers) LoginSimple(w http.ResponseWriter, r *http.Request) {
 
 	type emailReq struct {
 		Email string `json:"email"`
-		//Role  string  `json:"role"`
+		Role  string `json:"role"`
 		//Sub   *string `json:"sub,omitempty"`
 	}
 	var req emailReq
@@ -36,8 +37,7 @@ func (h *Handlers) LoginSimple(w http.ResponseWriter, r *http.Request) {
 
 	errs := validation.Errors{
 		"email": validation.Validate(req.Email, validation.Required),
-		//"role":  validation.Validate(req.Role, validation.NilOrNotEmpty),
-		//"sub":   validation.Validate(req.Sub, validation.NilOrNotEmpty),
+		"role":  validation.Validate(req.Role, validation.NilOrNotEmpty),
 	}
 	if errs.Filter() != nil {
 		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
@@ -47,7 +47,18 @@ func (h *Handlers) LoginSimple(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, tokensPair, appErr := h.app.Login(r.Context(), req.Email, r.Header.Get("User-Agent"))
+	role, err := roles.ParseRole(req.Role)
+	if err != nil {
+		log.WithError(err).Error("failed to parse role")
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusBadRequest,
+			Title:  "Invalid role",
+			Detail: "The provided role is invalid",
+		})...)
+		return
+	}
+
+	session, tokensPair, appErr := h.app.Login(r.Context(), req.Email, role, r.Header.Get("User-Agent"))
 	if appErr != nil {
 		log.WithError(appErr.Unwrap()).Error("error getting session")
 		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{

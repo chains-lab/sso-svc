@@ -8,6 +8,7 @@ import (
 
 	"github.com/chains-lab/chains-auth/internal/rest/responses"
 	"github.com/chains-lab/gatekit/httpkit"
+	"github.com/chains-lab/gatekit/roles"
 	"github.com/google/uuid"
 )
 
@@ -63,7 +64,7 @@ func (h *Handlers) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, tokensPair, appErr := h.app.Login(r.Context(), userInfo.Email, r.Header.Get("User-Agent"))
+	_, tokensPair, appErr := h.app.Login(r.Context(), userInfo.Email, roles.User, r.Header.Get("User-Agent"))
 	if appErr != nil {
 		h.presenter.AppError(w, requestID, appErr)
 	}

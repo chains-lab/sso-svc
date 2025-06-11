@@ -24,7 +24,7 @@ type App interface {
 	GetSession(ctx context.Context, sessionID uuid.UUID) (models.Session, *ape.Error)
 	GetUserSessions(ctx context.Context, userID uuid.UUID) ([]models.Session, *ape.Error)
 
-	Login(ctx context.Context, email, client string) (models.Session, models.TokensPair, *ape.Error)
+	Login(ctx context.Context, email string, role roles.Role, client string) (models.Session, models.TokensPair, *ape.Error)
 	Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, token string) (models.Session, models.TokensPair, *ape.Error)
 	Logout(ctx context.Context, sessionID uuid.UUID) *ape.Error
 

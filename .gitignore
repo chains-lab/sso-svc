@@ -2,8 +2,7 @@
 vendor
 node_modules
 
-main
-Makefile
+cmd/chains-auth/main
 config_local.yaml
 config_docker.yaml
 

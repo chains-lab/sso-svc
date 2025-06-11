@@ -1,3 +1,4 @@
+-- +migrate Up
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE users (
@@ -21,3 +22,9 @@ CREATE TABLE sessions (
 CREATE INDEX idx_user_email ON users(email);
 CREATE INDEX idx_sessions_user_id ON sessions(user_id);
 CREATE INDEX idx_sessions_last_used ON sessions(last_used);
+
+-- +migrate Down
+DROP TABLE IF EXISTS sessions CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+
+DROP EXTENSION IF EXISTS "uuid-ossp";

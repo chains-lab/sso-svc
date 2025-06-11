@@ -6,11 +6,9 @@ import (
 	"time"
 
 	"github.com/chains-lab/chains-auth/internal/config"
-	"github.com/chains-lab/chains-auth/internal/repo/redisdb"
 	"github.com/chains-lab/chains-auth/internal/repo/sqldb"
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/google/uuid"
-	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 )
 
@@ -44,23 +42,9 @@ type usersSQL interface {
 	Drop(ctx context.Context) error
 }
 
-type usersRedis interface {
-	Create(ctx context.Context, input redisdb.CreateUserInput) error
-	Set(ctx context.Context, input redisdb.UserSetInput) error
-	Update(ctx context.Context, userID uuid.UUID, input redisdb.UserUpdateRequest) error
-
-	GetByID(ctx context.Context, userID string) (redisdb.UserModel, error)
-	GetByEmail(ctx context.Context, email string) (redisdb.UserModel, error)
-
-	Delete(ctx context.Context, userID, email string) error
-
-	Drop(ctx context.Context) error
-}
-
 type UsersRepo struct {
-	sql   usersSQL
-	redis usersRedis
-	log   *logrus.Entry
+	sql usersSQL
+	log *logrus.Entry
 }
 
 func NewUsers(cfg config.Config, log *logrus.Logger) (UsersRepo, error) {
@@ -69,17 +53,11 @@ func NewUsers(cfg config.Config, log *logrus.Logger) (UsersRepo, error) {
 		return UsersRepo{}, err
 	}
 
-	redisImpl := redisdb.NewUsers(redis.NewClient(&redis.Options{
-		Addr:     cfg.Database.Redis.Addr,
-		Password: cfg.Database.Redis.Password,
-		DB:       cfg.Database.Redis.DB,
-	}), cfg.Database.Redis.Lifetime)
 	sqlImpl := sqldb.NewUsers(db)
 
 	return UsersRepo{
-		sql:   sqlImpl,
-		redis: redisImpl,
-		log:   log.WithField("component", "users"),
+		sql: sqlImpl,
+		log: log.WithField("component", "users"),
 	}, nil
 }
 
@@ -104,13 +82,6 @@ func (a UsersRepo) Create(ctx context.Context, input UserCreateRequest) error {
 	}); err != nil {
 		return err
 	}
-
-	_ = a.redis.Create(ctxSync, redisdb.CreateUserInput{
-		ID:           input.ID,
-		Email:        input.Email,
-		Role:         input.Role,
-		Subscription: input.Subscription,
-	})
 
 	return nil
 }
@@ -138,34 +109,12 @@ func (a UsersRepo) Update(ctx context.Context, ID uuid.UUID, input UserUpdateReq
 		return err
 	}
 
-	user, err := a.sql.New().FilterID(ID).Get(ctxSync)
-	if err != nil {
-		return err
-	}
-
-	_ = a.redis.Set(ctxSync, redisdb.UserSetInput{
-		ID:           user.ID,
-		Email:        user.Email,
-		Role:         user.Role,
-		Subscription: user.Subscription,
-		UpdatedAt:    user.UpdatedAt,
-		CreatedAt:    user.CreatedAt,
-	})
 	return nil
 }
 
 func (a UsersRepo) Delete(ctx context.Context, ID uuid.UUID) error {
 	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
-
-	user, err := a.sql.New().FilterID(ID).Get(ctxSync)
-	if err != nil {
-		return err
-	}
-
-	if err := a.redis.Delete(ctxSync, user.ID.String(), user.Email); err != nil {
-		a.log.WithField("database", "redis").Errorf("error delete user in redis: %v", err)
-	}
 
 	if err := a.sql.New().FilterID(ID).Delete(ctxSync); err != nil {
 		return err
@@ -177,23 +126,6 @@ func (a UsersRepo) Delete(ctx context.Context, ID uuid.UUID) error {
 func (a UsersRepo) GetByID(ctx context.Context, ID uuid.UUID) (User, error) {
 	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
-
-	redisRes, err := a.redis.GetByID(ctxSync, ID.String())
-	if err != nil {
-		a.log.WithField("database", "redis").Errorf("error get user by id in redis: %v", err)
-	} else {
-		res := User{
-			ID:           redisRes.ID,
-			Email:        redisRes.Email,
-			Subscription: redisRes.Subscription,
-			CreatedAt:    redisRes.CreatedAt,
-			Role:         redisRes.Role,
-		}
-		if redisRes.UpdatedAt != nil {
-			res.UpdatedAt = *redisRes.UpdatedAt
-		}
-		return res, nil
-	}
 
 	user, err := a.sql.New().FilterID(ID).Get(ctxSync)
 	if err != nil {
@@ -212,40 +144,12 @@ func (a UsersRepo) GetByID(ctx context.Context, ID uuid.UUID) (User, error) {
 		res.UpdatedAt = *user.UpdatedAt
 	}
 
-	if err := a.redis.Set(ctxSync, redisdb.UserSetInput{
-		ID:           user.ID,
-		Email:        user.Email,
-		Role:         user.Role,
-		Subscription: user.Subscription,
-		UpdatedAt:    user.UpdatedAt,
-		CreatedAt:    user.CreatedAt,
-	}); err != nil {
-		a.log.WithField("database", "redis").Errorf("error set user in redis: %v", err)
-	}
-
 	return res, nil
 }
 
 func (a UsersRepo) GetByEmail(ctx context.Context, email string) (User, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
-
-	redisRes, err := a.redis.GetByEmail(ctxSync, email)
-	if err != nil {
-		a.log.WithField("database", "redis").Errorf("error get user in redis: %v", err)
-	} else {
-		res := User{
-			ID:           redisRes.ID,
-			Email:        redisRes.Email,
-			Subscription: redisRes.Subscription,
-			CreatedAt:    redisRes.CreatedAt,
-			Role:         redisRes.Role,
-		}
-		if redisRes.UpdatedAt != nil {
-			res.UpdatedAt = *redisRes.UpdatedAt
-		}
-		return res, nil
-	}
 
 	user, err := a.sql.New().FilterEmail(email).Get(ctxSync)
 	if err != nil {
@@ -264,17 +168,6 @@ func (a UsersRepo) GetByEmail(ctx context.Context, email string) (User, error) {
 		res.UpdatedAt = *user.UpdatedAt
 	}
 
-	if err := a.redis.Set(ctxSync, redisdb.UserSetInput{
-		ID:           user.ID,
-		Email:        user.Email,
-		Role:         user.Role,
-		Subscription: user.Subscription,
-		UpdatedAt:    user.UpdatedAt,
-		CreatedAt:    user.CreatedAt,
-	}); err != nil {
-		a.log.WithField("database", "redis").Errorf("error set user in redis: %v", err)
-	}
-
 	return res, nil
 }
 
@@ -287,10 +180,6 @@ func (a UsersRepo) Drop(ctx context.Context) error {
 	defer cancel()
 
 	if err := a.sql.Drop(ctxSync); err != nil {
-		return err
-	}
-
-	if err := a.redis.Drop(ctxSync); err != nil {
 		return err
 	}
 

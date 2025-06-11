@@ -10,11 +10,6 @@ server:
 database:
   sql:
     url: "postgresql://postgres:postgres@db:7000/postgres?sslmode=disable"
-  redis:
-    addr: "localhost:7200"
-    password: "example"
-    db: 0
-    lifetime: 15 #minutes
 
 oauth:
   google:
@@ -33,7 +28,7 @@ jwt:
 
 kafka:
   brokers:
-    - "re-news-kafka:9092"
+    - "re-news-kafka:29092"
 
 swagger:
   enabled: true

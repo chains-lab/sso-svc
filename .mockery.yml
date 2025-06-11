@@ -1,3 +1,5 @@
+#none actual code, need to update this file to generate mocks
+
 packages:
   github.com/chains-lab/chains-auth/internal/repo:
     interfaces:

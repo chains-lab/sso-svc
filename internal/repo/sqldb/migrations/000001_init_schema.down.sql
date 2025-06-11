@@ -1,5 +1,0 @@
--- Удаление таблиц
-DROP TABLE IF EXISTS sessions CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
-
-DROP EXTENSION IF EXISTS "uuid-ossp";

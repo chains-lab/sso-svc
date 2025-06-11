@@ -7,10 +7,8 @@ import (
 	"time"
 
 	"github.com/chains-lab/chains-auth/internal/config"
-	"github.com/chains-lab/chains-auth/internal/repo/redisdb"
 	"github.com/chains-lab/chains-auth/internal/repo/sqldb"
 	"github.com/google/uuid"
-	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 )
 
@@ -45,21 +43,8 @@ type sessionSQL interface {
 	Drop(ctx context.Context) error
 }
 
-type sessionsRedis interface {
-	Set(ctx context.Context, input redisdb.SessionCreateInput) error
-	Create(ctx context.Context, input redisdb.SessionCreateInput) error
-	GetByID(ctx context.Context, sessionID string) (redisdb.SessionModel, error)
-	GetByUserID(ctx context.Context, userID string) ([]redisdb.SessionModel, error)
-	Update(ctx context.Context, sessionID, userID uuid.UUID, update redisdb.SessionUpdateInput) error
-	Delete(ctx context.Context, sessionID uuid.UUID) error
-	Terminate(ctx context.Context, userID uuid.UUID) error
-	Drop(ctx context.Context) error
-}
-
 type SessionsRepo struct {
-	sql   sessionSQL
-	redis sessionsRedis
-	log   *logrus.Entry
+	sql sessionSQL
 }
 
 func NewSessions(cfg config.Config, log *logrus.Logger) (SessionsRepo, error) {
@@ -68,17 +53,10 @@ func NewSessions(cfg config.Config, log *logrus.Logger) (SessionsRepo, error) {
 		return SessionsRepo{}, err
 	}
 
-	redisImpl := redisdb.NewSessions(redis.NewClient(&redis.Options{
-		Addr:     cfg.Database.Redis.Addr,
-		Password: cfg.Database.Redis.Password,
-		DB:       cfg.Database.Redis.DB,
-	}), cfg.Database.Redis.Lifetime)
 	sqlImpl := sqldb.NewSessions(db)
 
 	return SessionsRepo{
-		sql:   sqlImpl,
-		redis: redisImpl,
-		log:   log.WithField("component", "sessions"),
+		sql: sqlImpl,
 	}, nil
 }
 
@@ -104,18 +82,6 @@ func (s SessionsRepo) Create(ctx context.Context, input SessionCreateRequest) er
 	})
 	if err != nil {
 		return err
-	}
-
-	err = s.redis.Create(ctx, redisdb.SessionCreateInput{
-		ID:        input.ID,
-		UserID:    input.UserID,
-		Token:     input.Token,
-		Client:    input.Client,
-		LastUsed:  input.CreatedAt,
-		CreatedAt: input.CreatedAt,
-	})
-	if err != nil {
-		s.log.WithField("database", "redis").Errorf("error creating session in redis: %v", err)
 	}
 
 	return nil
@@ -144,23 +110,6 @@ func (s SessionsRepo) Update(ctx context.Context, ID uuid.UUID, input SessionUpd
 		return err
 	}
 
-	session, err := s.sql.New().FilterID(ID).Get(ctxSync)
-	if err != nil {
-		return err
-	}
-
-	err = s.redis.Set(ctx, redisdb.SessionCreateInput{
-		ID:        session.ID,
-		UserID:    session.UserID,
-		Token:     session.Token,
-		Client:    session.Client,
-		LastUsed:  session.LastUsed,
-		CreatedAt: session.CreatedAt,
-	})
-	if err != nil {
-		s.log.WithField("database", "redis").Errorf("error creating session in redis: %v", err)
-	}
-
 	return nil
 }
 
@@ -172,8 +121,6 @@ func (s SessionsRepo) Delete(ctx context.Context, sessionID uuid.UUID) error {
 	if err != nil {
 		return err
 	}
-
-	err = s.redis.Delete(ctx, sessionID)
 
 	return nil
 }
@@ -192,10 +139,6 @@ func (s SessionsRepo) Terminate(ctx context.Context, userID uuid.UUID) error {
 		}
 	}
 
-	err = s.redis.Terminate(ctx, userID)
-	if err != nil {
-	}
-
 	return nil
 }
 
@@ -203,34 +146,9 @@ func (s SessionsRepo) GetByID(ctx context.Context, ID uuid.UUID) (Session, error
 	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
 
-	redisRes, err := s.redis.GetByID(ctx, ID.String())
-	if err != nil {
-		s.log.WithField("database", "redis").Errorf("error creating session in redis: %v", err)
-	} else {
-		return Session{
-			ID:        redisRes.ID,
-			UserID:    redisRes.UserID,
-			Token:     redisRes.Token,
-			Client:    redisRes.Client,
-			CreatedAt: redisRes.CreatedAt,
-			LastUsed:  redisRes.LastUsed,
-		}, nil
-	}
-
 	session, err := s.sql.New().FilterID(ID).Get(ctxSync)
 	if err != nil {
 		return Session{}, err
-	}
-
-	if err := s.redis.Set(ctxSync, redisdb.SessionCreateInput{
-		ID:        session.ID,
-		UserID:    session.UserID,
-		Token:     session.Token,
-		Client:    session.Client,
-		LastUsed:  session.LastUsed,
-		CreatedAt: session.CreatedAt,
-	}); err != nil {
-		s.log.WithField("database", "redis").Errorf("error creating session in redis: %v", err)
 	}
 
 	return Session{
@@ -247,24 +165,6 @@ func (s SessionsRepo) GetByUserID(ctx context.Context, userID uuid.UUID) ([]Sess
 	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
 
-	redisRes, err := s.redis.GetByUserID(ctx, userID.String())
-	if err != nil {
-		s.log.WithField("database", "redis").Errorf("error creating session in redis: %v", err)
-	} else {
-		var result []Session
-		for _, session := range redisRes {
-			result = append(result, Session{
-				ID:        session.ID,
-				UserID:    session.UserID,
-				Token:     session.Token,
-				Client:    session.Client,
-				CreatedAt: session.CreatedAt,
-				LastUsed:  session.LastUsed,
-			})
-		}
-		return result, nil
-	}
-
 	sessions, err := s.sql.New().FilterUserID(userID).Select(ctxSync)
 	if err != nil {
 		return nil, err
@@ -280,17 +180,6 @@ func (s SessionsRepo) GetByUserID(ctx context.Context, userID uuid.UUID) ([]Sess
 			CreatedAt: session.CreatedAt,
 			LastUsed:  session.LastUsed,
 		})
-
-		if err := s.redis.Set(ctxSync, redisdb.SessionCreateInput{
-			ID:        session.ID,
-			UserID:    session.UserID,
-			Token:     session.Token,
-			Client:    session.Client,
-			CreatedAt: session.CreatedAt,
-			LastUsed:  session.LastUsed,
-		}); err != nil {
-			s.log.WithField("database", "redis").Errorf("error creating session in redis: %v", err)
-		}
 	}
 
 	return result, nil
@@ -305,10 +194,6 @@ func (s SessionsRepo) Drop(ctx context.Context) error {
 	defer cancel()
 
 	if err := s.sql.Drop(ctxSync); err != nil {
-		return err
-	}
-
-	if err := s.redis.Drop(ctx); err != nil {
 		return err
 	}
 

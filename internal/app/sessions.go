@@ -119,13 +119,13 @@ func (a App) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]models.Se
 	return sessions, nil
 }
 
-func (a App) Login(ctx context.Context, email, client string) (models.Session, models.TokensPair, *ape.Error) {
+func (a App) Login(ctx context.Context, email string, role roles.Role, client string) (models.Session, models.TokensPair, *ape.Error) {
 	user, appErr := a.users.GetByEmail(ctx, email)
 	if appErr != nil {
 
 		//Registration flow
 		if errors.Is(appErr.Unwrap(), sql.ErrNoRows) {
-			appErr = a.users.Create(ctx, email, roles.User)
+			appErr = a.users.Create(ctx, email, role)
 			if appErr != nil {
 				switch {
 				case errors.Is(appErr.Unwrap(), sql.ErrNoRows):

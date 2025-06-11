@@ -9,6 +9,8 @@ import (
 	"github.com/chains-lab/chains-auth/internal/app/ape"
 	"github.com/chains-lab/chains-auth/internal/app/models"
 	"github.com/chains-lab/chains-auth/internal/config"
+	"github.com/chains-lab/chains-auth/internal/events/bodies"
+	"github.com/chains-lab/chains-auth/internal/events/writer"
 	"github.com/chains-lab/chains-auth/internal/jwtkit"
 	"github.com/chains-lab/chains-auth/internal/repo"
 	"github.com/chains-lab/gatekit/roles"
@@ -26,9 +28,14 @@ type usersRepo interface {
 	Drop(ctx context.Context) error
 }
 
+type Broker interface {
+	CreateUser(ctx context.Context, created bodies.UserCreated) error
+}
+
 type Users struct {
-	repo usersRepo
-	jwt  JWTManager
+	repo  usersRepo
+	jwt   JWTManager
+	kafka Broker
 }
 
 func NewUser(cfg config.Config, log *logrus.Logger) (Users, error) {
@@ -39,9 +46,15 @@ func NewUser(cfg config.Config, log *logrus.Logger) (Users, error) {
 
 	jwt := jwtkit.NewManager(cfg)
 
+	kafka := writer.NewUserCreateWriters(cfg, log.WithFields(logrus.Fields{
+		"component": "kafka",
+		"topic":     bodies.UserCreateTopic,
+	}))
+
 	return Users{
-		repo: data,
-		jwt:  jwt,
+		repo:  data,
+		jwt:   jwt,
+		kafka: kafka,
 	}, nil
 }
 
@@ -49,23 +62,35 @@ func (a Users) Create(ctx context.Context, email string, role roles.Role) *ape.E
 	ID := uuid.New()
 	CreatedAt := time.Now().UTC()
 
-	err := a.repo.Create(ctx, repo.UserCreateRequest{
-		ID:           ID,
-		Email:        email,
-		Role:         role,
-		Subscription: uuid.Nil,
-		CreatedAt:    CreatedAt,
+	txErr := a.repo.Transaction(func(ctx context.Context) error {
+		if err := a.repo.Create(ctx, repo.UserCreateRequest{
+			ID:           ID,
+			Email:        email,
+			Role:         role,
+			Subscription: uuid.Nil,
+			CreatedAt:    CreatedAt,
+		}); err != nil {
+			return err
+		}
+
+		if err := a.kafka.CreateUser(ctx, bodies.UserCreated{
+			UserID:    ID.String(),
+			Role:      role,
+			Timestamp: CreatedAt,
+		}); err != nil {
+			return err
+		}
+
+		return nil
 	})
-	if err != nil {
+	if txErr != nil {
 		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrorUserAlreadyExists(err)
+		case errors.Is(txErr, sql.ErrNoRows):
+			return ape.ErrorUserAlreadyExists(txErr)
 		default:
-			return ape.ErrorInternal(err)
+			return ape.ErrorInternal(txErr)
 		}
 	}
-
-	logrus.Debugf("dwqedqwdqwdqwd")
 
 	return nil
 }
