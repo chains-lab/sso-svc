@@ -2,9 +2,9 @@ package migrator
 
 import (
 	"database/sql"
-	"embed"
 
 	"github.com/chains-lab/chains-auth/internal/config"
+	"github.com/chains-lab/chains-auth/internal/repo/sqldb"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // нужен, если где-то ещё используете file://
 	_ "github.com/lib/pq"                                // PostgreSQL driver
 	"github.com/pkg/errors"
@@ -12,11 +12,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-//go:embed migrations/*.sql
-var Migrations embed.FS
-
 var migrations = &migrate.EmbedFileSystemMigrationSource{
-	FileSystem: Migrations,
+	FileSystem: sqldb.Migrations,
 	Root:       "migrations",
 }
 
