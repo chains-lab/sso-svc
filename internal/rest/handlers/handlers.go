@@ -8,7 +8,7 @@ import (
 	"github.com/chains-lab/chains-auth/internal/app/ape"
 	"github.com/chains-lab/chains-auth/internal/app/models"
 	"github.com/chains-lab/chains-auth/internal/config"
-	"github.com/chains-lab/chains-auth/internal/rest/presenter"
+	"github.com/chains-lab/chains-auth/internal/rest/presenters"
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -44,19 +44,19 @@ type Presenter interface {
 }
 
 type Handlers struct {
-	app       App
-	presenter Presenter
-	log       *logrus.Entry
-	cfg       config.Config
-	google    oauth2.Config
+	app        App
+	presenters Presenter
+	log        *logrus.Entry
+	cfg        config.Config
+	google     oauth2.Config
 }
 
 func NewHandlers(cfg config.Config, log *logrus.Entry, app *app.App) Handlers {
 	return Handlers{
-		app:       app,
-		cfg:       cfg,
-		google:    config.InitGoogleOAuth(cfg),
-		presenter: presenter.NewPresenter(log),
-		log:       log,
+		app:        app,
+		cfg:        cfg,
+		google:     config.InitGoogleOAuth(cfg),
+		presenters: presenters.NewPresenters(log),
+		log:        log,
 	}
 }

@@ -15,25 +15,25 @@ func (h *Handlers) AdminUpdateRole(w http.ResponseWriter, r *http.Request) {
 
 	user, err := tokens.GetUserTokenData(r.Context())
 	if err != nil {
-		h.presenter.InvalidToken(w, requestID, err)
+		h.presenters.InvalidToken(w, requestID, err)
 		return
 	}
 
 	updatedUserID, err := uuid.Parse(chi.URLParam(r, "user_id"))
 	if err != nil {
-		h.presenter.InvalidParameter(w, requestID, err, "user_id")
+		h.presenters.InvalidParameter(w, requestID, err, "user_id")
 		return
 	}
 
 	updatedRole, err := roles.ParseRole(chi.URLParam(r, "role"))
 	if err != nil {
-		h.presenter.InvalidParameter(w, requestID, err, "role")
+		h.presenters.InvalidParameter(w, requestID, err, "role")
 		return
 	}
 
 	appErr := h.app.UpdateUserRole(r.Context(), updatedUserID, updatedRole, user.Role)
 	if appErr != nil {
-		h.presenter.AppError(w, requestID, appErr)
+		h.presenters.AppError(w, requestID, appErr)
 		return
 	}
 

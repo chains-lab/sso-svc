@@ -18,7 +18,7 @@ func (h *Handlers) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 
 	code := r.URL.Query().Get("code")
 	if code == "" {
-		h.presenter.InvalidQuery(w, requestID, "code", fmt.Errorf("missing code"))
+		h.presenters.InvalidQuery(w, requestID, "code", fmt.Errorf("missing code"))
 		return
 	}
 
@@ -66,7 +66,7 @@ func (h *Handlers) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 
 	_, tokensPair, appErr := h.app.Login(r.Context(), userInfo.Email, roles.User, r.Header.Get("User-Agent"))
 	if appErr != nil {
-		h.presenter.AppError(w, requestID, appErr)
+		h.presenters.AppError(w, requestID, appErr)
 	}
 
 	h.log.Infof("User %s logged in with Google", userInfo.Email)

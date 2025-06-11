@@ -15,31 +15,31 @@ func (h *Handlers) AdminDeleteSession(w http.ResponseWriter, r *http.Request) {
 
 	user, err := tokens.GetUserTokenData(r.Context())
 	if err != nil {
-		h.presenter.InvalidToken(w, requestID, err)
+		h.presenters.InvalidToken(w, requestID, err)
 		return
 	}
 
 	sessionID, err := uuid.Parse(chi.URLParam(r, "session_id"))
 	if err != nil {
-		h.presenter.InvalidParameter(w, requestID, err, "session_id")
+		h.presenters.InvalidParameter(w, requestID, err, "session_id")
 		return
 	}
 
 	userID, err := uuid.Parse(chi.URLParam(r, "user_id"))
 	if err != nil {
-		h.presenter.InvalidParameter(w, requestID, err, "user_id")
+		h.presenters.InvalidParameter(w, requestID, err, "user_id")
 		return
 	}
 
 	appErr := h.app.DeleteSessionByAdmin(r.Context(), sessionID, user.UserID, user.SessionID)
 	if appErr != nil {
-		h.presenter.AppError(w, requestID, appErr)
+		h.presenters.AppError(w, requestID, appErr)
 		return
 	}
 
 	sessions, appErr := h.app.GetUserSessions(r.Context(), userID)
 	if appErr != nil {
-		h.presenter.AppError(w, requestID, appErr)
+		h.presenters.AppError(w, requestID, appErr)
 		return
 	}
 

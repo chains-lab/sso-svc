@@ -14,13 +14,13 @@ func (h *Handlers) OwnGetSessions(w http.ResponseWriter, r *http.Request) {
 
 	user, err := tokens.GetUserTokenData(r.Context())
 	if err != nil {
-		h.presenter.InvalidToken(w, requestID, err)
+		h.presenters.InvalidToken(w, requestID, err)
 		return
 	}
 
 	sessions, appErr := h.app.GetUserSessions(r.Context(), user.UserID)
 	if appErr != nil {
-		h.presenter.AppError(w, requestID, appErr)
+		h.presenters.AppError(w, requestID, appErr)
 		return
 	}
 

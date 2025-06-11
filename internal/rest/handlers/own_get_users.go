@@ -14,13 +14,13 @@ func (h *Handlers) OwnUserGet(w http.ResponseWriter, r *http.Request) {
 
 	user, err := tokens.GetUserTokenData(r.Context())
 	if err != nil {
-		h.presenter.InvalidToken(w, requestID, err)
+		h.presenters.InvalidToken(w, requestID, err)
 		return
 	}
 
 	res, appErr := h.app.GetUserByID(r.Context(), user.UserID)
 	if appErr != nil {
-		h.presenter.AppError(w, requestID, appErr)
+		h.presenters.AppError(w, requestID, appErr)
 		return
 	}
 

@@ -1,4 +1,4 @@
-package presenter
+package presenters
 
 import (
 	"net/http"
@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (p Presenter) AppError(w http.ResponseWriter, requestID uuid.UUID, appErr *ape.Error) {
+func (p Presenters) AppError(w http.ResponseWriter, requestID uuid.UUID, appErr *ape.Error) {
 	errorID := uuid.New()
 	p.log.WithField("request_id", requestID).
 		WithField("error_id", errorID).

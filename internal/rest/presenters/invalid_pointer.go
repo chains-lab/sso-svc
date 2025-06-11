@@ -1,4 +1,4 @@
-package presenter
+package presenters
 
 import (
 	"net/http"
@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (p Presenter) InvalidPointer(w http.ResponseWriter, requestID uuid.UUID, err error) {
+func (p Presenters) InvalidPointer(w http.ResponseWriter, requestID uuid.UUID, err error) {
 	errorID := uuid.New()
 
 	p.log.WithField("request_id", requestID).

@@ -14,13 +14,13 @@ func (h *Handlers) AdminGetSession(w http.ResponseWriter, r *http.Request) {
 
 	sessionID, err := uuid.Parse(chi.URLParam(r, "session_id"))
 	if err != nil {
-		h.presenter.InvalidParameter(w, requestID, err, "session_id")
+		h.presenters.InvalidParameter(w, requestID, err, "session_id")
 		return
 	}
 
 	session, appErr := h.app.GetSession(r.Context(), sessionID)
 	if appErr != nil {
-		h.presenter.AppError(w, requestID, appErr)
+		h.presenters.AppError(w, requestID, appErr)
 		return
 	}
 

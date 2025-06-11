@@ -52,7 +52,7 @@ func (h *Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := uuid.Parse(userData.Subject)
 	if err != nil {
-		h.presenter.InvalidParameter(w, uuid.Nil, err, "user_id")
+		h.presenters.InvalidParameter(w, uuid.Nil, err, "user_id")
 		return
 	}
 
@@ -60,7 +60,7 @@ func (h *Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
 
 	req, err := requests.NewRefresh(r)
 	if err != nil {
-		h.presenter.InvalidPointer(w, requestID, err)
+		h.presenters.InvalidPointer(w, requestID, err)
 		return
 	}
 
@@ -70,7 +70,7 @@ func (h *Handlers) Refresh(w http.ResponseWriter, r *http.Request) {
 
 	session, tokensPair, appErr := h.app.Refresh(r.Context(), userID, sessionID, r.Header.Get("User-Agent"), curToken)
 	if appErr != nil {
-		h.presenter.AppError(w, requestID, appErr)
+		h.presenters.AppError(w, requestID, appErr)
 		return
 	}
 

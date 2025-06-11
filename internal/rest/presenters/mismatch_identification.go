@@ -1,4 +1,4 @@
-package presenter
+package presenters
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (p Presenter) MismatchIdentification(w http.ResponseWriter, requestID uuid.UUID, parameter, pointer string) {
+func (p Presenters) MismatchIdentification(w http.ResponseWriter, requestID uuid.UUID, parameter, pointer string) {
 	ErrorID := uuid.New()
 
 	p.log.WithField("request_id", requestID).

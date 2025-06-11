@@ -1,4 +1,4 @@
-package presenter
+package presenters
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (p Presenter) InvalidQuery(w http.ResponseWriter, requestID uuid.UUID, query string, err error) {
+func (p Presenters) InvalidQuery(w http.ResponseWriter, requestID uuid.UUID, query string, err error) {
 	errorID := uuid.New()
 
 	p.log.WithField("request_id", requestID).
