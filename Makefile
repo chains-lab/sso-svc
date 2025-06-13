@@ -42,3 +42,9 @@ docker-down:
 
 docker-rebuild:
 	docker-compose up -d --build --force-recreate
+
+redoc-docs:
+	redoc-cli serve $(API_BUNDLED) --port 7272
+
+swagger-docs:
+	cd docs && npm run start

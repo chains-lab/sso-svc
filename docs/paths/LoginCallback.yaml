@@ -10,6 +10,6 @@ post:
           schema:
             $ref: '../spec/components/schemas/TokensPair.yaml'
     '400':
-      $ref: '../spec/components/responses/invalidParameter.yaml'
+      $ref: '../spec/components/responses/badRequest.yaml'
     '500':
       $ref: '../spec/components/responses/internal.yaml'

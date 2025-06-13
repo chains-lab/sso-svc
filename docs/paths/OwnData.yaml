@@ -10,13 +10,11 @@ get:
         application/vnd.api+json:
           schema:
             $ref: '../spec/components/schemas/User.yaml'
-    '400':
-      $ref: '../spec/components/responses/invalidParameter.yaml'
     '401':
+      description: You must provide a valid authorization params.
       $ref: '../spec/components/responses/unauthorized.yaml'
-    '403':
-      $ref: '../spec/components/responses/forbidden.yaml'
     '404':
+      description: User not found
       $ref: '../spec/components/responses/notFound.yaml'
     '500':
       $ref: '../spec/components/responses/internal.yaml'

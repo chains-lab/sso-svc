@@ -11,12 +11,14 @@ post:
           schema:
             $ref: '../spec/components/schemas/User.yaml'
     '400':
-      $ref: '../spec/components/responses/invalidParameter.yaml'
+      $ref: '../spec/components/responses/badRequest.yaml'
     '401':
       $ref: '../spec/components/responses/unauthorized.yaml'
     '403':
+      description: Haven't permission to update user
       $ref: '../spec/components/responses/forbidden.yaml'
     '404':
+      description: User not found
       $ref: '../spec/components/responses/notFound.yaml'
     '500':
       $ref: '../spec/components/responses/internal.yaml'

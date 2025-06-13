@@ -1,4 +1,4 @@
-description: invalid pointer. Refer to the response body for details.
+description: bad request
 content:
   application/vnd.api+json:
     schema:

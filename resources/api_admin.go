@@ -352,9 +352,9 @@ func (r ApiReNewsChainsAuthV1AdminUserIdSessionsDeleteRequest) Execute() (*http.
 }
 
 /*
-ReNewsChainsAuthV1AdminUserIdSessionsDelete admin delete user
+ReNewsChainsAuthV1AdminUserIdSessionsDelete admin delete users sessions
 
-Endpoint to delete user if you admin
+Endpoint to delete user sessions if you admin
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  @param userId
@@ -642,6 +642,156 @@ func (a *AdminAPIService) ReNewsChainsAuthV1AdminUserIdSessionsGetExecute(r ApiR
 	}
 
 	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiReNewsChainsAuthV1AdminUserIdSessionsSessionIdDeleteRequest struct {
+	ctx context.Context
+	ApiService *AdminAPIService
+	userId string
+	sessionId string
+}
+
+func (r ApiReNewsChainsAuthV1AdminUserIdSessionsSessionIdDeleteRequest) Execute() (*http.Response, error) {
+	return r.ApiService.ReNewsChainsAuthV1AdminUserIdSessionsSessionIdDeleteExecute(r)
+}
+
+/*
+ReNewsChainsAuthV1AdminUserIdSessionsSessionIdDelete admin delete user session
+
+Endpoint to delete user session if you admin
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param userId
+ @param sessionId
+ @return ApiReNewsChainsAuthV1AdminUserIdSessionsSessionIdDeleteRequest
+*/
+func (a *AdminAPIService) ReNewsChainsAuthV1AdminUserIdSessionsSessionIdDelete(ctx context.Context, userId string, sessionId string) ApiReNewsChainsAuthV1AdminUserIdSessionsSessionIdDeleteRequest {
+	return ApiReNewsChainsAuthV1AdminUserIdSessionsSessionIdDeleteRequest{
+		ApiService: a,
+		ctx: ctx,
+		userId: userId,
+		sessionId: sessionId,
+	}
+}
+
+// Execute executes the request
+func (a *AdminAPIService) ReNewsChainsAuthV1AdminUserIdSessionsSessionIdDeleteExecute(r ApiReNewsChainsAuthV1AdminUserIdSessionsSessionIdDeleteRequest) (*http.Response, error) {
+	var (
+		localVarHTTPMethod   = http.MethodDelete
+		localVarPostBody     interface{}
+		formFiles            []formFile
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AdminAPIService.ReNewsChainsAuthV1AdminUserIdSessionsSessionIdDelete")
+	if err != nil {
+		return nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/re-news/chains/auth/v1/admin/{user_id}/sessions/{session_id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"user_id"+"}", url.PathEscape(parameterValueToString(r.userId, "userId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"session_id"+"}", url.PathEscape(parameterValueToString(r.sessionId, "sessionId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/vnd.api+json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v Errors
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+			return localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v Errors
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+			return localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 403 {
+			var v Errors
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+			return localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 404 {
+			var v Errors
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+			return localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v Errors
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+		}
+		return localVarHTTPResponse, newErr
+	}
+
+	return localVarHTTPResponse, nil
 }
 
 type ApiReNewsChainsAuthV1AdminUserIdSessionsSessionIdGetRequest struct {

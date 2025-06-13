@@ -17,7 +17,7 @@ post:
           schema:
             $ref: '../spec/components/schemas/TokensPair.yaml'
     '400':
-      $ref: '../spec/components/responses/invalidParameter.yaml'
+      $ref: '../spec/components/responses/badRequest.yaml'
     '401':
       $ref: '../spec/components/responses/unauthorized.yaml'
     '409':

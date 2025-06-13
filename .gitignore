@@ -1,6 +1,7 @@
 .idea
 vendor
 node_modules
+docs/node_modules
 
 cmd/chains-auth/main
 config_local.yaml

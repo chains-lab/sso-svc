@@ -11,7 +11,7 @@ get:
           schema:
             $ref: '../spec/components/schemas/SessionsCollection.yaml'
     '400':
-      $ref: '../spec/components/responses/invalidParameter.yaml'
+      $ref: '../spec/components/responses/badRequest.yaml'
     '401':
       $ref: '../spec/components/responses/unauthorized.yaml'
     '403':
@@ -24,13 +24,13 @@ get:
 delete:
   tags:
       - Admin
-  summary: admin delete user
-  description: Endpoint to delete user if you admin
+  summary: admin delete users sessions
+  description: Endpoint to delete user sessions if you admin
   responses:
     '204':
-      description: User successfully logout
+      description: Delete user sessions successfully
     '400':
-      $ref: '../spec/components/responses/invalidParameter.yaml'
+      $ref: '../spec/components/responses/badRequest.yaml'
     '401':
       $ref: '../spec/components/responses/unauthorized.yaml'
     '403':

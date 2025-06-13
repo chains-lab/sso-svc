@@ -11,8 +11,10 @@ get:
           schema:
             $ref: '../spec/components/schemas/User.yaml'
     '400':
-      $ref: '../spec/components/responses/invalidParameter.yaml'
+      description: Invalid request parameters
+      $ref: '../spec/components/responses/badRequest.yaml'
     '401':
+      description: Unauthorized access
       $ref: '../spec/components/responses/unauthorized.yaml'
     '403':
       $ref: '../spec/components/responses/forbidden.yaml'

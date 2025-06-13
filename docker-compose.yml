@@ -25,6 +25,7 @@ services:
 
 volumes:
   pgdata:
+  bundle:
 
 networks:
   chains-net:

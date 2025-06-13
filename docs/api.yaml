@@ -102,8 +102,6 @@ components:
       $ref: './spec/components/schemas/Errors.yaml'
 
   responses:
-    InvalidParameter:
-      $ref: './spec/components/responses/invalidParameter.yaml'
     Unauthorized:
       $ref: './spec/components/responses/unauthorized.yaml'
     NotFound:
@@ -118,7 +116,5 @@ components:
       $ref: './spec/components/responses/tooManyRequests.yaml'
     UnsupportedMediaType:
       $ref: './spec/components/responses/unsupportedMediaType.yaml'
-    InvalidPointer:
-      $ref: './spec/components/responses/invalidPointer.yaml'
-    InvalidQuery:
-      $ref: './spec/components/responses/invalidQuery.yaml'
+    BadRequest:
+      $ref: './spec/components/responses/badRequest.yaml'

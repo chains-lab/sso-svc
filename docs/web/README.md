@@ -80,8 +80,9 @@ Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 *AdminAPI* | [**ReNewsChainsAuthV1AdminUserIdGet**](docs/AdminAPI.md#renewschainsauthv1adminuseridget) | **Get** /re-news/chains/auth/v1/admin/{user_id} | admin get user
 *AdminAPI* | [**ReNewsChainsAuthV1AdminUserIdRolePost**](docs/AdminAPI.md#renewschainsauthv1adminuseridrolepost) | **Post** /re-news/chains/auth/v1/admin/{user_id}/{role} | admin role update
-*AdminAPI* | [**ReNewsChainsAuthV1AdminUserIdSessionsDelete**](docs/AdminAPI.md#renewschainsauthv1adminuseridsessionsdelete) | **Delete** /re-news/chains/auth/v1/admin/{user_id}/sessions | admin delete user
+*AdminAPI* | [**ReNewsChainsAuthV1AdminUserIdSessionsDelete**](docs/AdminAPI.md#renewschainsauthv1adminuseridsessionsdelete) | **Delete** /re-news/chains/auth/v1/admin/{user_id}/sessions | admin delete users sessions
 *AdminAPI* | [**ReNewsChainsAuthV1AdminUserIdSessionsGet**](docs/AdminAPI.md#renewschainsauthv1adminuseridsessionsget) | **Get** /re-news/chains/auth/v1/admin/{user_id}/sessions | admin get sessions
+*AdminAPI* | [**ReNewsChainsAuthV1AdminUserIdSessionsSessionIdDelete**](docs/AdminAPI.md#renewschainsauthv1adminuseridsessionssessioniddelete) | **Delete** /re-news/chains/auth/v1/admin/{user_id}/sessions/{session_id} | admin delete user session
 *AdminAPI* | [**ReNewsChainsAuthV1AdminUserIdSessionsSessionIdGet**](docs/AdminAPI.md#renewschainsauthv1adminuseridsessionssessionidget) | **Get** /re-news/chains/auth/v1/admin/{user_id}/sessions/{session_id} | admin get session
 *LoginAPI* | [**ReNewsChainsAuthV1OwnCallbackPost**](docs/LoginAPI.md#renewschainsauthv1owncallbackpost) | **Post** /re-news/chains/auth/v1/own/callback | 
 *LoginAPI* | [**ReNewsChainsAuthV1OwnLoginPost**](docs/LoginAPI.md#renewschainsauthv1ownloginpost) | **Post** /re-news/chains/auth/v1/own/login | 

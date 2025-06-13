@@ -73,13 +73,14 @@ func (a Users) Create(ctx context.Context, email string, role roles.Role) *ape.E
 			return err
 		}
 
-		if err := a.kafka.CreateUser(ctx, bodies.UserCreated{
-			UserID:    ID.String(),
-			Role:      role,
-			Timestamp: CreatedAt,
-		}); err != nil {
-			return err
-		}
+		//TODO: in future we can use kafka to notify other services about user creation
+		//if err := a.kafka.CreateUser(ctx, bodies.UserCreated{
+		//	UserID:    ID.String(),
+		//	Role:      role,
+		//	Timestamp: CreatedAt,
+		//}); err != nil {
+		//	return err
+		//}
 
 		return nil
 	})
