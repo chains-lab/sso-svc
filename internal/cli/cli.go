@@ -41,8 +41,6 @@ func Run(args []string) bool {
 		return false
 	}
 
-	var wg sync.WaitGroup
-
 	cmd, err := service.Parse(args[1:])
 	if err != nil {
 		logger.WithError(err).Error("failed to parse arguments")
@@ -51,7 +49,7 @@ func Run(args []string) bool {
 
 	switch cmd {
 	case serviceCmd.FullCommand():
-		err = Start(ctx, cfg, logger, &wg, &application)
+		err = Start(ctx, cfg, logger, &application)
 	case migrateUpCmd.FullCommand():
 		err = migrator.RunUp(cfg)
 	case migrateDownCmd.FullCommand():

@@ -16,7 +16,7 @@ const (
 	dataCtxTimeAisle = 10 * time.Second
 )
 
-type Session struct {
+type SessionModel struct {
 	ID        uuid.UUID `json:"id"`
 	UserID    uuid.UUID `json:"user_id"`
 	Token     string    `json:"token"`
@@ -27,7 +27,7 @@ type Session struct {
 
 type sessionSQL interface {
 	New() sqldb.SessionsQ
-	Insert(ctx context.Context, input sqldb.SessionInsertInput) error
+	Insert(ctx context.Context, input sqldb.SessionModel) error
 	Update(ctx context.Context, input sqldb.SessionUpdateInput) error
 	Delete(ctx context.Context) error
 	Count(ctx context.Context) (int, error)
@@ -60,24 +60,16 @@ func NewSessions(cfg config.Config, log *logrus.Logger) (SessionsRepo, error) {
 	}, nil
 }
 
-type SessionCreateRequest struct {
-	ID        uuid.UUID `json:"id"`
-	UserID    uuid.UUID `json:"user_id"`
-	Token     string    `json:"token"`
-	Client    string    `json:"client"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
-func (s SessionsRepo) Create(ctx context.Context, input SessionCreateRequest) error {
+func (s SessionsRepo) Create(ctx context.Context, input SessionModel) error {
 	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
 
-	err := s.sql.New().Insert(ctxSync, sqldb.SessionInsertInput{
+	err := s.sql.New().Insert(ctxSync, sqldb.SessionModel{
 		ID:        input.ID,
 		UserID:    input.UserID,
 		Token:     input.Token,
 		Client:    input.Client,
-		LastUsed:  input.CreatedAt,
+		LastUsed:  input.LastUsed,
 		CreatedAt: input.CreatedAt,
 	})
 	if err != nil {
@@ -142,16 +134,16 @@ func (s SessionsRepo) Terminate(ctx context.Context, userID uuid.UUID) error {
 	return nil
 }
 
-func (s SessionsRepo) GetByID(ctx context.Context, ID uuid.UUID) (Session, error) {
+func (s SessionsRepo) GetByID(ctx context.Context, ID uuid.UUID) (SessionModel, error) {
 	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
 
 	session, err := s.sql.New().FilterID(ID).Get(ctxSync)
 	if err != nil {
-		return Session{}, err
+		return SessionModel{}, err
 	}
 
-	return Session{
+	return SessionModel{
 		ID:        session.ID,
 		UserID:    session.UserID,
 		Token:     session.Token,
@@ -161,7 +153,7 @@ func (s SessionsRepo) GetByID(ctx context.Context, ID uuid.UUID) (Session, error
 	}, nil
 }
 
-func (s SessionsRepo) GetByUserID(ctx context.Context, userID uuid.UUID) ([]Session, error) {
+func (s SessionsRepo) GetByUserID(ctx context.Context, userID uuid.UUID) ([]SessionModel, error) {
 	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
 
@@ -170,9 +162,9 @@ func (s SessionsRepo) GetByUserID(ctx context.Context, userID uuid.UUID) ([]Sess
 		return nil, err
 	}
 
-	var result []Session
+	var result []SessionModel
 	for _, session := range sessions {
-		result = append(result, Session{
+		result = append(result, SessionModel{
 			ID:        session.ID,
 			UserID:    session.UserID,
 			Token:     session.Token,

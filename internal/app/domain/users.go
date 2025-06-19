@@ -98,26 +98,6 @@ func (a Users) Create(ctx context.Context, email string, role roles.Role) error 
 	return nil
 }
 
-// TODO maybe is doesn't need
-func (a Users) UpdateRole(ctx context.Context, ID uuid.UUID, role roles.Role) error {
-	UpdatedAt := time.Now().UTC()
-
-	err := a.repo.Update(ctx, ID, repo.UserUpdateRequest{
-		Role:      &role,
-		UpdatedAt: UpdatedAt,
-	})
-	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrorUserDoesNotExist(ID, err)
-		default:
-			return ape.ErrorInternal(err)
-		}
-	}
-
-	return nil
-}
-
 func (a Users) GetByID(ctx context.Context, ID uuid.UUID) (models.User, error) {
 	user, err := a.repo.GetByID(ctx, ID)
 	if err != nil {
@@ -135,6 +115,7 @@ func (a Users) GetByID(ctx context.Context, ID uuid.UUID) (models.User, error) {
 		Role:         user.Role,
 		Subscription: user.Subscription,
 		Verified:     user.Verified,
+		Suspended:    user.Suspended,
 		CreatedAt:    user.CreatedAt,
 		UpdatedAt:    user.UpdatedAt,
 	}, nil
@@ -157,7 +138,84 @@ func (a Users) GetByEmail(ctx context.Context, email string) (models.User, error
 		Role:         user.Role,
 		Subscription: user.Subscription,
 		Verified:     user.Verified,
+		Suspended:    user.Suspended,
 		CreatedAt:    user.CreatedAt,
 		UpdatedAt:    user.UpdatedAt,
 	}, nil
+}
+
+func (a Users) UpdateRole(ctx context.Context, ID uuid.UUID, role roles.Role) error {
+	UpdatedAt := time.Now().UTC()
+
+	err := a.repo.Update(ctx, ID, repo.UserUpdateRequest{
+		Role:      &role,
+		UpdatedAt: UpdatedAt,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ape.ErrorUserDoesNotExist(ID, err)
+		default:
+			return ape.ErrorInternal(err)
+		}
+	}
+
+	return nil
+}
+
+func (a Users) UpdateSubscription(ctx context.Context, ID, subscriptionID uuid.UUID) error {
+	UpdatedAt := time.Now().UTC()
+
+	err := a.repo.Update(ctx, ID, repo.UserUpdateRequest{
+		Subscription: &subscriptionID,
+		UpdatedAt:    UpdatedAt,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ape.ErrorUserDoesNotExist(ID, err)
+		default:
+			return ape.ErrorInternal(err)
+		}
+	}
+
+	return nil
+}
+
+func (a Users) UpdateVerified(ctx context.Context, ID uuid.UUID, verified bool) error {
+	UpdatedAt := time.Now().UTC()
+
+	err := a.repo.Update(ctx, ID, repo.UserUpdateRequest{
+		Verified:  &verified,
+		UpdatedAt: UpdatedAt,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ape.ErrorUserDoesNotExist(ID, err)
+		default:
+			return ape.ErrorInternal(err)
+		}
+	}
+
+	return nil
+}
+
+func (a Users) UpdateSuspended(ctx context.Context, ID uuid.UUID, suspended bool) error {
+	UpdatedAt := time.Now().UTC()
+
+	err := a.repo.Update(ctx, ID, repo.UserUpdateRequest{
+		Suspended: &suspended,
+		UpdatedAt: UpdatedAt,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ape.ErrorUserDoesNotExist(ID, err)
+		default:
+			return ape.ErrorInternal(err)
+		}
+	}
+
+	return nil
 }

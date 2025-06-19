@@ -13,6 +13,7 @@ type User struct {
 	Role         roles.Role `json:"role"`
 	Subscription uuid.UUID  `json:"subscription"`
 	Verified     bool       `json:"verified,omitempty"`
+	Suspended    bool       `json:"suspended,omitempty"`
 	UpdatedAt    time.Time  `json:"updated_at"`
 	CreatedAt    time.Time  `json:"created_at"`
 }

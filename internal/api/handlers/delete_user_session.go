@@ -23,12 +23,12 @@ func (h Handlers) DeleteUserSession(ctx context.Context, req *sso.SessionRequest
 		return nil, status.Errorf(codes.InvalidArgument, "invalid user id: %s", req.UserId)
 	}
 
-	err = h.app.DeleteSession(ctx, sessionID)
+	err = h.app.DeleteSession(ctx, userID, sessionID)
 	if err != nil {
 		return nil, h.presenter.AppError(requestID, err)
 	}
 
-	sessions, err := h.app.GetUserSessions(ctx, userID)
+	sessions, err := h.app.SelectSessions(ctx, userID)
 	if err != nil {
 		return nil, h.presenter.AppError(requestID, err)
 	}

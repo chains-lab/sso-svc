@@ -23,7 +23,7 @@ func (h Handlers) GetUserSession(ctx context.Context, req *sso.SessionRequest) (
 		return nil, status.Errorf(codes.InvalidArgument, "invalid user id: %s", req.UserId)
 	}
 
-	session, err := h.app.GetUserSession(ctx, userID, sessionID)
+	session, err := h.app.GetSession(ctx, userID, sessionID)
 	if err != nil {
 		return nil, h.presenter.AppError(requestID, err)
 	}

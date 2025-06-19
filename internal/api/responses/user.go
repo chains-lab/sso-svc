@@ -12,6 +12,7 @@ func User(user models.User) *sso.UserResponse {
 		Role:         string(user.Role),
 		Subscription: user.Subscription.String(),
 		Verified:     user.Verified,
+		Suspended:    user.Suspended,
 		CreatedAt:    user.CreatedAt.String(),
 		UpdatedAt:    user.UpdatedAt.String(),
 	}

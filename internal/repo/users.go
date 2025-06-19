@@ -18,6 +18,7 @@ type UserModel struct {
 	Role         roles.Role `json:"role"`
 	Subscription uuid.UUID  `json:"subscription"`
 	Verified     bool       `json:"verified,omitempty"`
+	Suspended    bool       `json:"suspended,omitempty"`
 	UpdatedAt    time.Time  `json:"updated_at"`
 	CreatedAt    time.Time  `json:"created_at"`
 }
@@ -73,6 +74,7 @@ func (a UsersRepo) Create(ctx context.Context, input UserModel) error {
 		Role:         input.Role,
 		Subscription: input.Subscription,
 		Verified:     input.Verified,
+		Suspended:    input.Suspended,
 		UpdatedAt:    input.UpdatedAt,
 		CreatedAt:    input.CreatedAt,
 	}); err != nil {
@@ -86,6 +88,7 @@ type UserUpdateRequest struct {
 	Role         *roles.Role `json:"role"`
 	Subscription *uuid.UUID  `json:"subscription"`
 	Verified     *bool       `json:"verified,omitempty"`
+	Suspended    *bool       `json:"suspended,omitempty"`
 	UpdatedAt    time.Time   `json:"updated_at"`
 }
 
@@ -102,6 +105,9 @@ func (a UsersRepo) Update(ctx context.Context, ID uuid.UUID, input UserUpdateReq
 	}
 	if input.Verified != nil {
 		sqlInput.Verified = input.Verified
+	}
+	if input.Suspended != nil {
+		sqlInput.Suspended = input.Suspended
 	}
 	sqlInput.UpdatedAt = input.UpdatedAt
 
@@ -138,6 +144,7 @@ func (a UsersRepo) GetByID(ctx context.Context, ID uuid.UUID) (UserModel, error)
 		Role:         user.Role,
 		Subscription: user.Subscription,
 		Verified:     user.Verified,
+		Suspended:    user.Suspended,
 		CreatedAt:    user.CreatedAt,
 		UpdatedAt:    user.UpdatedAt,
 	}
@@ -160,6 +167,7 @@ func (a UsersRepo) GetByEmail(ctx context.Context, email string) (UserModel, err
 		Role:         user.Role,
 		Subscription: user.Subscription,
 		Verified:     user.Verified,
+		Suspended:    user.Suspended,
 		UpdatedAt:    user.UpdatedAt,
 		CreatedAt:    user.CreatedAt,
 	}

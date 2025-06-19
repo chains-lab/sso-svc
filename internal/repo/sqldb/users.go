@@ -19,6 +19,7 @@ type UserModel struct {
 	Role         roles.Role `db:"role"`
 	Subscription uuid.UUID  `db:"subscription"`
 	Verified     bool       `db:"verified,omitempty"`
+	Suspended    bool       `db:"suspended,omitempty"`
 	UpdatedAt    time.Time  `db:"updated_at,omitempty"`
 	CreatedAt    time.Time  `db:"created_at"`
 }
@@ -53,8 +54,10 @@ func (q UserQ) Insert(ctx context.Context, input UserModel) error {
 		"id":           input.ID,
 		"email":        input.Email,
 		"role":         input.Role,
-		"verified":     input.Verified,
 		"subscription": input.Subscription,
+		"verified":     input.Verified,
+		"suspended":    input.Suspended,
+		"updated_at":   input.UpdatedAt,
 		"created_at":   input.CreatedAt,
 	}
 
@@ -78,6 +81,7 @@ type UserUpdateInput struct {
 	Role         *roles.Role
 	Subscription *uuid.UUID
 	Verified     *bool
+	Suspended    *bool
 	UpdatedAt    time.Time
 }
 
@@ -86,6 +90,7 @@ func (q UserQ) Update(ctx context.Context, input UserUpdateInput) error {
 		"role":         input.Role,
 		"subscription": input.Subscription,
 		"verified":     input.Verified,
+		"suspended":    input.Suspended,
 		"updated_at":   input.UpdatedAt,
 	}
 
@@ -144,6 +149,7 @@ func (q UserQ) Select(ctx context.Context) ([]UserModel, error) {
 			&acc.Role,
 			&acc.Subscription,
 			&acc.Verified,
+			&acc.Suspended,
 			&acc.UpdatedAt,
 			&acc.CreatedAt,
 		)
@@ -184,6 +190,7 @@ func (q UserQ) Get(ctx context.Context) (UserModel, error) {
 		&acc.Role,
 		&acc.Subscription,
 		&acc.Verified,
+		&acc.Suspended,
 		&acc.UpdatedAt,
 		&acc.CreatedAt,
 	)

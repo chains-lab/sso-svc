@@ -23,7 +23,7 @@ func (h Handlers) Logout(ctx context.Context, req *sso.SessionRequest) (*sso.Emp
 		return nil, status.Error(codes.InvalidArgument, "invalid session id")
 	}
 
-	err = h.app.DeleteUserSession(ctx, userID, sessionID)
+	err = h.app.DeleteSession(ctx, userID, sessionID)
 	if err != nil {
 		return nil, h.presenter.AppError(requestID, err)
 	}

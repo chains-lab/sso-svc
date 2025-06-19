@@ -36,7 +36,9 @@ var ErrSessionTokenMismatch = fmt.Errorf("session token mismatch")
 var ErrSessionDoesNotBelongToUser = fmt.Errorf("session does not belong to user")
 
 var ErrNoPermission = fmt.Errorf("no permission to perform this action")
-
+var ErrOnlyUserCanHaveSubscription = fmt.Errorf("only normal user can have subscription")
+var ErrOnlyOrdinaryUserCanBeVerified = fmt.Errorf("only ordinary user can be verified")
+var ErrorOnlyOrdinaryUserCanBeSuspended = fmt.Errorf("only ordinary user can be suspended")
 var ErrInternal = fmt.Errorf("internal server error")
 
 func ErrorUserDoesNotExist(userID uuid.UUID, err error) error {
@@ -72,10 +74,6 @@ func ErrorSessionDoesNotBelongToUser(sessionID, userID uuid.UUID) error {
 		Err:   ErrSessionDoesNotBelongToUser,
 		cause: fmt.Errorf("session %s does not belong to user %s", sessionID, userID),
 	}
-}
-
-func ErrorNoPermission(cause error) error {
-	return &Error{Err: ErrNoPermission, cause: cause}
 }
 
 func ErrorInternal(cause error) error {

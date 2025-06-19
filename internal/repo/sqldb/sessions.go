@@ -46,16 +46,7 @@ func (q SessionsQ) New() SessionsQ {
 	return NewSessions(q.db)
 }
 
-type SessionInsertInput struct {
-	ID        uuid.UUID
-	UserID    uuid.UUID
-	Token     string
-	Client    string
-	LastUsed  time.Time
-	CreatedAt time.Time
-}
-
-func (q SessionsQ) Insert(ctx context.Context, input SessionInsertInput) error {
+func (q SessionsQ) Insert(ctx context.Context, input SessionModel) error {
 	values := map[string]interface{}{
 		"id":         input.ID,
 		"user_id":    input.UserID,

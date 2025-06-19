@@ -18,12 +18,12 @@ import (
 )
 
 type sessionsRepo interface {
-	Create(ctx context.Context, input repo.SessionCreateRequest) error
+	Create(ctx context.Context, input repo.SessionModel) error
 	Update(ctx context.Context, ID uuid.UUID, input repo.SessionUpdateRequest) error
 	Delete(ctx context.Context, ID uuid.UUID) error
 	Terminate(ctx context.Context, userID uuid.UUID) error
-	GetByID(ctx context.Context, ID uuid.UUID) (repo.Session, error)
-	GetByUserID(ctx context.Context, userID uuid.UUID) ([]repo.Session, error)
+	GetByID(ctx context.Context, ID uuid.UUID) (repo.SessionModel, error)
+	GetByUserID(ctx context.Context, userID uuid.UUID) ([]repo.SessionModel, error)
 	Transaction(fn func(ctx context.Context) error) error
 	Drop(ctx context.Context) error
 }
@@ -67,79 +67,6 @@ func NewSession(cfg config.Config, log *logrus.Logger) (Sessions, error) {
 	}, nil
 }
 
-func (s Sessions) Terminate(ctx context.Context, userUD uuid.UUID) error {
-	err := s.repo.Terminate(ctx, userUD)
-	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrorUserDoesNotExist(userUD, err)
-		default:
-			return ape.ErrorInternal(err)
-		}
-	}
-	return nil
-}
-
-func (s Sessions) Delete(ctx context.Context, sessionID uuid.UUID) error {
-	err := s.repo.Delete(ctx, sessionID)
-	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrorSessionDoesNotExist(sessionID, err)
-		default:
-			return ape.ErrorInternal(err)
-		}
-	}
-	return nil
-}
-
-func (s Sessions) Get(ctx context.Context, sessionID uuid.UUID) (models.Session, error) {
-	session, err := s.repo.GetByID(ctx, sessionID)
-	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return models.Session{}, ape.ErrorSessionDoesNotExist(sessionID, err)
-		default:
-			return models.Session{}, ape.ErrorInternal(err)
-		}
-	}
-
-	return models.Session{
-		ID:        session.ID,
-		UserID:    session.UserID,
-		Token:     session.Token,
-		Client:    session.Client,
-		LastUsed:  session.LastUsed,
-		CreatedAt: session.CreatedAt,
-	}, nil
-}
-
-func (s Sessions) GetByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error) {
-	sessions, err := s.repo.GetByUserID(ctx, userID)
-	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return nil, ape.ErrorSessionsForUserNotExist(err)
-		default:
-			return nil, ape.ErrorInternal(err)
-		}
-	}
-
-	result := make([]models.Session, len(sessions))
-	for i, session := range sessions {
-		result[i] = models.Session{
-			ID:        session.ID,
-			UserID:    session.UserID,
-			Token:     session.Token,
-			Client:    session.Client,
-			LastUsed:  session.LastUsed,
-			CreatedAt: session.CreatedAt,
-		}
-	}
-
-	return result, nil
-}
-
 func (s Sessions) Create(ctx context.Context, user models.User, client string) (models.Session, models.TokensPair, error) {
 	id := uuid.New()
 	createdAt := time.Now().UTC()
@@ -163,11 +90,12 @@ func (s Sessions) Create(ctx context.Context, user models.User, client string) (
 		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
 	}
 
-	err = s.repo.Create(ctx, repo.SessionCreateRequest{
+	err = s.repo.Create(ctx, repo.SessionModel{
 		ID:        id,
 		UserID:    user.ID,
 		Token:     refreshCrypto,
 		Client:    client,
+		LastUsed:  createdAt,
 		CreatedAt: createdAt,
 	})
 	if err != nil {
@@ -191,6 +119,53 @@ func (s Sessions) Create(ctx context.Context, user models.User, client string) (
 			Access:  access,
 		}, nil
 
+}
+
+func (s Sessions) Get(ctx context.Context, sessionID uuid.UUID) (models.Session, error) {
+	session, err := s.repo.GetByID(ctx, sessionID)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return models.Session{}, ape.ErrorSessionDoesNotExist(sessionID, err)
+		default:
+			return models.Session{}, ape.ErrorInternal(err)
+		}
+	}
+
+	return models.Session{
+		ID:        session.ID,
+		UserID:    session.UserID,
+		Token:     session.Token,
+		Client:    session.Client,
+		LastUsed:  session.LastUsed,
+		CreatedAt: session.CreatedAt,
+	}, nil
+}
+
+func (s Sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error) {
+	sessions, err := s.repo.GetByUserID(ctx, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ape.ErrorSessionsForUserNotExist(err)
+		default:
+			return nil, ape.ErrorInternal(err)
+		}
+	}
+
+	result := make([]models.Session, len(sessions))
+	for i, session := range sessions {
+		result[i] = models.Session{
+			ID:        session.ID,
+			UserID:    session.UserID,
+			Token:     session.Token,
+			Client:    session.Client,
+			LastUsed:  session.LastUsed,
+			CreatedAt: session.CreatedAt,
+		}
+	}
+
+	return result, nil
 }
 
 func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.User, client, token string) (models.Session, models.TokensPair, error) {
@@ -248,4 +223,30 @@ func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.
 			Refresh: newRefresh,
 			Access:  access,
 		}, nil
+}
+
+func (s Sessions) Terminate(ctx context.Context, userUD uuid.UUID) error {
+	err := s.repo.Terminate(ctx, userUD)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ape.ErrorUserDoesNotExist(userUD, err)
+		default:
+			return ape.ErrorInternal(err)
+		}
+	}
+	return nil
+}
+
+func (s Sessions) Delete(ctx context.Context, sessionID uuid.UUID) error {
+	err := s.repo.Delete(ctx, sessionID)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ape.ErrorSessionDoesNotExist(sessionID, err)
+		default:
+			return ape.ErrorInternal(err)
+		}
+	}
+	return nil
 }
