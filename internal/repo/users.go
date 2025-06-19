@@ -12,18 +12,19 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type User struct {
+type UserModel struct {
 	ID           uuid.UUID  `json:"id"`
 	Email        string     `json:"email"`
 	Role         roles.Role `json:"role"`
 	Subscription uuid.UUID  `json:"subscription"`
+	Verified     bool       `json:"verified,omitempty"`
 	UpdatedAt    time.Time  `json:"updated_at"`
 	CreatedAt    time.Time  `json:"created_at"`
 }
 
 type usersSQL interface {
 	New() sqldb.UserQ
-	Insert(ctx context.Context, input sqldb.UserInsertInput) error
+	Insert(ctx context.Context, input sqldb.UserModel) error
 	Delete(ctx context.Context) error
 	Count(ctx context.Context) (int, error)
 	Select(ctx context.Context) ([]sqldb.UserModel, error)
@@ -33,6 +34,7 @@ type usersSQL interface {
 	FilterEmail(email string) sqldb.UserQ
 	FilterRole(role roles.Role) sqldb.UserQ
 	FilterSubscription(subscription uuid.UUID) sqldb.UserQ
+	FilterVerified(verified bool) sqldb.UserQ
 
 	Update(ctx context.Context, input sqldb.UserUpdateInput) error
 
@@ -61,23 +63,17 @@ func NewUsers(cfg config.Config, log *logrus.Logger) (UsersRepo, error) {
 	}, nil
 }
 
-type UserCreateRequest struct {
-	ID           uuid.UUID  `json:"id"`
-	Email        string     `json:"email"`
-	Role         roles.Role `json:"role"`
-	Subscription uuid.UUID  `json:"subscription"`
-	CreatedAt    time.Time  `json:"created_at"`
-}
-
-func (a UsersRepo) Create(ctx context.Context, input UserCreateRequest) error {
+func (a UsersRepo) Create(ctx context.Context, input UserModel) error {
 	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
 
-	if err := a.sql.Insert(ctxSync, sqldb.UserInsertInput{
+	if err := a.sql.Insert(ctxSync, sqldb.UserModel{
 		ID:           input.ID,
 		Email:        input.Email,
 		Role:         input.Role,
 		Subscription: input.Subscription,
+		Verified:     input.Verified,
+		UpdatedAt:    input.UpdatedAt,
 		CreatedAt:    input.CreatedAt,
 	}); err != nil {
 		return err
@@ -89,6 +85,7 @@ func (a UsersRepo) Create(ctx context.Context, input UserCreateRequest) error {
 type UserUpdateRequest struct {
 	Role         *roles.Role `json:"role"`
 	Subscription *uuid.UUID  `json:"subscription"`
+	Verified     *bool       `json:"verified,omitempty"`
 	UpdatedAt    time.Time   `json:"updated_at"`
 }
 
@@ -102,6 +99,9 @@ func (a UsersRepo) Update(ctx context.Context, ID uuid.UUID, input UserUpdateReq
 	}
 	if input.Subscription != nil {
 		sqlInput.Subscription = input.Subscription
+	}
+	if input.Verified != nil {
+		sqlInput.Verified = input.Verified
 	}
 	sqlInput.UpdatedAt = input.UpdatedAt
 
@@ -123,49 +123,45 @@ func (a UsersRepo) Delete(ctx context.Context, ID uuid.UUID) error {
 	return nil
 }
 
-func (a UsersRepo) GetByID(ctx context.Context, ID uuid.UUID) (User, error) {
+func (a UsersRepo) GetByID(ctx context.Context, ID uuid.UUID) (UserModel, error) {
 	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
 	defer cancel()
 
 	user, err := a.sql.New().FilterID(ID).Get(ctxSync)
 	if err != nil {
-		return User{}, err
+		return UserModel{}, err
 	}
 
-	res := User{
+	res := UserModel{
 		ID:           user.ID,
 		Email:        user.Email,
 		Role:         user.Role,
 		Subscription: user.Subscription,
+		Verified:     user.Verified,
 		CreatedAt:    user.CreatedAt,
-		UpdatedAt:    *user.UpdatedAt,
-	}
-	if user.UpdatedAt != nil {
-		res.UpdatedAt = *user.UpdatedAt
+		UpdatedAt:    user.UpdatedAt,
 	}
 
 	return res, nil
 }
 
-func (a UsersRepo) GetByEmail(ctx context.Context, email string) (User, error) {
+func (a UsersRepo) GetByEmail(ctx context.Context, email string) (UserModel, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
 	user, err := a.sql.New().FilterEmail(email).Get(ctxSync)
 	if err != nil {
-		return User{}, err
+		return UserModel{}, err
 	}
 
-	res := User{
+	res := UserModel{
 		ID:           user.ID,
 		Email:        user.Email,
 		Role:         user.Role,
 		Subscription: user.Subscription,
+		Verified:     user.Verified,
+		UpdatedAt:    user.UpdatedAt,
 		CreatedAt:    user.CreatedAt,
-	}
-
-	if user.UpdatedAt != nil {
-		res.UpdatedAt = *user.UpdatedAt
 	}
 
 	return res, nil

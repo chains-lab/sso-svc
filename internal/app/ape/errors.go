@@ -7,138 +7,77 @@ import (
 )
 
 type Error struct {
-	Code    string
-	Title   string
-	Details string
-	cause   error
+	Err   error
+	cause error
+}
+
+func (e *Error) Error() string {
+	return fmt.Sprintf("%s: %v", e.Err.Error(), e.cause.Error())
 }
 
 func (e *Error) Unwrap() error {
 	return e.cause
 }
 
-func ErrorUserDoesNotExist(userID uuid.UUID, err error) *Error {
+func (e *Error) Nil() bool {
+	if e == nil {
+		return true
+	}
+	return e.Err == nil && e.cause == nil
+}
+
+var ErrUserDoesNotExist = fmt.Errorf("user does not exist")
+var ErrSessionDoesNotExist = fmt.Errorf("session does not exist")
+var ErrUserAlreadyExists = fmt.Errorf("user already exists")
+
+var ErrSessionsForUserNotExist = fmt.Errorf("sessions for user does not exist")
+var ErrSessionClientMismatch = fmt.Errorf("session client mismatch")
+var ErrSessionTokenMismatch = fmt.Errorf("session token mismatch")
+var ErrSessionDoesNotBelongToUser = fmt.Errorf("session does not belong to user")
+
+var ErrNoPermission = fmt.Errorf("no permission to perform this action")
+
+var ErrInternal = fmt.Errorf("internal server error")
+
+func ErrorUserDoesNotExist(userID uuid.UUID, err error) error {
+	return &Error{Err: ErrUserDoesNotExist, cause: err}
+}
+
+func ErrorUserDoesNotExistByEmail(email string, cause error) error {
+	return &Error{Err: ErrUserDoesNotExist, cause: fmt.Errorf("%s: %w", email, cause)}
+}
+
+func ErrorSessionDoesNotExist(sessionID uuid.UUID, cause error) error {
+	return &Error{Err: ErrSessionDoesNotExist, cause: fmt.Errorf("%s: %w", sessionID, cause)}
+}
+
+func ErrorUserAlreadyExists(cause error) error {
+	return &Error{Err: ErrUserAlreadyExists, cause: cause}
+}
+
+func ErrorSessionsForUserNotExist(cause error) error {
+	return &Error{Err: ErrSessionsForUserNotExist, cause: cause}
+}
+
+func ErrorSessionClientMismatch(cause error) error {
+	return &Error{Err: ErrSessionClientMismatch, cause: cause}
+}
+
+func ErrorSessionTokenMismatch(cause error) error {
+	return &Error{Err: ErrSessionTokenMismatch, cause: cause}
+}
+
+func ErrorSessionDoesNotBelongToUser(sessionID, userID uuid.UUID) error {
 	return &Error{
-		Code:    CodeUserDoesNotExist,
-		Title:   "User does not exist",
-		Details: fmt.Sprintf("The requested user %s does not exist.", userID),
-		cause:   err,
+		Err:   ErrSessionDoesNotBelongToUser,
+		cause: fmt.Errorf("session %s does not belong to user %s", sessionID, userID),
 	}
 }
 
-func ErrorUserDoesNotExistByEmail(email string, err error) *Error {
-	return &Error{
-		Code:    CodeUserDoesNotExist,
-		Title:   "User does not exist",
-		Details: fmt.Sprintf("The requested user with email %s does not exist.", email),
-		cause:   err,
-	}
+func ErrorNoPermission(cause error) error {
+	return &Error{Err: ErrNoPermission, cause: cause}
 }
 
-func ErrorSessionDoesNotExist(sessionID uuid.UUID, err error) *Error {
-	return &Error{
-		Code:    CodeSessionDoesNotExist,
-		Title:   "Session does not exist",
-		Details: fmt.Sprintf("The requested session %s does not exist.", sessionID),
-		cause:   err,
-	}
-}
-
-func ErrorUserAlreadyExists(cause error) *Error {
-	return &Error{
-		Code:    CodeUserAlreadyExists,
-		Title:   "User Already Exists",
-		Details: "User already exists",
-		cause:   cause,
-	}
-}
-
-func ErrorUserInvalidRole(cause error) *Error {
-	return &Error{
-		Code:    CodeUserInvalidRole,
-		Title:   "Invalid User Role",
-		Details: "Invalid role",
-		cause:   cause,
-	}
-}
-
-func ErrorUserNoPermissionToUpdateRole(cause error) *Error {
-	return &Error{
-		Code:    CodeUserNoPermissionToUpdateRole,
-		Title:   "No Permission to Update Role",
-		Details: "User has no permission to update role",
-		cause:   cause,
-	}
-}
-
-func ErrorSessionsForUserNotExist(cause error) *Error {
-	return &Error{
-		Code:    CodeSessionsForUserNotExist,
-		Title:   "Sessions for User Not Found",
-		Details: "Sessions for user does not exist",
-		cause:   cause,
-	}
-}
-
-func ErrorSessionClientMismatch(cause error) *Error {
-	return &Error{
-		Code:    CodeSessionClientMismatch,
-		Title:   "Sessions Client Mismatch",
-		Details: "Client does not match",
-		cause:   cause,
-	}
-}
-
-func ErrorSessionTokenMismatch(cause error) *Error {
-	return &Error{
-		Code:    CodeSessionTokenMismatch,
-		Title:   "Sessions Token Mismatch",
-		Details: "Token does not match",
-		cause:   cause,
-	}
-}
-
-func ErrorSessionAlreadyExists(cause error) *Error {
-	return &Error{
-		Code:    CodeSessionAlreadyExists,
-		Title:   "Session Already Exists",
-		Details: "Session already exists",
-		cause:   cause,
-	}
-}
-
-func ErrorSessionCannotBeCurrent(cause error) *Error {
-	return &Error{
-		Code:    CodeSessionCannotBeCurrent,
-		Title:   "Session Cannot Be Current",
-		Details: "Session cannot be current",
-		cause:   cause,
-	}
-}
-
-func ErrorSessionCannotBeCurrentUser(cause error) *Error {
-	return &Error{
-		Code:    CodeSessionCannotBeCurrentUser,
-		Title:   "Session Cannot Be Current User",
-		Details: "Session cannot be current user",
-		cause:   cause,
-	}
-}
-
-func ErrorSessionCannotDeleteSuperUserByOther(cause error) *Error {
-	return &Error{
-		Code:    CodeSessionCannotDeleteSuperUserByOther,
-		Title:   "Cannot Delete Superuser Session",
-		Details: "Cannot delete superuser session by other user",
-		cause:   cause,
-	}
-}
-
-func ErrorInternal(cause error) *Error {
-	return &Error{
-		Code:    CodeInternal,
-		Title:   "Internal Server Error",
-		Details: "Internal server error",
-		cause:   cause,
-	}
+func ErrorInternal(cause error) error {
+	return &Error{Err: ErrInternal, cause: cause}
 }

@@ -46,21 +46,20 @@ type KafkaConfig struct {
 }
 
 type JWTConfig struct {
-	AccessToken struct {
-		SecretKey     string        `mapstructure:"secret_key"`
-		TokenLifetime time.Duration `mapstructure:"token_lifetime"`
-	} `mapstructure:"access_token"`
-	RefreshToken struct {
-		SecretKey     string        `mapstructure:"secret_key"`
-		EncryptionKey string        `mapstructure:"encryption_key"`
-		TokenLifetime time.Duration `mapstructure:"token_lifetime"`
-	} `mapstructure:"refresh_token"`
-	Bin struct {
-		Addr     string `mapstructure:"addr"`
-		Password string `mapstructure:"password"`
-		DB       int    `mapstructure:"db"`
-		Lifetime int    `mapstructure:"lifetime"`
-	} `mapstructure:"bin"`
+	User struct {
+		AccessToken struct {
+			SecretKey     string        `mapstructure:"secret_key"`
+			TokenLifetime time.Duration `mapstructure:"token_lifetime"`
+		} `mapstructure:"access_token"`
+		RefreshToken struct {
+			SecretKey     string        `mapstructure:"secret_key"`
+			EncryptionKey string        `mapstructure:"encryption_key"`
+			TokenLifetime time.Duration `mapstructure:"token_lifetime"`
+		} `mapstructure:"refresh_token"`
+	} `mapstructure:"user"`
+	Service struct {
+		SecretKey string `mapstructure:"secret_key"`
+	} `mapstructure:"service"`
 }
 
 type RabbitConfig struct {

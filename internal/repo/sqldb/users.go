@@ -18,7 +18,8 @@ type UserModel struct {
 	Email        string     `db:"email"`
 	Role         roles.Role `db:"role"`
 	Subscription uuid.UUID  `db:"subscription"`
-	UpdatedAt    *time.Time `db:"updated_at,omitempty"`
+	Verified     bool       `db:"verified,omitempty"`
+	UpdatedAt    time.Time  `db:"updated_at,omitempty"`
 	CreatedAt    time.Time  `db:"created_at"`
 }
 
@@ -47,19 +48,12 @@ func (q UserQ) New() UserQ {
 	return NewUsers(q.db)
 }
 
-type UserInsertInput struct {
-	ID           uuid.UUID
-	Email        string
-	Role         roles.Role
-	Subscription uuid.UUID
-	CreatedAt    time.Time
-}
-
-func (q UserQ) Insert(ctx context.Context, input UserInsertInput) error {
+func (q UserQ) Insert(ctx context.Context, input UserModel) error {
 	values := map[string]interface{}{
 		"id":           input.ID,
 		"email":        input.Email,
 		"role":         input.Role,
+		"verified":     input.Verified,
 		"subscription": input.Subscription,
 		"created_at":   input.CreatedAt,
 	}
@@ -83,6 +77,7 @@ func (q UserQ) Insert(ctx context.Context, input UserInsertInput) error {
 type UserUpdateInput struct {
 	Role         *roles.Role
 	Subscription *uuid.UUID
+	Verified     *bool
 	UpdatedAt    time.Time
 }
 
@@ -90,6 +85,7 @@ func (q UserQ) Update(ctx context.Context, input UserUpdateInput) error {
 	values := map[string]interface{}{
 		"role":         input.Role,
 		"subscription": input.Subscription,
+		"verified":     input.Verified,
 		"updated_at":   input.UpdatedAt,
 	}
 
@@ -147,6 +143,7 @@ func (q UserQ) Select(ctx context.Context) ([]UserModel, error) {
 			&acc.Email,
 			&acc.Role,
 			&acc.Subscription,
+			&acc.Verified,
 			&acc.UpdatedAt,
 			&acc.CreatedAt,
 		)
@@ -186,6 +183,7 @@ func (q UserQ) Get(ctx context.Context) (UserModel, error) {
 		&acc.Email,
 		&acc.Role,
 		&acc.Subscription,
+		&acc.Verified,
 		&acc.UpdatedAt,
 		&acc.CreatedAt,
 	)
@@ -225,6 +223,14 @@ func (q UserQ) FilterSubscription(subscription uuid.UUID) UserQ {
 	q.counter = q.counter.Where(sq.Eq{"subscription": subscription})
 	q.deleter = q.deleter.Where(sq.Eq{"subscription": subscription})
 	q.updater = q.updater.Where(sq.Eq{"subscription": subscription})
+	return q
+}
+
+func (q UserQ) FilterVerified(verified bool) UserQ {
+	q.selector = q.selector.Where(sq.Eq{"verified": verified})
+	q.counter = q.counter.Where(sq.Eq{"verified": verified})
+	q.deleter = q.deleter.Where(sq.Eq{"verified": verified})
+	q.updater = q.updater.Where(sq.Eq{"verified": verified})
 	return q
 }
 

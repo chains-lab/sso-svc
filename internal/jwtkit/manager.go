@@ -27,11 +27,11 @@ type Manager struct {
 
 func NewManager(cfg config.Config) Manager {
 	return Manager{
-		accessSK:  cfg.JWT.AccessToken.SecretKey,
-		refreshSK: cfg.JWT.RefreshToken.SecretKey,
+		accessSK:  cfg.JWT.User.AccessToken.SecretKey,
+		refreshSK: cfg.JWT.User.RefreshToken.SecretKey,
 
-		accessTTL:  cfg.JWT.AccessToken.TokenLifetime,
-		refreshTTL: cfg.JWT.RefreshToken.TokenLifetime,
+		accessTTL:  cfg.JWT.User.AccessToken.TokenLifetime,
+		refreshTTL: cfg.JWT.User.RefreshToken.TokenLifetime,
 
 		iss: cfg.Server.Name,
 	}

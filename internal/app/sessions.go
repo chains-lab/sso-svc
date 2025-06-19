@@ -2,27 +2,24 @@ package app
 
 import (
 	"context"
-	"database/sql"
 	"errors"
-	"fmt"
 
 	"github.com/chains-lab/chains-auth/internal/app/ape"
 	"github.com/chains-lab/chains-auth/internal/app/models"
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 )
 
 type sessionsDomain interface {
-	Terminate(ctx context.Context, userUD uuid.UUID) *ape.Error
-	Delete(ctx context.Context, sessionID uuid.UUID) *ape.Error
-	Get(ctx context.Context, sessionID uuid.UUID) (models.Session, *ape.Error)
-	GetByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, *ape.Error)
-	Create(ctx context.Context, user models.User, client string) (models.Session, models.TokensPair, *ape.Error)
-	Refresh(ctx context.Context, sessionID uuid.UUID, user models.User, client, token string) (models.Session, models.TokensPair, *ape.Error)
+	Terminate(ctx context.Context, userUD uuid.UUID) error
+	Delete(ctx context.Context, sessionID uuid.UUID) error
+	Get(ctx context.Context, sessionID uuid.UUID) (models.Session, error)
+	GetByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error)
+	Create(ctx context.Context, user models.User, client string) (models.Session, models.TokensPair, error)
+	Refresh(ctx context.Context, sessionID uuid.UUID, user models.User, client, token string) (models.Session, models.TokensPair, error)
 }
 
-func (a App) TerminateSessionsByOwner(ctx context.Context, userID uuid.UUID) *ape.Error {
+func (a App) TerminateSessions(ctx context.Context, userID uuid.UUID) error {
 	_, appError := a.GetUserByID(ctx, userID)
 	if appError != nil {
 		return appError
@@ -35,68 +32,82 @@ func (a App) TerminateSessionsByOwner(ctx context.Context, userID uuid.UUID) *ap
 	return nil
 }
 
-func (a App) DeleteSessionByOwner(ctx context.Context, sessionID, initiatorSessionID uuid.UUID) *ape.Error {
-	if sessionID == initiatorSessionID {
-		return ape.ErrorSessionCannotBeCurrent(fmt.Errorf("cannot delete session that is the initiator session"))
+func (a App) TerminateSessionsByAdmin(ctx context.Context, userID uuid.UUID) error {
+	user, err := a.GetUserByID(ctx, userID)
+	if err != nil {
+		return err
 	}
 
-	appErr := a.sessions.Delete(ctx, sessionID)
+	if user.Role == roles.SuperUser {
+		return ape.ErrNoPermission
+	}
+
+	appErr := a.sessions.Terminate(ctx, userID)
 	if appErr != nil {
 		return appErr
 	}
 	return nil
 }
 
-func (a App) TerminateSessionsByAdmin(ctx context.Context, userID uuid.UUID) *ape.Error {
-	user, appErr := a.GetUserByID(ctx, userID)
+func (a App) DeleteSession(ctx context.Context, sessionID uuid.UUID) error {
+	_, appErr := a.GetSession(ctx, sessionID)
 	if appErr != nil {
 		return appErr
-	}
-
-	if user.Role == roles.SuperUser {
-		return ape.ErrorSessionCannotDeleteSuperUserByOther(fmt.Errorf("cannot delete superuser sessions"))
-	}
-
-	appErr = a.sessions.Terminate(ctx, userID)
-	if appErr != nil {
-		return appErr
-	}
-
-	return nil
-}
-
-func (a App) DeleteSessionByAdmin(ctx context.Context, sessionID, initiatorID, initiatorSessionID uuid.UUID) *ape.Error {
-	session, appErr := a.GetSession(ctx, sessionID)
-	if appErr != nil {
-		return appErr
-	}
-
-	if session.ID == initiatorSessionID {
-		return ape.ErrorSessionCannotBeCurrent(fmt.Errorf("cannot delete session that is the initiator session"))
-	}
-
-	if session.UserID == initiatorID {
-		return ape.ErrorSessionCannotBeCurrentUser(fmt.Errorf("cannot delete session that is the one of initiator session"))
-	}
-
-	user, appErr := a.GetUserByID(ctx, session.UserID)
-	if appErr != nil {
-		return appErr
-	}
-
-	if user.Role == roles.SuperUser {
-		return ape.ErrorSessionCannotDeleteSuperUserByOther(fmt.Errorf("cannot delete superuser sessions"))
 	}
 
 	appErr = a.sessions.Delete(ctx, sessionID)
 	if appErr != nil {
 		return appErr
 	}
+	return nil
+}
+
+func (a App) DeleteUserSessionByAdmin(ctx context.Context, userID, sessionID uuid.UUID) error {
+	user, err := a.GetUserByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if user.Role == roles.SuperUser {
+		return ape.ErrNoPermission
+	}
+
+	session, appErr := a.GetUserSession(ctx, userID, sessionID)
+	if appErr != nil {
+		return appErr
+	}
+
+	if session.UserID != userID {
+		return ape.ErrorSessionDoesNotBelongToUser(sessionID, userID)
+	}
+
+	appErr = a.sessions.Delete(ctx, session.ID)
+	if appErr != nil {
+		return appErr
+	}
 
 	return nil
 }
 
-func (a App) GetSession(ctx context.Context, sessionID uuid.UUID) (models.Session, *ape.Error) {
+func (a App) DeleteUserSession(ctx context.Context, userID, sessionID uuid.UUID) error {
+	session, appErr := a.GetUserSession(ctx, userID, sessionID)
+	if appErr != nil {
+		return appErr
+	}
+
+	if session.UserID != userID {
+		return ape.ErrorSessionDoesNotBelongToUser(sessionID, userID)
+	}
+
+	appErr = a.sessions.Delete(ctx, session.ID)
+	if appErr != nil {
+		return appErr
+	}
+
+	return nil
+}
+
+func (a App) GetSession(ctx context.Context, sessionID uuid.UUID) (models.Session, error) {
 	session, appErr := a.sessions.Get(ctx, sessionID)
 	if appErr != nil {
 		return models.Session{}, appErr
@@ -105,7 +116,20 @@ func (a App) GetSession(ctx context.Context, sessionID uuid.UUID) (models.Sessio
 	return session, nil
 }
 
-func (a App) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]models.Session, *ape.Error) {
+func (a App) GetUserSession(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error) {
+	session, appErr := a.sessions.Get(ctx, sessionID)
+	if appErr != nil {
+		return models.Session{}, appErr
+	}
+
+	if session.UserID != userID {
+		return models.Session{}, ape.ErrorSessionDoesNotBelongToUser(sessionID, userID)
+	}
+
+	return session, nil
+}
+
+func (a App) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]models.Session, error) {
 	_, appErr := a.GetUserByID(ctx, userID)
 	if appErr != nil {
 		return nil, appErr
@@ -119,58 +143,22 @@ func (a App) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]models.Se
 	return sessions, nil
 }
 
-func (a App) Login(ctx context.Context, email string, role roles.Role, client string) (models.Session, models.TokensPair, *ape.Error) {
-	user, appErr := a.users.GetByEmail(ctx, email)
-	if appErr != nil {
+//func (a App) Login(ctx context.Context, email string, role roles.Role, client string) (models.Session, models.TokensPair, error) {
+//	user, err := a.users.GetByEmail(ctx, email)
+//	if err != nil {
+//		return models.Session{}, models.TokensPair{}, err
+//	}
+//
+//	session, tokensPair, appErr := a.sessions.Create(ctx, user, client)
+//	if appErr != nil {
+//
+//		return models.Session{}, models.TokensPair{}, err
+//	}
+//
+//	return session, tokensPair, nil
+//}
 
-		//Registration flow
-		if errors.Is(appErr.Unwrap(), sql.ErrNoRows) {
-			appErr = a.users.Create(ctx, email, role)
-			if appErr != nil {
-				switch {
-				case errors.Is(appErr.Unwrap(), sql.ErrNoRows):
-					return models.Session{}, models.TokensPair{}, ape.ErrorUserDoesNotExistByEmail(email, appErr.Unwrap())
-				default:
-					return models.Session{}, models.TokensPair{}, ape.ErrorInternal(appErr.Unwrap())
-				}
-			}
-
-			logrus.Info("test")
-
-			user, appErr = a.users.GetByEmail(ctx, email)
-			if appErr != nil {
-
-				// It a good return internal error here anyway, because we already created the user in logic above
-				return models.Session{}, models.TokensPair{}, ape.ErrorInternal(appErr.Unwrap())
-			}
-
-			logrus.Info("test")
-
-			session, tokensPair, appErr := a.sessions.Create(ctx, user, client)
-			if appErr != nil {
-
-				// If we fail to create a session after creating an user, we should return an internal error
-				return models.Session{}, models.TokensPair{}, ape.ErrorInternal(appErr.Unwrap())
-			}
-
-			logrus.Info("test")
-
-			return session, tokensPair, nil
-		}
-
-		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(appErr.Unwrap())
-	}
-
-	//Login flow
-	session, tokensPair, appErr := a.sessions.Create(ctx, user, client)
-	if appErr != nil {
-		return models.Session{}, models.TokensPair{}, appErr
-	}
-
-	return session, tokensPair, nil
-}
-
-func (a App) Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, token string) (models.Session, models.TokensPair, *ape.Error) {
+func (a App) Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, token string) (models.Session, models.TokensPair, error) {
 	user, appErr := a.GetUserByID(ctx, userID)
 	if appErr != nil {
 		return models.Session{}, models.TokensPair{}, appErr
@@ -184,15 +172,60 @@ func (a App) Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, t
 	return session, tokensPair, nil
 }
 
-func (a App) Logout(ctx context.Context, sessionID uuid.UUID) *ape.Error {
-	_, appErr := a.GetSession(ctx, sessionID)
-	if appErr != nil {
-		return appErr
+func (a App) UpdateUserRole(ctx context.Context, userID uuid.UUID, role roles.Role) error {
+	user, err := a.GetUserByID(ctx, userID)
+	if err != nil {
+		return err
 	}
 
-	appErr = a.sessions.Delete(ctx, sessionID)
-	if appErr != nil {
-		return appErr
+	if user.Role == roles.SuperUser {
+		return ape.ErrNoPermission
 	}
+
+	user.Role = role
+	err = a.users.UpdateRole(ctx, userID, role)
+	if err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func (a App) Login(ctx context.Context, email string, role roles.Role, client string) (models.Session, models.TokensPair, error) {
+	user, err := a.users.GetByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, ape.ErrUserDoesNotExist) {
+			err = a.users.Create(ctx, email, role)
+			if err != nil {
+
+				// If we fail to create a user, we should return an internal error
+				return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
+			}
+
+			user, err = a.users.GetByEmail(ctx, email)
+			if err != nil {
+
+				// It a good return internal error here anyway, because we already created the user in logic above
+				return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
+			}
+
+			session, tokensPair, err := a.sessions.Create(ctx, user, client)
+			if err != nil {
+
+				// If we fail to create a session, we should return an internal error
+				return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
+			}
+
+			return session, tokensPair, nil
+		}
+
+		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
+	}
+
+	session, tokensPair, err := a.sessions.Create(ctx, user, client)
+	if err != nil {
+		return models.Session{}, models.TokensPair{}, err
+	}
+
+	return session, tokensPair, nil
 }

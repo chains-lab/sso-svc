@@ -67,12 +67,12 @@ func NewSession(cfg config.Config, log *logrus.Logger) (Sessions, error) {
 	}, nil
 }
 
-func (s Sessions) Terminate(ctx context.Context, userUD uuid.UUID) *ape.Error {
+func (s Sessions) Terminate(ctx context.Context, userUD uuid.UUID) error {
 	err := s.repo.Terminate(ctx, userUD)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrorSessionsForUserNotExist(err)
+			return ape.ErrorUserDoesNotExist(userUD, err)
 		default:
 			return ape.ErrorInternal(err)
 		}
@@ -80,7 +80,7 @@ func (s Sessions) Terminate(ctx context.Context, userUD uuid.UUID) *ape.Error {
 	return nil
 }
 
-func (s Sessions) Delete(ctx context.Context, sessionID uuid.UUID) *ape.Error {
+func (s Sessions) Delete(ctx context.Context, sessionID uuid.UUID) error {
 	err := s.repo.Delete(ctx, sessionID)
 	if err != nil {
 		switch {
@@ -93,7 +93,7 @@ func (s Sessions) Delete(ctx context.Context, sessionID uuid.UUID) *ape.Error {
 	return nil
 }
 
-func (s Sessions) Get(ctx context.Context, sessionID uuid.UUID) (models.Session, *ape.Error) {
+func (s Sessions) Get(ctx context.Context, sessionID uuid.UUID) (models.Session, error) {
 	session, err := s.repo.GetByID(ctx, sessionID)
 	if err != nil {
 		switch {
@@ -114,7 +114,7 @@ func (s Sessions) Get(ctx context.Context, sessionID uuid.UUID) (models.Session,
 	}, nil
 }
 
-func (s Sessions) GetByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, *ape.Error) {
+func (s Sessions) GetByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error) {
 	sessions, err := s.repo.GetByUserID(ctx, userID)
 	if err != nil {
 		switch {
@@ -140,7 +140,7 @@ func (s Sessions) GetByUserID(ctx context.Context, userID uuid.UUID) ([]models.S
 	return result, nil
 }
 
-func (s Sessions) Create(ctx context.Context, user models.User, client string) (models.Session, models.TokensPair, *ape.Error) {
+func (s Sessions) Create(ctx context.Context, user models.User, client string) (models.Session, models.TokensPair, error) {
 	id := uuid.New()
 	createdAt := time.Now().UTC()
 
@@ -193,10 +193,10 @@ func (s Sessions) Create(ctx context.Context, user models.User, client string) (
 
 }
 
-func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.User, client, token string) (models.Session, models.TokensPair, *ape.Error) {
-	session, appErr := s.Get(ctx, sessionID)
-	if appErr != nil {
-		return models.Session{}, models.TokensPair{}, appErr
+func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.User, client, token string) (models.Session, models.TokensPair, error) {
+	session, err := s.Get(ctx, sessionID)
+	if err != nil {
+		return models.Session{}, models.TokensPair{}, err
 	}
 
 	if session.Client != client {

@@ -12,6 +12,7 @@ type User struct {
 	Email        string     `json:"email"`
 	Role         roles.Role `json:"role"`
 	Subscription uuid.UUID  `json:"subscription"`
+	Verified     bool       `json:"verified,omitempty"`
 	UpdatedAt    time.Time  `json:"updated_at"`
 	CreatedAt    time.Time  `json:"created_at"`
 }

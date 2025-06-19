@@ -19,11 +19,11 @@ import (
 )
 
 type usersRepo interface {
-	Create(ctx context.Context, input repo.UserCreateRequest) error
+	Create(ctx context.Context, input repo.UserModel) error
 	Update(ctx context.Context, ID uuid.UUID, input repo.UserUpdateRequest) error
 	Delete(ctx context.Context, ID uuid.UUID) error
-	GetByID(ctx context.Context, ID uuid.UUID) (repo.User, error)
-	GetByEmail(ctx context.Context, email string) (repo.User, error)
+	GetByID(ctx context.Context, ID uuid.UUID) (repo.UserModel, error)
+	GetByEmail(ctx context.Context, email string) (repo.UserModel, error)
 	Transaction(fn func(ctx context.Context) error) error
 	Drop(ctx context.Context) error
 }
@@ -58,16 +58,18 @@ func NewUser(cfg config.Config, log *logrus.Logger) (Users, error) {
 	}, nil
 }
 
-func (a Users) Create(ctx context.Context, email string, role roles.Role) *ape.Error {
+func (a Users) Create(ctx context.Context, email string, role roles.Role) error {
 	ID := uuid.New()
 	CreatedAt := time.Now().UTC()
 
 	txErr := a.repo.Transaction(func(ctx context.Context) error {
-		if err := a.repo.Create(ctx, repo.UserCreateRequest{
+		if err := a.repo.Create(ctx, repo.UserModel{
 			ID:           ID,
 			Email:        email,
 			Role:         role,
 			Subscription: uuid.Nil,
+			Verified:     false,
+			UpdatedAt:    CreatedAt,
 			CreatedAt:    CreatedAt,
 		}); err != nil {
 			return err
@@ -96,7 +98,8 @@ func (a Users) Create(ctx context.Context, email string, role roles.Role) *ape.E
 	return nil
 }
 
-func (a Users) UpdateRole(ctx context.Context, ID uuid.UUID, role roles.Role) *ape.Error {
+// TODO maybe is doesn't need
+func (a Users) UpdateRole(ctx context.Context, ID uuid.UUID, role roles.Role) error {
 	UpdatedAt := time.Now().UTC()
 
 	err := a.repo.Update(ctx, ID, repo.UserUpdateRequest{
@@ -115,7 +118,7 @@ func (a Users) UpdateRole(ctx context.Context, ID uuid.UUID, role roles.Role) *a
 	return nil
 }
 
-func (a Users) GetByID(ctx context.Context, ID uuid.UUID) (models.User, *ape.Error) {
+func (a Users) GetByID(ctx context.Context, ID uuid.UUID) (models.User, error) {
 	user, err := a.repo.GetByID(ctx, ID)
 	if err != nil {
 		switch {
@@ -131,12 +134,13 @@ func (a Users) GetByID(ctx context.Context, ID uuid.UUID) (models.User, *ape.Err
 		Email:        user.Email,
 		Role:         user.Role,
 		Subscription: user.Subscription,
+		Verified:     user.Verified,
 		CreatedAt:    user.CreatedAt,
 		UpdatedAt:    user.UpdatedAt,
 	}, nil
 }
 
-func (a Users) GetByEmail(ctx context.Context, email string) (models.User, *ape.Error) {
+func (a Users) GetByEmail(ctx context.Context, email string) (models.User, error) {
 	user, err := a.repo.GetByEmail(ctx, email)
 	if err != nil {
 		switch {
@@ -152,6 +156,7 @@ func (a Users) GetByEmail(ctx context.Context, email string) (models.User, *ape.
 		Email:        user.Email,
 		Role:         user.Role,
 		Subscription: user.Subscription,
+		Verified:     user.Verified,
 		CreatedAt:    user.CreatedAt,
 		UpdatedAt:    user.UpdatedAt,
 	}, nil

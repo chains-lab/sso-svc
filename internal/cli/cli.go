@@ -51,7 +51,7 @@ func Run(args []string) bool {
 
 	switch cmd {
 	case serviceCmd.FullCommand():
-		Start(ctx, cfg, logger, &wg, &application)
+		err = Start(ctx, cfg, logger, &wg, &application)
 	case migrateUpCmd.FullCommand():
 		err = migrator.RunUp(cfg)
 	case migrateDownCmd.FullCommand():
