@@ -55,6 +55,10 @@ func (a App) AdminUpdateUserRole(ctx context.Context, initiatorID, userID uuid.U
 		}
 	}
 
+	if initiator.Suspended {
+		return ape.ErrorUserSuspended(initiator.ID)
+	}
+
 	err = a.sessions.Terminate(ctx, userID)
 	if err != nil {
 		return err
@@ -80,6 +84,11 @@ func (a App) AdminUpdateUserRole(ctx context.Context, initiatorID, userID uuid.U
 		return err
 	}
 
+	err = a.sessions.Terminate(ctx, userID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -100,7 +109,16 @@ func (a App) AdminUpdateUserSubscription(ctx context.Context, initiatorID, userI
 		}
 	}
 
+	if initiator.Suspended {
+		return ape.ErrorUserSuspended(initiator.ID)
+	}
+
 	err = a.users.UpdateSubscription(ctx, userID, subscriptionID)
+	if err != nil {
+		return err
+	}
+
+	err = a.sessions.Terminate(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -125,7 +143,16 @@ func (a App) AdminUpdateUserVerified(ctx context.Context, initiatorID, userID uu
 		}
 	}
 
+	if initiator.Suspended {
+		return ape.ErrorUserSuspended(initiator.ID)
+	}
+
 	err = a.users.UpdateVerified(ctx, userID, verified)
+	if err != nil {
+		return err
+	}
+
+	err = a.sessions.Terminate(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -150,7 +177,16 @@ func (a App) AdminUpdateUserSuspended(ctx context.Context, initiatorID, userID u
 		}
 	}
 
+	if initiator.Suspended {
+		return ape.ErrorUserSuspended(initiator.ID)
+	}
+
 	err = a.users.UpdateSuspended(ctx, userID, suspended)
+	if err != nil {
+		return err
+	}
+
+	err = a.sessions.Terminate(ctx, userID)
 	if err != nil {
 		return err
 	}

@@ -39,6 +39,7 @@ var ErrNoPermission = fmt.Errorf("no permission to perform this action")
 var ErrOnlyUserCanHaveSubscription = fmt.Errorf("only normal user can have subscription")
 var ErrOnlyOrdinaryUserCanBeVerified = fmt.Errorf("only ordinary user can be verified")
 var ErrorOnlyOrdinaryUserCanBeSuspended = fmt.Errorf("only ordinary user can be suspended")
+var ErrUserIsSuspended = fmt.Errorf("user is suspended")
 var ErrInternal = fmt.Errorf("internal server error")
 
 func ErrorUserDoesNotExist(userID uuid.UUID, err error) error {
@@ -73,6 +74,25 @@ func ErrorSessionDoesNotBelongToUser(sessionID, userID uuid.UUID) error {
 	return &Error{
 		Err:   ErrSessionDoesNotBelongToUser,
 		cause: fmt.Errorf("session %s does not belong to user %s", sessionID, userID),
+	}
+}
+
+func ErrorNoPermission(cause error) error {
+	return &Error{Err: ErrNoPermission, cause: cause}
+}
+
+func ErrorOnlyUserCanHaveSubscription(cause error) error {
+	return &Error{Err: ErrOnlyUserCanHaveSubscription, cause: cause}
+}
+
+func ErrorOnlyOrdinaryUserCanBeVerified(cause error) error {
+	return &Error{Err: ErrOnlyOrdinaryUserCanBeVerified, cause: cause}
+}
+
+func ErrorUserSuspended(userID uuid.UUID) error {
+	return &Error{
+		Err:   ErrUserIsSuspended,
+		cause: fmt.Errorf("user %s is suspended", userID),
 	}
 }
 

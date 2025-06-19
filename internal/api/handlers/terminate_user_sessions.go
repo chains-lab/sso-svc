@@ -17,7 +17,7 @@ func (h Handlers) TerminateUserSessions(ctx context.Context, req *sso.UserReques
 		return nil, status.Errorf(codes.InvalidArgument, "invalid user id: %s", req.UserId)
 	}
 
-	err = h.app.TerminateSessions(ctx, userID)
+	err = h.app.TerminateUserSessions(ctx, userID)
 	if err != nil {
 		return nil, h.presenter.AppError(requestID, err)
 	}

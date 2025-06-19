@@ -28,7 +28,7 @@ func (h Handlers) DeleteUserSession(ctx context.Context, req *sso.SessionRequest
 		return nil, h.presenter.AppError(requestID, err)
 	}
 
-	sessions, err := h.app.SelectSessions(ctx, userID)
+	sessions, err := h.app.SelectUserSessions(ctx, userID)
 	if err != nil {
 		return nil, h.presenter.AppError(requestID, err)
 	}

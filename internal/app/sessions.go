@@ -26,6 +26,10 @@ func (a App) Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, t
 		return models.Session{}, models.TokensPair{}, appErr
 	}
 
+	if user.Suspended {
+		return models.Session{}, models.TokensPair{}, ape.ErrorUserSuspended(user.ID)
+	}
+
 	session, tokensPair, appErr := a.sessions.Refresh(ctx, sessionID, user, client, token)
 	if appErr != nil {
 		return models.Session{}, models.TokensPair{}, appErr
@@ -65,6 +69,10 @@ func (a App) Login(ctx context.Context, email string, role roles.Role, client st
 		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(fmt.Errorf("error in login %s", err))
 	}
 
+	if user.Suspended {
+		return models.Session{}, models.TokensPair{}, ape.ErrorUserSuspended(user.ID)
+	}
+
 	session, tokensPair, err := a.sessions.Create(ctx, user, client)
 	if err != nil {
 		return models.Session{}, models.TokensPair{}, err
@@ -86,10 +94,14 @@ func (a App) GetSession(ctx context.Context, userID, sessionID uuid.UUID) (model
 	return session, nil
 }
 
-func (a App) SelectSessions(ctx context.Context, userID uuid.UUID) ([]models.Session, error) {
-	_, appErr := a.GetUserByID(ctx, userID)
+func (a App) SelectUserSessions(ctx context.Context, userID uuid.UUID) ([]models.Session, error) {
+	user, appErr := a.GetUserByID(ctx, userID)
 	if appErr != nil {
 		return nil, appErr
+	}
+
+	if user.Suspended {
+		return nil, ape.ErrorUserSuspended(user.ID)
 	}
 
 	sessions, appErr := a.sessions.SelectByUserID(ctx, userID)
@@ -118,10 +130,14 @@ func (a App) DeleteSession(ctx context.Context, userID, sessionID uuid.UUID) err
 	return nil
 }
 
-func (a App) TerminateSessions(ctx context.Context, userID uuid.UUID) error {
-	_, appError := a.GetUserByID(ctx, userID)
+func (a App) TerminateUserSessions(ctx context.Context, userID uuid.UUID) error {
+	user, appError := a.GetUserByID(ctx, userID)
 	if appError != nil {
 		return appError
+	}
+
+	if user.Suspended {
+		return ape.ErrorUserSuspended(user.ID)
 	}
 
 	appErr := a.sessions.Terminate(ctx, userID)
@@ -154,29 +170,3 @@ func (a App) AdminTerminateSessions(ctx context.Context, initiatorID, userID uui
 	}
 	return nil
 }
-
-//func (a App) GetSession(ctx context.Context, sessionID uuid.UUID) (models.Session, error) {
-//	session, appErr := a.sessions.Get(ctx, sessionID)
-//	if appErr != nil {
-//		return models.Session{}, appErr
-//	}
-//
-//	return session, nil
-//}
-
-//func (a App) AdminTerminateSessions(ctx context.Context, userID uuid.UUID) error {
-//	user, err := a.GetUserByID(ctx, userID)
-//	if err != nil {
-//		return err
-//	}
-//
-//	if user.Role == roles.SuperUser {
-//		return ape.ErrNoPermission
-//	}
-//
-//	appErr := a.sessions.Terminate(ctx, userID)
-//	if appErr != nil {
-//		return appErr
-//	}
-//	return nil
-//}

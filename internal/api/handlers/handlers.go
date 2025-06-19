@@ -19,15 +19,15 @@ type App interface {
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)
 
 	GetSession(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error)
-	SelectSessions(ctx context.Context, userID uuid.UUID) ([]models.Session, error)
+	SelectUserSessions(ctx context.Context, userID uuid.UUID) ([]models.Session, error)
 
 	Login(ctx context.Context, email string, role roles.Role, client string) (models.Session, models.TokensPair, error)
 	Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, token string) (models.Session, models.TokensPair, error)
 
 	DeleteSession(ctx context.Context, userID, sessionID uuid.UUID) error
 
-	TerminateSessions(ctx context.Context, userID uuid.UUID) error
-	
+	TerminateUserSessions(ctx context.Context, userID uuid.UUID) error
+
 	AdminTerminateSessions(ctx context.Context, initiatorID, userID uuid.UUID) error
 	AdminUpdateUserRole(ctx context.Context, initiatorID, userID uuid.UUID, role roles.Role) error
 	AdminUpdateUserSubscription(ctx context.Context, initiatorID, userID, subscriptionID uuid.UUID) error
