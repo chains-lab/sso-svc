@@ -3,7 +3,7 @@ vendor
 node_modules
 docs/node_modules
 
-cmd/chains-auth/main
+main
 config_local.yaml
 config_docker.yaml
 

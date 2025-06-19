@@ -1,3 +1,10 @@
+after add to ```"scripts"``` - ```"start": "http-server -c-1 -p 7272"```
+### Start docs server
+```bash
+  cd docs 
+  npm run start
+```
+
 ### Build and Start project
 ```bash
 docker compose chains-auth up -d
