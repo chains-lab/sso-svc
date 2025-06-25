@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/chains-lab/chains-auth/internal/events/bodies"
-	"github.com/chains-lab/chains-auth/internal/tools/config"
+	"github.com/chains-lab/chains-auth/internal/utils/config"
 	"github.com/segmentio/kafka-go"
 	"github.com/sirupsen/logrus"
 )

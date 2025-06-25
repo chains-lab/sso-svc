@@ -2,7 +2,7 @@ package app
 
 import (
 	"github.com/chains-lab/chains-auth/internal/app/domain"
-	"github.com/chains-lab/chains-auth/internal/tools/config"
+	"github.com/chains-lab/chains-auth/internal/utils/config"
 	"github.com/sirupsen/logrus"
 )
 

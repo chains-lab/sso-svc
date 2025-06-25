@@ -10,8 +10,9 @@ import (
 
 	"github.com/alecthomas/kingpin"
 	"github.com/chains-lab/chains-auth/internal/app"
-	"github.com/chains-lab/chains-auth/internal/tools/config"
-	"github.com/chains-lab/chains-auth/internal/tools/migrator"
+	"github.com/chains-lab/chains-auth/internal/dbx"
+	"github.com/chains-lab/chains-auth/internal/utils/config"
+	"github.com/chains-lab/chains-auth/internal/utils/migration"
 )
 
 func Run(args []string) bool {
@@ -47,15 +48,17 @@ func Run(args []string) bool {
 		return false
 	}
 
+	migrator := migration.NewMigrator("postgres", cfg.Database.SQL.URL, "migrations", dbx.Migrations)
+
 	var wg sync.WaitGroup
 
 	switch cmd {
 	case serviceCmd.FullCommand():
 		err = Start(ctx, cfg, logger, &application)
 	case migrateUpCmd.FullCommand():
-		err = migrator.RunUp(cfg)
+		err = migrator.RunUp()
 	case migrateDownCmd.FullCommand():
-		err = migrator.RunDown(cfg)
+		err = migrator.RunDown()
 	default:
 		logger.Errorf("unknown command %s", cmd)
 		return false

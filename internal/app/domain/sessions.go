@@ -11,7 +11,7 @@ import (
 	jwtkit "github.com/chains-lab/chains-auth/internal/app/kit/jwt"
 	"github.com/chains-lab/chains-auth/internal/app/models"
 	"github.com/chains-lab/chains-auth/internal/dbx"
-	"github.com/chains-lab/chains-auth/internal/tools/config"
+	"github.com/chains-lab/chains-auth/internal/utils/config"
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
