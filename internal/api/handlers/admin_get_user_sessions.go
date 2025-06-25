@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (a Service) AdminUpdateUserVerified(ctx context.Context, req *auth.AdminUpdateUserVerifiedRequest) (*auth.UserResponse, error) {
+func (a Service) AdminGetUserSessions(ctx context.Context, req *auth.AdminGetUserSessionsRequest) (*auth.SessionsListResponse, error) {
 	requestID := uuid.New()
 	meta := Meta(ctx)
 
@@ -19,11 +19,12 @@ func (a Service) AdminUpdateUserVerified(ctx context.Context, req *auth.AdminUpd
 		return nil, status.Errorf(codes.InvalidArgument, "invalid user ID format: %v", err)
 	}
 
-	user, err := a.app.AdminUpdateUserVerified(ctx, meta.InitiatorID, userID, req.Verified)
+	sessions, err := a.app.SelectUserSessions(ctx, userID)
 	if err != nil {
 		return nil, responses.AppError(ctx, requestID, err)
 	}
 
-	Log(ctx, requestID).Warnf("user %s verified status updated to %t by %s", req.UserId, req.Verified, meta.InitiatorID)
-	return responses.User(user), nil
+	Log(ctx, requestID).Infof("retrieved sessions for user %s by admin %s", req.UserId, meta.InitiatorID)
+
+	return responses.SessionList(sessions), nil
 }

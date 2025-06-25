@@ -3,20 +3,26 @@ package interceptors
 import (
 	"context"
 
+	"github.com/chains-lab/gatekit/roles"
 	"github.com/chains-lab/gatekit/tokens"
+	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
-type contextKey string
-
-const (
-	IssuerKey    contextKey = "issuer"
-	SubjectIDKey contextKey = "subject"
-	AudienceKey  contextKey = "audience"
-)
+type MetaData struct {
+	Issuer         string     `json:"iss,omitempty"`
+	Subject        string     `json:"sub,omitempty"`
+	Audience       []string   `json:"aud,omitempty"`
+	InitiatorID    uuid.UUID  `json:"initiator_id,omitempty"`
+	SessionID      uuid.UUID  `json:"session_id,omitempty"`
+	SubscriptionID uuid.UUID  `json:"subscription_id,omitempty"`
+	Verified       bool       `json:"verified,omitempty"`
+	Role           roles.Role `json:"role,omitempty"`
+}
 
 func NewAuth(secretKey string) grpc.UnaryServerInterceptor {
 	return func(
@@ -25,60 +31,65 @@ func NewAuth(secretKey string) grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		switch info.FullMethod {
-		case "/sso.SsoService/GoogleLogin",
-			"/sso.SsoService/GoogleCallback":
-			// эти методы открыты — просто идём дальше без аутентификации
-			return handler(ctx, req)
-		}
-
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			return nil, status.Errorf(codes.Unauthenticated, "missing metadata")
 		}
-		toks := md["authorization"]
-		if len(toks) == 0 {
+		toksServ := md["authorization"]
+		if len(toksServ) == 0 {
 			return nil, status.Errorf(codes.Unauthenticated, "authorization token not supplied")
 		}
 
-		data, err := tokens.VerifyServiceJWT(ctx, toks[0], "your-secret-key")
+		data, err := tokens.VerifyServiceJWT(ctx, toksServ[0], "your-secret-key")
 		if err != nil {
 			return nil, status.Errorf(codes.Unauthenticated, "invalid token: %v", err)
 		}
 
-		ctx = context.WithValue(ctx, IssuerKey, data.Issuer)
-		ctx = context.WithValue(ctx, SubjectIDKey, data.Subject)
-		ctx = context.WithValue(ctx, AudienceKey, data.Audience)
+		toksUser := md["x-user-token"]
+		if len(toksUser) == 0 {
+			return nil, status.Errorf(codes.Unauthenticated, "user token not supplied")
+		}
+
+		userData, err := tokens.VerifyUserJWT(ctx, toksUser[0], "your-secret-key")
+		if err != nil {
+			return nil, status.Errorf(codes.Unauthenticated, "invalid user token: %v", err)
+		}
+
+		userID, err := uuid.Parse(userData.Subject)
+		if err != nil {
+			return nil, status.Errorf(codes.Unauthenticated, "invalid user ID: %v", err)
+		}
+
+		ctx = context.WithValue(ctx, MetaCtxKey, MetaData{
+			Issuer:         data.Issuer,
+			Subject:        data.Subject,
+			Audience:       data.Audience,
+			InitiatorID:    userID,
+			SessionID:      userData.Session,
+			SubscriptionID: userData.Subscription,
+			Verified:       userData.Verified,
+			Role:           userData.Role,
+		})
 
 		return handler(ctx, req)
 	}
 }
 
-type TokenData struct {
-	Issuer   string   `json:"iss,omitempty"`
-	Subject  string   `json:"sub,omitempty"`
-	Audience []string `json:"aud,omitempty"`
+func GetMetaData(ctx context.Context) (MetaData, error) {
+	meta, ok := ctx.Value(MetaCtxKey).(MetaData)
+	if !ok {
+		return MetaData{}, status.Errorf(codes.Unauthenticated, "metadata not found in context")
+	}
+
+	if meta.Issuer == "" || meta.Subject == "" || len(meta.Audience) == 0 {
+		return MetaData{}, status.Errorf(codes.Unauthenticated, "incomplete metadata")
+	}
+
+	return meta, nil
 }
 
-func GetTokenData(ctx context.Context) (TokenData, error) {
-	issuer, ok := ctx.Value(IssuerKey).(string)
-	if !ok {
-		return TokenData{}, status.Errorf(codes.Unauthenticated, "issuer not found in context")
+func CtxLog(log *logrus.Logger) func(context.Context) context.Context {
+	return func(context.Context) context.Context {
+		return context.WithValue(context.Background(), LogCtxKey, log)
 	}
-
-	subject, ok := ctx.Value(SubjectIDKey).(string)
-	if !ok {
-		return TokenData{}, status.Errorf(codes.Unauthenticated, "subject not found in context")
-	}
-
-	audience, ok := ctx.Value(AudienceKey).([]string)
-	if !ok {
-		return TokenData{}, status.Errorf(codes.Unauthenticated, "audience not found in context")
-	}
-
-	return TokenData{
-		Issuer:   issuer,
-		Subject:  subject,
-		Audience: audience,
-	}, nil
 }

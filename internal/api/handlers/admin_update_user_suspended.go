@@ -4,30 +4,27 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chains-lab/proto-storage/gen/go/sso"
+	"github.com/chains-lab/chains-auth/internal/api/responses"
+	"github.com/chains-lab/proto-storage/gen/go/auth"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func (h Handlers) AdminUpdateUserSuspended(ctx context.Context, req *sso.UpdateUserSuspendedRequest) (*sso.Empty, error) {
+func (a Service) AdminUpdateUserSuspended(ctx context.Context, req *auth.AdminUpdateUserSuspendedRequest) (*auth.UserResponse, error) {
 	requestID := uuid.New()
-
-	initiatorID, err := uuid.Parse(req.InitiatorId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid format initiator id: %v", err))
-	}
+	meta := Meta(ctx)
 
 	userID, err := uuid.Parse(req.UserId)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid format user id: %v", err))
 	}
 
-	err = h.app.AdminUpdateUserSuspended(ctx, initiatorID, userID, req.Suspended)
+	user, err := a.app.AdminUpdateUserSuspended(ctx, meta.InitiatorID, userID, req.Suspended)
 	if err != nil {
-		return nil, h.presenter.AppError(requestID, err)
+		return nil, responses.AppError(ctx, requestID, err)
 	}
 
-	h.log.WithField("request_id", requestID).Warnf("user %s suspended status updated to %t by %s", userID, req.Suspended, initiatorID)
-	return &sso.Empty{}, nil
+	Log(ctx, requestID).Warnf("user %s suspended status updated to %t by %s", userID, req.Suspended, meta.InitiatorID)
+	return responses.User(user), nil
 }

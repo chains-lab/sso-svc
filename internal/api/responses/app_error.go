@@ -1,6 +1,7 @@
-package presenter
+package responses
 
 import (
+	"context"
 	"errors"
 
 	"github.com/chains-lab/chains-auth/internal/app/ape"
@@ -10,18 +11,10 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (p Presenters) AppError(requestID uuid.UUID, err error) error {
+func AppError(ctx context.Context, requestID uuid.UUID, err error) error {
 	errorID := uuid.New()
 	var appErr *ape.Error
 	if errors.As(err, &appErr) {
-
-		p.log.
-			WithField("request_id", requestID).
-			WithField("error_id", errorID).
-			WithField("title", appErr.Err).
-			WithError(appErr.Unwrap()).
-			Error("error from app")
-
 		var code codes.Code
 		switch {
 		case errors.Is(appErr.Err, ape.ErrUserDoesNotExist),
@@ -58,11 +51,5 @@ func (p Presenters) AppError(requestID uuid.UUID, err error) error {
 		return st.Err()
 	}
 
-	p.log.WithField("request_id", requestID).
-		WithField("error_id", errorID).
-		WithError(err).
-		Error("unexpected error")
-
-	return status.Errorf(codes.Internal, err.Error())
-
+	return status.Errorf(codes.Internal, "Unexcpected error")
 }

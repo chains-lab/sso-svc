@@ -4,20 +4,17 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/chains-lab/chains-auth/internal/api/responses"
 	"github.com/chains-lab/gatekit/roles"
-	"github.com/chains-lab/proto-storage/gen/go/sso"
+	"github.com/chains-lab/proto-storage/gen/go/auth"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func (h Handlers) AdminUpdateUserRole(ctx context.Context, req *sso.UpdateUserRoleRequest) (*sso.Empty, error) {
+func (a Service) AdminUpdateUserRole(ctx context.Context, req *auth.AdminUpdateUserRoleRequest) (*auth.UserResponse, error) {
 	requestID := uuid.New()
-
-	initiatorID, err := uuid.Parse(req.InitiatorId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid format initiator id: %v", err))
-	}
+	meta := Meta(ctx)
 
 	userId, err := uuid.Parse(req.UserId)
 	if err != nil {
@@ -29,11 +26,11 @@ func (h Handlers) AdminUpdateUserRole(ctx context.Context, req *sso.UpdateUserRo
 		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid format role: %v", err))
 	}
 
-	err = h.app.AdminUpdateUserRole(ctx, initiatorID, userId, role)
+	user, err := a.app.AdminUpdateUserRole(ctx, meta.InitiatorID, userId, role)
 	if err != nil {
-		return nil, h.presenter.AppError(requestID, err)
+		return nil, responses.AppError(ctx, requestID, err)
 	}
 
-	h.log.WithField("request_id", requestID).Warnf("user %s role updated to %s by %s", userId, role, initiatorID)
-	return &sso.Empty{}, nil
+	Log(ctx, requestID).Warnf("user %s role updated to %s by %s", userId, role, meta.InitiatorID)
+	return responses.User(user), nil
 }

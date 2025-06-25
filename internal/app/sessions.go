@@ -170,3 +170,71 @@ func (a App) AdminTerminateSessions(ctx context.Context, initiatorID, userID uui
 	}
 	return nil
 }
+
+func (a App) AdminDeleteSession(ctx context.Context, initiatorID, userID, sessionID uuid.UUID) error {
+	initiator, err := a.GetUserByID(ctx, initiatorID)
+	if err != nil {
+		return err
+	}
+
+	user, err := a.GetUserByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if user.Role != roles.SuperUser {
+		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
+			return ape.ErrNoPermission
+		}
+	}
+
+	session, appErr := a.GetSession(ctx, userID, sessionID)
+	if appErr != nil {
+		return appErr
+	}
+
+	if session.UserID != userID {
+		return ape.ErrorSessionDoesNotBelongToUser(session.ID, userID)
+	}
+
+	appErr = a.sessions.Delete(ctx, session.ID)
+	if appErr != nil {
+		return appErr
+	}
+
+	return nil
+}
+
+func (a App) AdminDeleteUserSession(ctx context.Context, initiatorID, userID, sessionID uuid.UUID) error {
+	initiator, err := a.GetUserByID(ctx, initiatorID)
+	if err != nil {
+		return err
+	}
+
+	user, err := a.GetUserByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if user.Role != roles.SuperUser {
+		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
+			return ape.ErrNoPermission
+		}
+	}
+
+	session, appErr := a.GetSession(ctx, userID, sessionID)
+	if appErr != nil {
+		return appErr
+	}
+
+	if session.UserID != userID {
+		return ape.ErrorSessionDoesNotBelongToUser(session.ID, userID)
+	}
+
+	appErr = a.sessions.Delete(ctx, session.ID)
+	if appErr != nil {
+		return appErr
+	}
+
+	return nil
+}

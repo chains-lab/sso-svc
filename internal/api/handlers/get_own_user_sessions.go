@@ -5,19 +5,19 @@ import (
 
 	"github.com/chains-lab/chains-auth/internal/api/responses"
 	"github.com/chains-lab/proto-storage/gen/go/auth"
+
 	"github.com/google/uuid"
 )
 
-func (a Service) Logout(ctx context.Context, req *auth.Empty) (*auth.Empty, error) {
+func (a Service) GetUserSessions(ctx context.Context, req *auth.Empty) (*auth.SessionsListResponse, error) {
 	requestID := uuid.New()
-	log := Log(ctx, requestID)
+
 	meta := Meta(ctx)
 
-	err := a.app.DeleteSession(ctx, meta.InitiatorID, meta.SessionID)
+	sessions, err := a.app.SelectUserSessions(ctx, meta.InitiatorID)
 	if err != nil {
 		return nil, responses.AppError(ctx, requestID, err)
 	}
 
-	log.Infof("User %s Session %s deleted successfully", meta.InitiatorID, meta.SessionID)
-	return &auth.Empty{}, nil
+	return responses.SessionList(sessions), nil
 }

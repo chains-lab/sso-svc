@@ -4,19 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chains-lab/proto-storage/gen/go/sso"
+	"github.com/chains-lab/chains-auth/internal/api/responses"
+	"github.com/chains-lab/proto-storage/gen/go/auth"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func (h Handlers) AdminUpdateUserSubscription(ctx context.Context, req *sso.UpdateUserSubscriptionRequest) (*sso.Empty, error) {
+func (a Service) AdminUpdateUserSubscription(ctx context.Context, req *auth.AdminUpdateUserSubscriptionRequest) (*auth.UserResponse, error) {
 	requestID := uuid.New()
-
-	initiatorID, err := uuid.Parse(req.InitiatorId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid format initiator id: %v", err))
-	}
+	meta := Meta(ctx)
 
 	userID, err := uuid.Parse(req.UserId)
 	if err != nil {
@@ -28,11 +25,11 @@ func (h Handlers) AdminUpdateUserSubscription(ctx context.Context, req *sso.Upda
 		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid format subscription id: %v", err))
 	}
 
-	err = h.app.AdminUpdateUserSubscription(ctx, initiatorID, userID, subscriptionID)
+	user, err := a.app.AdminUpdateUserSubscription(ctx, meta.InitiatorID, userID, subscriptionID)
 	if err != nil {
-		return nil, h.presenter.AppError(requestID, err)
+		return nil, responses.AppError(ctx, requestID, err)
 	}
 
-	h.log.WithField("request_id", requestID).Warnf("user %s subscription updated to %s by %s", userID, req.Subscription, initiatorID)
-	return &sso.Empty{}, nil
+	Log(ctx, requestID).Warnf("user %s subscription updated to %s by %s", userID, req.Subscription, meta.InitiatorID)
+	return responses.User(user), nil
 }

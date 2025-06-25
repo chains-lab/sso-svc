@@ -6,19 +6,19 @@ import (
 
 	"github.com/chains-lab/chains-auth/internal/api/responses"
 	"github.com/chains-lab/gatekit/roles"
-	"github.com/chains-lab/proto-storage/gen/go/sso"
+	"github.com/chains-lab/proto-storage/gen/go/auth"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
-func (h Handlers) GoogleCallback(
+func (a Service) GoogleCallback(
 	ctx context.Context,
-	req *sso.GoogleCallbackRequest,
-) (*sso.TokensPairResponse, error) {
+	req *auth.GoogleCallbackRequest,
+) (*auth.TokensPairResponse, error) {
 	requestID := uuid.New()
-	log := h.log.WithField("request_id", requestID)
+	log := Log(ctx, requestID)
 
 	// 1) Провека наличия кода
 	code := req.Code
@@ -27,14 +27,14 @@ func (h Handlers) GoogleCallback(
 	}
 
 	// 2) Обмен кода на токен
-	token, err := h.google.Exchange(ctx, code)
+	token, err := a.cfg.GoogleOAuth().Exchange(ctx, code)
 	if err != nil {
 		log.WithError(err).Errorf("error exchanging code for token: %s", code)
 		return nil, status.Errorf(codes.Internal, "failed to exchange code")
 	}
 
 	// 3) Получаем UserInfo из Google
-	client := h.google.Client(ctx, token)
+	client := a.cfg.GoogleOAuth().Client(ctx, token)
 	httpResp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
 	if err != nil {
 		log.WithError(err).Error("error fetching userinfo from Google")
@@ -59,10 +59,10 @@ func (h Handlers) GoogleCallback(
 	}
 
 	// 5) Ваша бизнес-логика: логиним/регистрируем пользователя
-	_, tokensPair, appErr := h.app.Login(ctx, ui.Email, roles.User, ua)
-	if appErr != nil {
+	_, tokensPair, err := a.app.Login(ctx, ui.Email, roles.User, ua)
+	if err != nil {
 		// конвертим в gRPC-ошибку через ваш презентер
-		return nil, h.presenter.AppError(requestID, appErr)
+		return nil, responses.AppError(ctx, requestID, err)
 	}
 
 	// 6) Возвращаем пару токенов

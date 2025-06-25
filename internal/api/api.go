@@ -9,39 +9,42 @@ import (
 	"github.com/chains-lab/chains-auth/internal/api/interceptors"
 	"github.com/chains-lab/chains-auth/internal/app"
 	"github.com/chains-lab/chains-auth/internal/config"
-	"github.com/chains-lab/proto-storage/gen/go/sso"
+	"github.com/chains-lab/proto-storage/gen/go/auth"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
 
-type SsoServiceServer interface {
-	GetUser(context.Context, *sso.UserRequest) (*sso.UserResponse, error)
-	RefreshToken(context.Context, *sso.RefreshTokenRequest) (*sso.TokensPairResponse, error)
-	GoogleLogin(context.Context, *sso.Empty) (*sso.GoogleLoginResponse, error)
-	GoogleCallback(context.Context, *sso.GoogleCallbackRequest) (*sso.TokensPairResponse, error)
-	Logout(context.Context, *sso.SessionRequest) (*sso.Empty, error)
-	GetUserSession(context.Context, *sso.SessionRequest) (*sso.SessionResponse, error)
-	GetUserSessions(context.Context, *sso.UserRequest) (*sso.SessionsListResponse, error)
-	DeleteUserSession(context.Context, *sso.SessionRequest) (*sso.SessionsListResponse, error)
-	TerminateUserSessions(context.Context, *sso.UserRequest) (*sso.Empty, error)
+type AuthService interface {
+	GetUser(context.Context, *auth.Empty) (*auth.UserResponse, error)
+	RefreshToken(context.Context, *auth.RefreshTokenRequest) (*auth.TokensPairResponse, error)
+	GoogleLogin(context.Context, *auth.Empty) (*auth.GoogleLoginResponse, error)
+	GoogleCallback(context.Context, *auth.GoogleCallbackRequest) (*auth.TokensPairResponse, error)
+	Logout(context.Context, *auth.Empty) (*auth.Empty, error)
+	GetUserSession(context.Context, *auth.Empty) (*auth.SessionResponse, error)
+	GetUserSessions(context.Context, *auth.Empty) (*auth.SessionsListResponse, error)
+	DeleteUserSession(context.Context, *auth.Empty) (*auth.SessionsListResponse, error)
+	TerminateUserSessions(context.Context, *auth.Empty) (*auth.Empty, error)
 
-	AdminTerminateUserSessions(context.Context, *sso.TerminateUserSessionByAdminRequest) (*sso.Empty, error)
-	AdminUpdateUserRole(context.Context, *sso.UpdateUserRoleRequest) (*sso.Empty, error)
-	AdminUpdateUserVerified(context.Context, *sso.UpdateUserVerifiedRequest) (*sso.Empty, error)
-	AdminUpdateUserSuspended(context.Context, *sso.UpdateUserSuspendedRequest) (*sso.Empty, error)
-	AdminUpdateUserSubscription(context.Context, *sso.UpdateUserSubscriptionRequest) (*sso.Empty, error)
+	AdminUpdateUserRole(context.Context, *auth.AdminUpdateUserRoleRequest) (*auth.UserResponse, error)
+	AdminUpdateUserSubscription(context.Context, *auth.AdminUpdateUserSubscriptionRequest) (*auth.UserResponse, error)
+	AdminUpdateUserSuspended(context.Context, *auth.AdminUpdateUserSuspendedRequest) (*auth.UserResponse, error)
+	AdminUpdateUserVerified(context.Context, *auth.AdminUpdateUserVerifiedRequest) (*auth.UserResponse, error)
+	AdminGetUserSessions(context.Context, *auth.AdminGetUserSessionsRequest) (*auth.SessionsListResponse, error)
+	AdminGetUserSession(context.Context, *auth.AdminGetUserSessionRequest) (*auth.SessionResponse, error)
+	AdminDeleteUserSession(context.Context, *auth.AdminDeleteUserSessionRequest) (*auth.Empty, error)
+	AdminTerminateUserSessions(context.Context, *auth.AdminTerminateUserSessionsRequest) (*auth.Empty, error)
 }
 
 func Run(ctx context.Context, cfg config.Config, log *logrus.Logger, app *app.App) error {
 	// 1) Создаём реализацию хэндлеров и interceptor
-	server := handlers.NewHandlers(cfg, log.WithField("service", "sso"), app)
+	server := handlers.NewService(cfg, app)
 	authInterceptor := interceptors.NewAuth(cfg.JWT.Service.SecretKey)
 
 	// 2) Инициализируем gRPC‐сервер
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(authInterceptor),
 	)
-	sso.RegisterSsoServiceServer(grpcServer, server)
+	auth.RegisterAuthServiceServer(grpcServer, server)
 
 	// 3) Открываем слушатель
 	lis, err := net.Listen("tcp", cfg.Server.Port)
@@ -59,12 +62,10 @@ func Run(ctx context.Context, cfg config.Config, log *logrus.Logger, app *app.Ap
 	// 5) Слушаем контекст и окончание Serve()
 	select {
 	case <-ctx.Done():
-		// контекст отменили — аккуратно останавливаем
 		log.Info("shutting down gRPC server …")
 		grpcServer.GracefulStop()
 		return nil
 	case err := <-serveErrCh:
-		// Serve() завершился (с ошибкой или EOF)
 		return fmt.Errorf("gRPC Serve() exited: %w", err)
 	}
 }

@@ -3,12 +3,12 @@ package handlers
 import (
 	"context"
 
-	"github.com/chains-lab/proto-storage/gen/go/sso"
+	"github.com/chains-lab/proto-storage/gen/go/auth"
 	"golang.org/x/oauth2"
 )
 
-func (h Handlers) GoogleLogin(ctx context.Context, request *sso.Empty) (*sso.GoogleLoginResponse, error) {
-	url := h.google.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
+func (a Service) GoogleLogin(ctx context.Context, request *auth.Empty) (*auth.GoogleLoginResponse, error) {
+	url := a.cfg.GoogleOAuth().AuthCodeURL("state-token", oauth2.AccessTypeOffline)
 	// Вместо http.Redirect — возвращаем его в теле ответа
-	return &sso.GoogleLoginResponse{Url: url}, nil
+	return &auth.GoogleLoginResponse{Url: url}, nil
 }

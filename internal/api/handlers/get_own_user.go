@@ -1,19 +1,25 @@
-package responses
+package handlers
 
 import (
-	"github.com/chains-lab/chains-auth/internal/app/models"
+	"context"
+
 	"github.com/chains-lab/proto-storage/gen/go/auth"
 )
 
-func User(user models.User) *auth.UserResponse {
+func (a Service) GetUser(ctx context.Context, req *auth.Empty) (*auth.UserResponse, error) {
+	meta := Meta(ctx)
+
+	user, err := a.app.GetUserByID(ctx, meta.InitiatorID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &auth.UserResponse{
 		Id:           user.ID.String(),
 		Email:        user.Email,
 		Role:         string(user.Role),
 		Subscription: user.Subscription.String(),
-		Verified:     user.Verified,
-		Suspended:    user.Suspended,
 		CreatedAt:    user.CreatedAt.String(),
 		UpdatedAt:    user.UpdatedAt.String(),
-	}
+	}, nil
 }

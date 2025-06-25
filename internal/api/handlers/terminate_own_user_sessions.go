@@ -8,16 +8,17 @@ import (
 	"github.com/google/uuid"
 )
 
-func (a Service) Logout(ctx context.Context, req *auth.Empty) (*auth.Empty, error) {
+func (a Service) TerminateUserSessions(ctx context.Context, req *auth.Empty) (*auth.Empty, error) {
 	requestID := uuid.New()
-	log := Log(ctx, requestID)
+
 	meta := Meta(ctx)
 
-	err := a.app.DeleteSession(ctx, meta.InitiatorID, meta.SessionID)
+	err := a.app.TerminateUserSessions(ctx, meta.InitiatorID)
 	if err != nil {
 		return nil, responses.AppError(ctx, requestID, err)
 	}
 
-	log.Infof("User %s Session %s deleted successfully", meta.InitiatorID, meta.SessionID)
+	Log(ctx, requestID).Infof("User sessions terminated for user ID: %s", meta.InitiatorID)
+
 	return &auth.Empty{}, nil
 }
