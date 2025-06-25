@@ -7,54 +7,62 @@ import (
 	"time"
 
 	"github.com/chains-lab/chains-auth/internal/app/ape"
+	jwtkit "github.com/chains-lab/chains-auth/internal/app/kit/jwt"
 	"github.com/chains-lab/chains-auth/internal/app/models"
-	"github.com/chains-lab/chains-auth/internal/config"
-	"github.com/chains-lab/chains-auth/internal/events/bodies"
-	"github.com/chains-lab/chains-auth/internal/events/writer"
-	"github.com/chains-lab/chains-auth/internal/jwtkit"
-	"github.com/chains-lab/chains-auth/internal/repo"
+	"github.com/chains-lab/chains-auth/internal/dbx"
+	"github.com/chains-lab/chains-auth/internal/tools/config"
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
 type usersRepo interface {
-	Create(ctx context.Context, input repo.UserModel) error
-	Update(ctx context.Context, ID uuid.UUID, input repo.UserUpdateRequest) error
-	Delete(ctx context.Context, ID uuid.UUID) error
-	GetByID(ctx context.Context, ID uuid.UUID) (repo.UserModel, error)
-	GetByEmail(ctx context.Context, email string) (repo.UserModel, error)
+	New() dbx.UserQ
+	Insert(ctx context.Context, input dbx.UserModel) error
+	Delete(ctx context.Context) error
+	Count(ctx context.Context) (int, error)
+	Select(ctx context.Context) ([]dbx.UserModel, error)
+	Get(ctx context.Context) (dbx.UserModel, error)
+
+	FilterID(id uuid.UUID) dbx.UserQ
+	FilterEmail(email string) dbx.UserQ
+	FilterRole(role roles.Role) dbx.UserQ
+	FilterSubscription(subscription uuid.UUID) dbx.UserQ
+	FilterVerified(verified bool) dbx.UserQ
+
+	Update(ctx context.Context, input dbx.UserUpdateInput) error
+
+	Page(limit, offset uint64) dbx.UserQ
 	Transaction(fn func(ctx context.Context) error) error
+
 	Drop(ctx context.Context) error
 }
 
-type Broker interface {
-	CreateUser(ctx context.Context, created bodies.UserCreated) error
-}
+//type Broker interface {
+//	CreateUser(ctx context.Context, created bodies.UserCreated) error
+//}
 
 type Users struct {
-	repo  usersRepo
-	jwt   JWTManager
-	kafka Broker
+	repo usersRepo
+	jwt  JWTManager
+	//kafka Broker
 }
 
 func NewUser(cfg config.Config, log *logrus.Logger) (Users, error) {
-	data, err := repo.NewUsers(cfg, log)
+	pg, err := sql.Open("postgres", cfg.Database.SQL.URL)
 	if err != nil {
-		return Users{}, nil
+		return Users{}, err
 	}
 
-	jwt := jwtkit.NewManager(cfg)
-
-	kafka := writer.NewUserCreateWriters(cfg, log.WithFields(logrus.Fields{
-		"component": "kafka",
-		"topic":     bodies.UserCreateTopic,
-	}))
+	//kafka := writer.NewUserCreateWriters(cfg, log.WithFields(logrus.Fields{
+	//	"component": "kafka",
+	//	"topic":     bodies.UserCreateTopic,
+	//}))
 
 	return Users{
-		repo:  data,
-		jwt:   jwt,
-		kafka: kafka,
+		repo: dbx.NewUsers(pg),
+		jwt:  jwtkit.NewManager(cfg),
+		//kafka: kafka,
 	}, nil
 }
 
@@ -62,8 +70,8 @@ func (a Users) Create(ctx context.Context, email string, role roles.Role) error 
 	ID := uuid.New()
 	CreatedAt := time.Now().UTC()
 
-	txErr := a.repo.Transaction(func(ctx context.Context) error {
-		if err := a.repo.Create(ctx, repo.UserModel{
+	txErr := a.repo.New().Transaction(func(ctx context.Context) error {
+		if err := a.repo.New().Insert(ctx, dbx.UserModel{
 			ID:           ID,
 			Email:        email,
 			Role:         role,
@@ -99,7 +107,7 @@ func (a Users) Create(ctx context.Context, email string, role roles.Role) error 
 }
 
 func (a Users) GetByID(ctx context.Context, ID uuid.UUID) (models.User, error) {
-	user, err := a.repo.GetByID(ctx, ID)
+	user, err := a.repo.New().FilterID(ID).Get(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -122,7 +130,7 @@ func (a Users) GetByID(ctx context.Context, ID uuid.UUID) (models.User, error) {
 }
 
 func (a Users) GetByEmail(ctx context.Context, email string) (models.User, error) {
-	user, err := a.repo.GetByEmail(ctx, email)
+	user, err := a.repo.New().FilterEmail(email).Get(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -147,7 +155,7 @@ func (a Users) GetByEmail(ctx context.Context, email string) (models.User, error
 func (a Users) UpdateRole(ctx context.Context, ID uuid.UUID, role roles.Role) error {
 	UpdatedAt := time.Now().UTC()
 
-	err := a.repo.Update(ctx, ID, repo.UserUpdateRequest{
+	err := a.repo.New().FilterID(ID).Update(ctx, dbx.UserUpdateInput{
 		Role:      &role,
 		UpdatedAt: UpdatedAt,
 	})
@@ -166,7 +174,7 @@ func (a Users) UpdateRole(ctx context.Context, ID uuid.UUID, role roles.Role) er
 func (a Users) UpdateSubscription(ctx context.Context, ID, subscriptionID uuid.UUID) error {
 	UpdatedAt := time.Now().UTC()
 
-	err := a.repo.Update(ctx, ID, repo.UserUpdateRequest{
+	err := a.repo.New().FilterID(ID).Update(ctx, dbx.UserUpdateInput{
 		Subscription: &subscriptionID,
 		UpdatedAt:    UpdatedAt,
 	})
@@ -185,7 +193,7 @@ func (a Users) UpdateSubscription(ctx context.Context, ID, subscriptionID uuid.U
 func (a Users) UpdateVerified(ctx context.Context, ID uuid.UUID, verified bool) error {
 	UpdatedAt := time.Now().UTC()
 
-	err := a.repo.Update(ctx, ID, repo.UserUpdateRequest{
+	err := a.repo.New().FilterID(ID).Update(ctx, dbx.UserUpdateInput{
 		Verified:  &verified,
 		UpdatedAt: UpdatedAt,
 	})
@@ -204,7 +212,7 @@ func (a Users) UpdateVerified(ctx context.Context, ID uuid.UUID, verified bool) 
 func (a Users) UpdateSuspended(ctx context.Context, ID uuid.UUID, suspended bool) error {
 	UpdatedAt := time.Now().UTC()
 
-	err := a.repo.Update(ctx, ID, repo.UserUpdateRequest{
+	err := a.repo.New().FilterID(ID).Update(ctx, dbx.UserUpdateInput{
 		Suspended: &suspended,
 		UpdatedAt: UpdatedAt,
 	})

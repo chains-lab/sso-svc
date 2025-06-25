@@ -8,23 +8,30 @@ import (
 	"time"
 
 	"github.com/chains-lab/chains-auth/internal/app/ape"
+	jwtkit "github.com/chains-lab/chains-auth/internal/app/kit/jwt"
 	"github.com/chains-lab/chains-auth/internal/app/models"
-	"github.com/chains-lab/chains-auth/internal/config"
-	"github.com/chains-lab/chains-auth/internal/jwtkit"
-	"github.com/chains-lab/chains-auth/internal/repo"
+	"github.com/chains-lab/chains-auth/internal/dbx"
+	"github.com/chains-lab/chains-auth/internal/tools/config"
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
-type sessionsRepo interface {
-	Create(ctx context.Context, input repo.SessionModel) error
-	Update(ctx context.Context, ID uuid.UUID, input repo.SessionUpdateRequest) error
-	Delete(ctx context.Context, ID uuid.UUID) error
-	Terminate(ctx context.Context, userID uuid.UUID) error
-	GetByID(ctx context.Context, ID uuid.UUID) (repo.SessionModel, error)
-	GetByUserID(ctx context.Context, userID uuid.UUID) ([]repo.SessionModel, error)
+type SessionsQ interface {
+	New() dbx.SessionsQ
+	Insert(ctx context.Context, input dbx.SessionModel) error
+	Update(ctx context.Context, input dbx.SessionUpdateInput) error
+	Delete(ctx context.Context) error
+	Count(ctx context.Context) (int, error)
+	Select(ctx context.Context) ([]dbx.SessionModel, error)
+	Get(ctx context.Context) (dbx.SessionModel, error)
+
+	FilterID(id uuid.UUID) dbx.SessionsQ
+	FilterUserID(userID uuid.UUID) dbx.SessionsQ
+
 	Transaction(fn func(ctx context.Context) error) error
+	Page(limit, offset uint64) dbx.SessionsQ
+
 	Drop(ctx context.Context) error
 }
 
@@ -49,21 +56,19 @@ type JWTManager interface {
 }
 
 type Sessions struct {
-	repo sessionsRepo
-	jwt  JWTManager
+	queries SessionsQ
+	jwt     JWTManager
 }
 
 func NewSession(cfg config.Config, log *logrus.Logger) (Sessions, error) {
-	data, err := repo.NewSessions(cfg, log)
+	pg, err := sql.Open("postgres", cfg.Database.SQL.URL)
 	if err != nil {
 		return Sessions{}, err
 	}
 
-	jwt := jwtkit.NewManager(cfg)
-
 	return Sessions{
-		repo: data,
-		jwt:  jwt,
+		queries: dbx.NewSessions(pg),
+		jwt:     jwtkit.NewManager(cfg),
 	}, nil
 }
 
@@ -90,7 +95,7 @@ func (s Sessions) Create(ctx context.Context, user models.User, client string) (
 		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
 	}
 
-	err = s.repo.Create(ctx, repo.SessionModel{
+	err = s.queries.New().Insert(ctx, dbx.SessionModel{
 		ID:        id,
 		UserID:    user.ID,
 		Token:     refreshCrypto,
@@ -122,7 +127,7 @@ func (s Sessions) Create(ctx context.Context, user models.User, client string) (
 }
 
 func (s Sessions) Get(ctx context.Context, sessionID uuid.UUID) (models.Session, error) {
-	session, err := s.repo.GetByID(ctx, sessionID)
+	session, err := s.queries.New().FilterID(sessionID).Get(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -143,7 +148,7 @@ func (s Sessions) Get(ctx context.Context, sessionID uuid.UUID) (models.Session,
 }
 
 func (s Sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error) {
-	sessions, err := s.repo.GetByUserID(ctx, userID)
+	sessions, err := s.queries.New().FilterID(userID).Select(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -204,7 +209,7 @@ func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.
 
 	LastUsed := time.Now().UTC()
 
-	err = s.repo.Update(ctx, sessionID, repo.SessionUpdateRequest{
+	err = s.queries.New().FilterID(sessionID).Update(ctx, dbx.SessionUpdateInput{
 		Token:    &refreshCrypto,
 		LastUsed: LastUsed,
 	})
@@ -225,12 +230,12 @@ func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.
 		}, nil
 }
 
-func (s Sessions) Terminate(ctx context.Context, userUD uuid.UUID) error {
-	err := s.repo.Terminate(ctx, userUD)
+func (s Sessions) Terminate(ctx context.Context, userID uuid.UUID) error {
+	err := s.queries.New().FilterUserID(userID).Delete(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrorUserDoesNotExist(userUD, err)
+			return ape.ErrorUserDoesNotExist(userID, err)
 		default:
 			return ape.ErrorInternal(err)
 		}
@@ -239,7 +244,7 @@ func (s Sessions) Terminate(ctx context.Context, userUD uuid.UUID) error {
 }
 
 func (s Sessions) Delete(ctx context.Context, sessionID uuid.UUID) error {
-	err := s.repo.Delete(ctx, sessionID)
+	err := s.queries.New().FilterID(sessionID).Delete(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):

@@ -1,4 +1,4 @@
-package jwtkit
+package jwt
 
 import (
 	"crypto/aes"
@@ -8,7 +8,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/chains-lab/chains-auth/internal/config"
+	"github.com/chains-lab/chains-auth/internal/tools/config"
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/chains-lab/gatekit/tokens"
 	"github.com/google/uuid"

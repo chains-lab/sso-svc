@@ -6,7 +6,7 @@ import (
 	"github.com/chains-lab/chains-auth/internal/api/interceptors"
 	"github.com/chains-lab/chains-auth/internal/app"
 	"github.com/chains-lab/chains-auth/internal/app/models"
-	"github.com/chains-lab/chains-auth/internal/config"
+	"github.com/chains-lab/chains-auth/internal/tools/config"
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/chains-lab/proto-storage/gen/go/auth"
 	"github.com/google/uuid"

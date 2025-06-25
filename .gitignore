@@ -4,6 +4,8 @@ node_modules
 docs/node_modules
 
 main
+cmd/chains-auth/main
+
 config_local.yaml
 config_docker.yaml
 

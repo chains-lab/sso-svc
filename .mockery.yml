@@ -3,7 +3,4 @@
 packages:
   github.com/chains-lab/chains-auth/internal/repo:
     interfaces:
-      userRedis:
-      userSQL:
-      sessionSQL:
-      sessionsRedis:
+#TODO

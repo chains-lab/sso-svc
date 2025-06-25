@@ -1,4 +1,4 @@
-package sqldb
+package dbx
 
 import (
 	"context"

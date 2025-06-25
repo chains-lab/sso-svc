@@ -3,9 +3,10 @@ server:
   port: ":8001"
   base_path: "/api/v1"
   test_mode: true
-  log:
-    level: "debug"
-    format: "text"
+
+logger:
+  level: "debug"
+  format: "text"
 
 database:
   sql:

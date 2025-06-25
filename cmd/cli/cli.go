@@ -10,8 +10,8 @@ import (
 
 	"github.com/alecthomas/kingpin"
 	"github.com/chains-lab/chains-auth/internal/app"
-	"github.com/chains-lab/chains-auth/internal/config"
-	"github.com/chains-lab/chains-auth/internal/migrator"
+	"github.com/chains-lab/chains-auth/internal/tools/config"
+	"github.com/chains-lab/chains-auth/internal/tools/migrator"
 )
 
 func Run(args []string) bool {
