@@ -3,12 +3,12 @@ package handlers
 import (
 	"context"
 
-	"github.com/chains-lab/chains-auth/internal/api/interceptors"
-	"github.com/chains-lab/chains-auth/internal/app"
-	"github.com/chains-lab/chains-auth/internal/app/models"
-	"github.com/chains-lab/chains-auth/internal/utils/config"
 	"github.com/chains-lab/gatekit/roles"
-	"github.com/chains-lab/proto-storage/gen/go/auth"
+	svc "github.com/chains-lab/proto-storage/gen/go/sso"
+	"github.com/chains-lab/sso-svc/internal/api/interceptors"
+	"github.com/chains-lab/sso-svc/internal/app"
+	"github.com/chains-lab/sso-svc/internal/app/models"
+	"github.com/chains-lab/sso-svc/internal/utils/config"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
@@ -40,7 +40,7 @@ type Service struct {
 	app App
 	cfg config.Config
 
-	auth.ServiceServer
+	svc.ServiceServer
 }
 
 func NewService(cfg config.Config, app *app.App) Service {

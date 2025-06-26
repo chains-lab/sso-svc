@@ -8,9 +8,9 @@ import (
 	"io"
 	"time"
 
-	"github.com/chains-lab/chains-auth/internal/utils/config"
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/chains-lab/gatekit/tokens"
+	"github.com/chains-lab/sso-svc/internal/utils/config"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )

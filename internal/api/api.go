@@ -5,34 +5,34 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/chains-lab/chains-auth/internal/api/handlers"
-	"github.com/chains-lab/chains-auth/internal/api/interceptors"
-	"github.com/chains-lab/chains-auth/internal/app"
-	"github.com/chains-lab/chains-auth/internal/utils/config"
-	"github.com/chains-lab/proto-storage/gen/go/auth"
+	svc "github.com/chains-lab/proto-storage/gen/go/sso"
+	"github.com/chains-lab/sso-svc/internal/api/handlers"
+	"github.com/chains-lab/sso-svc/internal/api/interceptors"
+	"github.com/chains-lab/sso-svc/internal/app"
+	"github.com/chains-lab/sso-svc/internal/utils/config"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
 
 type AuthService interface {
-	GetUser(context.Context, *auth.Empty) (*auth.UserResponse, error)
-	RefreshToken(context.Context, *auth.RefreshTokenRequest) (*auth.TokensPairResponse, error)
-	GoogleLogin(context.Context, *auth.Empty) (*auth.GoogleLoginResponse, error)
-	GoogleCallback(context.Context, *auth.GoogleCallbackRequest) (*auth.TokensPairResponse, error)
-	Logout(context.Context, *auth.Empty) (*auth.Empty, error)
-	GetUserSession(context.Context, *auth.Empty) (*auth.SessionResponse, error)
-	GetUserSessions(context.Context, *auth.Empty) (*auth.SessionsListResponse, error)
-	DeleteUserSession(context.Context, *auth.Empty) (*auth.SessionsListResponse, error)
-	TerminateUserSessions(context.Context, *auth.Empty) (*auth.Empty, error)
+	GetUser(context.Context, *svc.Empty) (*svc.UserResponse, error)
+	RefreshToken(context.Context, *svc.RefreshTokenRequest) (*svc.TokensPairResponse, error)
+	GoogleLogin(context.Context, *svc.Empty) (*svc.GoogleLoginResponse, error)
+	GoogleCallback(context.Context, *svc.GoogleCallbackRequest) (*svc.TokensPairResponse, error)
+	Logout(context.Context, *svc.Empty) (*svc.Empty, error)
+	GetUserSession(context.Context, *svc.Empty) (*svc.SessionResponse, error)
+	GetUserSessions(context.Context, *svc.Empty) (*svc.SessionsListResponse, error)
+	DeleteUserSession(context.Context, *svc.Empty) (*svc.SessionsListResponse, error)
+	TerminateUserSessions(context.Context, *svc.Empty) (*svc.Empty, error)
 
-	AdminUpdateUserRole(context.Context, *auth.AdminUpdateUserRoleRequest) (*auth.UserResponse, error)
-	AdminUpdateUserSubscription(context.Context, *auth.AdminUpdateUserSubscriptionRequest) (*auth.UserResponse, error)
-	AdminUpdateUserSuspended(context.Context, *auth.AdminUpdateUserSuspendedRequest) (*auth.UserResponse, error)
-	AdminUpdateUserVerified(context.Context, *auth.AdminUpdateUserVerifiedRequest) (*auth.UserResponse, error)
-	AdminGetUserSessions(context.Context, *auth.AdminGetUserSessionsRequest) (*auth.SessionsListResponse, error)
-	AdminGetUserSession(context.Context, *auth.AdminGetUserSessionRequest) (*auth.SessionResponse, error)
-	AdminDeleteUserSession(context.Context, *auth.AdminDeleteUserSessionRequest) (*auth.Empty, error)
-	AdminTerminateUserSessions(context.Context, *auth.AdminTerminateUserSessionsRequest) (*auth.Empty, error)
+	AdminUpdateUserRole(context.Context, *svc.AdminUpdateUserRoleRequest) (*svc.UserResponse, error)
+	AdminUpdateUserSubscription(context.Context, *svc.AdminUpdateUserSubscriptionRequest) (*svc.UserResponse, error)
+	AdminUpdateUserSuspended(context.Context, *svc.AdminUpdateUserSuspendedRequest) (*svc.UserResponse, error)
+	AdminUpdateUserVerified(context.Context, *svc.AdminUpdateUserVerifiedRequest) (*svc.UserResponse, error)
+	AdminGetUserSessions(context.Context, *svc.AdminGetUserSessionsRequest) (*svc.SessionsListResponse, error)
+	AdminGetUserSession(context.Context, *svc.AdminGetUserSessionRequest) (*svc.SessionResponse, error)
+	AdminDeleteUserSession(context.Context, *svc.AdminDeleteUserSessionRequest) (*svc.Empty, error)
+	AdminTerminateUserSessions(context.Context, *svc.AdminTerminateUserSessionsRequest) (*svc.Empty, error)
 }
 
 func Run(ctx context.Context, cfg config.Config, log *logrus.Logger, app *app.App) error {
@@ -44,7 +44,7 @@ func Run(ctx context.Context, cfg config.Config, log *logrus.Logger, app *app.Ap
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(authInterceptor),
 	)
-	auth.RegisterServiceServer(grpcServer, server)
+	svc.RegisterServiceServer(grpcServer, server)
 
 	// 3) Открываем слушатель
 	lis, err := net.Listen("tcp", cfg.Server.Port)

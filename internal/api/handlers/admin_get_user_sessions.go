@@ -3,14 +3,14 @@ package handlers
 import (
 	"context"
 
-	"github.com/chains-lab/chains-auth/internal/api/responses"
-	"github.com/chains-lab/proto-storage/gen/go/auth"
+	svc "github.com/chains-lab/proto-storage/gen/go/sso"
+	"github.com/chains-lab/sso-svc/internal/api/responses"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func (a Service) AdminGetUserSessions(ctx context.Context, req *auth.AdminGetUserSessionsRequest) (*auth.SessionsListResponse, error) {
+func (a Service) AdminGetUserSessions(ctx context.Context, req *svc.AdminGetUserSessionsRequest) (*svc.SessionsListResponse, error) {
 	requestID := uuid.New()
 	meta := Meta(ctx)
 

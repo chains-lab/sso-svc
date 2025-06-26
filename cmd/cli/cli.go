@@ -9,10 +9,10 @@ import (
 	"syscall"
 
 	"github.com/alecthomas/kingpin"
-	"github.com/chains-lab/chains-auth/internal/app"
-	"github.com/chains-lab/chains-auth/internal/dbx"
-	"github.com/chains-lab/chains-auth/internal/utils/config"
-	"github.com/chains-lab/chains-auth/internal/utils/migration"
+	"github.com/chains-lab/sso-svc/internal/app"
+	"github.com/chains-lab/sso-svc/internal/dbx"
+	"github.com/chains-lab/sso-svc/internal/utils/config"
+	"github.com/chains-lab/sso-svc/internal/utils/migration"
 )
 
 func Run(args []string) bool {
@@ -25,7 +25,7 @@ func Run(args []string) bool {
 	logger.Info("Starting server...")
 
 	var (
-		service        = kingpin.New("chains-auth", "")
+		service        = kingpin.New("sso-svc", "")
 		runCmd         = service.Command("run", "run command")
 		serviceCmd     = runCmd.Command("service", "run service")
 		migrateCmd     = service.Command("migrate", "migrate command")

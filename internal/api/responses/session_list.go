@@ -1,15 +1,15 @@
 package responses
 
 import (
-	"github.com/chains-lab/chains-auth/internal/app/models"
-	"github.com/chains-lab/proto-storage/gen/go/auth"
+	svc "github.com/chains-lab/proto-storage/gen/go/sso"
+	"github.com/chains-lab/sso-svc/internal/app/models"
 )
 
-func SessionList(sessions []models.Session) *auth.SessionsListResponse {
+func SessionList(sessions []models.Session) *svc.SessionsListResponse {
 
-	list := make([]*auth.SessionResponse, len(sessions))
+	list := make([]*svc.SessionResponse, len(sessions))
 	for i, session := range sessions {
-		list[i] = &auth.SessionResponse{
+		list[i] = &svc.SessionResponse{
 			Id:        session.ID.String(),
 			UserId:    session.UserID.String(),
 			Client:    session.Client,
@@ -19,7 +19,7 @@ func SessionList(sessions []models.Session) *auth.SessionsListResponse {
 		}
 	}
 
-	return &auth.SessionsListResponse{
+	return &svc.SessionsListResponse{
 		Sessions: list,
 	}
 }

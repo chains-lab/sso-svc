@@ -1,12 +1,12 @@
 package responses
 
 import (
-	"github.com/chains-lab/chains-auth/internal/app/models"
-	"github.com/chains-lab/proto-storage/gen/go/auth"
+	svc "github.com/chains-lab/proto-storage/gen/go/sso"
+	"github.com/chains-lab/sso-svc/internal/app/models"
 )
 
-func TokensPair(pair models.TokensPair) *auth.TokensPairResponse {
-	return &auth.TokensPairResponse{
+func TokensPair(pair models.TokensPair) *svc.TokensPairResponse {
+	return &svc.TokensPairResponse{
 		AccessToken:  pair.Access,
 		RefreshToken: pair.Refresh,
 	}

@@ -3,14 +3,14 @@ package handlers
 import (
 	"context"
 
-	"github.com/chains-lab/chains-auth/internal/api/responses"
-	"github.com/chains-lab/proto-storage/gen/go/auth"
+	svc "github.com/chains-lab/proto-storage/gen/go/sso"
+	"github.com/chains-lab/sso-svc/internal/api/responses"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func (a Service) AdminDeleteUserSession(ctx context.Context, req *auth.AdminDeleteUserSessionRequest) (*auth.Empty, error) {
+func (a Service) AdminDeleteUserSession(ctx context.Context, req *svc.AdminDeleteUserSessionRequest) (*svc.Empty, error) {
 	requestID := uuid.New()
 	meta := Meta(ctx)
 
@@ -29,5 +29,5 @@ func (a Service) AdminDeleteUserSession(ctx context.Context, req *auth.AdminDele
 	}
 
 	Log(ctx, requestID).WithField("user_id", userId).Infof("User sessions deleted by admin %s", meta.InitiatorID)
-	return &auth.Empty{}, nil
+	return &svc.Empty{}, nil
 }

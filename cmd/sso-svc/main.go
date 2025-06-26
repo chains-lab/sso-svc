@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/chains-lab/chains-auth/cmd/cli"
+	"github.com/chains-lab/sso-svc/cmd/cli"
 )
 
 func main() {

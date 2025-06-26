@@ -32,8 +32,8 @@ func NewAuth(secretKey string) grpc.UnaryServerInterceptor {
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
 		switch info.FullMethod {
-		case "/auth.AuthService/GoogleLogin",
-			"/auth.AuthService/GoogleCallback":
+		case "/svc.AuthService/GoogleLogin",
+			"/svc.AuthService/GoogleCallback":
 			return handler(ctx, req)
 		}
 

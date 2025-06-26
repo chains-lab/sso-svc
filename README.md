@@ -7,10 +7,10 @@ after add to ```"scripts"``` - ```"start": "http-server -c-1 -p 7272"```
 
 ### Build and Start project
 ```bash
-docker compose chains-auth up -d
+docker compose sso-svc up -d
 
 # Down project 
-docker compose chains-auth down -v
+docker compose sso-svc down -v
 ```
 
 ### Connecting to network in Docker
@@ -18,5 +18,5 @@ docker compose chains-auth down -v
 # Create a Docker network named `chains-net` if it does not already exist.
 docker network create chains-net
 # or connect to existing network
-docker network connect chains-net chains-auth
+docker network connect chains-net sso-svc
 ```

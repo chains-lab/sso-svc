@@ -3,12 +3,12 @@ package handlers
 import (
 	"context"
 
-	"github.com/chains-lab/chains-auth/internal/api/responses"
-	"github.com/chains-lab/proto-storage/gen/go/auth"
+	svc "github.com/chains-lab/proto-storage/gen/go/sso"
+	"github.com/chains-lab/sso-svc/internal/api/responses"
 	"github.com/google/uuid"
 )
 
-func (a Service) Logout(ctx context.Context, req *auth.Empty) (*auth.Empty, error) {
+func (a Service) Logout(ctx context.Context, req *svc.Empty) (*svc.Empty, error) {
 	requestID := uuid.New()
 	log := Log(ctx, requestID)
 	meta := Meta(ctx)
@@ -19,5 +19,5 @@ func (a Service) Logout(ctx context.Context, req *auth.Empty) (*auth.Empty, erro
 	}
 
 	log.Infof("User %s Session %s deleted successfully", meta.InitiatorID, meta.SessionID)
-	return &auth.Empty{}, nil
+	return &svc.Empty{}, nil
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/chains-lab/chains-auth/internal/app/ape"
+	"github.com/chains-lab/sso-svc/internal/app/ape"
 	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"

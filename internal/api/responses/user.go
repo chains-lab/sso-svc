@@ -1,12 +1,12 @@
 package responses
 
 import (
-	"github.com/chains-lab/chains-auth/internal/app/models"
-	"github.com/chains-lab/proto-storage/gen/go/auth"
+	svc "github.com/chains-lab/proto-storage/gen/go/sso"
+	"github.com/chains-lab/sso-svc/internal/app/models"
 )
 
-func User(user models.User) *auth.UserResponse {
-	return &auth.UserResponse{
+func User(user models.User) *svc.UserResponse {
+	return &svc.UserResponse{
 		Id:           user.ID.String(),
 		Email:        user.Email,
 		Role:         string(user.Role),

@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/chains-lab/chains-auth/internal/api/responses"
 	"github.com/chains-lab/gatekit/roles"
-	"github.com/chains-lab/proto-storage/gen/go/auth"
+	svc "github.com/chains-lab/proto-storage/gen/go/sso"
+	"github.com/chains-lab/sso-svc/internal/api/responses"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -15,8 +15,8 @@ import (
 
 func (a Service) GoogleCallback(
 	ctx context.Context,
-	req *auth.GoogleCallbackRequest,
-) (*auth.TokensPairResponse, error) {
+	req *svc.GoogleCallbackRequest,
+) (*svc.TokensPairResponse, error) {
 	requestID := uuid.New()
 	log := Log(ctx, requestID)
 

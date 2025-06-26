@@ -3,10 +3,10 @@ package handlers
 import (
 	"context"
 
-	"github.com/chains-lab/proto-storage/gen/go/auth"
+	svc "github.com/chains-lab/proto-storage/gen/go/sso"
 )
 
-func (a Service) GetUser(ctx context.Context, req *auth.Empty) (*auth.UserResponse, error) {
+func (a Service) GetUser(ctx context.Context, req *svc.Empty) (*svc.UserResponse, error) {
 	meta := Meta(ctx)
 
 	user, err := a.app.GetUserByID(ctx, meta.InitiatorID)
@@ -14,7 +14,7 @@ func (a Service) GetUser(ctx context.Context, req *auth.Empty) (*auth.UserRespon
 		return nil, err
 	}
 
-	return &auth.UserResponse{
+	return &svc.UserResponse{
 		Id:           user.ID.String(),
 		Email:        user.Email,
 		Role:         string(user.Role),

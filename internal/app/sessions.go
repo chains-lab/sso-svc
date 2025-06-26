@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/chains-lab/chains-auth/internal/app/ape"
-	"github.com/chains-lab/chains-auth/internal/app/models"
 	"github.com/chains-lab/gatekit/roles"
+	"github.com/chains-lab/sso-svc/internal/app/ape"
+	"github.com/chains-lab/sso-svc/internal/app/models"
 	"github.com/google/uuid"
 )
 

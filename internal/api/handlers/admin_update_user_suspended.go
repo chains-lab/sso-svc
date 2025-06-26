@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chains-lab/chains-auth/internal/api/responses"
-	"github.com/chains-lab/proto-storage/gen/go/auth"
+	svc "github.com/chains-lab/proto-storage/gen/go/sso"
+	"github.com/chains-lab/sso-svc/internal/api/responses"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func (a Service) AdminUpdateUserSuspended(ctx context.Context, req *auth.AdminUpdateUserSuspendedRequest) (*auth.UserResponse, error) {
+func (a Service) AdminUpdateUserSuspended(ctx context.Context, req *svc.AdminUpdateUserSuspendedRequest) (*svc.UserResponse, error) {
 	requestID := uuid.New()
 	meta := Meta(ctx)
 

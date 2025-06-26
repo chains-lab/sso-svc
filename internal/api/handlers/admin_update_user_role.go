@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chains-lab/chains-auth/internal/api/responses"
 	"github.com/chains-lab/gatekit/roles"
-	"github.com/chains-lab/proto-storage/gen/go/auth"
+	svc "github.com/chains-lab/proto-storage/gen/go/sso"
+	"github.com/chains-lab/sso-svc/internal/api/responses"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func (a Service) AdminUpdateUserRole(ctx context.Context, req *auth.AdminUpdateUserRoleRequest) (*auth.UserResponse, error) {
+func (a Service) AdminUpdateUserRole(ctx context.Context, req *svc.AdminUpdateUserRoleRequest) (*svc.UserResponse, error) {
 	requestID := uuid.New()
 	meta := Meta(ctx)
 

@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/chains-lab/chains-auth/internal/app/ape"
-	jwtkit "github.com/chains-lab/chains-auth/internal/app/kit/jwt"
-	"github.com/chains-lab/chains-auth/internal/app/models"
-	"github.com/chains-lab/chains-auth/internal/dbx"
-	"github.com/chains-lab/chains-auth/internal/utils/config"
 	"github.com/chains-lab/gatekit/roles"
+	"github.com/chains-lab/sso-svc/internal/app/ape"
+	jwtkit "github.com/chains-lab/sso-svc/internal/app/kit/jwt"
+	"github.com/chains-lab/sso-svc/internal/app/models"
+	"github.com/chains-lab/sso-svc/internal/dbx"
+	"github.com/chains-lab/sso-svc/internal/utils/config"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )

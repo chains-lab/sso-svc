@@ -3,12 +3,12 @@ package handlers
 import (
 	"context"
 
-	"github.com/chains-lab/chains-auth/internal/api/responses"
-	"github.com/chains-lab/proto-storage/gen/go/auth"
+	svc "github.com/chains-lab/proto-storage/gen/go/sso"
+	"github.com/chains-lab/sso-svc/internal/api/responses"
 	"github.com/google/uuid"
 )
 
-func (a Service) GetUserSession(ctx context.Context, req *auth.Empty) (*auth.SessionResponse, error) {
+func (a Service) GetUserSession(ctx context.Context, req *svc.Empty) (*svc.SessionResponse, error) {
 	requestID := uuid.New()
 
 	meta := Meta(ctx)
