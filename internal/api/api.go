@@ -44,7 +44,7 @@ func Run(ctx context.Context, cfg config.Config, log *logrus.Logger, app *app.Ap
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(authInterceptor),
 	)
-	auth.RegisterAuthServiceServer(grpcServer, server)
+	auth.RegisterServiceServer(grpcServer, server)
 
 	// 3) Открываем слушатель
 	lis, err := net.Listen("tcp", cfg.Server.Port)

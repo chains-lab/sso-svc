@@ -31,6 +31,12 @@ func NewAuth(secretKey string) grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
+		switch info.FullMethod {
+		case "/auth.AuthService/GoogleLogin",
+			"/auth.AuthService/GoogleCallback":
+			return handler(ctx, req)
+		}
+
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			return nil, status.Errorf(codes.Unauthenticated, "missing metadata")

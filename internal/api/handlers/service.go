@@ -40,7 +40,7 @@ type Service struct {
 	app App
 	cfg config.Config
 
-	auth.AuthServiceServer
+	auth.ServiceServer
 }
 
 func NewService(cfg config.Config, app *app.App) Service {
