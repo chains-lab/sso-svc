@@ -31,8 +31,8 @@ type SessionsQ interface {
 
 	Transaction(fn func(ctx context.Context) error) error
 	Page(limit, offset uint64) dbx.SessionsQ
-
-	Drop(ctx context.Context) error
+	//
+	//Drop(ctx context.Context) error
 }
 
 type JWTManager interface {

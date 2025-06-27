@@ -71,10 +71,8 @@ func (q UserQ) Insert(ctx context.Context, input UserModel) error {
 	} else {
 		_, err = q.db.ExecContext(ctx, query, args...)
 	}
-	if err != nil {
-		return err
-	}
-	return nil
+
+	return err
 }
 
 type UserUpdateInput struct {
@@ -104,28 +102,38 @@ func (q UserQ) Update(ctx context.Context, input UserUpdateInput) error {
 	} else {
 		_, err = q.db.ExecContext(ctx, query, args...)
 	}
-	if err != nil {
-		return err
-	}
-	return nil
+
+	return err
 }
 
-func (q UserQ) Delete(ctx context.Context) error {
-	query, args, err := q.deleter.ToSql()
+func (q UserQ) Get(ctx context.Context) (UserModel, error) {
+	query, args, err := q.selector.Limit(1).ToSql()
 	if err != nil {
-		return fmt.Errorf("building delete query for users: %w", err)
+		return UserModel{}, fmt.Errorf("building get query for users: %w", err)
 	}
 
+	var row *sql.Row
 	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
-		_, err = tx.ExecContext(ctx, query, args...)
+		row = tx.QueryRowContext(ctx, query, args...)
 	} else {
-		_, err = q.db.ExecContext(ctx, query, args...)
+		row = q.db.QueryRowContext(ctx, query, args...)
 	}
+	var acc UserModel
+	err = row.Scan(
+		&acc.ID,
+		&acc.Email,
+		&acc.Role,
+		&acc.Subscription,
+		&acc.Verified,
+		&acc.Suspended,
+		&acc.UpdatedAt,
+		&acc.CreatedAt,
+	)
 	if err != nil {
-		return err
+		return UserModel{}, err
 	}
 
-	return nil
+	return acc, nil
 }
 
 func (q UserQ) Select(ctx context.Context) ([]UserModel, error) {
@@ -134,7 +142,13 @@ func (q UserQ) Select(ctx context.Context) ([]UserModel, error) {
 		return nil, fmt.Errorf("building select query for users: %w", err)
 	}
 
-	rows, err := q.db.QueryContext(ctx, query, args...)
+	var rows *sql.Rows
+
+	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
+		rows, err = tx.QueryContext(ctx, query, args...)
+	} else {
+		rows, err = q.db.QueryContext(ctx, query, args...)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -162,43 +176,22 @@ func (q UserQ) Select(ctx context.Context) ([]UserModel, error) {
 	return users, nil
 }
 
-func (q UserQ) Count(ctx context.Context) (int, error) {
-	query, args, err := q.counter.ToSql()
+func (q UserQ) Delete(ctx context.Context) error {
+	query, args, err := q.deleter.ToSql()
 	if err != nil {
-		return 0, fmt.Errorf("building count query for users: %w", err)
+		return fmt.Errorf("building delete query for users: %w", err)
 	}
 
-	var count int
-	err = q.db.QueryRowContext(ctx, query, args...).Scan(&count)
+	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
+		_, err = tx.ExecContext(ctx, query, args...)
+	} else {
+		_, err = q.db.ExecContext(ctx, query, args...)
+	}
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	return count, nil
-}
-
-func (q UserQ) Get(ctx context.Context) (UserModel, error) {
-	query, args, err := q.selector.Limit(1).ToSql()
-	if err != nil {
-		return UserModel{}, fmt.Errorf("building get query for users: %w", err)
-	}
-
-	var acc UserModel
-	err = q.db.QueryRowContext(ctx, query, args...).Scan(
-		&acc.ID,
-		&acc.Email,
-		&acc.Role,
-		&acc.Subscription,
-		&acc.Verified,
-		&acc.Suspended,
-		&acc.UpdatedAt,
-		&acc.CreatedAt,
-	)
-	if err != nil {
-		return UserModel{}, err
-	}
-
-	return acc, nil
+	return nil
 }
 
 func (q UserQ) FilterID(id uuid.UUID) UserQ {
@@ -206,6 +199,7 @@ func (q UserQ) FilterID(id uuid.UUID) UserQ {
 	q.counter = q.counter.Where(sq.Eq{"id": id})
 	q.deleter = q.deleter.Where(sq.Eq{"id": id})
 	q.updater = q.updater.Where(sq.Eq{"id": id})
+
 	return q
 }
 
@@ -214,6 +208,7 @@ func (q UserQ) FilterEmail(email string) UserQ {
 	q.counter = q.counter.Where(sq.Eq{"email": email})
 	q.deleter = q.deleter.Where(sq.Eq{"email": email})
 	q.updater = q.updater.Where(sq.Eq{"email": email})
+
 	return q
 }
 
@@ -222,6 +217,7 @@ func (q UserQ) FilterRole(role roles.Role) UserQ {
 	q.counter = q.counter.Where(sq.Eq{"role": role})
 	q.deleter = q.deleter.Where(sq.Eq{"role": role})
 	q.updater = q.updater.Where(sq.Eq{"role": role})
+
 	return q
 }
 
@@ -230,6 +226,7 @@ func (q UserQ) FilterSubscription(subscription uuid.UUID) UserQ {
 	q.counter = q.counter.Where(sq.Eq{"subscription": subscription})
 	q.deleter = q.deleter.Where(sq.Eq{"subscription": subscription})
 	q.updater = q.updater.Where(sq.Eq{"subscription": subscription})
+
 	return q
 }
 
@@ -238,6 +235,33 @@ func (q UserQ) FilterVerified(verified bool) UserQ {
 	q.counter = q.counter.Where(sq.Eq{"verified": verified})
 	q.deleter = q.deleter.Where(sq.Eq{"verified": verified})
 	q.updater = q.updater.Where(sq.Eq{"verified": verified})
+
+	return q
+}
+
+func (q UserQ) Count(ctx context.Context) (int, error) {
+	query, args, err := q.counter.ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("building count query for users: %w", err)
+	}
+
+	var count int64
+	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
+		err = tx.QueryRowContext(ctx, query, args...).Scan(&count)
+	} else {
+		err = q.db.QueryRowContext(ctx, query, args...).Scan(&count)
+	}
+	if err != nil {
+		return 0, err
+	}
+
+	return int(count), nil
+}
+
+func (q UserQ) Page(limit, offset uint64) UserQ {
+	q.counter = q.counter.Limit(limit).Offset(offset)
+	q.selector = q.selector.Limit(limit).Offset(offset)
+
 	return q
 }
 
@@ -265,26 +289,20 @@ func (q UserQ) Transaction(fn func(ctx context.Context) error) error {
 	return nil
 }
 
-func (q UserQ) Page(limit, offset uint64) UserQ {
-	q.counter = q.counter.Limit(limit).Offset(offset)
-	q.selector = q.selector.Limit(limit).Offset(offset)
-	return q
-}
-
-func (q UserQ) Drop(ctx context.Context) error {
-	query, args, err := q.deleter.ToSql()
-	if err != nil {
-		return fmt.Errorf("building drop query for users: %w", err)
-	}
-
-	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
-		_, err = tx.ExecContext(ctx, query, args...)
-	} else {
-		_, err = q.db.ExecContext(ctx, query, args...)
-	}
-	if err != nil {
-		return fmt.Errorf("error executing drop query: %w", err)
-	}
-
-	return nil
-}
+//func (q UserQ) Drop(ctx context.Context) error {
+//	query, args, err := q.deleter.ToSql()
+//	if err != nil {
+//		return fmt.Errorf("building drop query for users: %w", err)
+//	}
+//
+//	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
+//		_, err = tx.ExecContext(ctx, query, args...)
+//	} else {
+//		_, err = q.db.ExecContext(ctx, query, args...)
+//	}
+//	if err != nil {
+//		return fmt.Errorf("error executing drop query: %w", err)
+//	}
+//
+//	return nil
+//}

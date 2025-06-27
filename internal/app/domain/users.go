@@ -35,7 +35,7 @@ type usersRepo interface {
 	Page(limit, offset uint64) dbx.UserQ
 	Transaction(fn func(ctx context.Context) error) error
 
-	Drop(ctx context.Context) error
+	//Drop(ctx context.Context) error
 }
 
 //type Broker interface {
