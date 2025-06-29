@@ -6,10 +6,10 @@ import (
 	svc "github.com/chains-lab/proto-storage/gen/go/sso"
 )
 
-func (a Service) GetUser(ctx context.Context, req *svc.Empty) (*svc.UserResponse, error) {
+func (s Service) GetUser(ctx context.Context, req *svc.Empty) (*svc.UserResponse, error) {
 	meta := Meta(ctx)
 
-	user, err := a.app.GetUserByID(ctx, meta.InitiatorID)
+	user, err := s.app.GetUserByID(ctx, meta.InitiatorID)
 	if err != nil {
 		return nil, err
 	}

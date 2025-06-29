@@ -8,17 +8,17 @@ import (
 	"github.com/google/uuid"
 )
 
-func (a Service) DeleteUserSession(ctx context.Context, req *svc.Empty) (*svc.SessionsListResponse, error) {
+func (s Service) DeleteUserSession(ctx context.Context, req *svc.Empty) (*svc.SessionsListResponse, error) {
 	requestID := uuid.New()
 
 	meta := Meta(ctx)
 
-	err := a.app.DeleteSession(ctx, meta.InitiatorID, meta.SessionID)
+	err := s.app.DeleteSession(ctx, meta.InitiatorID, meta.SessionID)
 	if err != nil {
 		return nil, responses.AppError(ctx, requestID, err)
 	}
 
-	sessions, err := a.app.SelectUserSessions(ctx, meta.InitiatorID)
+	sessions, err := s.app.SelectUserSessions(ctx, meta.InitiatorID)
 	if err != nil {
 		return nil, responses.AppError(ctx, requestID, err)
 	}

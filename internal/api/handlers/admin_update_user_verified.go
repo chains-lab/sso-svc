@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (a Service) AdminUpdateUserVerified(ctx context.Context, req *svc.AdminUpdateUserVerifiedRequest) (*svc.UserResponse, error) {
+func (s Service) AdminUpdateUserVerified(ctx context.Context, req *svc.AdminUpdateUserVerifiedRequest) (*svc.UserResponse, error) {
 	requestID := uuid.New()
 	meta := Meta(ctx)
 
@@ -19,7 +19,7 @@ func (a Service) AdminUpdateUserVerified(ctx context.Context, req *svc.AdminUpda
 		return nil, status.Errorf(codes.InvalidArgument, "invalid user ID format: %v", err)
 	}
 
-	user, err := a.app.AdminUpdateUserVerified(ctx, meta.InitiatorID, userID, req.Verified)
+	user, err := s.app.AdminUpdateUserVerified(ctx, meta.InitiatorID, userID, req.Verified)
 	if err != nil {
 		return nil, responses.AppError(ctx, requestID, err)
 	}

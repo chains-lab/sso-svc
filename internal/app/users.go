@@ -51,7 +51,7 @@ func (a App) AdminUpdateUserRole(ctx context.Context, initiatorID, userID uuid.U
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, role) < 0 {
-			return models.User{}, ape.ErrNoPermission
+			return models.User{}, ape.ErrorNoPermission(err)
 		}
 	}
 
@@ -110,7 +110,7 @@ func (a App) AdminUpdateUserSubscription(ctx context.Context, initiatorID, userI
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return models.User{}, ape.ErrNoPermission
+			return models.User{}, ape.ErrorNoPermission(err)
 		}
 	}
 
@@ -149,7 +149,7 @@ func (a App) AdminUpdateUserVerified(ctx context.Context, initiatorID, userID uu
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return models.User{}, ape.ErrNoPermission
+			return models.User{}, ape.ErrorNoPermission(err)
 		}
 	}
 
@@ -188,7 +188,7 @@ func (a App) AdminUpdateUserSuspended(ctx context.Context, initiatorID, userID u
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return models.User{}, ape.ErrNoPermission
+			return models.User{}, ape.ErrorNoPermission(err)
 		}
 	}
 

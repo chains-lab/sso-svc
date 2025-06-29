@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (a Service) AdminGetUserSessions(ctx context.Context, req *svc.AdminGetUserSessionsRequest) (*svc.SessionsListResponse, error) {
+func (s Service) AdminGetUserSessions(ctx context.Context, req *svc.AdminGetUserSessionsRequest) (*svc.SessionsListResponse, error) {
 	requestID := uuid.New()
 	meta := Meta(ctx)
 
@@ -19,7 +19,7 @@ func (a Service) AdminGetUserSessions(ctx context.Context, req *svc.AdminGetUser
 		return nil, status.Errorf(codes.InvalidArgument, "invalid user ID format: %v", err)
 	}
 
-	sessions, err := a.app.SelectUserSessions(ctx, userID)
+	sessions, err := s.app.SelectUserSessions(ctx, userID)
 	if err != nil {
 		return nil, responses.AppError(ctx, requestID, err)
 	}

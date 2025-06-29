@@ -16,29 +16,29 @@ func AppError(ctx context.Context, requestID uuid.UUID, err error) error {
 	var appErr *ape.Error
 	if errors.As(err, &appErr) {
 		var code codes.Code
-		switch {
-		case errors.Is(appErr.Err, ape.ErrUserDoesNotExist),
-			errors.Is(appErr.Err, ape.ErrSessionDoesNotExist):
+		switch appErr.Reason {
+		case ape.ReasonUserDoesNotExist,
+			ape.ReasonSessionDoesNotExist:
 
 			code = codes.NotFound
 
-		case errors.Is(appErr.Err, ape.ErrUserAlreadyExists),
-			errors.Is(appErr.Err, ape.ErrSessionsForUserNotExist),
-			errors.Is(appErr.Err, ape.ErrSessionClientMismatch),
-			errors.Is(appErr.Err, ape.ErrSessionTokenMismatch):
+		case ape.ReasonUserAlreadyExists,
+			ape.ReasonSessionsForUserNotExist,
+			ape.ReasonSessionClientMismatch,
+			ape.ReasonSessionTokenMismatch:
 
 			code = codes.AlreadyExists
 
-		case errors.Is(appErr.Err, ape.ErrInternal):
+		case ape.ReasonInternal:
 			code = codes.Internal
 
 		default:
 			code = codes.Unknown
 		}
 
-		st := status.New(code, appErr.Err.Error())
+		st := status.New(code, appErr.Reason)
 		st, errWithDetails := st.WithDetails(&errdetails.ErrorInfo{
-			Reason: appErr.Err.Error(),
+			Reason: appErr.Reason,
 			Metadata: map[string]string{
 				"error_id":   errorID.String(),
 				"request_id": requestID.String(),

@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (a Service) AdminGetUserSession(ctx context.Context, req *svc.AdminGetUserSessionRequest) (*svc.SessionResponse, error) {
+func (s Service) AdminGetUserSession(ctx context.Context, req *svc.AdminGetUserSessionRequest) (*svc.SessionResponse, error) {
 	requestID := uuid.New()
 	meta := Meta(ctx)
 
@@ -25,7 +25,7 @@ func (a Service) AdminGetUserSession(ctx context.Context, req *svc.AdminGetUserS
 		return nil, status.Errorf(codes.InvalidArgument, "invalid format session id: %s", req.SessionId)
 	}
 
-	session, err := a.app.GetSession(ctx, userId, sessionId)
+	session, err := s.app.GetSession(ctx, userId, sessionId)
 	if err != nil {
 		return nil, responses.AppError(ctx, requestID, err)
 	}

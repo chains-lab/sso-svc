@@ -8,12 +8,12 @@ import (
 	"github.com/google/uuid"
 )
 
-func (a Service) Logout(ctx context.Context, req *svc.Empty) (*svc.Empty, error) {
+func (s Service) Logout(ctx context.Context, req *svc.Empty) (*svc.Empty, error) {
 	requestID := uuid.New()
 	log := Log(ctx, requestID)
 	meta := Meta(ctx)
 
-	err := a.app.DeleteSession(ctx, meta.InitiatorID, meta.SessionID)
+	err := s.app.DeleteSession(ctx, meta.InitiatorID, meta.SessionID)
 	if err != nil {
 		return nil, responses.AppError(ctx, requestID, err)
 	}

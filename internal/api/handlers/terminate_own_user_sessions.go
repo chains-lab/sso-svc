@@ -8,12 +8,12 @@ import (
 	"github.com/google/uuid"
 )
 
-func (a Service) TerminateUserSessions(ctx context.Context, req *svc.Empty) (*svc.Empty, error) {
+func (s Service) TerminateUserSessions(ctx context.Context, req *svc.Empty) (*svc.Empty, error) {
 	requestID := uuid.New()
 
 	meta := Meta(ctx)
 
-	err := a.app.TerminateUserSessions(ctx, meta.InitiatorID)
+	err := s.app.TerminateUserSessions(ctx, meta.InitiatorID)
 	if err != nil {
 		return nil, responses.AppError(ctx, requestID, err)
 	}

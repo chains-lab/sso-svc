@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (a Service) AdminUpdateUserSuspended(ctx context.Context, req *svc.AdminUpdateUserSuspendedRequest) (*svc.UserResponse, error) {
+func (s Service) AdminUpdateUserSuspended(ctx context.Context, req *svc.AdminUpdateUserSuspendedRequest) (*svc.UserResponse, error) {
 	requestID := uuid.New()
 	meta := Meta(ctx)
 
@@ -20,7 +20,7 @@ func (a Service) AdminUpdateUserSuspended(ctx context.Context, req *svc.AdminUpd
 		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid format user id: %v", err))
 	}
 
-	user, err := a.app.AdminUpdateUserSuspended(ctx, meta.InitiatorID, userID, req.Suspended)
+	user, err := s.app.AdminUpdateUserSuspended(ctx, meta.InitiatorID, userID, req.Suspended)
 	if err != nil {
 		return nil, responses.AppError(ctx, requestID, err)
 	}

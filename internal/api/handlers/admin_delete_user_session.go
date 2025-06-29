@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (a Service) AdminDeleteUserSession(ctx context.Context, req *svc.AdminDeleteUserSessionRequest) (*svc.Empty, error) {
+func (s Service) AdminDeleteUserSession(ctx context.Context, req *svc.AdminDeleteUserSessionRequest) (*svc.Empty, error) {
 	requestID := uuid.New()
 	meta := Meta(ctx)
 
@@ -21,7 +21,7 @@ func (a Service) AdminDeleteUserSession(ctx context.Context, req *svc.AdminDelet
 		return nil, status.Errorf(codes.InvalidArgument, "invalid format user id: %s", req.UserId)
 	}
 
-	err = a.app.DeleteSession(ctx, meta.InitiatorID, userId)
+	err = s.app.DeleteSession(ctx, meta.InitiatorID, userId)
 	if err != nil {
 		Log(ctx, requestID).WithError(err).Error("failed to delete session")
 

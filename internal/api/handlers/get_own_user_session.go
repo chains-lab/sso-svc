@@ -8,12 +8,12 @@ import (
 	"github.com/google/uuid"
 )
 
-func (a Service) GetUserSession(ctx context.Context, req *svc.Empty) (*svc.SessionResponse, error) {
+func (s Service) GetUserSession(ctx context.Context, req *svc.Empty) (*svc.SessionResponse, error) {
 	requestID := uuid.New()
 
 	meta := Meta(ctx)
 
-	session, err := a.app.GetSession(ctx, meta.InitiatorID, meta.SessionID)
+	session, err := s.app.GetSession(ctx, meta.InitiatorID, meta.SessionID)
 	if err != nil {
 		return nil, responses.AppError(ctx, requestID, err)
 	}

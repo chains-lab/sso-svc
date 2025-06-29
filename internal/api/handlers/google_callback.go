@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (a Service) GoogleCallback(
+func (s Service) GoogleCallback(
 	ctx context.Context,
 	req *svc.GoogleCallbackRequest,
 ) (*svc.TokensPairResponse, error) {
@@ -27,14 +27,14 @@ func (a Service) GoogleCallback(
 	}
 
 	// 2) Обмен кода на токен
-	token, err := a.cfg.GoogleOAuth().Exchange(ctx, code)
+	token, err := s.cfg.GoogleOAuth().Exchange(ctx, code)
 	if err != nil {
 		log.WithError(err).Errorf("error exchanging code for token: %s", code)
 		return nil, status.Errorf(codes.Internal, "failed to exchange code")
 	}
 
 	// 3) Получаем UserInfo из Google
-	client := a.cfg.GoogleOAuth().Client(ctx, token)
+	client := s.cfg.GoogleOAuth().Client(ctx, token)
 	httpResp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
 	if err != nil {
 		log.WithError(err).Error("error fetching userinfo from Google")
@@ -59,7 +59,7 @@ func (a Service) GoogleCallback(
 	}
 
 	// 5) Ваша бизнес-логика: логиним/регистрируем пользователя
-	_, tokensPair, err := a.app.Login(ctx, ui.Email, roles.User, ua)
+	_, tokensPair, err := s.app.Login(ctx, ui.Email, roles.User, ua)
 	if err != nil {
 		// конвертим в gRPC-ошибку через ваш презентер
 		return nil, responses.AppError(ctx, requestID, err)

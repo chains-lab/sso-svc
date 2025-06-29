@@ -9,12 +9,12 @@ import (
 	"github.com/google/uuid"
 )
 
-func (a Service) GetUserSessions(ctx context.Context, req *svc.Empty) (*svc.SessionsListResponse, error) {
+func (s Service) GetUserSessions(ctx context.Context, req *svc.Empty) (*svc.SessionsListResponse, error) {
 	requestID := uuid.New()
 
 	meta := Meta(ctx)
 
-	sessions, err := a.app.SelectUserSessions(ctx, meta.InitiatorID)
+	sessions, err := s.app.SelectUserSessions(ctx, meta.InitiatorID)
 	if err != nil {
 		return nil, responses.AppError(ctx, requestID, err)
 	}

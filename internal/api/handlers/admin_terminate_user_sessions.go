@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (a Service) AdminTerminateUserSessions(ctx context.Context, req *svc.AdminTerminateUserSessionsRequest) (*svc.Empty, error) {
+func (s Service) AdminTerminateUserSessions(ctx context.Context, req *svc.AdminTerminateUserSessionsRequest) (*svc.Empty, error) {
 	requestID := uuid.New()
 	meta := Meta(ctx)
 
@@ -19,7 +19,7 @@ func (a Service) AdminTerminateUserSessions(ctx context.Context, req *svc.AdminT
 		return nil, status.Errorf(codes.InvalidArgument, "invalid format user id: %s", req.UserId)
 	}
 
-	err = a.app.AdminTerminateSessions(ctx, meta.InitiatorID, userId)
+	err = s.app.AdminTerminateSessions(ctx, meta.InitiatorID, userId)
 	if err != nil {
 		return nil, responses.AppError(ctx, requestID, err)
 	}

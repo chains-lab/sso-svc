@@ -23,7 +23,7 @@ package reader
 //		for {
 //			m, err := r.reader.ReadMessage(ctx)
 //			if err != nil {
-//				if errors.Is(ctx.Err(), context.Canceled) {
+//				if errors.Is(ctx.Details(), context.Canceled) {
 //					//r.log.Info("Context canceled, stopping listener")
 //					return
 //				}

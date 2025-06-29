@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (a Service) AdminUpdateUserRole(ctx context.Context, req *svc.AdminUpdateUserRoleRequest) (*svc.UserResponse, error) {
+func (s Service) AdminUpdateUserRole(ctx context.Context, req *svc.AdminUpdateUserRoleRequest) (*svc.UserResponse, error) {
 	requestID := uuid.New()
 	meta := Meta(ctx)
 
@@ -26,7 +26,7 @@ func (a Service) AdminUpdateUserRole(ctx context.Context, req *svc.AdminUpdateUs
 		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid format role: %v", err))
 	}
 
-	user, err := a.app.AdminUpdateUserRole(ctx, meta.InitiatorID, userId, role)
+	user, err := s.app.AdminUpdateUserRole(ctx, meta.InitiatorID, userId, role)
 	if err != nil {
 		return nil, responses.AppError(ctx, requestID, err)
 	}
