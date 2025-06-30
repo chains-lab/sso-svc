@@ -8,7 +8,7 @@ import (
 	"github.com/chains-lab/sso-svc/internal/api/interceptors"
 	"github.com/chains-lab/sso-svc/internal/app"
 	"github.com/chains-lab/sso-svc/internal/app/models"
-	"github.com/chains-lab/sso-svc/internal/utils/config"
+	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
@@ -28,19 +28,20 @@ type App interface {
 	TerminateUserSessions(ctx context.Context, userID uuid.UUID) error
 
 	AdminUpdateUserRole(ctx context.Context, initiatorID, userID uuid.UUID, role roles.Role) (models.User, error)
-	AdminUpdateUserSubscription(ctx context.Context, initiatorID, userID, subscriptionID uuid.UUID) (models.User, error)
-	AdminUpdateUserVerified(ctx context.Context, initiatorID, userID uuid.UUID, verified bool) (models.User, error)
-	AdminUpdateUserSuspended(ctx context.Context, initiatorID, userID uuid.UUID, suspended bool) (models.User, error)
-
 	AdminTerminateSessions(ctx context.Context, initiatorID, userID uuid.UUID) error
 	AdminDeleteUserSession(ctx context.Context, initiatorID, userID, sessionID uuid.UUID) error
+
+	UpdateUserSubscription(ctx context.Context, initiatorID, userID, subscriptionID uuid.UUID) (models.User, error)
+	UpdateUserVerified(ctx context.Context, initiatorID, userID uuid.UUID, verified bool) (models.User, error)
+	UpdateUserSuspended(ctx context.Context, initiatorID, userID uuid.UUID, suspended bool) (models.User, error)
 }
 
 type Service struct {
 	app App
 	cfg config.Config
 
-	svc.ServiceServer
+	svc.UserServiceServer
+	svc.AdminServiceServer
 }
 
 func NewService(cfg config.Config, app *app.App) Service {

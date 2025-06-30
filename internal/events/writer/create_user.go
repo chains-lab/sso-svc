@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/chains-lab/sso-svc/internal/events/bodies"
-	"github.com/chains-lab/sso-svc/internal/utils/config"
 	"github.com/segmentio/kafka-go"
 	"github.com/sirupsen/logrus"
 )

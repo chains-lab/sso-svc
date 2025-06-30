@@ -1,4 +1,4 @@
-package jwt
+package jwtmanager
 
 import (
 	"crypto/aes"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/chains-lab/gatekit/tokens"
-	"github.com/chains-lab/sso-svc/internal/utils/config"
+	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )

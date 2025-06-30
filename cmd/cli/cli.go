@@ -10,9 +10,8 @@ import (
 
 	"github.com/alecthomas/kingpin"
 	"github.com/chains-lab/sso-svc/internal/app"
+	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/chains-lab/sso-svc/internal/dbx"
-	"github.com/chains-lab/sso-svc/internal/utils/config"
-	"github.com/chains-lab/sso-svc/internal/utils/migration"
 )
 
 func Run(args []string) bool {
@@ -48,17 +47,15 @@ func Run(args []string) bool {
 		return false
 	}
 
-	migrator := migration.NewMigrator("postgres", cfg.Database.SQL.URL, "migrations", dbx.Migrations)
-
 	var wg sync.WaitGroup
 
 	switch cmd {
 	case serviceCmd.FullCommand():
 		err = Start(ctx, cfg, logger, &application)
 	case migrateUpCmd.FullCommand():
-		err = migrator.RunUp()
+		err = dbx.MigrateUp(cfg)
 	case migrateDownCmd.FullCommand():
-		err = migrator.RunDown()
+		err = dbx.MigrateDown(cfg)
 	default:
 		logger.Errorf("unknown command %s", cmd)
 		return false

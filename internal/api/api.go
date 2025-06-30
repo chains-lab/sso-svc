@@ -9,12 +9,12 @@ import (
 	"github.com/chains-lab/sso-svc/internal/api/handlers"
 	"github.com/chains-lab/sso-svc/internal/api/interceptors"
 	"github.com/chains-lab/sso-svc/internal/app"
-	"github.com/chains-lab/sso-svc/internal/utils/config"
+	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
 
-type AuthService interface {
+type UserService interface {
 	GetUser(context.Context, *svc.Empty) (*svc.UserResponse, error)
 	RefreshToken(context.Context, *svc.RefreshTokenRequest) (*svc.TokensPairResponse, error)
 	GoogleLogin(context.Context, *svc.Empty) (*svc.GoogleLoginResponse, error)
@@ -24,11 +24,11 @@ type AuthService interface {
 	GetUserSessions(context.Context, *svc.Empty) (*svc.SessionsListResponse, error)
 	DeleteUserSession(context.Context, *svc.Empty) (*svc.SessionsListResponse, error)
 	TerminateUserSessions(context.Context, *svc.Empty) (*svc.Empty, error)
+}
 
+type AdminService interface {
 	AdminUpdateUserRole(context.Context, *svc.AdminUpdateUserRoleRequest) (*svc.UserResponse, error)
-	AdminUpdateUserSubscription(context.Context, *svc.AdminUpdateUserSubscriptionRequest) (*svc.UserResponse, error)
-	AdminUpdateUserSuspended(context.Context, *svc.AdminUpdateUserSuspendedRequest) (*svc.UserResponse, error)
-	AdminUpdateUserVerified(context.Context, *svc.AdminUpdateUserVerifiedRequest) (*svc.UserResponse, error)
+
 	AdminGetUserSessions(context.Context, *svc.AdminGetUserSessionsRequest) (*svc.SessionsListResponse, error)
 	AdminGetUserSession(context.Context, *svc.AdminGetUserSessionRequest) (*svc.SessionResponse, error)
 	AdminDeleteUserSession(context.Context, *svc.AdminDeleteUserSessionRequest) (*svc.Empty, error)
@@ -44,7 +44,8 @@ func Run(ctx context.Context, cfg config.Config, log *logrus.Logger, app *app.Ap
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(authInterceptor),
 	)
-	svc.RegisterServiceServer(grpcServer, server)
+	svc.RegisterUserServiceServer(grpcServer, server)
+	svc.RegisterAdminServiceServer(grpcServer, server)
 
 	// 3) Открываем слушатель
 	lis, err := net.Listen("tcp", cfg.Server.Port)

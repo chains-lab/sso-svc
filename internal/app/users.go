@@ -97,7 +97,7 @@ func (a App) AdminUpdateUserRole(ctx context.Context, initiatorID, userID uuid.U
 	return user, nil
 }
 
-func (a App) AdminUpdateUserSubscription(ctx context.Context, initiatorID, userID, subscriptionID uuid.UUID) (models.User, error) {
+func (a App) UpdateUserSubscription(ctx context.Context, initiatorID, userID, subscriptionID uuid.UUID) (models.User, error) {
 	user, err := a.GetUserByID(ctx, userID)
 	if err != nil {
 		return models.User{}, err
@@ -136,7 +136,7 @@ func (a App) AdminUpdateUserSubscription(ctx context.Context, initiatorID, userI
 	return user, nil
 }
 
-func (a App) AdminUpdateUserVerified(ctx context.Context, initiatorID, userID uuid.UUID, verified bool) (models.User, error) {
+func (a App) UpdateUserVerified(ctx context.Context, initiatorID, userID uuid.UUID, verified bool) (models.User, error) {
 	user, err := a.GetUserByID(ctx, userID)
 	if err != nil {
 		return models.User{}, err
@@ -175,7 +175,7 @@ func (a App) AdminUpdateUserVerified(ctx context.Context, initiatorID, userID uu
 	return user, nil
 }
 
-func (a App) AdminUpdateUserSuspended(ctx context.Context, initiatorID, userID uuid.UUID, suspended bool) (models.User, error) {
+func (a App) UpdateUserSuspended(ctx context.Context, initiatorID, userID uuid.UUID, suspended bool) (models.User, error) {
 	user, err := a.GetUserByID(ctx, userID)
 	if err != nil {
 		return models.User{}, err

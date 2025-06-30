@@ -1,4 +1,4 @@
-package domain
+package entities
 
 import (
 	"context"
@@ -9,15 +9,15 @@ import (
 
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/chains-lab/sso-svc/internal/app/ape"
-	jwtkit "github.com/chains-lab/sso-svc/internal/app/kit/jwt"
+	"github.com/chains-lab/sso-svc/internal/app/jwtmanager"
 	"github.com/chains-lab/sso-svc/internal/app/models"
+	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/chains-lab/sso-svc/internal/dbx"
-	"github.com/chains-lab/sso-svc/internal/utils/config"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
-type SessionsQ interface {
+type sessionsQ interface {
 	New() dbx.SessionsQ
 	Insert(ctx context.Context, input dbx.SessionModel) error
 	Update(ctx context.Context, input dbx.SessionUpdateInput) error
@@ -56,7 +56,7 @@ type JWTManager interface {
 }
 
 type Sessions struct {
-	queries SessionsQ
+	queries sessionsQ
 	jwt     JWTManager
 }
 
@@ -68,7 +68,7 @@ func NewSession(cfg config.Config, log *logrus.Logger) (Sessions, error) {
 
 	return Sessions{
 		queries: dbx.NewSessions(pg),
-		jwt:     jwtkit.NewManager(cfg),
+		jwt:     jwtmanager.NewManager(cfg),
 	}, nil
 }
 

@@ -1,4 +1,4 @@
-package domain
+package entities
 
 import (
 	"context"
@@ -8,15 +8,15 @@ import (
 
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/chains-lab/sso-svc/internal/app/ape"
-	jwtkit "github.com/chains-lab/sso-svc/internal/app/kit/jwt"
+	"github.com/chains-lab/sso-svc/internal/app/jwtmanager"
 	"github.com/chains-lab/sso-svc/internal/app/models"
+	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/chains-lab/sso-svc/internal/dbx"
-	"github.com/chains-lab/sso-svc/internal/utils/config"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
-type usersRepo interface {
+type usersQ interface {
 	New() dbx.UserQ
 	Insert(ctx context.Context, input dbx.UserModel) error
 	Delete(ctx context.Context) error
@@ -43,7 +43,7 @@ type usersRepo interface {
 //}
 
 type Users struct {
-	repo usersRepo
+	repo usersQ
 	jwt  JWTManager
 	//kafka Broker
 }
@@ -61,7 +61,7 @@ func NewUser(cfg config.Config, log *logrus.Logger) (Users, error) {
 
 	return Users{
 		repo: dbx.NewUsers(pg),
-		jwt:  jwtkit.NewManager(cfg),
+		jwt:  jwtmanager.NewManager(cfg),
 		//kafka: kafka,
 	}, nil
 }

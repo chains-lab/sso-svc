@@ -13,21 +13,30 @@ import (
 
 func AppError(ctx context.Context, requestID uuid.UUID, err error) error {
 	errorID := uuid.New()
-	var appErr *ape.Error
+	var appErr *ape.BusinessError
 	if errors.As(err, &appErr) {
 		var code codes.Code
-		switch appErr.Reason {
+		switch appErr.Reason() {
 		case ape.ReasonUserDoesNotExist,
-			ape.ReasonSessionDoesNotExist:
+			ape.ReasonSessionDoesNotExist,
+			ape.ReasonSessionsForUserNotExist:
 
 			code = codes.NotFound
 
-		case ape.ReasonUserAlreadyExists,
-			ape.ReasonSessionsForUserNotExist,
-			ape.ReasonSessionClientMismatch,
-			ape.ReasonSessionTokenMismatch:
+		case ape.ReasonUserAlreadyExists:
 
 			code = codes.AlreadyExists
+
+		case ape.ReasonSessionClientMismatch,
+			ape.ReasonSessionTokenMismatch:
+
+			code = codes.Unauthenticated
+
+		case ape.ReasonSessionDoesNotBelongToUser,
+			ape.ReasonNoPermission,
+			ape.ReasonUserSuspended:
+
+			code = codes.PermissionDenied
 
 		case ape.ReasonInternal:
 			code = codes.Internal
@@ -36,14 +45,15 @@ func AppError(ctx context.Context, requestID uuid.UUID, err error) error {
 			code = codes.Unknown
 		}
 
-		st := status.New(code, appErr.Reason)
-		st, errWithDetails := st.WithDetails(&errdetails.ErrorInfo{
-			Reason: appErr.Reason,
-			Metadata: map[string]string{
-				"error_id":   errorID.String(),
-				"request_id": requestID.String(),
-			},
-		})
+		st := status.New(code, appErr.Error())
+		st, errWithDetails := st.WithDetails(
+			&errdetails.ErrorInfo{
+				Reason: appErr.Reason(),
+				Metadata: map[string]string{
+					"error_id":   errorID.String(),
+					"request_id": requestID.String(),
+				},
+			})
 		if errWithDetails != nil {
 			return st.Err()
 		}
