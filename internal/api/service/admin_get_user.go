@@ -5,6 +5,7 @@ import (
 
 	svc "github.com/chains-lab/proto-storage/gen/go/svc/sso"
 	"github.com/chains-lab/sso-svc/internal/api/responses"
+	"github.com/chains-lab/sso-svc/internal/app/ape"
 	"github.com/google/uuid"
 )
 
@@ -15,7 +16,7 @@ func (s Service) AdminGetUserByAdmin(ctx context.Context, req *svc.GetUserByAdmi
 	if err != nil {
 		Log(ctx, meta.RequestID).WithError(err).Error("failed to parse user ID")
 
-		return &svc.User{}, responses.BadRequestError(ctx, meta.RequestID, responses.Violation{
+		return &svc.User{}, responses.BadRequestError(ctx, meta.RequestID, ape.Violation{
 			Field:       "user_id",
 			Description: "invalid format user id",
 		})

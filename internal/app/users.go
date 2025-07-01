@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/chains-lab/sso-svc/internal/app/ape"
@@ -27,9 +26,9 @@ func (a App) CreateUser(ctx context.Context, email string, role roles.Role) (mod
 	if !errors.Is(err, ape.ErrUserDoesNotExist) {
 		return models.User{}, err
 	}
-	if user != (models.User{}) {
-		return models.User{}, ape.ErrorUserAlreadyExists(fmt.Errorf("user with email %s already exists", email))
-	}
+	//if user != (models.User{}) {
+	//	return models.User{}, ape.ErrorUserAlreadyExists(fmt.Errorf("user with email %s already exists", email))
+	//}
 
 	err = a.users.Create(ctx, email, role)
 	if err != nil {

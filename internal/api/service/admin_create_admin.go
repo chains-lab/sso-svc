@@ -20,7 +20,7 @@ func (s Service) CreateAdminByAdmin(ctx context.Context, req *svc.CreateAdminByA
 
 	role, err := roles.ParseRole(req.Role)
 	if err != nil {
-		return nil, responses.BadRequestError(ctx, meta.RequestID, responses.Violation{
+		return nil, responses.BadRequestError(ctx, meta.RequestID, ape.Violation{
 			Field:       "role",
 			Description: "invalid role",
 		})

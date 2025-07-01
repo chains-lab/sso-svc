@@ -5,6 +5,7 @@ import (
 
 	svc "github.com/chains-lab/proto-storage/gen/go/svc/sso"
 	"github.com/chains-lab/sso-svc/internal/api/responses"
+	"github.com/chains-lab/sso-svc/internal/app/ape"
 	"github.com/google/uuid"
 )
 
@@ -13,7 +14,7 @@ func (s Service) AdminGetUserSessionsByAdmin(ctx context.Context, req *svc.GetUs
 
 	userID, err := uuid.Parse(req.UserId)
 	if err != nil {
-		return &svc.SessionsList{}, responses.BadRequestError(ctx, meta.RequestID, responses.Violation{
+		return &svc.SessionsList{}, responses.BadRequestError(ctx, meta.RequestID, ape.Violation{
 			Field:       "user_id",
 			Description: "invalid format user id",
 		})

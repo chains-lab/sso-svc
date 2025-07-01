@@ -2,10 +2,16 @@ package ape
 
 import "errors"
 
+type Violation struct {
+	Field       string
+	Description string
+}
+
 type BusinessError struct {
-	reason  string
-	message string
-	cause   error
+	reason     string
+	message    string
+	violations []Violation
+	cause      error
 }
 
 func (e *BusinessError) Error() string {
@@ -26,4 +32,8 @@ func (e *BusinessError) Is(target error) bool {
 
 func (e *BusinessError) Reason() string {
 	return e.reason
+}
+
+func (e *BusinessError) Violations() []Violation {
+	return e.violations
 }

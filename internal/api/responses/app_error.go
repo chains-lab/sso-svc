@@ -45,15 +45,30 @@ func AppError(ctx context.Context, requestID uuid.UUID, err error) error {
 		}
 
 		st := status.New(code, appErr.Error())
-		st, errWithDetails := st.WithDetails(
-			&errdetails.ErrorInfo{
-				Reason: appErr.Reason(),
-				Metadata: map[string]string{
-					"request_id": requestID.String(),
-				},
-			})
-		if errWithDetails != nil {
-			return st.Err()
+
+		info := &errdetails.ErrorInfo{
+			Reason: appErr.Reason(),
+			Domain: "sso-svc",
+			Metadata: map[string]string{
+				"request_id": requestID.String(),
+			},
+		}
+
+		if code == codes.InvalidArgument {
+			var fb []*errdetails.BadRequest_FieldViolation
+
+			for _, v := range appErr.Violations() {
+				fb = append(fb, &errdetails.BadRequest_FieldViolation{
+					Field:       v.Field,
+					Description: v.Description,
+				})
+			}
+			br := &errdetails.BadRequest{FieldViolations: fb}
+
+			st, err := st.WithDetails(info, br)
+			if err != nil {
+				return st.Err()
+			}
 		}
 
 		return st.Err()

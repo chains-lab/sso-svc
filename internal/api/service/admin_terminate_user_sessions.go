@@ -5,6 +5,7 @@ import (
 
 	svc "github.com/chains-lab/proto-storage/gen/go/svc/sso"
 	"github.com/chains-lab/sso-svc/internal/api/responses"
+	"github.com/chains-lab/sso-svc/internal/app/ape"
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -16,7 +17,7 @@ func (s Service) TerminateUserSessionsByAdmin(ctx context.Context, req *svc.Term
 	if err != nil {
 		Log(ctx, meta.RequestID).WithError(err).Errorf("invalid user ID format: %s", req.UserId)
 
-		return nil, responses.BadRequestError(ctx, meta.RequestID, responses.Violation{
+		return nil, responses.BadRequestError(ctx, meta.RequestID, ape.Violation{
 			Field:       "user_id",
 			Description: "invalid format user id",
 		})
