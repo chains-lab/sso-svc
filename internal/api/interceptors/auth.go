@@ -22,6 +22,7 @@ type MetaData struct {
 	SubscriptionID uuid.UUID  `json:"subscription_id,omitempty"`
 	Verified       bool       `json:"verified,omitempty"`
 	Role           roles.Role `json:"role,omitempty"`
+	RequestID      uuid.UUID  `json:"request_id,omitempty"`
 }
 
 func NewAuth(secretKey string) grpc.UnaryServerInterceptor {
@@ -56,6 +57,11 @@ func NewAuth(secretKey string) grpc.UnaryServerInterceptor {
 			return nil, status.Errorf(codes.Unauthenticated, "user token not supplied")
 		}
 
+		requestIDArr := md["x-request-id"]
+		if len(requestIDArr) == 0 {
+			return nil, status.Errorf(codes.Unauthenticated, "request ID not supplied")
+		}
+
 		userData, err := tokens.VerifyUserJWT(ctx, toksUser[0], "your-secret-key")
 		if err != nil {
 			return nil, status.Errorf(codes.Unauthenticated, "invalid user token: %v", err)
@@ -64,6 +70,11 @@ func NewAuth(secretKey string) grpc.UnaryServerInterceptor {
 		userID, err := uuid.Parse(userData.Subject)
 		if err != nil {
 			return nil, status.Errorf(codes.Unauthenticated, "invalid user ID: %v", err)
+		}
+
+		requestID, err := uuid.Parse(requestIDArr[0])
+		if err != nil {
+			return nil, status.Errorf(codes.Unauthenticated, "invalid request ID: %v", err)
 		}
 
 		ctx = context.WithValue(ctx, MetaCtxKey, MetaData{
@@ -75,6 +86,7 @@ func NewAuth(secretKey string) grpc.UnaryServerInterceptor {
 			SubscriptionID: userData.Subscription,
 			Verified:       userData.Verified,
 			Role:           userData.Role,
+			RequestID:      requestID,
 		})
 
 		return handler(ctx, req)

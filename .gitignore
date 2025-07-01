@@ -6,6 +6,7 @@ docs/node_modules
 main
 cmd/sso-svc/main
 
+Makefile
 config_local.yaml
 config_docker.yaml
 

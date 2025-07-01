@@ -12,7 +12,6 @@ import (
 )
 
 func AppError(ctx context.Context, requestID uuid.UUID, err error) error {
-	errorID := uuid.New()
 	var appErr *ape.BusinessError
 	if errors.As(err, &appErr) {
 		var code codes.Code
@@ -50,7 +49,6 @@ func AppError(ctx context.Context, requestID uuid.UUID, err error) error {
 			&errdetails.ErrorInfo{
 				Reason: appErr.Reason(),
 				Metadata: map[string]string{
-					"error_id":   errorID.String(),
 					"request_id": requestID.String(),
 				},
 			})

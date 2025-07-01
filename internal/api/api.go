@@ -5,39 +5,40 @@ import (
 	"fmt"
 	"net"
 
-	svc "github.com/chains-lab/proto-storage/gen/go/sso"
-	"github.com/chains-lab/sso-svc/internal/api/handlers"
+	svc "github.com/chains-lab/proto-storage/gen/go/svc/sso"
 	"github.com/chains-lab/sso-svc/internal/api/interceptors"
+	"github.com/chains-lab/sso-svc/internal/api/service"
 	"github.com/chains-lab/sso-svc/internal/app"
 	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type UserService interface {
-	GetUser(context.Context, *svc.Empty) (*svc.UserResponse, error)
-	RefreshToken(context.Context, *svc.RefreshTokenRequest) (*svc.TokensPairResponse, error)
-	GoogleLogin(context.Context, *svc.Empty) (*svc.GoogleLoginResponse, error)
-	GoogleCallback(context.Context, *svc.GoogleCallbackRequest) (*svc.TokensPairResponse, error)
-	Logout(context.Context, *svc.Empty) (*svc.Empty, error)
-	GetUserSession(context.Context, *svc.Empty) (*svc.SessionResponse, error)
-	GetUserSessions(context.Context, *svc.Empty) (*svc.SessionsListResponse, error)
-	DeleteUserSession(context.Context, *svc.Empty) (*svc.SessionsListResponse, error)
-	TerminateUserSessions(context.Context, *svc.Empty) (*svc.Empty, error)
+	GetUser(context.Context, *emptypb.Empty) (*svc.User, error)
+	RefreshToken(context.Context, *svc.RefreshTokenRequest) (*svc.TokensPair, error)
+	GoogleLogin(context.Context, *emptypb.Empty) (*svc.GoogleLoginResponse, error)
+	GoogleCallback(context.Context, *svc.GoogleCallbackRequest) (*svc.TokensPair, error)
+	Logout(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
+	GetUserSession(context.Context, *emptypb.Empty) (*svc.Session, error)
+	GetUserSessions(context.Context, *emptypb.Empty) (*svc.SessionsList, error)
+	DeleteUserSession(context.Context, *emptypb.Empty) (*svc.SessionsList, error)
+	TerminateUserSessions(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 }
 
 type AdminService interface {
-	AdminUpdateUserRole(context.Context, *svc.AdminUpdateUserRoleRequest) (*svc.UserResponse, error)
+	AdminUpdateUserRole(context.Context, *svc.AdminUpdateUserRoleRequest) (*svc.User, error)
 
-	AdminGetUserSessions(context.Context, *svc.AdminGetUserSessionsRequest) (*svc.SessionsListResponse, error)
-	AdminGetUserSession(context.Context, *svc.AdminGetUserSessionRequest) (*svc.SessionResponse, error)
-	AdminDeleteUserSession(context.Context, *svc.AdminDeleteUserSessionRequest) (*svc.Empty, error)
-	AdminTerminateUserSessions(context.Context, *svc.AdminTerminateUserSessionsRequest) (*svc.Empty, error)
+	AdminGetUserSessions(context.Context, *svc.AdminGetUserSessionsRequest) (*svc.SessionsList, error)
+	AdminGetUserSession(context.Context, *svc.AdminGetUserSessionRequest) (*svc.Session, error)
+	AdminDeleteUserSession(context.Context, *svc.AdminDeleteUserSessionRequest) (*emptypb.Empty, error)
+	AdminTerminateUserSessions(context.Context, *svc.AdminTerminateUserSessionsRequest) (*emptypb.Empty, error)
 }
 
 func Run(ctx context.Context, cfg config.Config, log *logrus.Logger, app *app.App) error {
 	// 1) Создаём реализацию хэндлеров и interceptor
-	server := handlers.NewService(cfg, app)
+	server := service.NewService(cfg, app)
 	authInterceptor := interceptors.NewAuth(cfg.JWT.Service.SecretKey)
 
 	// 2) Инициализируем gRPC‐сервер

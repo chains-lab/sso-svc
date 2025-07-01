@@ -1,10 +1,10 @@
-package handlers
+package service
 
 import (
 	"context"
 
 	"github.com/chains-lab/gatekit/roles"
-	svc "github.com/chains-lab/proto-storage/gen/go/sso"
+	svc "github.com/chains-lab/proto-storage/gen/go/svc/sso"
 	"github.com/chains-lab/sso-svc/internal/api/interceptors"
 	"github.com/chains-lab/sso-svc/internal/app"
 	"github.com/chains-lab/sso-svc/internal/app/models"

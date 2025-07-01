@@ -1,12 +1,12 @@
 package responses
 
 import (
-	svc "github.com/chains-lab/proto-storage/gen/go/sso"
+	svc "github.com/chains-lab/proto-storage/gen/go/svc/sso"
 	"github.com/chains-lab/sso-svc/internal/app/models"
 )
 
-func Session(session models.Session) *svc.SessionResponse {
-	return &svc.SessionResponse{
+func Session(session models.Session) *svc.Session {
+	return &svc.Session{
 		Id:        session.ID.String(),
 		UserId:    session.UserID.String(),
 		Client:    session.Client,
