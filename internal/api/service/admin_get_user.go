@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s Service) AdminGetUser(ctx context.Context, req *svc.AdminGetUserRequest) (*svc.User, error) {
+func (s Service) AdminGetUserByAdmin(ctx context.Context, req *svc.GetUserByAdminRequest) (*svc.User, error) {
 	meta := Meta(ctx)
 
 	userID, err := uuid.Parse(req.UserId)

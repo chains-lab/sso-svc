@@ -20,6 +20,7 @@ type App interface {
 	GetSession(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error)
 	SelectUserSessions(ctx context.Context, userID uuid.UUID) ([]models.Session, error)
 
+	CreateUser(ctx context.Context, email string, role roles.Role) (models.User, error)
 	Login(ctx context.Context, email string, role roles.Role, client string) (models.Session, models.TokensPair, error)
 	Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, token string) (models.Session, models.TokensPair, error)
 

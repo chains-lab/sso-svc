@@ -46,7 +46,7 @@ func ErrorSessionDoesNotExist(sessionID uuid.UUID, cause error) error {
 func ErrorUserAlreadyExists(cause error) error {
 	return &BusinessError{
 		reason:  ErrUserAlreadyExists.reason,
-		message: fmt.Sprintf("user already exists"),
+		message: cause.Error(),
 		cause:   cause,
 	}
 }

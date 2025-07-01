@@ -28,18 +28,16 @@ type UserService interface {
 }
 
 type AdminService interface {
-	AdminUpdateUserRole(context.Context, *svc.AdminUpdateUserRoleRequest) (*svc.User, error)
-
-	AdminGetUserSessions(context.Context, *svc.AdminGetUserSessionsRequest) (*svc.SessionsList, error)
-	AdminGetUserSession(context.Context, *svc.AdminGetUserSessionRequest) (*svc.Session, error)
-	AdminDeleteUserSession(context.Context, *svc.AdminDeleteUserSessionRequest) (*emptypb.Empty, error)
-	AdminTerminateUserSessions(context.Context, *svc.AdminTerminateUserSessionsRequest) (*emptypb.Empty, error)
+	GetUserByAdmin(context.Context, *svc.GetUserByAdminRequest) (*svc.User, error)
+	CreateAdminByAdmin(context.Context, *svc.CreateAdminByAdminRequest) (*svc.User, error)
+	GetUserSessionsByAdmin(context.Context, *svc.GetUserSessionsByAdminRequest) (*svc.SessionsList, error)
+	TerminateUserSessionsByAdmin(context.Context, *svc.TerminateUserSessionsByAdminRequest) (*emptypb.Empty, error)
 }
 
 func Run(ctx context.Context, cfg config.Config, log *logrus.Logger, app *app.App) error {
 	// 1) Создаём реализацию хэндлеров и interceptor
 	server := service.NewService(cfg, app)
-	authInterceptor := interceptors.NewAuth(cfg.JWT.Service.SecretKey)
+	authInterceptor := interceptors.NewAuth(cfg.JWT.Service.SecretKey, cfg.JWT.User.AccessToken.SecretKey)
 
 	// 2) Инициализируем gRPC‐сервер
 	grpcServer := grpc.NewServer(

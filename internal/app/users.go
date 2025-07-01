@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/chains-lab/sso-svc/internal/app/ape"
@@ -18,6 +20,28 @@ type usersDomain interface {
 	UpdateSubscription(ctx context.Context, ID uuid.UUID, subscriptionID uuid.UUID) error
 	UpdateVerified(ctx context.Context, ID uuid.UUID, verified bool) error
 	UpdateSuspended(ctx context.Context, ID uuid.UUID, suspended bool) error
+}
+
+func (a App) CreateUser(ctx context.Context, email string, role roles.Role) (models.User, error) {
+	user, err := a.GetUserByEmail(ctx, email)
+	if !errors.Is(err, ape.ErrUserDoesNotExist) {
+		return models.User{}, err
+	}
+	if user != (models.User{}) {
+		return models.User{}, ape.ErrorUserAlreadyExists(fmt.Errorf("user with email %s already exists", email))
+	}
+
+	err = a.users.Create(ctx, email, role)
+	if err != nil {
+		return models.User{}, ape.ErrorInternal(err)
+	}
+
+	user, err = a.users.GetByEmail(ctx, email)
+	if err != nil {
+		return models.User{}, ape.ErrorInternal(err)
+	}
+
+	return user, nil
 }
 
 func (a App) GetUserByID(ctx context.Context, ID uuid.UUID) (models.User, error) {

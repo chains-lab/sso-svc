@@ -9,7 +9,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func (s Service) AdminTerminateUserSessions(ctx context.Context, req *svc.AdminTerminateUserSessionsRequest) (*emptypb.Empty, error) {
+func (s Service) TerminateUserSessionsByAdmin(ctx context.Context, req *svc.TerminateUserSessionsByAdminRequest) (*emptypb.Empty, error) {
 	meta := Meta(ctx)
 
 	userId, err := uuid.Parse(req.UserId)

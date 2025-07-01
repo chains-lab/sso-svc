@@ -6,7 +6,7 @@ require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/chains-lab/gatekit v0.0.7
-	github.com/chains-lab/proto-storage v0.0.502
+	github.com/chains-lab/proto-storage v0.0.513
 	github.com/golang-migrate/migrate/v4 v4.18.3
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
