@@ -21,28 +21,6 @@ type usersDomain interface {
 	UpdateSuspended(ctx context.Context, ID uuid.UUID, suspended bool) error
 }
 
-func (a App) CreateUser(ctx context.Context, email string, role roles.Role) (models.User, error) {
-	user, err := a.GetUserByEmail(ctx, email)
-	if !errors.Is(err, ape.ErrUserDoesNotExist) {
-		return models.User{}, err
-	}
-	//if user != (models.User{}) {
-	//	return models.User{}, ape.ErrorUserAlreadyExists(fmt.Errorf("user with email %s already exists", email))
-	//}
-
-	err = a.users.Create(ctx, email, role)
-	if err != nil {
-		return models.User{}, ape.ErrorInternal(err)
-	}
-
-	user, err = a.users.GetByEmail(ctx, email)
-	if err != nil {
-		return models.User{}, ape.ErrorInternal(err)
-	}
-
-	return user, nil
-}
-
 func (a App) GetUserByID(ctx context.Context, ID uuid.UUID) (models.User, error) {
 	user, appErr := a.users.GetByID(ctx, ID)
 	if appErr != nil {
@@ -61,60 +39,23 @@ func (a App) GetUserByEmail(ctx context.Context, email string) (models.User, err
 	return user, nil
 }
 
-func (a App) AdminUpdateUserRole(ctx context.Context, initiatorID, userID uuid.UUID, role roles.Role) (models.User, error) {
-	user, err := a.GetUserByID(ctx, userID)
-	if err != nil {
+func (a App) AdminCreateUser(ctx context.Context, email string, role roles.Role) (models.User, error) {
+	user, err := a.GetUserByEmail(ctx, email)
+	if !errors.Is(err, ape.ErrUserDoesNotExist) {
 		return models.User{}, err
 	}
+	//if user != (models.User{}) {
+	//	return models.User{}, ape.ErrorUserAlreadyExists(fmt.Errorf("user with email %s already exists", email))
+	//}
 
-	initiator, err := a.GetUserByID(ctx, initiatorID)
+	err = a.users.Create(ctx, email, role)
 	if err != nil {
-		return models.User{}, err
+		return models.User{}, ape.ErrorInternal(err)
 	}
 
-	if user.Role != roles.SuperUser {
-		if roles.CompareRolesUser(initiator.Role, role) < 0 {
-			return models.User{}, ape.ErrorNoPermission(err)
-		}
-	}
-
-	if initiator.Suspended {
-		return models.User{}, ape.ErrorUserSuspended(initiator.ID)
-	}
-
-	err = a.sessions.Terminate(ctx, userID)
+	user, err = a.users.GetByEmail(ctx, email)
 	if err != nil {
-		return models.User{}, err
-	}
-
-	err = a.users.UpdateRole(ctx, userID, role)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	err = a.users.UpdateSubscription(ctx, userID, uuid.Nil)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	err = a.users.UpdateVerified(ctx, userID, true)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	err = a.users.UpdateSuspended(ctx, userID, false)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	err = a.sessions.Terminate(ctx, userID)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	user, err = a.GetUserByID(ctx, userID)
-	if err != nil {
-		return models.User{}, err
+		return models.User{}, ape.ErrorInternal(err)
 	}
 
 	return user, nil

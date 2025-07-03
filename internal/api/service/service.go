@@ -18,20 +18,20 @@ type App interface {
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)
 
 	GetSession(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error)
-	SelectUserSessions(ctx context.Context, userID uuid.UUID) ([]models.Session, error)
+	GetUserSessions(ctx context.Context, userID uuid.UUID) ([]models.Session, error)
 
-	CreateUser(ctx context.Context, email string, role roles.Role) (models.User, error)
 	Login(ctx context.Context, email string, role roles.Role, client string) (models.Session, models.TokensPair, error)
 	Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, token string) (models.Session, models.TokensPair, error)
 
 	DeleteSession(ctx context.Context, userID, sessionID uuid.UUID) error
+	DeleteUserSessions(ctx context.Context, userID uuid.UUID) error
 
-	TerminateUserSessions(ctx context.Context, userID uuid.UUID) error
+	AdminCreateUser(ctx context.Context, email string, role roles.Role) (models.User, error)
 
-	AdminUpdateUserRole(ctx context.Context, initiatorID, userID uuid.UUID, role roles.Role) (models.User, error)
-	AdminTerminateSessions(ctx context.Context, initiatorID, userID uuid.UUID) error
+	AdminDeleteSessions(ctx context.Context, initiatorID, userID uuid.UUID) error
 	AdminDeleteUserSession(ctx context.Context, initiatorID, userID, sessionID uuid.UUID) error
 
+	//TODO: connect to kafka in future
 	UpdateUserSubscription(ctx context.Context, initiatorID, userID, subscriptionID uuid.UUID) (models.User, error)
 	UpdateUserVerified(ctx context.Context, initiatorID, userID uuid.UUID, verified bool) (models.User, error)
 	UpdateUserSuspended(ctx context.Context, initiatorID, userID uuid.UUID, suspended bool) (models.User, error)

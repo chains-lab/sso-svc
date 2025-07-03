@@ -11,7 +11,7 @@ import (
 func (s Service) GetUserSessions(ctx context.Context, _ *emptypb.Empty) (*svc.SessionsList, error) {
 	meta := Meta(ctx)
 
-	sessions, err := s.app.SelectUserSessions(ctx, meta.InitiatorID)
+	sessions, err := s.app.GetUserSessions(ctx, meta.InitiatorID)
 	if err != nil {
 		Log(ctx, meta.RequestID).WithError(err).Error("failed to get user sessions")
 

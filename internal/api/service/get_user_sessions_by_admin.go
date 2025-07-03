@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s Service) AdminGetUserSessionsByAdmin(ctx context.Context, req *svc.GetUserSessionsByAdminRequest) (*svc.SessionsList, error) {
+func (s Service) GetUserSessionsByAdmin(ctx context.Context, req *svc.GetUserSessionsByAdminRequest) (*svc.SessionsList, error) {
 	meta := Meta(ctx)
 
 	userID, err := uuid.Parse(req.UserId)
@@ -20,7 +20,7 @@ func (s Service) AdminGetUserSessionsByAdmin(ctx context.Context, req *svc.GetUs
 		})
 	}
 
-	sessions, err := s.app.SelectUserSessions(ctx, userID)
+	sessions, err := s.app.GetUserSessions(ctx, userID)
 	if err != nil {
 		Log(ctx, meta.RequestID).WithError(err).Errorf("failed to retrieve sessions for user %s", req.UserId)
 

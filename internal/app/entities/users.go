@@ -39,7 +39,7 @@ type usersQ interface {
 }
 
 //type Broker interface {
-//	CreateUser(ctx context.Context, created bodies.UserCreated) error
+//	AdminCreateUser(ctx context.Context, created bodies.UserCreated) error
 //}
 
 type Users struct {
@@ -84,7 +84,7 @@ func (a Users) Create(ctx context.Context, email string, role roles.Role) error 
 		}
 
 		//TODO: in future we can use kafka to notify other services about user creation
-		//if err := a.kafka.CreateUser(ctx, bodies.UserCreated{
+		//if err := a.kafka.AdminCreateUser(ctx, bodies.UserCreated{
 		//	UserID:    ID.String(),
 		//	Role:      role,
 		//	Timestamp: CreatedAt,

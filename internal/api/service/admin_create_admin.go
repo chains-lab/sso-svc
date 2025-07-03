@@ -10,7 +10,7 @@ import (
 	"github.com/chains-lab/sso-svc/internal/app/ape"
 )
 
-func (s Service) CreateAdminByAdmin(ctx context.Context, req *svc.CreateAdminByAdminRequest) (*svc.User, error) {
+func (s Service) CreateUserByAdmin(ctx context.Context, req *svc.CreateUserByAdminRequest) (*svc.User, error) {
 	meta := Meta(ctx)
 	if meta.Role != roles.SuperUser {
 		return nil, responses.AppError(ctx, meta.RequestID, ape.ErrorNoPermission(
@@ -26,7 +26,7 @@ func (s Service) CreateAdminByAdmin(ctx context.Context, req *svc.CreateAdminByA
 		})
 	}
 
-	user, err := s.app.CreateUser(ctx, req.Email, role)
+	user, err := s.app.AdminCreateUser(ctx, req.Email, role)
 	if err != nil {
 		Log(ctx, meta.RequestID).WithError(err).Error("failed to create admin user")
 

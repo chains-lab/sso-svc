@@ -94,7 +94,7 @@ func (a App) GetSession(ctx context.Context, userID, sessionID uuid.UUID) (model
 	return session, nil
 }
 
-func (a App) SelectUserSessions(ctx context.Context, userID uuid.UUID) ([]models.Session, error) {
+func (a App) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]models.Session, error) {
 	user, appErr := a.GetUserByID(ctx, userID)
 	if appErr != nil {
 		return nil, appErr
@@ -130,7 +130,7 @@ func (a App) DeleteSession(ctx context.Context, userID, sessionID uuid.UUID) err
 	return nil
 }
 
-func (a App) TerminateUserSessions(ctx context.Context, userID uuid.UUID) error {
+func (a App) DeleteUserSessions(ctx context.Context, userID uuid.UUID) error {
 	user, appError := a.GetUserByID(ctx, userID)
 	if appError != nil {
 		return appError
@@ -147,7 +147,7 @@ func (a App) TerminateUserSessions(ctx context.Context, userID uuid.UUID) error 
 	return nil
 }
 
-func (a App) AdminTerminateSessions(ctx context.Context, initiatorID, userID uuid.UUID) error {
+func (a App) AdminDeleteSessions(ctx context.Context, initiatorID, userID uuid.UUID) error {
 	initiator, err := a.GetUserByID(ctx, initiatorID)
 	if err != nil {
 		return err

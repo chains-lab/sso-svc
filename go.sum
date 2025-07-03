@@ -38,6 +38,12 @@ github.com/chains-lab/proto-storage v0.0.5144 h1:MAfZpYshbNUEjbSa5pqfT0e228h6hae
 github.com/chains-lab/proto-storage v0.0.5144/go.mod h1:LRT/DzERSmdJL5HKzKAa8G+2ouFjwmRwaD0wpllY2FU=
 github.com/chains-lab/proto-storage v0.0.5146 h1:pH9S5TqXbb5DWOHt3y1Ow355b9GA8j+SF9qhw7vfM/c=
 github.com/chains-lab/proto-storage v0.0.5146/go.mod h1:LRT/DzERSmdJL5HKzKAa8G+2ouFjwmRwaD0wpllY2FU=
+github.com/chains-lab/proto-storage v0.0.5311 h1:uSHpluE1muKMrdy/FVXquJZtUWJ3w3b0wpAWr6faPXY=
+github.com/chains-lab/proto-storage v0.0.5311/go.mod h1:LRT/DzERSmdJL5HKzKAa8G+2ouFjwmRwaD0wpllY2FU=
+github.com/chains-lab/proto-storage v0.0.5312 h1:DHSpi9GcAHJgKC5J/UuL0KptYmmFdh2UrO5hQk16fSA=
+github.com/chains-lab/proto-storage v0.0.5312/go.mod h1:LRT/DzERSmdJL5HKzKAa8G+2ouFjwmRwaD0wpllY2FU=
+github.com/chains-lab/proto-storage v0.0.5313 h1:V+ztbg/8yoKXUrtPiGkAGi+WAnnlS2rGt0Y730sItaY=
+github.com/chains-lab/proto-storage v0.0.5313/go.mod h1:LRT/DzERSmdJL5HKzKAa8G+2ouFjwmRwaD0wpllY2FU=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=

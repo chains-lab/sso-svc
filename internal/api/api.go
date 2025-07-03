@@ -12,27 +12,7 @@ import (
 	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
-	"google.golang.org/protobuf/types/known/emptypb"
 )
-
-type UserService interface {
-	GetUser(context.Context, *emptypb.Empty) (*svc.User, error)
-	RefreshToken(context.Context, *svc.RefreshTokenRequest) (*svc.TokensPair, error)
-	GoogleLogin(context.Context, *emptypb.Empty) (*svc.GoogleLoginResponse, error)
-	GoogleCallback(context.Context, *svc.GoogleCallbackRequest) (*svc.TokensPair, error)
-	Logout(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
-	GetUserSession(context.Context, *emptypb.Empty) (*svc.Session, error)
-	GetUserSessions(context.Context, *emptypb.Empty) (*svc.SessionsList, error)
-	DeleteUserSession(context.Context, *emptypb.Empty) (*svc.SessionsList, error)
-	TerminateUserSessions(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
-}
-
-type AdminService interface {
-	GetUserByAdmin(context.Context, *svc.GetUserByAdminRequest) (*svc.User, error)
-	CreateAdminByAdmin(context.Context, *svc.CreateAdminByAdminRequest) (*svc.User, error)
-	GetUserSessionsByAdmin(context.Context, *svc.GetUserSessionsByAdminRequest) (*svc.SessionsList, error)
-	TerminateUserSessionsByAdmin(context.Context, *svc.TerminateUserSessionsByAdminRequest) (*emptypb.Empty, error)
-}
 
 func Run(ctx context.Context, cfg config.Config, log *logrus.Logger, app *app.App) error {
 	// 1) Создаём реализацию хэндлеров и interceptor

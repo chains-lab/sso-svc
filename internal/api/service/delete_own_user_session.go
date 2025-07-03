@@ -5,20 +5,31 @@ import (
 
 	svc "github.com/chains-lab/proto-storage/gen/go/svc/sso"
 	"github.com/chains-lab/sso-svc/internal/api/responses"
-	"google.golang.org/protobuf/types/known/emptypb"
+	"github.com/chains-lab/sso-svc/internal/app/ape"
+	"github.com/google/uuid"
 )
 
-func (s Service) DeleteUserSession(ctx context.Context, _ *emptypb.Empty) (*svc.SessionsList, error) {
+func (s Service) DeleteOwnUserSession(ctx context.Context, req *svc.DeleteOwnUserSessionRequest) (*svc.SessionsList, error) {
 	meta := Meta(ctx)
 
-	err := s.app.DeleteSession(ctx, meta.InitiatorID, meta.SessionID)
+	sessionID, err := uuid.Parse(req.SessionId)
+	if err != nil {
+		Log(ctx, meta.RequestID).WithError(err).Error("invalid session ID format")
+
+		return nil, responses.BadRequestError(ctx, meta.RequestID, ape.Violation{
+			Field:       "session_id",
+			Description: "invalid UUID format for session ID",
+		})
+	}
+
+	err = s.app.DeleteSession(ctx, meta.InitiatorID, sessionID)
 	if err != nil {
 		Log(ctx, meta.RequestID).WithError(err).Error("failed to delete user session")
 
 		return nil, responses.AppError(ctx, meta.RequestID, err)
 	}
 
-	sessions, err := s.app.SelectUserSessions(ctx, meta.InitiatorID)
+	sessions, err := s.app.GetUserSessions(ctx, meta.InitiatorID)
 	if err != nil {
 		Log(ctx, meta.RequestID).WithError(err).Error("failed to get user sessions")
 

@@ -10,7 +10,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func (s Service) TerminateUserSessionsByAdmin(ctx context.Context, req *svc.TerminateUserSessionsByAdminRequest) (*emptypb.Empty, error) {
+func (s Service) DeleteUserSessionsByAdmin(ctx context.Context, req *svc.DeleteUserSessionsByAdminRequest) (*emptypb.Empty, error) {
 	meta := Meta(ctx)
 
 	userId, err := uuid.Parse(req.UserId)
@@ -23,14 +23,14 @@ func (s Service) TerminateUserSessionsByAdmin(ctx context.Context, req *svc.Term
 		})
 	}
 
-	err = s.app.AdminTerminateSessions(ctx, meta.InitiatorID, userId)
+	err = s.app.AdminDeleteSessions(ctx, meta.InitiatorID, userId)
 	if err != nil {
-		Log(ctx, meta.RequestID).WithError(err).Errorf("failed to terminate sessions for user %s", req.UserId)
+		Log(ctx, meta.RequestID).WithError(err).Errorf("failed to delete sessions for user %s", req.UserId)
 
 		return nil, responses.AppError(ctx, meta.RequestID, err)
 	}
 
-	Log(ctx, meta.RequestID).Warnf("User sessions terminated by admin %s", meta.InitiatorID)
+	Log(ctx, meta.RequestID).Warnf("User sessions deleted by admin %s", meta.InitiatorID)
 
 	return &emptypb.Empty{}, nil
 }
