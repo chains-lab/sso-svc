@@ -13,14 +13,14 @@ import (
 func (s Service) CreateUserByAdmin(ctx context.Context, req *svc.CreateUserByAdminRequest) (*svc.User, error) {
 	meta := Meta(ctx)
 	if meta.Role != roles.SuperUser {
-		return nil, responses.AppError(ctx, meta.RequestID, ape.ErrorNoPermission(
+		return nil, responses.AppError(ctx, meta.RequestID, ape.RaiseNoPermission(
 			fmt.Errorf("only superuser can create admin user, current role: %s", meta.Role)),
 		)
 	}
 
 	role, err := roles.ParseRole(req.Role)
 	if err != nil {
-		return nil, responses.BadRequestError(ctx, meta.RequestID, ape.Violation{
+		return nil, responses.BadRequestError(ctx, meta.RequestID, responses.Violation{
 			Field:       "role",
 			Description: "invalid role",
 		})

@@ -27,7 +27,7 @@ func (a App) Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, t
 	}
 
 	if user.Suspended {
-		return models.Session{}, models.TokensPair{}, ape.ErrorUserSuspended(user.ID)
+		return models.Session{}, models.TokensPair{}, ape.RaiseUserSuspended(user.ID)
 	}
 
 	session, tokensPair, appErr := a.sessions.Refresh(ctx, sessionID, user, client, token)
@@ -46,31 +46,31 @@ func (a App) Login(ctx context.Context, email string, role roles.Role, client st
 			if err != nil {
 
 				// If we fail to create a user, we should return an internal error
-				return models.Session{}, models.TokensPair{}, ape.ErrorInternal(fmt.Errorf("error in login %s", err))
+				return models.Session{}, models.TokensPair{}, ape.RaiseInternal(fmt.Errorf("error in login %s", err))
 			}
 
 			user, err = a.users.GetByEmail(ctx, email)
 			if err != nil {
 
 				// It a good return internal error here anyway, because we already created the user in logic above
-				return models.Session{}, models.TokensPair{}, ape.ErrorInternal(fmt.Errorf("error in login %s", err))
+				return models.Session{}, models.TokensPair{}, ape.RaiseInternal(fmt.Errorf("error in login %s", err))
 			}
 
 			session, tokensPair, err := a.sessions.Create(ctx, user, client)
 			if err != nil {
 
 				// If we fail to create a session, we should return an internal error
-				return models.Session{}, models.TokensPair{}, ape.ErrorInternal(fmt.Errorf("error in login %s", err))
+				return models.Session{}, models.TokensPair{}, ape.RaiseInternal(fmt.Errorf("error in login %s", err))
 			}
 
 			return session, tokensPair, nil
 		}
 
-		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(fmt.Errorf("error in login %s", err))
+		return models.Session{}, models.TokensPair{}, ape.RaiseInternal(fmt.Errorf("error in login %s", err))
 	}
 
 	if user.Suspended {
-		return models.Session{}, models.TokensPair{}, ape.ErrorUserSuspended(user.ID)
+		return models.Session{}, models.TokensPair{}, ape.RaiseUserSuspended(user.ID)
 	}
 
 	session, tokensPair, err := a.sessions.Create(ctx, user, client)
@@ -88,7 +88,7 @@ func (a App) GetSession(ctx context.Context, userID, sessionID uuid.UUID) (model
 	}
 
 	if session.UserID != userID {
-		return models.Session{}, ape.ErrorSessionDoesNotBelongToUser(sessionID, userID)
+		return models.Session{}, ape.RaiseSessionDoesNotBelongToUser(sessionID, userID)
 	}
 
 	return session, nil
@@ -101,7 +101,7 @@ func (a App) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]models.Se
 	}
 
 	if user.Suspended {
-		return nil, ape.ErrorUserSuspended(user.ID)
+		return nil, ape.RaiseUserSuspended(user.ID)
 	}
 
 	sessions, appErr := a.sessions.SelectByUserID(ctx, userID)
@@ -119,7 +119,7 @@ func (a App) DeleteSession(ctx context.Context, userID, sessionID uuid.UUID) err
 	}
 
 	if session.UserID != userID {
-		return ape.ErrorSessionDoesNotBelongToUser(sessionID, userID)
+		return ape.RaiseSessionDoesNotBelongToUser(sessionID, userID)
 	}
 
 	appErr = a.sessions.Delete(ctx, session.ID)
@@ -137,7 +137,7 @@ func (a App) DeleteUserSessions(ctx context.Context, userID uuid.UUID) error {
 	}
 
 	if user.Suspended {
-		return ape.ErrorUserSuspended(user.ID)
+		return ape.RaiseUserSuspended(user.ID)
 	}
 
 	appErr := a.sessions.Terminate(ctx, userID)
@@ -160,7 +160,7 @@ func (a App) AdminDeleteSessions(ctx context.Context, initiatorID, userID uuid.U
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return ape.ErrorNoPermission(err)
+			return ape.RaiseNoPermission(err)
 		}
 	}
 
@@ -184,7 +184,7 @@ func (a App) AdminDeleteSession(ctx context.Context, initiatorID, userID, sessio
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return ape.ErrorNoPermission(err)
+			return ape.RaiseNoPermission(err)
 		}
 	}
 
@@ -194,7 +194,7 @@ func (a App) AdminDeleteSession(ctx context.Context, initiatorID, userID, sessio
 	}
 
 	if session.UserID != userID {
-		return ape.ErrorSessionDoesNotBelongToUser(session.ID, userID)
+		return ape.RaiseSessionDoesNotBelongToUser(session.ID, userID)
 	}
 
 	appErr = a.sessions.Delete(ctx, session.ID)
@@ -218,7 +218,7 @@ func (a App) AdminDeleteUserSession(ctx context.Context, initiatorID, userID, se
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return ape.ErrorNoPermission(err)
+			return ape.RaiseNoPermission(err)
 		}
 	}
 
@@ -228,7 +228,7 @@ func (a App) AdminDeleteUserSession(ctx context.Context, initiatorID, userID, se
 	}
 
 	if session.UserID != userID {
-		return ape.ErrorSessionDoesNotBelongToUser(session.ID, userID)
+		return ape.RaiseSessionDoesNotBelongToUser(session.ID, userID)
 	}
 
 	appErr = a.sessions.Delete(ctx, session.ID)

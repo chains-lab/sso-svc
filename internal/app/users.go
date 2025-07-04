@@ -45,17 +45,17 @@ func (a App) AdminCreateUser(ctx context.Context, email string, role roles.Role)
 		return models.User{}, err
 	}
 	//if user != (models.User{}) {
-	//	return models.User{}, ape.ErrorUserAlreadyExists(fmt.Errorf("user with email %s already exists", email))
+	//	return models.User{}, ape.RaiseUserAlreadyExists(fmt.Errorf("user with email %s already exists", email))
 	//}
 
 	err = a.users.Create(ctx, email, role)
 	if err != nil {
-		return models.User{}, ape.ErrorInternal(err)
+		return models.User{}, ape.RaiseInternal(err)
 	}
 
 	user, err = a.users.GetByEmail(ctx, email)
 	if err != nil {
-		return models.User{}, ape.ErrorInternal(err)
+		return models.User{}, ape.RaiseInternal(err)
 	}
 
 	return user, nil
@@ -74,12 +74,12 @@ func (a App) UpdateUserSubscription(ctx context.Context, initiatorID, userID, su
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return models.User{}, ape.ErrorNoPermission(err)
+			return models.User{}, ape.RaiseNoPermission(err)
 		}
 	}
 
 	if initiator.Suspended {
-		return models.User{}, ape.ErrorUserSuspended(initiator.ID)
+		return models.User{}, ape.RaiseUserSuspended(initiator.ID)
 	}
 
 	err = a.users.UpdateSubscription(ctx, userID, subscriptionID)
@@ -113,12 +113,12 @@ func (a App) UpdateUserVerified(ctx context.Context, initiatorID, userID uuid.UU
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return models.User{}, ape.ErrorNoPermission(err)
+			return models.User{}, ape.RaiseNoPermission(err)
 		}
 	}
 
 	if initiator.Suspended {
-		return models.User{}, ape.ErrorUserSuspended(initiator.ID)
+		return models.User{}, ape.RaiseUserSuspended(initiator.ID)
 	}
 
 	err = a.users.UpdateVerified(ctx, userID, verified)
@@ -152,12 +152,12 @@ func (a App) UpdateUserSuspended(ctx context.Context, initiatorID, userID uuid.U
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return models.User{}, ape.ErrorNoPermission(err)
+			return models.User{}, ape.RaiseNoPermission(err)
 		}
 	}
 
 	if initiator.Suspended {
-		return models.User{}, ape.ErrorUserSuspended(initiator.ID)
+		return models.User{}, ape.RaiseUserSuspended(initiator.ID)
 	}
 
 	err = a.users.UpdateSuspended(ctx, userID, suspended)

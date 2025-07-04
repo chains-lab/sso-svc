@@ -77,22 +77,22 @@ func (s Sessions) Create(ctx context.Context, user models.User, client string) (
 	createdAt := time.Now().UTC()
 
 	if user.ID == uuid.Nil {
-		return models.Session{}, models.TokensPair{}, ape.ErrorUserDoesNotExist(user.ID, fmt.Errorf("user ID is nil"))
+		return models.Session{}, models.TokensPair{}, ape.RaiseUserNotFound(user.ID, fmt.Errorf("user ID is nil"))
 	}
 
 	refresh, err := s.jwt.GenerateRefresh(user.ID, id, user.Subscription, user.Role)
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
+		return models.Session{}, models.TokensPair{}, ape.RaiseInternal(err)
 	}
 
 	refreshCrypto, err := s.jwt.EncryptRefresh(refresh)
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
+		return models.Session{}, models.TokensPair{}, ape.RaiseInternal(err)
 	}
 
 	access, err := s.jwt.GenerateAccess(user.ID, id, user.Subscription, user.Role)
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
+		return models.Session{}, models.TokensPair{}, ape.RaiseInternal(err)
 	}
 
 	err = s.queries.New().Insert(ctx, dbx.SessionModel{
@@ -106,9 +106,9 @@ func (s Sessions) Create(ctx context.Context, user models.User, client string) (
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return models.Session{}, models.TokensPair{}, ape.ErrorUserDoesNotExist(id, err)
+			return models.Session{}, models.TokensPair{}, ape.RaiseUserNotFound(id, err)
 		default:
-			return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
+			return models.Session{}, models.TokensPair{}, ape.RaiseInternal(err)
 		}
 	}
 
@@ -131,9 +131,9 @@ func (s Sessions) Get(ctx context.Context, sessionID uuid.UUID) (models.Session,
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return models.Session{}, ape.ErrorSessionDoesNotExist(sessionID, err)
+			return models.Session{}, ape.RaiseSessionNotFound(sessionID, err)
 		default:
-			return models.Session{}, ape.ErrorInternal(err)
+			return models.Session{}, ape.RaiseInternal(err)
 		}
 	}
 
@@ -152,9 +152,9 @@ func (s Sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]model
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, ape.ErrorSessionsForUserNotExist(err)
+			return nil, ape.RaiseSessionsForUserNotExist(userID, err)
 		default:
-			return nil, ape.ErrorInternal(err)
+			return nil, ape.RaiseInternal(err)
 		}
 	}
 
@@ -180,31 +180,31 @@ func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.
 	}
 
 	if session.Client != client {
-		return models.Session{}, models.TokensPair{}, ape.ErrorSessionClientMismatch(fmt.Errorf("session client mismatch"))
+		return models.Session{}, models.TokensPair{}, ape.RaiseSessionClientMismatch(fmt.Errorf("session client mismatch"))
 	}
 
 	access, err := s.jwt.GenerateAccess(session.UserID, session.ID, user.Subscription, user.Role)
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
+		return models.Session{}, models.TokensPair{}, ape.RaiseInternal(err)
 	}
 
 	oldRefresh, err := s.jwt.DecryptRefresh(session.Token)
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
+		return models.Session{}, models.TokensPair{}, ape.RaiseInternal(err)
 	}
 
 	if oldRefresh != token {
-		return models.Session{}, models.TokensPair{}, ape.ErrorSessionTokenMismatch(fmt.Errorf("token mismatch"))
+		return models.Session{}, models.TokensPair{}, ape.RaiseSessionTokenMismatch(fmt.Errorf("token mismatch"))
 	}
 
 	newRefresh, err := s.jwt.GenerateRefresh(session.UserID, session.ID, user.Subscription, user.Role)
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
+		return models.Session{}, models.TokensPair{}, ape.RaiseInternal(err)
 	}
 
 	refreshCrypto, err := s.jwt.EncryptRefresh(newRefresh)
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
+		return models.Session{}, models.TokensPair{}, ape.RaiseInternal(err)
 	}
 
 	LastUsed := time.Now().UTC()
@@ -214,7 +214,7 @@ func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.
 		LastUsed: LastUsed,
 	})
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, ape.ErrorInternal(err)
+		return models.Session{}, models.TokensPair{}, ape.RaiseInternal(err)
 	}
 
 	return models.Session{
@@ -235,9 +235,9 @@ func (s Sessions) Terminate(ctx context.Context, userID uuid.UUID) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrorUserDoesNotExist(userID, err)
+			return ape.RaiseUserNotFound(userID, err)
 		default:
-			return ape.ErrorInternal(err)
+			return ape.RaiseInternal(err)
 		}
 	}
 	return nil
@@ -248,9 +248,9 @@ func (s Sessions) Delete(ctx context.Context, sessionID uuid.UUID) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrorSessionDoesNotExist(sessionID, err)
+			return ape.RaiseSessionNotFound(sessionID, err)
 		default:
-			return ape.ErrorInternal(err)
+			return ape.RaiseInternal(err)
 		}
 	}
 	return nil

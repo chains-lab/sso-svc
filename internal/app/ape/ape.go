@@ -1,39 +1,48 @@
 package ape
 
-import "errors"
+import (
+	"errors"
 
-type Violation struct {
-	Field       string
-	Description string
+	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/protoadapt"
+)
+
+type Error struct {
+	code    codes.Code
+	reason  string
+	message string
+	details []protoadapt.MessageV1
+	cause   error
 }
 
-type BusinessError struct {
-	reason     string
-	message    string
-	violations []Violation
-	cause      error
-}
-
-func (e *BusinessError) Error() string {
+func (e *Error) Error() string {
 	return e.message
 }
 
-func (e *BusinessError) Unwrap() error {
+func (e *Error) Unwrap() error {
 	return e.cause
 }
 
-func (e *BusinessError) Is(target error) bool {
-	var be *BusinessError
+func (e *Error) Is(target error) bool {
+	var be *Error
 	if errors.As(target, &be) {
 		return e.reason == be.reason
 	}
 	return false
 }
 
-func (e *BusinessError) Reason() string {
+func (e *Error) Reason() string {
 	return e.reason
 }
 
-func (e *BusinessError) Violations() []Violation {
-	return e.violations
+func (e *Error) Details() []protoadapt.MessageV1 {
+	if e.details == nil {
+		return nil
+	}
+
+	return e.details
+}
+
+func (e *Error) Code() codes.Code {
+	return e.code
 }

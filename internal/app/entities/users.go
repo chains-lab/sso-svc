@@ -97,9 +97,9 @@ func (a Users) Create(ctx context.Context, email string, role roles.Role) error 
 	if txErr != nil {
 		switch {
 		case errors.Is(txErr, sql.ErrNoRows):
-			return ape.ErrorUserAlreadyExists(txErr)
+			return ape.RaiseUserAlreadyExists(txErr)
 		default:
-			return ape.ErrorInternal(txErr)
+			return ape.RaiseInternal(txErr)
 		}
 	}
 
@@ -111,9 +111,9 @@ func (a Users) GetByID(ctx context.Context, ID uuid.UUID) (models.User, error) {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return models.User{}, ape.ErrorUserDoesNotExist(ID, err)
+			return models.User{}, ape.RaiseUserNotFound(ID, err)
 		default:
-			return models.User{}, ape.ErrorInternal(err)
+			return models.User{}, ape.RaiseInternal(err)
 		}
 	}
 
@@ -134,9 +134,9 @@ func (a Users) GetByEmail(ctx context.Context, email string) (models.User, error
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return models.User{}, ape.ErrorUserDoesNotExistByEmail(email, err)
+			return models.User{}, ape.RaiseUserNotFoundByEmail(email, err)
 		default:
-			return models.User{}, ape.ErrorInternal(err)
+			return models.User{}, ape.RaiseInternal(err)
 		}
 	}
 
@@ -162,9 +162,9 @@ func (a Users) UpdateRole(ctx context.Context, ID uuid.UUID, role roles.Role) er
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrorUserDoesNotExist(ID, err)
+			return ape.RaiseUserNotFound(ID, err)
 		default:
-			return ape.ErrorInternal(err)
+			return ape.RaiseInternal(err)
 		}
 	}
 
@@ -181,9 +181,9 @@ func (a Users) UpdateSubscription(ctx context.Context, ID, subscriptionID uuid.U
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrorUserDoesNotExist(ID, err)
+			return ape.RaiseUserNotFound(ID, err)
 		default:
-			return ape.ErrorInternal(err)
+			return ape.RaiseInternal(err)
 		}
 	}
 
@@ -200,9 +200,9 @@ func (a Users) UpdateVerified(ctx context.Context, ID uuid.UUID, verified bool) 
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrorUserDoesNotExist(ID, err)
+			return ape.RaiseUserNotFound(ID, err)
 		default:
-			return ape.ErrorInternal(err)
+			return ape.RaiseInternal(err)
 		}
 	}
 
@@ -219,9 +219,9 @@ func (a Users) UpdateSuspended(ctx context.Context, ID uuid.UUID, suspended bool
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.ErrorUserDoesNotExist(ID, err)
+			return ape.RaiseUserNotFound(ID, err)
 		default:
-			return ape.ErrorInternal(err)
+			return ape.RaiseInternal(err)
 		}
 	}
 

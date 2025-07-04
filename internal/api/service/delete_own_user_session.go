@@ -5,7 +5,6 @@ import (
 
 	svc "github.com/chains-lab/proto-storage/gen/go/svc/sso"
 	"github.com/chains-lab/sso-svc/internal/api/responses"
-	"github.com/chains-lab/sso-svc/internal/app/ape"
 	"github.com/google/uuid"
 )
 
@@ -16,7 +15,7 @@ func (s Service) DeleteOwnUserSession(ctx context.Context, req *svc.DeleteOwnUse
 	if err != nil {
 		Log(ctx, meta.RequestID).WithError(err).Error("invalid session ID format")
 
-		return nil, responses.BadRequestError(ctx, meta.RequestID, ape.Violation{
+		return nil, responses.BadRequestError(ctx, meta.RequestID, responses.Violation{
 			Field:       "session_id",
 			Description: "invalid UUID format for session ID",
 		})
