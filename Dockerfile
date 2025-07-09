@@ -15,7 +15,7 @@ COPY . .
 # 1.3. Собираем главный бинарь, в который уже вшиты миграции
 RUN CGO_ENABLED=0 GOOS=linux go build \
     -o main \
-    ./
+    ./cmd/sso-svc
 
 # ==============================
 # 2) FINAL STAGE

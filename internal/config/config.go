@@ -10,10 +10,8 @@ import (
 )
 
 type ServerConfig struct {
-	Name     string `mapstructure:"name"`
-	Port     string `mapstructure:"port"`
-	BasePath string `mapstructure:"base_path"`
-	TestMode bool   `mapstructure:"test_mode"`
+	Name string `mapstructure:"name"`
+	Port string `mapstructure:"port"`
 }
 
 type LoggerConfig struct {
@@ -25,13 +23,6 @@ type DatabaseConfig struct {
 	SQL struct {
 		URL string `mapstructure:"url"`
 	} `mapstructure:"sql"`
-
-	Redis struct {
-		Addr     string `mapstructure:"addr"`
-		Password string `mapstructure:"password"`
-		DB       int    `mapstructure:"db"`
-		Lifetime int    `mapstructure:"lifetime"`
-	} `mapstructure:"redis"`
 }
 
 type OAuthConfig struct {
@@ -63,12 +54,6 @@ type JWTConfig struct {
 	} `mapstructure:"service"`
 }
 
-type RabbitConfig struct {
-	URL      string `mapstructure:"url"`
-	User     string `mapstructure:"user"`
-	Password string `mapstructure:"password"`
-}
-
 type SwaggerConfig struct {
 	Enabled bool   `mapstructure:"enabled"`
 	URL     string `mapstructure:"url"`
@@ -80,7 +65,6 @@ type Config struct {
 	Logger   LoggerConfig   `mapstructure:"logger"`
 	JWT      JWTConfig      `mapstructure:"jwt"`
 	OAuth    OAuthConfig    `mapstructure:"oauth"`
-	Rabbit   RabbitConfig   `mapstructure:"rabbit"`
 	Kafka    KafkaConfig    `mapstructure:"kafka"`
 	Database DatabaseConfig `mapstructure:"database"`
 	Swagger  SwaggerConfig  `mapstructure:"swagger"`

@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/chains-lab/gatekit/roles"
-	"github.com/chains-lab/sso-svc/internal/app/ape"
+	"github.com/chains-lab/sso-svc/internal/ape"
 	"github.com/chains-lab/sso-svc/internal/app/jwtmanager"
 	"github.com/chains-lab/sso-svc/internal/app/models"
 	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/chains-lab/sso-svc/internal/dbx"
+	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 )
 
 type usersQ interface {
@@ -48,7 +48,7 @@ type Users struct {
 	//kafka Broker
 }
 
-func NewUser(cfg config.Config, log *logrus.Logger) (Users, error) {
+func NewUser(cfg config.Config, log logger.Logger) (Users, error) {
 	pg, err := sql.Open("postgres", cfg.Database.SQL.URL)
 	if err != nil {
 		return Users{}, err

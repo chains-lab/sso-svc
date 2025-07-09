@@ -7,6 +7,7 @@ import (
 	"github.com/chains-lab/gatekit/roles"
 	svc "github.com/chains-lab/proto-storage/gen/go/svc/sso"
 	"github.com/chains-lab/sso-svc/internal/api/responses"
+	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -19,29 +20,35 @@ func (s Service) GoogleCallback(
 ) (*svc.TokensPair, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
+		logger.Log(ctx, uuid.Nil).Error("missing metadata in Google callback request")
+
 		return nil, status.Errorf(codes.Unauthenticated, "missing metadata")
 	}
 
 	requestIDArr := md["x-request-id"]
 	if len(requestIDArr) == 0 {
+		logger.Log(ctx, uuid.Nil).Error("missing request ID in Google callback request")
+
 		return nil, status.Errorf(codes.Unauthenticated, "request ID not supplied")
 	}
 
 	requestID, err := uuid.Parse(requestIDArr[0])
 	if err != nil {
+		logger.Log(ctx, uuid.Nil).WithError(err).Errorf("invalid request ID: %s", requestIDArr[0])
+
 		return nil, status.Errorf(codes.Unauthenticated, "invalid request ID: %v", err)
 	}
 
 	code := req.Code
 	if code == "" {
-		Log(ctx, requestID).Error("missing code in Google callback request")
+		logger.Log(ctx, requestID).Error("missing code in Google callback request")
 
 		return nil, status.Errorf(codes.InvalidArgument, "missing code")
 	}
 
 	token, err := s.cfg.GoogleOAuth().Exchange(ctx, code)
 	if err != nil {
-		Log(ctx, requestID).WithError(err).Errorf("error exchanging code for token: %s", code)
+		logger.Log(ctx, requestID).WithError(err).Errorf("error exchanging code for token: %s", code)
 
 		return nil, status.Errorf(codes.Internal, "failed to exchange code")
 	}
@@ -49,10 +56,11 @@ func (s Service) GoogleCallback(
 	client := s.cfg.GoogleOAuth().Client(ctx, token)
 	httpResp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
 	if err != nil {
-		Log(ctx, requestID).WithError(err).Error("error fetching userinfo from Google")
+		logger.Log(ctx, requestID).WithError(err).Error("error fetching userinfo from Google")
 
 		return nil, status.Errorf(codes.Internal, "failed to fetch user info")
 	}
+
 	defer httpResp.Body.Close()
 
 	var ui struct {
@@ -61,7 +69,7 @@ func (s Service) GoogleCallback(
 		Picture string `json:"picture"`
 	}
 	if err := json.NewDecoder(httpResp.Body).Decode(&ui); err != nil {
-		Log(ctx, requestID).WithError(err).Error("error decoding Google userinfo")
+		logger.Log(ctx, requestID).WithError(err).Error("error decoding Google userinfo")
 
 		return nil, status.Errorf(codes.Internal, "invalid user info")
 	}
@@ -73,6 +81,8 @@ func (s Service) GoogleCallback(
 
 	_, tokensPair, err := s.app.Login(ctx, ui.Email, roles.User, ua)
 	if err != nil {
+		logger.Log(ctx, requestID).WithError(err).Errorf("error logging in user with email %s", ui.Email)
+
 		return nil, responses.AppError(ctx, requestID, err)
 	}
 

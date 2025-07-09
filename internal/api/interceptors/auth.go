@@ -6,7 +6,6 @@ import (
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/chains-lab/gatekit/tokens"
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -33,8 +32,8 @@ func NewAuth(skService, skUser string) grpc.UnaryServerInterceptor {
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
 		switch info.FullMethod {
-		case "/svc.AuthService/GoogleLogin",
-			"/svc.AuthService/GoogleCallback":
+		case "/sso.UserService/GoogleLogin",
+			"/sso.UserService/GoogleCallback":
 			return handler(ctx, req)
 		}
 
@@ -90,24 +89,5 @@ func NewAuth(skService, skUser string) grpc.UnaryServerInterceptor {
 		})
 
 		return handler(ctx, req)
-	}
-}
-
-func GetMetaData(ctx context.Context) (MetaData, error) {
-	meta, ok := ctx.Value(MetaCtxKey).(MetaData)
-	if !ok {
-		return MetaData{}, status.Errorf(codes.Unauthenticated, "metadata not found in context")
-	}
-
-	if meta.Issuer == "" || meta.Subject == "" || len(meta.Audience) == 0 {
-		return MetaData{}, status.Errorf(codes.Unauthenticated, "incomplete metadata")
-	}
-
-	return meta, nil
-}
-
-func CtxLog(log *logrus.Logger) func(context.Context) context.Context {
-	return func(context.Context) context.Context {
-		return context.WithValue(context.Background(), LogCtxKey, log)
 	}
 }

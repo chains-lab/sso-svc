@@ -17,11 +17,11 @@ type UserModel struct {
 	ID           uuid.UUID  `db:"id"`
 	Email        string     `db:"email"`
 	Role         roles.Role `db:"role"`
-	Subscription uuid.UUID  `db:"subscription"`
 	Verified     bool       `db:"verified,omitempty"`
+	Subscription uuid.UUID  `db:"subscription"`
 	Suspended    bool       `db:"suspended,omitempty"`
+	CreatedAt    time.Time  `db:"created_at,omitempty"`
 	UpdatedAt    time.Time  `db:"updated_at,omitempty"`
-	CreatedAt    time.Time  `db:"created_at"`
 }
 
 type UserQ struct {
@@ -57,8 +57,8 @@ func (q UserQ) Insert(ctx context.Context, input UserModel) error {
 		"subscription": input.Subscription,
 		"verified":     input.Verified,
 		"suspended":    input.Suspended,
-		"updated_at":   input.UpdatedAt,
 		"created_at":   input.CreatedAt,
+		"updated_at":   input.UpdatedAt,
 	}
 
 	query, args, err := q.inserter.SetMap(values).ToSql()
@@ -123,11 +123,11 @@ func (q UserQ) Get(ctx context.Context) (UserModel, error) {
 		&acc.ID,
 		&acc.Email,
 		&acc.Role,
-		&acc.Subscription,
 		&acc.Verified,
+		&acc.Subscription,
 		&acc.Suspended,
-		&acc.UpdatedAt,
 		&acc.CreatedAt,
+		&acc.UpdatedAt,
 	)
 	if err != nil {
 		return UserModel{}, err
@@ -161,8 +161,8 @@ func (q UserQ) Select(ctx context.Context) ([]UserModel, error) {
 			&acc.ID,
 			&acc.Email,
 			&acc.Role,
-			&acc.Subscription,
 			&acc.Verified,
+			&acc.Subscription,
 			&acc.Suspended,
 			&acc.UpdatedAt,
 			&acc.CreatedAt,
@@ -288,21 +288,3 @@ func (q UserQ) Transaction(fn func(ctx context.Context) error) error {
 
 	return nil
 }
-
-//func (q UserQ) Drop(ctx context.Context) error {
-//	query, args, err := q.deleter.ToSql()
-//	if err != nil {
-//		return fmt.Errorf("building drop query for users: %w", err)
-//	}
-//
-//	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
-//		_, err = tx.ExecContext(ctx, query, args...)
-//	} else {
-//		_, err = q.db.ExecContext(ctx, query, args...)
-//	}
-//	if err != nil {
-//		return fmt.Errorf("error executing drop query: %w", err)
-//	}
-//
-//	return nil
-//}

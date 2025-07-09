@@ -10,19 +10,22 @@ import (
 	"github.com/chains-lab/sso-svc/internal/api/service"
 	"github.com/chains-lab/sso-svc/internal/app"
 	"github.com/chains-lab/sso-svc/internal/config"
-	"github.com/sirupsen/logrus"
+	"github.com/chains-lab/sso-svc/internal/logger"
 	"google.golang.org/grpc"
 )
 
-func Run(ctx context.Context, cfg config.Config, log *logrus.Logger, app *app.App) error {
-	// 1) Создаём реализацию хэндлеров и interceptor
+func Run(ctx context.Context, cfg config.Config, log logger.Logger, app *app.App) error {
 	server := service.NewService(cfg, app)
 	authInterceptor := interceptors.NewAuth(cfg.JWT.Service.SecretKey, cfg.JWT.User.AccessToken.SecretKey)
+	logInterceptor := logger.UnaryLogInterceptor(log)
 
-	// 2) Инициализируем gRPC‐сервер
 	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(authInterceptor),
+		grpc.ChainUnaryInterceptor(
+			logInterceptor,
+			authInterceptor,
+		),
 	)
+
 	svc.RegisterUserServiceServer(grpcServer, server)
 	svc.RegisterAdminServiceServer(grpcServer, server)
 

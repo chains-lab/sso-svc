@@ -3,10 +3,9 @@ package app
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/chains-lab/gatekit/roles"
-	"github.com/chains-lab/sso-svc/internal/app/ape"
+	"github.com/chains-lab/sso-svc/internal/ape"
 	"github.com/chains-lab/sso-svc/internal/app/models"
 	"github.com/google/uuid"
 )
@@ -46,35 +45,37 @@ func (a App) Login(ctx context.Context, email string, role roles.Role, client st
 			if err != nil {
 
 				// If we fail to create a user, we should return an internal error
-				return models.Session{}, models.TokensPair{}, ape.RaiseInternal(fmt.Errorf("error in login %s", err))
+				return models.Session{}, models.TokensPair{}, err
 			}
 
 			user, err = a.users.GetByEmail(ctx, email)
 			if err != nil {
 
 				// It a good return internal error here anyway, because we already created the user in logic above
-				return models.Session{}, models.TokensPair{}, ape.RaiseInternal(fmt.Errorf("error in login %s", err))
+				return models.Session{}, models.TokensPair{}, err
 			}
 
 			session, tokensPair, err := a.sessions.Create(ctx, user, client)
 			if err != nil {
 
 				// If we fail to create a session, we should return an internal error
-				return models.Session{}, models.TokensPair{}, ape.RaiseInternal(fmt.Errorf("error in login %s", err))
+				return models.Session{}, models.TokensPair{}, err
 			}
 
 			return session, tokensPair, nil
 		}
 
-		return models.Session{}, models.TokensPair{}, ape.RaiseInternal(fmt.Errorf("error in login %s", err))
+		return models.Session{}, models.TokensPair{}, err
 	}
 
 	if user.Suspended {
+
 		return models.Session{}, models.TokensPair{}, ape.RaiseUserSuspended(user.ID)
 	}
 
 	session, tokensPair, err := a.sessions.Create(ctx, user, client)
 	if err != nil {
+
 		return models.Session{}, models.TokensPair{}, err
 	}
 

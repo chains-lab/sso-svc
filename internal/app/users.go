@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/chains-lab/gatekit/roles"
-	"github.com/chains-lab/sso-svc/internal/app/ape"
+	"github.com/chains-lab/sso-svc/internal/ape"
 	"github.com/chains-lab/sso-svc/internal/app/models"
 	"github.com/google/uuid"
 )

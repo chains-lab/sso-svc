@@ -14,16 +14,13 @@ type Violation struct {
 	Description string
 }
 
-// BadRequestError строит статус InvalidArgument с деталями
 func BadRequestError(
 	ctx context.Context,
 	requestID uuid.UUID,
 	violations ...Violation,
 ) error {
-	// 2) базовый статус
 	st := status.New(codes.InvalidArgument, "bad request")
 
-	// 3) собираем детали: ErrorInfo
 	info := &errdetails.ErrorInfo{
 		Reason: "BAD_REQUEST",
 		Domain: "sso-svc", // ваше API/сервис
@@ -32,7 +29,6 @@ func BadRequestError(
 		},
 	}
 
-	// 4) собираем BadRequest field violations
 	var fb []*errdetails.BadRequest_FieldViolation
 	for _, v := range violations {
 		fb = append(fb, &errdetails.BadRequest_FieldViolation{
@@ -42,7 +38,6 @@ func BadRequestError(
 	}
 	br := &errdetails.BadRequest{FieldViolations: fb}
 
-	// 5) упаковываем детали
 	st, err := st.WithDetails(info, br)
 	if err != nil {
 		// если не удалось упаковать — возвращаем без деталей

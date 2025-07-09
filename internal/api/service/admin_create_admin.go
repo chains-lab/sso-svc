@@ -6,8 +6,9 @@ import (
 
 	"github.com/chains-lab/gatekit/roles"
 	svc "github.com/chains-lab/proto-storage/gen/go/svc/sso"
+	"github.com/chains-lab/sso-svc/internal/ape"
 	"github.com/chains-lab/sso-svc/internal/api/responses"
-	"github.com/chains-lab/sso-svc/internal/app/ape"
+	"github.com/chains-lab/sso-svc/internal/logger"
 )
 
 func (s Service) CreateUserByAdmin(ctx context.Context, req *svc.CreateUserByAdminRequest) (*svc.User, error) {
@@ -28,11 +29,11 @@ func (s Service) CreateUserByAdmin(ctx context.Context, req *svc.CreateUserByAdm
 
 	user, err := s.app.AdminCreateUser(ctx, req.Email, role)
 	if err != nil {
-		Log(ctx, meta.RequestID).WithError(err).Error("failed to create admin user")
+		logger.Log(ctx, meta.RequestID).WithError(err).Error("failed to create admin user")
 
 		return nil, responses.AppError(ctx, meta.RequestID, err)
 	}
 
-	Log(ctx, meta.RequestID).Warnf("admin user %s created successfully", user.ID)
+	logger.Log(ctx, meta.RequestID).Warnf("admin user %s created successfully", user.ID)
 	return responses.User(user), nil
 }
