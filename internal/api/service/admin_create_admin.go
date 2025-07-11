@@ -14,7 +14,7 @@ import (
 func (s Service) CreateUserByAdmin(ctx context.Context, req *svc.CreateUserByAdminRequest) (*svc.User, error) {
 	meta := Meta(ctx)
 	if meta.Role != roles.SuperUser {
-		return nil, responses.AppError(ctx, meta.RequestID, ape.RaiseNoPermission(
+		return nil, responses.AppError(ctx, meta.RequestID, ape.RaiseNoPermissions(
 			fmt.Errorf("only superuser can create admin user, current role: %s", meta.Role)),
 		)
 	}

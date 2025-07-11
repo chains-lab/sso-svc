@@ -40,7 +40,7 @@ func (a App) Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, t
 func (a App) Login(ctx context.Context, email string, role roles.Role, client string) (models.Session, models.TokensPair, error) {
 	user, err := a.GetUserByEmail(ctx, email)
 	if err != nil {
-		if errors.Is(err, ape.ErrUserDoesNotExist) {
+		if errors.Is(err, ape.ErrUserNotFound) {
 			err = a.users.Create(ctx, email, role)
 			if err != nil {
 
@@ -161,7 +161,7 @@ func (a App) AdminDeleteSessions(ctx context.Context, initiatorID, userID uuid.U
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return ape.RaiseNoPermission(err)
+			return ape.RaiseNoPermissions(err)
 		}
 	}
 
@@ -185,7 +185,7 @@ func (a App) AdminDeleteSession(ctx context.Context, initiatorID, userID, sessio
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return ape.RaiseNoPermission(err)
+			return ape.RaiseNoPermissions(err)
 		}
 	}
 
@@ -219,7 +219,7 @@ func (a App) AdminDeleteUserSession(ctx context.Context, initiatorID, userID, se
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return ape.RaiseNoPermission(err)
+			return ape.RaiseNoPermissions(err)
 		}
 	}
 

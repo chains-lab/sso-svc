@@ -2,7 +2,9 @@ package responses
 
 import (
 	"context"
+	"time"
 
+	"github.com/chains-lab/sso-svc/internal/ape"
 	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
@@ -22,10 +24,10 @@ func BadRequestError(
 	st := status.New(codes.InvalidArgument, "bad request")
 
 	info := &errdetails.ErrorInfo{
-		Reason: "BAD_REQUEST",
-		Domain: "sso-svc", // ваше API/сервис
+		Reason: ape.ReasonBadRequest,
+		Domain: ape.ServiceName,
 		Metadata: map[string]string{
-			"request_id": requestID.String(),
+			"timestamp": time.Now().UTC().Format(time.RFC3339Nano),
 		},
 	}
 
@@ -38,7 +40,11 @@ func BadRequestError(
 	}
 	br := &errdetails.BadRequest{FieldViolations: fb}
 
-	st, err := st.WithDetails(info, br)
+	ri := &errdetails.RequestInfo{
+		RequestId: requestID.String(),
+	}
+
+	st, err := st.WithDetails(info, br, ri)
 	if err != nil {
 		// если не удалось упаковать — возвращаем без деталей
 		return st.Err()

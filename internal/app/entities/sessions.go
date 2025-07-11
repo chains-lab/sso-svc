@@ -152,7 +152,7 @@ func (s Sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]model
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, ape.RaiseSessionsForUserNotExist(userID, err)
+			return nil, ape.RaiseSessionsForUserNotFound(userID, err)
 		default:
 			return nil, ape.RaiseInternal(err)
 		}
@@ -180,7 +180,7 @@ func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.
 	}
 
 	if session.Client != client {
-		return models.Session{}, models.TokensPair{}, ape.RaiseSessionClientMismatch(fmt.Errorf("session client mismatch"))
+		return models.Session{}, models.TokensPair{}, ape.RaiseSessionClientMismatch(sessionID, fmt.Errorf("session client mismatch"))
 	}
 
 	access, err := s.jwt.GenerateAccess(session.UserID, session.ID, user.Subscription, user.Role)
@@ -194,7 +194,7 @@ func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.
 	}
 
 	if oldRefresh != token {
-		return models.Session{}, models.TokensPair{}, ape.RaiseSessionTokenMismatch(fmt.Errorf("token mismatch"))
+		return models.Session{}, models.TokensPair{}, ape.RaiseSessionTokenMismatch(sessionID, fmt.Errorf("token mismatch"))
 	}
 
 	newRefresh, err := s.jwt.GenerateRefresh(session.UserID, session.ID, user.Subscription, user.Role)

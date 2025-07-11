@@ -9,9 +9,7 @@ import (
 	"github.com/chains-lab/sso-svc/internal/api/responses"
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/google/uuid"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
 )
 
 func (s Service) GoogleCallback(
@@ -22,35 +20,38 @@ func (s Service) GoogleCallback(
 	if !ok {
 		logger.Log(ctx, uuid.Nil).Error("missing metadata in Google callback request")
 
-		return nil, status.Errorf(codes.Unauthenticated, "missing metadata")
+		return nil, responses.UnauthorizedError(ctx, "metadata not found", nil)
 	}
 
 	requestIDArr := md["x-request-id"]
 	if len(requestIDArr) == 0 {
 		logger.Log(ctx, uuid.Nil).Error("missing request ID in Google callback request")
 
-		return nil, status.Errorf(codes.Unauthenticated, "request ID not supplied")
+		return nil, responses.UnauthorizedError(ctx, "request ID not supplied", nil)
 	}
 
 	requestID, err := uuid.Parse(requestIDArr[0])
 	if err != nil {
 		logger.Log(ctx, uuid.Nil).WithError(err).Errorf("invalid request ID: %s", requestIDArr[0])
 
-		return nil, status.Errorf(codes.Unauthenticated, "invalid request ID: %v", err)
+		return nil, responses.UnauthorizedError(ctx, "invalid request ID", nil)
 	}
 
 	code := req.Code
 	if code == "" {
 		logger.Log(ctx, requestID).Error("missing code in Google callback request")
 
-		return nil, status.Errorf(codes.InvalidArgument, "missing code")
+		return nil, responses.BadRequestError(ctx, requestID, responses.Violation{
+			Field:       "code",
+			Description: "code is required",
+		})
 	}
 
 	token, err := s.cfg.GoogleOAuth().Exchange(ctx, code)
 	if err != nil {
 		logger.Log(ctx, requestID).WithError(err).Errorf("error exchanging code for token: %s", code)
 
-		return nil, status.Errorf(codes.Internal, "failed to exchange code")
+		return nil, responses.InternalError(ctx, &requestID)
 	}
 
 	client := s.cfg.GoogleOAuth().Client(ctx, token)
@@ -58,7 +59,7 @@ func (s Service) GoogleCallback(
 	if err != nil {
 		logger.Log(ctx, requestID).WithError(err).Error("error fetching userinfo from Google")
 
-		return nil, status.Errorf(codes.Internal, "failed to fetch user info")
+		return nil, responses.InternalError(ctx, &requestID)
 	}
 
 	defer httpResp.Body.Close()
@@ -71,7 +72,7 @@ func (s Service) GoogleCallback(
 	if err := json.NewDecoder(httpResp.Body).Decode(&ui); err != nil {
 		logger.Log(ctx, requestID).WithError(err).Error("error decoding Google userinfo")
 
-		return nil, status.Errorf(codes.Internal, "invalid user info")
+		return nil, responses.InternalError(ctx, &requestID)
 	}
 
 	ua := ""

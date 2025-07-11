@@ -41,7 +41,7 @@ func (a App) GetUserByEmail(ctx context.Context, email string) (models.User, err
 
 func (a App) AdminCreateUser(ctx context.Context, email string, role roles.Role) (models.User, error) {
 	user, err := a.GetUserByEmail(ctx, email)
-	if !errors.Is(err, ape.ErrUserDoesNotExist) {
+	if !errors.Is(err, ape.ErrUserNotFound) {
 		return models.User{}, err
 	}
 	//if user != (models.User{}) {
@@ -74,7 +74,7 @@ func (a App) UpdateUserSubscription(ctx context.Context, initiatorID, userID, su
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return models.User{}, ape.RaiseNoPermission(err)
+			return models.User{}, ape.RaiseNoPermissions(err)
 		}
 	}
 
@@ -113,7 +113,7 @@ func (a App) UpdateUserVerified(ctx context.Context, initiatorID, userID uuid.UU
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return models.User{}, ape.RaiseNoPermission(err)
+			return models.User{}, ape.RaiseNoPermissions(err)
 		}
 	}
 
@@ -152,7 +152,7 @@ func (a App) UpdateUserSuspended(ctx context.Context, initiatorID, userID uuid.U
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return models.User{}, ape.RaiseNoPermission(err)
+			return models.User{}, ape.RaiseNoPermissions(err)
 		}
 	}
 
