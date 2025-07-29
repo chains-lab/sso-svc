@@ -32,7 +32,6 @@ type App interface {
 	AdminDeleteUserSession(ctx context.Context, initiatorID, userID, sessionID uuid.UUID) error
 
 	//TODO: connect to kafka in future
-	UpdateUserSubscription(ctx context.Context, initiatorID, userID, subscriptionID uuid.UUID) (models.User, error)
 	UpdateUserVerified(ctx context.Context, initiatorID, userID uuid.UUID, verified bool) (models.User, error)
 	UpdateUserSuspended(ctx context.Context, initiatorID, userID uuid.UUID, suspended bool) (models.User, error)
 }

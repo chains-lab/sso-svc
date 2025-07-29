@@ -6,7 +6,6 @@ CREATE TABLE users (
     email        TEXT         NOT NULL UNIQUE,
     role         VARCHAR(255) DEFAULT 'user' NOT NULL,
     verified     BOOLEAN      DEFAULT FALSE NOT NULL,
-    subscription UUID         NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'::uuid,
     suspended    BOOLEAN      DEFAULT FALSE NOT NULL,
     created_at   TIMESTAMP    NOT NULL DEFAULT now(),
     updated_at   TIMESTAMP    NOT NULL DEFAULT now()

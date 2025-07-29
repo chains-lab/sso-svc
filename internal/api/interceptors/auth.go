@@ -3,8 +3,8 @@ package interceptors
 import (
 	"context"
 
+	"github.com/chains-lab/gatekit/auth"
 	"github.com/chains-lab/gatekit/roles"
-	"github.com/chains-lab/gatekit/tokens"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -14,15 +14,14 @@ import (
 )
 
 type MetaData struct {
-	Issuer         string     `json:"iss,omitempty"`
-	Subject        string     `json:"sub,omitempty"`
-	Audience       []string   `json:"aud,omitempty"`
-	InitiatorID    uuid.UUID  `json:"initiator_id,omitempty"`
-	SessionID      uuid.UUID  `json:"session_id,omitempty"`
-	SubscriptionID uuid.UUID  `json:"subscription_id,omitempty"`
-	Verified       bool       `json:"verified,omitempty"`
-	Role           roles.Role `json:"role,omitempty"`
-	RequestID      uuid.UUID  `json:"request_id,omitempty"`
+	Issuer      string     `json:"iss,omitempty"`
+	Subject     string     `json:"sub,omitempty"`
+	Audience    []string   `json:"aud,omitempty"`
+	InitiatorID uuid.UUID  `json:"initiator_id,omitempty"`
+	SessionID   uuid.UUID  `json:"session_id,omitempty"`
+	Verified    bool       `json:"verified,omitempty"`
+	Role        roles.Role `json:"role,omitempty"`
+	RequestID   uuid.UUID  `json:"request_id,omitempty"`
 }
 
 func NewAuth(skService, skUser string) grpc.UnaryServerInterceptor {
@@ -47,7 +46,7 @@ func NewAuth(skService, skUser string) grpc.UnaryServerInterceptor {
 			return nil, status.Errorf(codes.Unauthenticated, "authorization token not supplied")
 		}
 
-		data, err := tokens.VerifyServiceJWT(ctx, toksServ[0], skService)
+		data, err := auth.VerifyServiceJWT(ctx, toksServ[0], skService)
 		if err != nil {
 			return nil, status.Errorf(codes.Unauthenticated, "invalid token: %v", err)
 		}
@@ -62,7 +61,7 @@ func NewAuth(skService, skUser string) grpc.UnaryServerInterceptor {
 			return nil, status.Errorf(codes.Unauthenticated, "request ID not supplied")
 		}
 
-		userData, err := tokens.VerifyUserJWT(ctx, toksUser[0], skUser)
+		userData, err := auth.VerifyUserJWT(ctx, toksUser[0], skUser)
 		if err != nil {
 			return nil, status.Errorf(codes.Unauthenticated, "invalid user token: %v", err)
 		}
@@ -78,15 +77,14 @@ func NewAuth(skService, skUser string) grpc.UnaryServerInterceptor {
 		}
 
 		ctx = context.WithValue(ctx, MetaCtxKey, MetaData{
-			Issuer:         data.Issuer,
-			Subject:        data.Subject,
-			Audience:       data.Audience,
-			InitiatorID:    userID,
-			SessionID:      userData.Session,
-			SubscriptionID: userData.Subscription,
-			Verified:       userData.Verified,
-			Role:           userData.Role,
-			RequestID:      requestID,
+			Issuer:      data.Issuer,
+			Subject:     data.Subject,
+			Audience:    data.Audience,
+			InitiatorID: userID,
+			SessionID:   userData.Session,
+			Verified:    userData.Verified,
+			Role:        userData.Role,
+			RequestID:   requestID,
 		})
 
 		return handler(ctx, req)

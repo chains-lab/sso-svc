@@ -6,8 +6,8 @@ import (
 
 	"github.com/chains-lab/gatekit/roles"
 	svc "github.com/chains-lab/proto-storage/gen/go/svc/sso"
+	"github.com/chains-lab/sso-svc/internal/ape"
 	"github.com/chains-lab/sso-svc/internal/api/responses"
-	"github.com/chains-lab/sso-svc/internal/app/ape"
 )
 
 func (s Service) CreateUserByAdmin(ctx context.Context, req *svc.CreateUserByAdminRequest) (*svc.User, error) {

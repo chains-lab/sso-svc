@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/chains-lab/gatekit/roles"
-	"github.com/chains-lab/sso-svc/internal/app/ape"
+	"github.com/chains-lab/sso-svc/internal/ape"
 	"github.com/chains-lab/sso-svc/internal/app/jwtmanager"
 	"github.com/chains-lab/sso-svc/internal/app/models"
 	"github.com/chains-lab/sso-svc/internal/config"
@@ -27,7 +27,6 @@ type usersQ interface {
 	FilterID(id uuid.UUID) dbx.UserQ
 	FilterEmail(email string) dbx.UserQ
 	FilterRole(role roles.Role) dbx.UserQ
-	FilterSubscription(subscription uuid.UUID) dbx.UserQ
 	FilterVerified(verified bool) dbx.UserQ
 
 	Update(ctx context.Context, input dbx.UserUpdateInput) error
@@ -72,13 +71,12 @@ func (a Users) Create(ctx context.Context, email string, role roles.Role) error 
 
 	txErr := a.repo.New().Transaction(func(ctx context.Context) error {
 		if err := a.repo.New().Insert(ctx, dbx.UserModel{
-			ID:           ID,
-			Email:        email,
-			Role:         role,
-			Subscription: uuid.Nil,
-			Verified:     false,
-			UpdatedAt:    CreatedAt,
-			CreatedAt:    CreatedAt,
+			ID:        ID,
+			Email:     email,
+			Role:      role,
+			Verified:  false,
+			UpdatedAt: CreatedAt,
+			CreatedAt: CreatedAt,
 		}); err != nil {
 			return err
 		}
@@ -118,14 +116,13 @@ func (a Users) GetByID(ctx context.Context, ID uuid.UUID) (models.User, error) {
 	}
 
 	return models.User{
-		ID:           user.ID,
-		Email:        user.Email,
-		Role:         user.Role,
-		Subscription: user.Subscription,
-		Verified:     user.Verified,
-		Suspended:    user.Suspended,
-		CreatedAt:    user.CreatedAt,
-		UpdatedAt:    user.UpdatedAt,
+		ID:        user.ID,
+		Email:     user.Email,
+		Role:      user.Role,
+		Verified:  user.Verified,
+		Suspended: user.Suspended,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}, nil
 }
 
@@ -141,14 +138,13 @@ func (a Users) GetByEmail(ctx context.Context, email string) (models.User, error
 	}
 
 	return models.User{
-		ID:           user.ID,
-		Email:        user.Email,
-		Role:         user.Role,
-		Subscription: user.Subscription,
-		Verified:     user.Verified,
-		Suspended:    user.Suspended,
-		CreatedAt:    user.CreatedAt,
-		UpdatedAt:    user.UpdatedAt,
+		ID:        user.ID,
+		Email:     user.Email,
+		Role:      user.Role,
+		Verified:  user.Verified,
+		Suspended: user.Suspended,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}, nil
 }
 
@@ -158,25 +154,6 @@ func (a Users) UpdateRole(ctx context.Context, ID uuid.UUID, role roles.Role) er
 	err := a.repo.New().FilterID(ID).Update(ctx, dbx.UserUpdateInput{
 		Role:      &role,
 		UpdatedAt: UpdatedAt,
-	})
-	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return ape.RaiseUserNotFound(ID, err)
-		default:
-			return ape.RaiseInternal(err)
-		}
-	}
-
-	return nil
-}
-
-func (a Users) UpdateSubscription(ctx context.Context, ID, subscriptionID uuid.UUID) error {
-	UpdatedAt := time.Now().UTC()
-
-	err := a.repo.New().FilterID(ID).Update(ctx, dbx.UserUpdateInput{
-		Subscription: &subscriptionID,
-		UpdatedAt:    UpdatedAt,
 	})
 	if err != nil {
 		switch {

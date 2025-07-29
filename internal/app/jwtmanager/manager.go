@@ -8,8 +8,8 @@ import (
 	"io"
 	"time"
 
+	"github.com/chains-lab/gatekit/auth"
 	"github.com/chains-lab/gatekit/roles"
-	"github.com/chains-lab/gatekit/tokens"
 	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -109,31 +109,27 @@ func (m Manager) DecryptRefresh(encryptedToken string) (string, error) {
 func (m Manager) GenerateAccess(
 	userID uuid.UUID,
 	sessionID uuid.UUID,
-	subTypeID uuid.UUID,
 	idn roles.Role,
 ) (string, error) {
-	return tokens.GenerateUserJWT(tokens.GenerateUserJwtRequest{
-		Issuer:       m.iss,
-		User:         userID,
-		Session:      sessionID,
-		Subscription: subTypeID,
-		Role:         idn,
-		Ttl:          m.accessTTL,
+	return auth.GenerateUserJWT(auth.GenerateUserJwtRequest{
+		Issuer:  m.iss,
+		User:    userID,
+		Session: sessionID,
+		Role:    idn,
+		Ttl:     m.accessTTL,
 	}, m.accessSK)
 }
 
 func (m Manager) GenerateRefresh(
 	userID uuid.UUID,
 	sessionID uuid.UUID,
-	subTypeID uuid.UUID,
 	idn roles.Role,
 ) (string, error) {
-	return tokens.GenerateUserJWT(tokens.GenerateUserJwtRequest{
-		Issuer:       m.iss,
-		User:         userID,
-		Session:      sessionID,
-		Subscription: subTypeID,
-		Role:         idn,
-		Ttl:          m.refreshTTL,
+	return auth.GenerateUserJWT(auth.GenerateUserJwtRequest{
+		Issuer:  m.iss,
+		User:    userID,
+		Session: sessionID,
+		Role:    idn,
+		Ttl:     m.refreshTTL,
 	}, m.refreshSK)
 }

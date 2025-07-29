@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/chains-lab/gatekit/roles"
-	"github.com/chains-lab/sso-svc/internal/app/ape"
+	"github.com/chains-lab/sso-svc/internal/ape"
 	"github.com/chains-lab/sso-svc/internal/app/models"
 	"github.com/google/uuid"
 )
@@ -16,7 +16,6 @@ type usersDomain interface {
 	GetByEmail(ctx context.Context, email string) (models.User, error)
 
 	UpdateRole(ctx context.Context, ID uuid.UUID, role roles.Role) error
-	UpdateSubscription(ctx context.Context, ID uuid.UUID, subscriptionID uuid.UUID) error
 	UpdateVerified(ctx context.Context, ID uuid.UUID, verified bool) error
 	UpdateSuspended(ctx context.Context, ID uuid.UUID, suspended bool) error
 }
@@ -56,45 +55,6 @@ func (a App) AdminCreateUser(ctx context.Context, email string, role roles.Role)
 	user, err = a.users.GetByEmail(ctx, email)
 	if err != nil {
 		return models.User{}, ape.RaiseInternal(err)
-	}
-
-	return user, nil
-}
-
-func (a App) UpdateUserSubscription(ctx context.Context, initiatorID, userID, subscriptionID uuid.UUID) (models.User, error) {
-	user, err := a.GetUserByID(ctx, userID)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	initiator, err := a.GetUserByID(ctx, initiatorID)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	if user.Role != roles.SuperUser {
-		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return models.User{}, ape.RaiseNoPermission(err)
-		}
-	}
-
-	if initiator.Suspended {
-		return models.User{}, ape.RaiseUserSuspended(initiator.ID)
-	}
-
-	err = a.users.UpdateSubscription(ctx, userID, subscriptionID)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	err = a.sessions.Terminate(ctx, userID)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	user, err = a.GetUserByID(ctx, userID)
-	if err != nil {
-		return models.User{}, err
 	}
 
 	return user, nil

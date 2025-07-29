@@ -7,13 +7,12 @@ import (
 
 func User(user models.User) *svc.User {
 	return &svc.User{
-		Id:           user.ID.String(),
-		Email:        user.Email,
-		Role:         string(user.Role),
-		Subscription: user.Subscription.String(),
-		Verified:     user.Verified,
-		Suspended:    user.Suspended,
-		CreatedAt:    user.CreatedAt.String(),
-		UpdatedAt:    user.UpdatedAt.String(),
+		Id:        user.ID.String(),
+		Email:     user.Email,
+		Role:      string(user.Role),
+		Verified:  user.Verified,
+		Suspended: user.Suspended,
+		CreatedAt: user.CreatedAt.String(),
+		UpdatedAt: user.UpdatedAt.String(),
 	}
 }

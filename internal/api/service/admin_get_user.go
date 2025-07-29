@@ -29,11 +29,10 @@ func (s Service) GetUserByAdmin(ctx context.Context, req *svc.GetUserByAdminRequ
 	}
 
 	return &svc.User{
-		Id:           user.ID.String(),
-		Email:        user.Email,
-		Role:         string(user.Role),
-		Subscription: user.Subscription.String(),
-		CreatedAt:    user.CreatedAt.String(),
-		UpdatedAt:    user.UpdatedAt.String(),
+		Id:        user.ID.String(),
+		Email:     user.Email,
+		Role:      string(user.Role),
+		CreatedAt: user.CreatedAt.String(),
+		UpdatedAt: user.UpdatedAt.String(),
 	}, nil
 }

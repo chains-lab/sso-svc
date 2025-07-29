@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/chains-lab/gatekit/roles"
-	"github.com/chains-lab/sso-svc/internal/app/ape"
+	"github.com/chains-lab/sso-svc/internal/ape"
 	"github.com/chains-lab/sso-svc/internal/app/jwtmanager"
 	"github.com/chains-lab/sso-svc/internal/app/models"
 	"github.com/chains-lab/sso-svc/internal/config"
@@ -43,14 +43,12 @@ type JWTManager interface {
 	GenerateAccess(
 		userID uuid.UUID,
 		sessionID uuid.UUID,
-		subTypeID uuid.UUID,
 		idn roles.Role,
 	) (string, error)
 
 	GenerateRefresh(
 		userID uuid.UUID,
 		sessionID uuid.UUID,
-		subTypeID uuid.UUID,
 		idn roles.Role,
 	) (string, error)
 }
@@ -80,7 +78,7 @@ func (s Sessions) Create(ctx context.Context, user models.User, client string) (
 		return models.Session{}, models.TokensPair{}, ape.RaiseUserNotFound(user.ID, fmt.Errorf("user ID is nil"))
 	}
 
-	refresh, err := s.jwt.GenerateRefresh(user.ID, id, user.Subscription, user.Role)
+	refresh, err := s.jwt.GenerateRefresh(user.ID, id, user.Role)
 	if err != nil {
 		return models.Session{}, models.TokensPair{}, ape.RaiseInternal(err)
 	}
@@ -90,7 +88,7 @@ func (s Sessions) Create(ctx context.Context, user models.User, client string) (
 		return models.Session{}, models.TokensPair{}, ape.RaiseInternal(err)
 	}
 
-	access, err := s.jwt.GenerateAccess(user.ID, id, user.Subscription, user.Role)
+	access, err := s.jwt.GenerateAccess(user.ID, id, user.Role)
 	if err != nil {
 		return models.Session{}, models.TokensPair{}, ape.RaiseInternal(err)
 	}
@@ -183,7 +181,7 @@ func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.
 		return models.Session{}, models.TokensPair{}, ape.RaiseSessionClientMismatch(fmt.Errorf("session client mismatch"))
 	}
 
-	access, err := s.jwt.GenerateAccess(session.UserID, session.ID, user.Subscription, user.Role)
+	access, err := s.jwt.GenerateAccess(session.UserID, session.ID, user.Role)
 	if err != nil {
 		return models.Session{}, models.TokensPair{}, ape.RaiseInternal(err)
 	}
@@ -197,7 +195,7 @@ func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.
 		return models.Session{}, models.TokensPair{}, ape.RaiseSessionTokenMismatch(fmt.Errorf("token mismatch"))
 	}
 
-	newRefresh, err := s.jwt.GenerateRefresh(session.UserID, session.ID, user.Subscription, user.Role)
+	newRefresh, err := s.jwt.GenerateRefresh(session.UserID, session.ID, user.Role)
 	if err != nil {
 		return models.Session{}, models.TokensPair{}, ape.RaiseInternal(err)
 	}
