@@ -13,8 +13,8 @@ import (
 	"github.com/chains-lab/sso-svc/internal/app/models"
 	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/chains-lab/sso-svc/internal/dbx"
+	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 )
 
 type sessionsQ interface {
@@ -58,7 +58,7 @@ type Sessions struct {
 	jwt     JWTManager
 }
 
-func NewSession(cfg config.Config, log *logrus.Logger) (Sessions, error) {
+func NewSession(cfg config.Config, log logger.Logger) (Sessions, error) {
 	pg, err := sql.Open("postgres", cfg.Database.SQL.URL)
 	if err != nil {
 		return Sessions{}, err
@@ -150,7 +150,7 @@ func (s Sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]model
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, ape.RaiseSessionsForUserNotExist(userID, err)
+			return nil, ape.RaiseSessionsForUserNotFound(userID, err)
 		default:
 			return nil, ape.RaiseInternal(err)
 		}
@@ -178,7 +178,7 @@ func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.
 	}
 
 	if session.Client != client {
-		return models.Session{}, models.TokensPair{}, ape.RaiseSessionClientMismatch(fmt.Errorf("session client mismatch"))
+		return models.Session{}, models.TokensPair{}, ape.RaiseSessionClientMismatch(sessionID, fmt.Errorf("session client mismatch"))
 	}
 
 	access, err := s.jwt.GenerateAccess(session.UserID, session.ID, user.Role)
@@ -192,7 +192,7 @@ func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.
 	}
 
 	if oldRefresh != token {
-		return models.Session{}, models.TokensPair{}, ape.RaiseSessionTokenMismatch(fmt.Errorf("token mismatch"))
+		return models.Session{}, models.TokensPair{}, ape.RaiseSessionTokenMismatch(sessionID, fmt.Errorf("token mismatch"))
 	}
 
 	newRefresh, err := s.jwt.GenerateRefresh(session.UserID, session.ID, user.Role)

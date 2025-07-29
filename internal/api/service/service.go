@@ -10,7 +10,6 @@ import (
 	"github.com/chains-lab/sso-svc/internal/app/models"
 	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 )
 
 type App interface {
@@ -49,14 +48,6 @@ func NewService(cfg config.Config, app *app.App) Service {
 		app: app,
 		cfg: cfg,
 	}
-}
-
-func Log(ctx context.Context, requestID uuid.UUID) *logrus.Entry {
-	entry, ok := ctx.Value(interceptors.LogCtxKey).(*logrus.Entry)
-	if !ok {
-		entry = logrus.NewEntry(logrus.New())
-	}
-	return entry.WithField("request_id", requestID)
 }
 
 func Meta(ctx context.Context) interceptors.MetaData {

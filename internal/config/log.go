@@ -3,29 +3,26 @@ package config
 import (
 	"strings"
 
+	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/sirupsen/logrus"
 )
 
-func (c *Config) GetLogger() *logrus.Logger {
-	logger := logrus.New()
+func (c *Config) GetLogger() logger.Logger {
+	base := logrus.New()
 
 	lvl, err := logrus.ParseLevel(strings.ToLower(c.Logger.Level))
 	if err != nil {
-		logger.Warnf("invalid log level '%s', defaulting to 'info'", c.Logger.Level)
+		base.Warnf("invalid log level '%s', defaulting to 'info'", c.Logger.Level)
 		lvl = logrus.InfoLevel
 	}
-	logger.SetLevel(lvl)
+	base.SetLevel(lvl)
 
 	switch strings.ToLower(c.Logger.Format) {
 	case "json":
-		logger.SetFormatter(&logrus.JSONFormatter{})
-	case "text":
-		fallthrough
+		base.SetFormatter(&logrus.JSONFormatter{})
 	default:
-		logger.SetFormatter(&logrus.TextFormatter{
-			FullTimestamp: true,
-		})
+		base.SetFormatter(&logrus.TextFormatter{FullTimestamp: true})
 	}
 
-	return logger
+	return logger.NewWithBase(base)
 }

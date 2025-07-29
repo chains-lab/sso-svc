@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/chains-lab/sso-svc/internal/ape"
@@ -41,40 +40,42 @@ func (a App) Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, t
 func (a App) Login(ctx context.Context, email string, role roles.Role, client string) (models.Session, models.TokensPair, error) {
 	user, err := a.GetUserByEmail(ctx, email)
 	if err != nil {
-		if errors.Is(err, ape.ErrUserDoesNotExist) {
+		if errors.Is(err, ape.ErrUserNotFound) {
 			err = a.users.Create(ctx, email, role)
 			if err != nil {
 
 				// If we fail to create a user, we should return an internal error
-				return models.Session{}, models.TokensPair{}, ape.RaiseInternal(fmt.Errorf("error in login %s", err))
+				return models.Session{}, models.TokensPair{}, err
 			}
 
 			user, err = a.users.GetByEmail(ctx, email)
 			if err != nil {
 
 				// It a good return internal error here anyway, because we already created the user in logic above
-				return models.Session{}, models.TokensPair{}, ape.RaiseInternal(fmt.Errorf("error in login %s", err))
+				return models.Session{}, models.TokensPair{}, err
 			}
 
 			session, tokensPair, err := a.sessions.Create(ctx, user, client)
 			if err != nil {
 
 				// If we fail to create a session, we should return an internal error
-				return models.Session{}, models.TokensPair{}, ape.RaiseInternal(fmt.Errorf("error in login %s", err))
+				return models.Session{}, models.TokensPair{}, err
 			}
 
 			return session, tokensPair, nil
 		}
 
-		return models.Session{}, models.TokensPair{}, ape.RaiseInternal(fmt.Errorf("error in login %s", err))
+		return models.Session{}, models.TokensPair{}, err
 	}
 
 	if user.Suspended {
+
 		return models.Session{}, models.TokensPair{}, ape.RaiseUserSuspended(user.ID)
 	}
 
 	session, tokensPair, err := a.sessions.Create(ctx, user, client)
 	if err != nil {
+
 		return models.Session{}, models.TokensPair{}, err
 	}
 
@@ -160,7 +161,7 @@ func (a App) AdminDeleteSessions(ctx context.Context, initiatorID, userID uuid.U
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return ape.RaiseNoPermission(err)
+			return ape.RaiseNoPermissions(err)
 		}
 	}
 
@@ -184,7 +185,7 @@ func (a App) AdminDeleteSession(ctx context.Context, initiatorID, userID, sessio
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return ape.RaiseNoPermission(err)
+			return ape.RaiseNoPermissions(err)
 		}
 	}
 
@@ -218,7 +219,7 @@ func (a App) AdminDeleteUserSession(ctx context.Context, initiatorID, userID, se
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return ape.RaiseNoPermission(err)
+			return ape.RaiseNoPermissions(err)
 		}
 	}
 

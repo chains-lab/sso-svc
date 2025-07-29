@@ -215,6 +215,7 @@ func (q UserQ) FilterRole(role roles.Role) UserQ {
 	return q
 }
 
+
 func (q UserQ) FilterVerified(verified bool) UserQ {
 	q.selector = q.selector.Where(sq.Eq{"verified": verified})
 	q.counter = q.counter.Where(sq.Eq{"verified": verified})
@@ -273,21 +274,3 @@ func (q UserQ) Transaction(fn func(ctx context.Context) error) error {
 
 	return nil
 }
-
-//func (q UserQ) Drop(ctx context.Context) error {
-//	query, args, err := q.deleter.ToSql()
-//	if err != nil {
-//		return fmt.Errorf("building drop query for users: %w", err)
-//	}
-//
-//	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
-//		_, err = tx.ExecContext(ctx, query, args...)
-//	} else {
-//		_, err = q.db.ExecContext(ctx, query, args...)
-//	}
-//	if err != nil {
-//		return fmt.Errorf("error executing drop query: %w", err)
-//	}
-//
-//	return nil
-//}

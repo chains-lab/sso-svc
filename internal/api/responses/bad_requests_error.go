@@ -2,7 +2,9 @@ package responses
 
 import (
 	"context"
+	"time"
 
+	"github.com/chains-lab/sso-svc/internal/ape"
 	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
@@ -14,25 +16,21 @@ type Violation struct {
 	Description string
 }
 
-// BadRequestError строит статус InvalidArgument с деталями
 func BadRequestError(
 	ctx context.Context,
 	requestID uuid.UUID,
 	violations ...Violation,
 ) error {
-	// 2) базовый статус
 	st := status.New(codes.InvalidArgument, "bad request")
 
-	// 3) собираем детали: ErrorInfo
 	info := &errdetails.ErrorInfo{
-		Reason: "BAD_REQUEST",
-		Domain: "sso-svc", // ваше API/сервис
+		Reason: ape.ReasonBadRequest,
+		Domain: ape.ServiceName,
 		Metadata: map[string]string{
-			"request_id": requestID.String(),
+			"timestamp": time.Now().UTC().Format(time.RFC3339Nano),
 		},
 	}
 
-	// 4) собираем BadRequest field violations
 	var fb []*errdetails.BadRequest_FieldViolation
 	for _, v := range violations {
 		fb = append(fb, &errdetails.BadRequest_FieldViolation{
@@ -42,8 +40,11 @@ func BadRequestError(
 	}
 	br := &errdetails.BadRequest{FieldViolations: fb}
 
-	// 5) упаковываем детали
-	st, err := st.WithDetails(info, br)
+	ri := &errdetails.RequestInfo{
+		RequestId: requestID.String(),
+	}
+
+	st, err := st.WithDetails(info, br, ri)
 	if err != nil {
 		// если не удалось упаковать — возвращаем без деталей
 		return st.Err()
