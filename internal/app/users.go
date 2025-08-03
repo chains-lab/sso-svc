@@ -10,16 +10,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type usersDomain interface {
-	Create(ctx context.Context, email string, role roles.Role) error
-	GetByID(ctx context.Context, ID uuid.UUID) (models.User, error)
-	GetByEmail(ctx context.Context, email string) (models.User, error)
-
-	UpdateRole(ctx context.Context, ID uuid.UUID, role roles.Role) error
-	UpdateVerified(ctx context.Context, ID uuid.UUID, verified bool) error
-	UpdateSuspended(ctx context.Context, ID uuid.UUID, suspended bool) error
-}
-
 func (a App) GetUserByID(ctx context.Context, ID uuid.UUID) (models.User, error) {
 	user, appErr := a.users.GetByID(ctx, ID)
 	if appErr != nil {

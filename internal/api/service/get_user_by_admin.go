@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	svc "github.com/chains-lab/proto-storage/gen/go/svc/sso"
+	"github.com/chains-lab/sso-proto/gen/go/svc"
 	"github.com/chains-lab/sso-svc/internal/api/responses"
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/google/uuid"

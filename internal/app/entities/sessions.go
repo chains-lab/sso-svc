@@ -145,8 +145,8 @@ func (s Sessions) Get(ctx context.Context, sessionID uuid.UUID) (models.Session,
 	}, nil
 }
 
-func (s Sessions) SelectByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error) {
-	sessions, err := s.queries.New().FilterID(userID).Select(ctx)
+func (s Sessions) SelectByUserID(ctx context.Context, userID uuid.UUID, page, limit uint64) ([]models.Session, error) {
+	sessions, err := s.queries.New().FilterID(userID).Page(page, limit).Select(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):

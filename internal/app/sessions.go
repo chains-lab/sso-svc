@@ -10,15 +10,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type sessionsDomain interface {
-	Terminate(ctx context.Context, userUD uuid.UUID) error
-	Delete(ctx context.Context, sessionID uuid.UUID) error
-	Get(ctx context.Context, sessionID uuid.UUID) (models.Session, error)
-	SelectByUserID(ctx context.Context, userID uuid.UUID) ([]models.Session, error)
-	Create(ctx context.Context, user models.User, client string) (models.Session, models.TokensPair, error)
-	Refresh(ctx context.Context, sessionID uuid.UUID, user models.User, client, token string) (models.Session, models.TokensPair, error)
-}
-
 func (a App) Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, token string) (models.Session, models.TokensPair, error) {
 	user, appErr := a.GetUserByID(ctx, userID)
 	if appErr != nil {
@@ -95,7 +86,7 @@ func (a App) GetSession(ctx context.Context, userID, sessionID uuid.UUID) (model
 	return session, nil
 }
 
-func (a App) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]models.Session, error) {
+func (a App) GetUserSessions(ctx context.Context, userID uuid.UUID, page, limit uint64) ([]models.Session, error) {
 	user, appErr := a.GetUserByID(ctx, userID)
 	if appErr != nil {
 		return nil, appErr
@@ -105,7 +96,7 @@ func (a App) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]models.Se
 		return nil, ape.RaiseUserSuspended(user.ID)
 	}
 
-	sessions, appErr := a.sessions.SelectByUserID(ctx, userID)
+	sessions, appErr := a.sessions.SelectByUserID(ctx, userID, page, limit)
 	if appErr != nil {
 		return nil, appErr
 	}

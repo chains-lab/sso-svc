@@ -3,13 +3,14 @@ package service
 import (
 	"context"
 
-	svc "github.com/chains-lab/proto-storage/gen/go/svc/sso"
+	"github.com/chains-lab/sso-proto/gen/go/svc"
 	"github.com/chains-lab/sso-svc/internal/api/responses"
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func (s Service) DeleteOwnUserSession(ctx context.Context, req *svc.DeleteOwnUserSessionRequest) (*svc.SessionsList, error) {
+func (s Service) DeleteOwnUserSession(ctx context.Context, req *svc.DeleteOwnUserSessionRequest) (*emptypb.Empty, error) {
 	meta := Meta(ctx)
 
 	sessionID, err := uuid.Parse(req.SessionId)
@@ -29,14 +30,7 @@ func (s Service) DeleteOwnUserSession(ctx context.Context, req *svc.DeleteOwnUse
 		return nil, responses.AppError(ctx, meta.RequestID, err)
 	}
 
-	sessions, err := s.app.GetUserSessions(ctx, meta.InitiatorID)
-	if err != nil {
-		logger.Log(ctx, meta.RequestID).WithError(err).Error("failed to get user sessions")
-
-		return nil, responses.AppError(ctx, meta.RequestID, err)
-	}
-
 	logger.Log(ctx, meta.RequestID).Infof("delete session %s for user %s", meta.SessionID, meta.InitiatorID)
 
-	return responses.SessionList(sessions), nil
+	return &emptypb.Empty{}, nil
 }

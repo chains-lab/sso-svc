@@ -1,12 +1,12 @@
 module github.com/chains-lab/sso-svc
 
-go 1.24.4
+go 1.24.5
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/chains-lab/gatekit v0.1.1
-	github.com/chains-lab/proto-storage v0.0.7
+	github.com/chains-lab/sso-proto v0.0.5
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
 	github.com/pkg/errors v0.9.1
@@ -14,15 +14,15 @@ require (
 	github.com/segmentio/kafka-go v0.4.47
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.20.0
-	golang.org/x/oauth2 v0.28.0
-	golang.org/x/sync v0.13.0
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463
-	google.golang.org/grpc v1.73.0
+	golang.org/x/oauth2 v0.30.0
+	golang.org/x/sync v0.14.0
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250528174236-200df99c418a
+	google.golang.org/grpc v1.74.2
 	google.golang.org/protobuf v1.36.6
 )
 
 require (
-	cloud.google.com/go/compute/metadata v0.6.0 // indirect
+	cloud.google.com/go/compute/metadata v0.7.0 // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
@@ -45,8 +45,8 @@ require (
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/net v0.39.0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
-	golang.org/x/text v0.24.0 // indirect
+	golang.org/x/net v0.40.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

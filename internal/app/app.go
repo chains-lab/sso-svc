@@ -8,8 +8,8 @@ import (
 )
 
 type App struct {
-	sessions sessionsDomain
-	users    usersDomain
+	sessions entities.Sessions
+	users    entities.Users
 	log      *logrus.Entry
 }
 

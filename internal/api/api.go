@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net"
 
-	svc "github.com/chains-lab/proto-storage/gen/go/svc/sso"
+	"github.com/chains-lab/sso-proto/gen/go/svc"
 	"github.com/chains-lab/sso-svc/internal/api/interceptors"
 	"github.com/chains-lab/sso-svc/internal/api/service"
 	"github.com/chains-lab/sso-svc/internal/app"
@@ -26,8 +26,7 @@ func Run(ctx context.Context, cfg config.Config, log logger.Logger, app *app.App
 		),
 	)
 
-	svc.RegisterUserServiceServer(grpcServer, server)
-	svc.RegisterAdminServiceServer(grpcServer, server)
+	svc.RegisterAuthServer(grpcServer, server)
 
 	// 3) Открываем слушатель
 	lis, err := net.Listen("tcp", cfg.Server.Port)

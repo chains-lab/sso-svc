@@ -3,21 +3,20 @@ package service
 import (
 	"context"
 
-	svc "github.com/chains-lab/proto-storage/gen/go/svc/sso"
+	"github.com/chains-lab/sso-proto/gen/go/svc"
 	"github.com/chains-lab/sso-svc/internal/api/responses"
 	"github.com/chains-lab/sso-svc/internal/logger"
-	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func (s Service) GetUserSessions(ctx context.Context, _ *emptypb.Empty) (*svc.SessionsList, error) {
+func (s Service) GetOwnUserSessions(ctx context.Context, req *svc.GetOwnUserSessionsRequest) (*svc.SessionsList, error) {
 	meta := Meta(ctx)
 
-	sessions, err := s.app.GetUserSessions(ctx, meta.InitiatorID)
+	sessions, err := s.app.GetUserSessions(ctx, meta.InitiatorID, req.Pagination.Page, req.Pagination.Limit)
 	if err != nil {
 		logger.Log(ctx, meta.RequestID).WithError(err).Error("failed to get user sessions")
 
 		return nil, responses.AppError(ctx, meta.RequestID, err)
 	}
 
-	return responses.SessionList(sessions), nil
+	return responses.SessionList(sessions, req.Pagination.Page), nil
 }

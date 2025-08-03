@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	svc "github.com/chains-lab/proto-storage/gen/go/svc/sso"
+	"github.com/chains-lab/sso-proto/gen/go/svc"
 	"github.com/chains-lab/sso-svc/internal/api/responses"
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/google/uuid"
@@ -20,7 +20,7 @@ func (s Service) GetUserSessionsByAdmin(ctx context.Context, req *svc.GetUserSes
 		})
 	}
 
-	sessions, err := s.app.GetUserSessions(ctx, userID)
+	sessions, err := s.app.GetUserSessions(ctx, userID, req.Pagination.Page, req.Pagination.Limit)
 	if err != nil {
 		logger.Log(ctx, meta.RequestID).WithError(err).Errorf("failed to retrieve sessions for user %s", req.UserId)
 
@@ -28,5 +28,5 @@ func (s Service) GetUserSessionsByAdmin(ctx context.Context, req *svc.GetUserSes
 	}
 
 	logger.Log(ctx, meta.RequestID).Infof("retrieved sessions for user %s by admin %s", req.UserId, meta.InitiatorID)
-	return responses.SessionList(sessions), nil
+	return responses.SessionList(sessions, req.Pagination.Page), nil
 }

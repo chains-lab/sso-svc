@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/chains-lab/gatekit/roles"
-	svc "github.com/chains-lab/proto-storage/gen/go/svc/sso"
+	"github.com/chains-lab/sso-proto/gen/go/svc"
 	"github.com/chains-lab/sso-svc/internal/api/interceptors"
 	"github.com/chains-lab/sso-svc/internal/app"
 	"github.com/chains-lab/sso-svc/internal/app/models"
@@ -17,7 +17,7 @@ type App interface {
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)
 
 	GetSession(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error)
-	GetUserSessions(ctx context.Context, userID uuid.UUID) ([]models.Session, error)
+	GetUserSessions(ctx context.Context, userID uuid.UUID, page, limit uint64) ([]models.Session, error)
 
 	Login(ctx context.Context, email string, role roles.Role, client string) (models.Session, models.TokensPair, error)
 	Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, token string) (models.Session, models.TokensPair, error)
@@ -39,8 +39,7 @@ type Service struct {
 	app App
 	cfg config.Config
 
-	svc.UserServiceServer
-	svc.AdminServiceServer
+	svc.AuthServer
 }
 
 func NewService(cfg config.Config, app *app.App) Service {

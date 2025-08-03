@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	svc "github.com/chains-lab/proto-storage/gen/go/svc/sso"
+	"github.com/chains-lab/sso-proto/gen/go/svc"
 	"golang.org/x/oauth2"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
