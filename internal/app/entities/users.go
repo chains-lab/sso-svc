@@ -4,14 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/chains-lab/gatekit/roles"
-	"github.com/chains-lab/sso-svc/internal/ape"
 	"github.com/chains-lab/sso-svc/internal/app/jwtmanager"
 	"github.com/chains-lab/sso-svc/internal/app/models"
 	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/chains-lab/sso-svc/internal/dbx"
+	"github.com/chains-lab/sso-svc/internal/errx"
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/google/uuid"
 )
@@ -65,16 +66,22 @@ func NewUser(cfg config.Config, log logger.Logger) (Users, error) {
 	}, nil
 }
 
-func (a Users) Create(ctx context.Context, email string, role roles.Role) error {
+type UserCreateInput struct {
+	Email    string     `json:"email"`
+	Role     roles.Role `json:"role"`
+	Verified bool       `json:"verified"`
+}
+
+func (a Users) Create(ctx context.Context, input UserCreateInput) error {
 	ID := uuid.New()
 	CreatedAt := time.Now().UTC()
 
 	txErr := a.repo.New().Transaction(func(ctx context.Context) error {
 		if err := a.repo.New().Insert(ctx, dbx.UserModel{
 			ID:        ID,
-			Email:     email,
-			Role:      role,
-			Verified:  false,
+			Email:     input.Email,
+			Role:      input.Role,
+			Verified:  input.Verified,
 			UpdatedAt: CreatedAt,
 			CreatedAt: CreatedAt,
 		}); err != nil {
@@ -95,9 +102,9 @@ func (a Users) Create(ctx context.Context, email string, role roles.Role) error 
 	if txErr != nil {
 		switch {
 		case errors.Is(txErr, sql.ErrNoRows):
-			return ape.RaiseUserAlreadyExists(txErr)
+			return errx.RaiseUserAlreadyExists(txErr, input.Email)
 		default:
-			return ape.RaiseInternal(txErr)
+			return errx.RaiseInternal(txErr)
 		}
 	}
 
@@ -109,9 +116,12 @@ func (a Users) GetByID(ctx context.Context, ID uuid.UUID) (models.User, error) {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return models.User{}, ape.RaiseUserNotFound(ID, err)
+			return models.User{}, errx.RaiseUserNotFound(
+				fmt.Errorf("user with ID '%s' not found cause: %s", ID, err),
+				ID,
+			)
 		default:
-			return models.User{}, ape.RaiseInternal(err)
+			return models.User{}, errx.RaiseInternal(err)
 		}
 	}
 
@@ -131,9 +141,12 @@ func (a Users) GetByEmail(ctx context.Context, email string) (models.User, error
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return models.User{}, ape.RaiseUserNotFoundByEmail(email, err)
+			return models.User{}, errx.RaiseUserNotFoundByEmail(
+				fmt.Errorf("user with email '%s' not found cause: %s", email, err),
+				email,
+			)
 		default:
-			return models.User{}, ape.RaiseInternal(err)
+			return models.User{}, errx.RaiseInternal(err)
 		}
 	}
 
@@ -158,9 +171,12 @@ func (a Users) UpdateRole(ctx context.Context, ID uuid.UUID, role roles.Role) er
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.RaiseUserNotFound(ID, err)
+			return errx.RaiseUserNotFound(
+				fmt.Errorf("user with ID '%s' not found cause: %s", ID, err),
+				ID,
+			)
 		default:
-			return ape.RaiseInternal(err)
+			return errx.RaiseInternal(err)
 		}
 	}
 
@@ -177,9 +193,12 @@ func (a Users) UpdateVerified(ctx context.Context, ID uuid.UUID, verified bool) 
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.RaiseUserNotFound(ID, err)
+			return errx.RaiseUserNotFound(
+				fmt.Errorf("user with ID '%s' not found cause: %s", ID, err),
+				ID,
+			)
 		default:
-			return ape.RaiseInternal(err)
+			return errx.RaiseInternal(err)
 		}
 	}
 
@@ -196,9 +215,12 @@ func (a Users) UpdateSuspended(ctx context.Context, ID uuid.UUID, suspended bool
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ape.RaiseUserNotFound(ID, err)
+			return errx.RaiseUserNotFound(
+				fmt.Errorf("user with ID '%s' not found cause: %s", ID, err),
+				ID,
+			)
 		default:
-			return ape.RaiseInternal(err)
+			return errx.RaiseInternal(err)
 		}
 	}
 

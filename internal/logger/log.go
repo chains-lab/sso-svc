@@ -2,10 +2,10 @@ package logger
 
 import (
 	"context"
-	"errors"
 
-	"github.com/chains-lab/sso-svc/internal/ape"
-	"github.com/chains-lab/sso-svc/internal/api/interceptors"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/interceptor"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/meta"
+	"github.com/chains-lab/svc-errors/ape"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -22,7 +22,7 @@ func UnaryLogInterceptor(log Logger) grpc.UnaryServerInterceptor {
 		// чтобы не потерять таймауты и другую информацию.
 		ctxWithLog := context.WithValue(
 			ctx,
-			interceptors.LogCtxKey,
+			interceptor.LogCtxKey,
 			log, // ваш интерфейс Logger
 		)
 
@@ -31,13 +31,20 @@ func UnaryLogInterceptor(log Logger) grpc.UnaryServerInterceptor {
 	}
 }
 
-func Log(ctx context.Context, requestID uuid.UUID) Logger {
-	entry, ok := ctx.Value(interceptors.LogCtxKey).(Logger)
+func Log(ctx context.Context) Logger {
+	entry, ok := ctx.Value(interceptor.LogCtxKey).(Logger)
 	if !ok {
 		logrus.Info("no logger in context")
 
 		entry = NewWithBase(logrus.New())
 	}
+
+	requestID := meta.RequestID(ctx)
+
+	if requestID == uuid.Nil {
+		return &logger{Entry: entry.WithField("request_id", "unknown")}
+	}
+
 	return &logger{Entry: entry.WithField("request_id", requestID)}
 }
 
@@ -55,11 +62,11 @@ type logger struct {
 
 // WithError — ваш особый метод.
 func (l *logger) WithError(err error) *logrus.Entry {
-	var ae *ape.Error
-	if errors.As(err, &ae) {
+	ae := ape.Unwrap(err)
+	if ae != nil {
 		return l.Entry.WithError(ae.Unwrap())
 	}
-	// для “обычных” ошибок просто стандартный путь
+
 	return l.Entry.WithError(err)
 }
 
