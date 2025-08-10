@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/chains-lab/gatekit/roles"
 	"github.com/chains-lab/sso-svc/internal/app/jwtmanager"
 	"github.com/chains-lab/sso-svc/internal/app/models"
 	"github.com/chains-lab/sso-svc/internal/config"
@@ -44,13 +43,13 @@ type JWTManager interface {
 	GenerateAccess(
 		userID uuid.UUID,
 		sessionID uuid.UUID,
-		idn roles.Role,
+		idn string,
 	) (string, error)
 
 	GenerateRefresh(
 		userID uuid.UUID,
 		sessionID uuid.UUID,
-		idn roles.Role,
+		idn string,
 	) (string, error)
 }
 
@@ -74,13 +73,6 @@ func NewSession(cfg config.Config, log logger.Logger) (Sessions, error) {
 func (s Sessions) Create(ctx context.Context, user models.User, client string) (models.Session, models.TokensPair, error) {
 	id := uuid.New()
 	createdAt := time.Now().UTC()
-
-	if user.ID == uuid.Nil {
-		return models.Session{}, models.TokensPair{}, errx.RaiseUserNotFound(
-			fmt.Errorf("user ID is empty"),
-			user.ID,
-		)
-	}
 
 	refresh, err := s.jwt.GenerateRefresh(user.ID, id, user.Role)
 	if err != nil {
@@ -128,7 +120,6 @@ func (s Sessions) Create(ctx context.Context, user models.User, client string) (
 			Refresh: refresh,
 			Access:  access,
 		}, nil
-
 }
 
 func (s Sessions) Get(ctx context.Context, sessionID uuid.UUID) (models.Session, error) {
@@ -193,8 +184,7 @@ func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.
 
 	if session.Client != client {
 		return models.Session{}, models.TokensPair{}, errx.RaiseSessionClientMismatch(
-			fmt.Errorf("client mismatch: expected %s, got %s", session.Client, client),
-			sessionID,
+			fmt.Errorf("client mismatch: expected"),
 		)
 	}
 
@@ -211,7 +201,6 @@ func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.
 	if oldRefresh != token {
 		return models.Session{}, models.TokensPair{}, errx.RaiseSessionTokenMismatch(
 			fmt.Errorf("refresh token mismatch"),
-			sessionID,
 		)
 	}
 

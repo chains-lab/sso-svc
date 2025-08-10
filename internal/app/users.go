@@ -31,7 +31,7 @@ func (a App) GetUserByEmail(ctx context.Context, email string) (models.User, err
 }
 
 type AdminCreateUserInput struct {
-	Role     roles.Role
+	Role     string
 	Verified bool
 }
 
@@ -46,18 +46,23 @@ func (a App) AdminCreateUser(ctx context.Context, initiatorID uuid.UUID, email s
 		return models.User{}, err
 	}
 
+	if initiator.Role == roles.User {
+		return models.User{}, errx.RaiseUserRoleIsNotAllowed(
+			fmt.Errorf("initiator with role %s is not allowed to create user", initiator.Role),
+		)
+	}
+
 	if initiator.Suspended {
-		return models.User{}, errx.RaiseUserSuspended(
-			fmt.Errorf("initiator %s is suspended", initiator.ID),
+		return models.User{}, errx.RaiseInitiatorUserSuspended(
+			fmt.Errorf("initiator %s is suspended", initiatorID),
 			initiatorID,
 		)
 	}
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, input.Role) < 1 {
-			return models.User{}, errx.RaiseNoPermissions(
-				fmt.Errorf("initiator Role %s is not allowed to create user Role %s",
-					initiator.Role, input.Role),
+			return models.User{}, errx.RaiseInitiatorRoleIsLowThanTarget(
+				fmt.Errorf("initiator Role %s is not allowed to create user Role %s", initiator.Role, input.Role),
 			)
 		}
 	}
@@ -80,33 +85,9 @@ func (a App) AdminCreateUser(ctx context.Context, initiatorID uuid.UUID, email s
 }
 
 func (a App) UpdateUserVerified(ctx context.Context, initiatorID, userID uuid.UUID, verified bool) (models.User, error) {
-	initiator, err := a.GetUserByID(ctx, initiatorID)
+	_, user, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID)
 	if err != nil {
 		return models.User{}, err
-	}
-
-	if initiator.Suspended {
-		return models.User{}, errx.RaiseUserSuspended(
-			fmt.Errorf("initiator %s is suspended", initiator.ID),
-			initiatorID,
-		)
-	}
-
-	user, err := a.GetUserByID(ctx, userID)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	if user.Role != roles.SuperUser {
-		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return models.User{}, errx.RaiseNoPermissionsWitDescr(
-				fmt.Errorf("initiator Role %s is not allowed to update user Role %s", initiator.Role, user.Role),
-				"user",
-				fmt.Sprintf("user&id=%s", user.ID),
-				fmt.Sprintf("user&id=%s", user.ID),
-				fmt.Sprintf("initiator Role %s is not allowed to update user Role %s", initiator.Role, user.Role),
-			)
-		}
 	}
 
 	err = a.users.UpdateVerified(ctx, userID, verified)
@@ -128,42 +109,9 @@ func (a App) UpdateUserVerified(ctx context.Context, initiatorID, userID uuid.UU
 }
 
 func (a App) UpdateUserSuspended(ctx context.Context, initiatorID, userID uuid.UUID, suspended bool) (models.User, error) {
-	initiator, err := a.GetUserByID(ctx, initiatorID)
+	_, user, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID)
 	if err != nil {
 		return models.User{}, err
-	}
-
-	if initiator.Suspended {
-		return models.User{}, errx.RaiseUserSuspended(
-			fmt.Errorf("initiator %s is suspended", initiator.ID),
-			initiatorID,
-		)
-	}
-
-	user, err := a.GetUserByID(ctx, userID)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	if user.Role == roles.User {
-		return models.User{}, errx.RaiseNoPermissionsWitDescr(
-			fmt.Errorf("initiator Role %s is not allowed to update user Role %s", initiator.Role, user.Role),
-			"user",
-			fmt.Sprintf("user&id=%s", user.ID),
-			fmt.Sprintf("user&id=%s", user.ID),
-			fmt.Sprintf("initiator Role %s is not allowed to update user Role %s", initiator.Role, user.Role),
-		)
-	}
-
-	if user.Role != roles.SuperUser {
-		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return models.User{}, errx.RaiseNoPermissionsWitDescr(
-				fmt.Errorf("initiator Role %s is not allowed to update user Role %s", initiator.Role, user.Role),
-				"user",
-				fmt.Sprintf("user&id=%s", user.ID),
-				fmt.Sprintf("user&id=%s", user.ID),
-				fmt.Sprintf("initiator Role %s is not allowed to update user Role %s", initiator.Role, user.Role))
-		}
 	}
 
 	err = a.users.UpdateSuspended(ctx, userID, suspended)

@@ -7,20 +7,19 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/chains-lab/gatekit/roles"
 	"github.com/google/uuid"
 )
 
 const usersTable = "users"
 
 type UserModel struct {
-	ID        uuid.UUID  `db:"id"`
-	Email     string     `db:"email"`
-	Role      roles.Role `db:"role"`
-	Verified  bool       `db:"verified,omitempty"`
-	Suspended bool       `db:"suspended,omitempty"`
-	UpdatedAt time.Time  `db:"updated_at,omitempty"`
-	CreatedAt time.Time  `db:"created_at"`
+	ID        uuid.UUID `db:"id"`
+	Email     string    `db:"email"`
+	Role      string    `db:"role"`
+	Verified  bool      `db:"verified,omitempty"`
+	Suspended bool      `db:"suspended,omitempty"`
+	UpdatedAt time.Time `db:"updated_at,omitempty"`
+	CreatedAt time.Time `db:"created_at"`
 }
 
 type UserQ struct {
@@ -74,7 +73,7 @@ func (q UserQ) Insert(ctx context.Context, input UserModel) error {
 }
 
 type UserUpdateInput struct {
-	Role      *roles.Role
+	Role      *string
 	Verified  *bool
 	Suspended *bool
 	UpdatedAt time.Time
@@ -206,7 +205,7 @@ func (q UserQ) FilterEmail(email string) UserQ {
 	return q
 }
 
-func (q UserQ) FilterRole(role roles.Role) UserQ {
+func (q UserQ) FilterRole(role string) UserQ {
 	q.selector = q.selector.Where(sq.Eq{"role": role})
 	q.counter = q.counter.Where(sq.Eq{"role": role})
 	q.deleter = q.deleter.Where(sq.Eq{"role": role})
@@ -214,7 +213,6 @@ func (q UserQ) FilterRole(role roles.Role) UserQ {
 
 	return q
 }
-
 
 func (q UserQ) FilterVerified(verified bool) UserQ {
 	q.selector = q.selector.Where(sq.Eq{"verified": verified})

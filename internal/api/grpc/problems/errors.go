@@ -1,7 +1,8 @@
-package responses
+package problems
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/chains-lab/sso-svc/internal/api/grpc/meta"
@@ -14,26 +15,33 @@ import (
 
 func AppError(
 	ctx context.Context,
-	err error,
+	cause error,
 ) error {
 	requestID := meta.RequestID(ctx).String()
 	if requestID == uuid.Nil.String() {
 		requestID = "unknown"
 	}
 
-	st, ok := status.FromError(err)
+	st, ok := status.FromError(cause)
 	if !ok {
 		return InternalError(ctx)
 	}
 
-	withReq, derr := st.WithDetails(
+	withReq, err := st.WithDetails(
 		&errdetails.RequestInfo{RequestId: requestID},
+		&errdetails.ErrorInfo{
+			Reason: canonicalString(st.Code()),
+			Domain: constant.ServiceName,
+			Metadata: map[string]string{
+				"timestamp": time.Now().UTC().Format(time.RFC3339Nano),
+			},
+		},
 	)
-	if derr != nil {
+	if err != nil {
 		return status.Errorf(
 			codes.Internal,
 			"failed to attach request info: %v",
-			derr,
+			err,
 		)
 	}
 
@@ -83,7 +91,7 @@ func InvalidArgumentError(
 	st := status.New(codes.InvalidArgument, message)
 
 	info := &errdetails.ErrorInfo{
-		Reason: "INVALID_ARGUMENT",
+		Reason: canonicalString(st.Code()),
 		Domain: constant.ServiceName,
 		Metadata: map[string]string{
 			"timestamp": time.Now().UTC().Format(time.RFC3339Nano),
@@ -116,7 +124,7 @@ func UnauthenticatedError(
 	st := status.New(codes.Unauthenticated, message)
 
 	info := &errdetails.ErrorInfo{
-		Reason: "UNAUTHENTICATED",
+		Reason: canonicalString(st.Code()),
 		Domain: constant.ServiceName,
 		Metadata: map[string]string{
 			"timestamp": time.Now().UTC().Format(time.RFC3339Nano),
@@ -147,7 +155,7 @@ func PermissionDeniedError(
 	st := status.New(codes.PermissionDenied, message)
 
 	info := &errdetails.ErrorInfo{
-		Reason: "PERMISSION_DENIED",
+		Reason: canonicalString(st.Code()),
 		Domain: constant.ServiceName,
 		Metadata: map[string]string{
 			"timestamp": time.Now().UTC().Format(time.RFC3339Nano),
@@ -164,4 +172,45 @@ func PermissionDeniedError(
 	}
 
 	return st.Err()
+}
+
+func canonicalString(c codes.Code) string {
+	switch c {
+	case codes.OK:
+		return "OK"
+	case codes.Canceled:
+		return "CANCELLED"
+	case codes.Unknown:
+		return "UNKNOWN"
+	case codes.InvalidArgument:
+		return "INVALID_ARGUMENT"
+	case codes.DeadlineExceeded:
+		return "DEADLINE_EXCEEDED"
+	case codes.NotFound:
+		return "NOT_FOUND"
+	case codes.AlreadyExists:
+		return "ALREADY_EXISTS"
+	case codes.PermissionDenied:
+		return "PERMISSION_DENIED"
+	case codes.ResourceExhausted:
+		return "RESOURCE_EXHAUSTED"
+	case codes.FailedPrecondition:
+		return "FAILED_PRECONDITION"
+	case codes.Aborted:
+		return "ABORTED"
+	case codes.OutOfRange:
+		return "OUT_OF_RANGE"
+	case codes.Unimplemented:
+		return "UNIMPLEMENTED"
+	case codes.Internal:
+		return "INTERNAL"
+	case codes.Unavailable:
+		return "UNAVAILABLE"
+	case codes.DataLoss:
+		return "DATA_LOSS"
+	case codes.Unauthenticated:
+		return "UNAUTHENTICATED"
+	default:
+		return "CODE(" + strconv.FormatInt(int64(c), 10) + ")"
+	}
 }

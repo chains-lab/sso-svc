@@ -8,6 +8,7 @@ import (
 	sessProto "github.com/chains-lab/sso-proto/gen/go/session"
 	userProto "github.com/chains-lab/sso-proto/gen/go/user"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/interceptor"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/service/session"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/service/user"
 	"github.com/chains-lab/sso-svc/internal/app"
 	"github.com/chains-lab/sso-svc/internal/config"
@@ -16,7 +17,8 @@ import (
 )
 
 func Run(ctx context.Context, cfg config.Config, log logger.Logger, app *app.App) error {
-	server := user.NewService(cfg, app)
+	userSVC := user.NewService(cfg, app)
+	sessionsSVC := session.NewService(cfg, app)
 	authInterceptor := interceptor.Auth(cfg.JWT.Service.SecretKey)
 	logInterceptor := logger.UnaryLogInterceptor(log)
 
@@ -27,8 +29,8 @@ func Run(ctx context.Context, cfg config.Config, log logger.Logger, app *app.App
 		),
 	)
 
-	sessProto.RegisterSessionServiceServer(grpcServer, server)
-	userProto.RegisterUserServiceServer(grpcServer, server)
+	sessProto.RegisterSessionServiceServer(grpcServer, sessionsSVC)
+	userProto.RegisterUserServiceServer(grpcServer, userSVC)
 
 	// 3) Открываем слушатель
 	lis, err := net.Listen("tcp", cfg.Server.Port)

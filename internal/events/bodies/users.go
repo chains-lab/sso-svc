@@ -14,7 +14,7 @@ const (
 )
 
 type UserCreated struct {
-	UserID    string     `json:"user_id"`
-	Role      roles.Role `json:"role"`
-	Timestamp time.Time  `json:"timestamp"`
+	UserID    string    `json:"user_id"`
+	Role      string    `json:"role"`
+	Timestamp time.Time `json:"timestamp"`
 }

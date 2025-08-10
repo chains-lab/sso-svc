@@ -5,6 +5,7 @@ import (
 
 	"github.com/chains-lab/gatekit/roles"
 	svc "github.com/chains-lab/sso-proto/gen/go/user"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/problems"
 	"github.com/chains-lab/sso-svc/internal/app"
 	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -17,7 +18,7 @@ func (s Service) CreateUserByAdmin(ctx context.Context, req *svc.CreateUserByAdm
 	if req.Initiator.Role == string(roles.Admin) || req.Initiator.Role == string(roles.SuperUser) {
 		logger.Log(ctx).Error("unauthorized access: only admin or super admin can create user")
 
-		return nil, responses.PermissionDeniedError(
+		return nil, problems.PermissionDeniedError(
 			ctx,
 			"only admin or super admin can create user",
 		)
@@ -25,17 +26,17 @@ func (s Service) CreateUserByAdmin(ctx context.Context, req *svc.CreateUserByAdm
 
 	userRole, err := roles.ParseRole(req.Role)
 	if err != nil {
-		return nil, responses.InvalidArgumentError(ctx, "user role is not allowed", &errdetails.BadRequest_FieldViolation{
+		return nil, problems.InvalidArgumentError(ctx, "user role is not allowed", &errdetails.BadRequest_FieldViolation{
 			Field:       "role",
 			Description: "invalid role",
 		})
 	}
 
-	initiatorID, err := uuid.Parse(req.Initiator.Id)
+	initiatorID, err := uuid.Parse(req.Initiator.UserId)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to parse initiator ID")
 
-		return nil, responses.AppError(ctx, responses.UnauthenticatedError(ctx, "invalid format initiator ID"))
+		return nil, problems.AppError(ctx, problems.UnauthenticatedError(ctx, "invalid format initiator ID"))
 	}
 
 	user, err := s.app.AdminCreateUser(ctx, initiatorID, req.Role, app.AdminCreateUserInput{
@@ -45,7 +46,7 @@ func (s Service) CreateUserByAdmin(ctx context.Context, req *svc.CreateUserByAdm
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to create admin user")
 
-		return nil, responses.AppError(ctx, err)
+		return nil, problems.AppError(ctx, err)
 	}
 
 	logger.Log(ctx).Warnf("admin user %s created successfully", user.ID)

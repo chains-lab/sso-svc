@@ -4,7 +4,7 @@ import (
 	"context"
 
 	svc "github.com/chains-lab/sso-proto/gen/go/session"
-	"github.com/chains-lab/sso-svc/internal/api/grpc/responses"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/problems"
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -17,7 +17,7 @@ func (s Service) DeleteOwnSession(ctx context.Context, req *svc.DeleteOwnSession
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("invalid session ID format")
 
-		return nil, responses.InvalidArgumentError(
+		return nil, problems.InvalidArgumentError(
 			ctx,
 			"invalid session ID format",
 			&errdetails.BadRequest_FieldViolation{
@@ -26,18 +26,18 @@ func (s Service) DeleteOwnSession(ctx context.Context, req *svc.DeleteOwnSession
 			})
 	}
 
-	InitiatorID, err := uuid.Parse(req.Initiator.Id)
+	InitiatorID, err := uuid.Parse(req.Initiator.UserId)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to parse initiator ID")
 
-		return nil, responses.AppError(ctx, responses.UnauthenticatedError(ctx, "invalid format initiator ID"))
+		return nil, problems.AppError(ctx, problems.UnauthenticatedError(ctx, "invalid format initiator ID"))
 	}
 
-	err = s.app.DeleteSession(ctx, InitiatorID, sessionID)
+	err = s.app.DeleteUserSession(ctx, InitiatorID, sessionID)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to delete user session")
 
-		return nil, responses.AppError(ctx, err)
+		return nil, problems.AppError(ctx, err)
 	}
 
 	logger.Log(ctx).Infof("delete session %s for user %s", sessionID, InitiatorID)

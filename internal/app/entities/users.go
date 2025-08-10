@@ -27,7 +27,7 @@ type usersQ interface {
 
 	FilterID(id uuid.UUID) dbx.UserQ
 	FilterEmail(email string) dbx.UserQ
-	FilterRole(role roles.Role) dbx.UserQ
+	FilterRole(role string) dbx.UserQ
 	FilterVerified(verified bool) dbx.UserQ
 
 	Update(ctx context.Context, input dbx.UserUpdateInput) error
@@ -67,9 +67,9 @@ func NewUser(cfg config.Config, log logger.Logger) (Users, error) {
 }
 
 type UserCreateInput struct {
-	Email    string     `json:"email"`
-	Role     roles.Role `json:"role"`
-	Verified bool       `json:"verified"`
+	Email    string `json:"email"`
+	Role     string `json:"role"`
+	Verified bool   `json:"verified"`
 }
 
 func (a Users) Create(ctx context.Context, input UserCreateInput) error {
@@ -136,6 +136,18 @@ func (a Users) GetByID(ctx context.Context, ID uuid.UUID) (models.User, error) {
 	}, nil
 }
 
+func (a Users) GetInitiator(ctx context.Context, initiatorID uuid.UUID) (models.User, error) {
+	initiator, err := a.GetByID(ctx, initiatorID)
+	if err != nil {
+		return models.User{}, errx.RaiseInitiatorNotFound(
+			fmt.Errorf("initiator with ID '%s' not found cause: %s", initiatorID, err),
+			initiatorID,
+		)
+	}
+
+	return initiator, nil
+}
+
 func (a Users) GetByEmail(ctx context.Context, email string) (models.User, error) {
 	user, err := a.repo.New().FilterEmail(email).Get(ctx)
 	if err != nil {
@@ -161,7 +173,7 @@ func (a Users) GetByEmail(ctx context.Context, email string) (models.User, error
 	}, nil
 }
 
-func (a Users) UpdateRole(ctx context.Context, ID uuid.UUID, role roles.Role) error {
+func (a Users) UpdateRole(ctx context.Context, ID uuid.UUID, role string) error {
 	UpdatedAt := time.Now().UTC()
 
 	err := a.repo.New().FilterID(ID).Update(ctx, dbx.UserUpdateInput{
@@ -225,4 +237,43 @@ func (a Users) UpdateSuspended(ctx context.Context, ID uuid.UUID, suspended bool
 	}
 
 	return nil
+}
+
+func (a Users) ComparisonRightsForAdmins(ctx context.Context, initiatorID, userID uuid.UUID) (initiator, user models.User, err error) {
+	initiator, err = a.GetByID(ctx, initiatorID)
+	if err != nil {
+		return initiator, user, err
+	}
+
+	user, err = a.GetByID(ctx, userID)
+	if err != nil {
+		return initiator, user, err
+	}
+
+	if initiator.Suspended {
+		return initiator, user, errx.RaiseInitiatorUserSuspended(
+			fmt.Errorf("initiator %s is suspended", initiatorID),
+			initiatorID,
+		)
+	}
+
+	if user.Role == roles.User {
+		return initiator, user, errx.RaiseUserRoleIsNotAllowed(
+			fmt.Errorf("initiator Role %s is not allowed to interact wit with this user", initiator.Role),
+		)
+	}
+
+	if initiatorID == userID {
+		return initiator, user, nil
+	}
+
+	if user.Role != roles.SuperUser {
+		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
+			return initiator, user, errx.RaiseInitiatorRoleIsLowThanTarget(
+				fmt.Errorf("initiator Role %s is not allowed to interact with this user", initiator.Role),
+			)
+		}
+	}
+
+	return initiator, user, nil
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/chains-lab/gatekit/roles"
 	svc "github.com/chains-lab/sso-proto/gen/go/user"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/problems"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/responses"
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/google/uuid"
@@ -15,24 +16,24 @@ func (s Service) UpdateUserVerified(ctx context.Context, req *svc.UpdateUserVeri
 	if req.Initiator.Role == string(roles.Admin) || req.Initiator.Role == string(roles.SuperUser) {
 		logger.Log(ctx).Error("unauthorized access: only admin or super admin can update user verified status")
 
-		return nil, responses.PermissionDeniedError(
+		return nil, problems.PermissionDeniedError(
 			ctx,
 			"only admin or super admin can update user verified status",
 		)
 	}
 
-	initiatorID, err := uuid.Parse(req.Initiator.Id)
+	initiatorID, err := uuid.Parse(req.Initiator.UserId)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to parse initiator ID")
 
-		return nil, responses.AppError(ctx, responses.UnauthenticatedError(ctx, "invalid format initiator ID"))
+		return nil, problems.AppError(ctx, problems.UnauthenticatedError(ctx, "invalid format initiator ID"))
 	}
 
 	userID, err := uuid.Parse(req.UserId)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to parse user ID")
 
-		return nil, responses.InvalidArgumentError(
+		return nil, problems.InvalidArgumentError(
 			ctx,
 			"invalid user ID format",
 			&errdetails.BadRequest_FieldViolation{
@@ -45,7 +46,7 @@ func (s Service) UpdateUserVerified(ctx context.Context, req *svc.UpdateUserVeri
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to update user verified status")
 
-		return nil, responses.AppError(ctx, err)
+		return nil, problems.AppError(ctx, err)
 	}
 
 	logger.Log(ctx).Warnf("user %s verified status updated to %v successfully", user.ID, req.Verified)

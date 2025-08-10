@@ -4,6 +4,7 @@ import (
 	"context"
 
 	svc "github.com/chains-lab/sso-proto/gen/go/session"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/problems"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/responses"
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/google/uuid"
@@ -11,16 +12,16 @@ import (
 )
 
 func (s Service) GetOwnSession(ctx context.Context, req *svc.GetOwnSessionRequest) (*svc.Session, error) {
-	InitiatorID, err := uuid.Parse(req.Initiator.Id)
+	InitiatorID, err := uuid.Parse(req.Initiator.UserId)
 	if err != nil {
-		logger.Log(ctx).WithError(err).Errorf("invalid initiator ID format: %s", req.Initiator.Id)
+		logger.Log(ctx).WithError(err).Errorf("invalid initiator ID format: %s", req.Initiator.UserId)
 	}
 
-	SessionID, err := uuid.Parse(req.SessionId)
+	SessionID, err := uuid.Parse(req.Initiator.SessionId)
 	if err != nil {
-		logger.Log(ctx).WithError(err).Errorf("invalid session ID format: %s", req.SessionId)
+		logger.Log(ctx).WithError(err).Errorf("invalid session ID format: %s", req.Initiator.SessionId)
 
-		return nil, responses.InvalidArgumentError(
+		return nil, problems.InvalidArgumentError(
 			ctx,
 			"invalid session ID format",
 			&errdetails.BadRequest_FieldViolation{
@@ -29,11 +30,11 @@ func (s Service) GetOwnSession(ctx context.Context, req *svc.GetOwnSessionReques
 			})
 	}
 
-	session, err := s.app.GetSession(ctx, InitiatorID, SessionID)
+	session, err := s.app.GetUserSession(ctx, InitiatorID, SessionID)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to get user session")
 
-		return nil, responses.AppError(ctx, err)
+		return nil, problems.AppError(ctx, err)
 	}
 
 	return responses.Session(session), nil

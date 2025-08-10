@@ -12,18 +12,20 @@ import (
 )
 
 type App interface {
-	GetSession(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error)
-	GetSessions(ctx context.Context, userID uuid.UUID, pag pagination.Request) ([]models.Session, pagination.Response, error)
+	Login(ctx context.Context, email, client string) (models.Session, models.TokensPair, error)
+
+	GetUserSession(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error)
+	GetUserSessions(ctx context.Context, userID uuid.UUID, pag pagination.Request) ([]models.Session, pagination.Response, error)
 
 	Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, token string) (models.Session, models.TokensPair, error)
 
-	DeleteSession(ctx context.Context, userID, sessionID uuid.UUID) error
-	DeleteSessions(ctx context.Context, userID uuid.UUID) error
+	DeleteUserSession(ctx context.Context, userID, sessionID uuid.UUID) error
+	DeleteUserSessions(ctx context.Context, userID uuid.UUID) error
 
-	AdminCreateUser(ctx context.Context, input app.AdminCreateUserInput) (models.User, error)
+	AdminCreateUser(ctx context.Context, initiatorID uuid.UUID, email string, input app.AdminCreateUserInput) (models.User, error)
 
-	AdminDeleteSessions(ctx context.Context, initiatorID, userID uuid.UUID) error
-	AdminDeleteSession(ctx context.Context, initiatorID, userID, sessionID uuid.UUID) error
+	AdminDeleteUserSessions(ctx context.Context, initiatorID, userID uuid.UUID) error
+	AdminDeleteUserSession(ctx context.Context, initiatorID, userID, sessionID uuid.UUID) error
 }
 
 type Service struct {

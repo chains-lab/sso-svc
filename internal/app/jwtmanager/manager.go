@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/chains-lab/gatekit/auth"
-	"github.com/chains-lab/gatekit/roles"
 	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -109,7 +108,7 @@ func (m Manager) DecryptRefresh(encryptedToken string) (string, error) {
 func (m Manager) GenerateAccess(
 	userID uuid.UUID,
 	sessionID uuid.UUID,
-	idn roles.Role,
+	idn string,
 ) (string, error) {
 	return auth.GenerateUserJWT(auth.GenerateUserJwtRequest{
 		Issuer:  m.iss,
@@ -123,7 +122,7 @@ func (m Manager) GenerateAccess(
 func (m Manager) GenerateRefresh(
 	userID uuid.UUID,
 	sessionID uuid.UUID,
-	idn roles.Role,
+	idn string,
 ) (string, error) {
 	return auth.GenerateUserJWT(auth.GenerateUserJwtRequest{
 		Issuer:  m.iss,

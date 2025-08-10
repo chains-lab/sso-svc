@@ -1,16 +1,14 @@
-package user
+package session
 
 import (
 	"context"
 	"encoding/json"
 
 	svc "github.com/chains-lab/sso-proto/gen/go/session"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/problems"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/responses"
-	"github.com/chains-lab/sso-svc/internal/api/grpc/service/session"
 	"github.com/chains-lab/sso-svc/internal/logger"
-	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
-	"google.golang.org/grpc/metadata"
 )
 
 func (s Service) GoogleCallback(
@@ -21,7 +19,7 @@ func (s Service) GoogleCallback(
 	if code == "" {
 		logger.Log(ctx).Error("missing code in Google callback request")
 
-		return nil, responses.InvalidArgumentError(ctx, "missing code in Google callback request", &errdetails.BadRequest_FieldViolation{
+		return nil, problems.InvalidArgumentError(ctx, "missing code in Google callback request", &errdetails.BadRequest_FieldViolation{
 			Field:       "code",
 			Description: "code is required",
 		})
@@ -31,7 +29,7 @@ func (s Service) GoogleCallback(
 	if err != nil {
 		logger.Log(ctx).WithError(err).Errorf("error exchanging code for token: %s", code)
 
-		return nil, responses.InternalError(ctx)
+		return nil, problems.InternalError(ctx)
 	}
 
 	client := s.cfg.GoogleOAuth().Client(ctx, token)
@@ -39,7 +37,7 @@ func (s Service) GoogleCallback(
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("error fetching userinfo from Google")
 
-		return nil, responses.InternalError(ctx)
+		return nil, problems.InternalError(ctx)
 	}
 
 	defer httpResp.Body.Close()
@@ -52,14 +50,14 @@ func (s Service) GoogleCallback(
 	if err := json.NewDecoder(httpResp.Body).Decode(&ui); err != nil {
 		logger.Log(ctx).WithError(err).Error("error decoding Google userinfo")
 
-		return nil, responses.InternalError(ctx)
+		return nil, problems.InternalError(ctx)
 	}
-	
+
 	_, tokensPair, err := s.app.Login(ctx, ui.Email, "TODO")
 	if err != nil {
 		logger.Log(ctx).WithError(err).Errorf("error logging in user with email %s", ui.Email)
 
-		return nil, responses.AppError(ctx, err)
+		return nil, problems.AppError(ctx, err)
 	}
 
 	return responses.TokensPair(tokensPair), nil
