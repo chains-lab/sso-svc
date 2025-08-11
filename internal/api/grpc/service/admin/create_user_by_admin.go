@@ -1,10 +1,12 @@
-package user
+package admin
 
 import (
 	"context"
 
 	"github.com/chains-lab/gatekit/roles"
-	svc "github.com/chains-lab/sso-proto/gen/go/user"
+	svc "github.com/chains-lab/sso-proto/gen/go/admin"
+	userProto "github.com/chains-lab/sso-proto/gen/go/user"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/guard"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/problem"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/response"
 	"github.com/chains-lab/sso-svc/internal/app"
@@ -13,11 +15,11 @@ import (
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 )
 
-func (s Service) CreateUserByAdmin(ctx context.Context, req *svc.CreateUserByAdminRequest) (*svc.User, error) {
-	if req.Initiator.Role == roles.Admin || req.Initiator.Role == roles.SuperUser {
-		logger.Log(ctx).Error("unauthorized access: only admin or super admin can create user")
-
-		return nil, problem.PermissionDeniedError(ctx, "only admins roles create user")
+func (s Service) CreateUserByAdmin(ctx context.Context, req *svc.CreateUserByAdminRequest) (*userProto.User, error) {
+	_, err := guard.AllowedRoles(ctx, req.Initiator, "create user by admin",
+		roles.Admin, roles.SuperUser)
+	if err != nil {
+		return nil, err
 	}
 
 	userRole, err := roles.ParseRole(req.Role)

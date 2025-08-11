@@ -13,11 +13,6 @@ import (
 type App interface {
 	GetUserByID(ctx context.Context, userID uuid.UUID) (models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)
-
-	AdminCreateUser(ctx context.Context, initiatorID uuid.UUID, email string, input app.AdminCreateUserInput) (models.User, error)
-
-	UpdateUserVerified(ctx context.Context, initiatorID, userID uuid.UUID, verified bool) (models.User, error)
-	UpdateUserSuspended(ctx context.Context, initiatorID, userID uuid.UUID, suspended bool) (models.User, error)
 }
 
 type Service struct {

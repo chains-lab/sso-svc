@@ -171,43 +171,49 @@ func (a App) DeleteUserSessions(ctx context.Context, userID uuid.UUID) error {
 	return nil
 }
 
-func (a App) AdminDeleteUserSessions(ctx context.Context, initiatorID, userID uuid.UUID) error {
-	_, _, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID)
-	if err != nil {
-		return err
-	}
-
-	appErr := a.sessions.Terminate(ctx, userID)
-	if appErr != nil {
-		return appErr
-	}
-	return nil
-}
-
-func (a App) AdminDeleteUserSession(ctx context.Context, initiatorID, userID, sessionID uuid.UUID) error {
-	_, _, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID)
-	if err != nil {
-		return err
-	}
-
-	session, appErr := a.GetUserSession(ctx, userID, sessionID)
-	if appErr != nil {
-		return appErr
-	}
-
-	if session.UserID != userID {
-		return errx.RaiseSessionNotFound(
-			ctx,
-			fmt.Errorf("session %s does not belong to user %s", sessionID, userID),
-			sessionID.String(),
-			userID.String(),
-		)
-	}
-
-	appErr = a.sessions.Delete(ctx, session.ID, userID)
-	if appErr != nil {
-		return appErr
-	}
-
-	return nil
-}
+// Note: if you want to check initiator rights, not in grpc-service package, with use middleware, you can uncomment the following lines
+// and use the function AdminDeleteUserSessions in grpc-service package
+//
+//func (a App) AdminDeleteUserSessions(ctx context.Context, initiatorID, userID uuid.UUID) error {
+//	_, _, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID)
+//	if err != nil {
+//		return err
+//	}
+//
+//	appErr := a.sessions.Terminate(ctx, userID)
+//	if appErr != nil {
+//		return appErr
+//	}
+//	return nil
+//}
+//
+// Note: if you want to check initiator rights, not in grpc-service package, with use middleware, you can uncomment the following lines
+// and use the function AdminDeleteUserSession in grpc-service package
+//
+//func (a App) AdminDeleteUserSession(ctx context.Context, initiatorID, userID, sessionID uuid.UUID) error {
+//	_, _, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID)
+//	if err != nil {
+//		return err
+//	}
+//
+//	session, appErr := a.GetUserSession(ctx, userID, sessionID)
+//	if appErr != nil {
+//		return appErr
+//	}
+//
+//	if session.UserID != userID {
+//		return errx.RaiseSessionNotFound(
+//			ctx,
+//			fmt.Errorf("session %s does not belong to user %s", sessionID, userID),
+//			sessionID.String(),
+//			userID.String(),
+//		)
+//	}
+//
+//	appErr = a.sessions.Delete(ctx, session.ID, userID)
+//	if appErr != nil {
+//		return appErr
+//	}
+//
+//	return nil
+//}

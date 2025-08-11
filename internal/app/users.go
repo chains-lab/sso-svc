@@ -87,13 +87,15 @@ func (a App) AdminCreateUser(ctx context.Context, initiatorID uuid.UUID, email s
 	return user, nil
 }
 
-func (a App) UpdateUserVerified(ctx context.Context, initiatorID, userID uuid.UUID, verified bool) (models.User, error) {
-	_, user, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID)
-	if err != nil {
-		return models.User{}, err
-	}
+func (a App) UpdateUserVerified(ctx context.Context, userID uuid.UUID, verified bool) (models.User, error) {
+	// Note: if you want to check initiator rights, not in grpc-service package, with use middleware, you can uncomment the following lines
+	//
+	//_, user, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID)
+	//if err != nil {
+	//	return models.User{}, err
+	//}
 
-	err = a.users.UpdateVerified(ctx, userID, verified)
+	err := a.users.UpdateVerified(ctx, userID, verified)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -103,7 +105,7 @@ func (a App) UpdateUserVerified(ctx context.Context, initiatorID, userID uuid.UU
 		return models.User{}, err
 	}
 
-	user, err = a.GetUserByID(ctx, userID)
+	user, err := a.GetUserByID(ctx, userID)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -111,13 +113,15 @@ func (a App) UpdateUserVerified(ctx context.Context, initiatorID, userID uuid.UU
 	return user, nil
 }
 
-func (a App) UpdateUserSuspended(ctx context.Context, initiatorID, userID uuid.UUID, suspended bool) (models.User, error) {
-	_, user, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID)
-	if err != nil {
-		return models.User{}, err
-	}
+func (a App) UpdateUserSuspended(ctx context.Context, userID uuid.UUID, suspended bool) (models.User, error) {
+	// Note: if you want to check initiator rights, not in grpc-service package, with use middleware, you can uncomment the following lines
+	//
+	//_, user, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID)
+	//if err != nil {
+	//	return models.User{}, err
+	//}
 
-	err = a.users.UpdateSuspended(ctx, userID, suspended)
+	err := a.users.UpdateSuspended(ctx, userID, suspended)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -127,7 +131,7 @@ func (a App) UpdateUserSuspended(ctx context.Context, initiatorID, userID uuid.U
 		return models.User{}, err
 	}
 
-	user, err = a.GetUserByID(ctx, userID)
+	user, err := a.GetUserByID(ctx, userID)
 	if err != nil {
 		return models.User{}, err
 	}
