@@ -4,7 +4,8 @@ import (
 	"context"
 
 	svc "github.com/chains-lab/sso-proto/gen/go/session"
-	"github.com/chains-lab/sso-svc/internal/api/grpc/problems"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/problem"
+
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -15,7 +16,7 @@ func (s Service) DeleteOwnSessions(ctx context.Context, req *svc.DeleteOwnSessio
 	if err != nil {
 		logger.Log(ctx).WithError(err).Errorf("invalid initiator ID format: %s", req.Initiator.UserId)
 
-		return nil, problems.UnauthenticatedError(ctx, "initiator ID format is invalid")
+		return nil, problem.UnauthenticatedError(ctx, "initiator ID format is invalid")
 	}
 
 	err = s.app.DeleteUserSessions(ctx, InitiatorID)

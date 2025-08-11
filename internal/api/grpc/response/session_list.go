@@ -1,4 +1,4 @@
-package responses
+package response
 
 import (
 	pagProto "github.com/chains-lab/sso-proto/gen/go/common/pagination"

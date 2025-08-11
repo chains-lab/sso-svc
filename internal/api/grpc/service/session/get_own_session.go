@@ -4,8 +4,8 @@ import (
 	"context"
 
 	svc "github.com/chains-lab/sso-proto/gen/go/session"
-	"github.com/chains-lab/sso-svc/internal/api/grpc/problems"
-	"github.com/chains-lab/sso-svc/internal/api/grpc/responses"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/problem"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/response"
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/google/uuid"
 )
@@ -15,14 +15,14 @@ func (s Service) GetOwnSession(ctx context.Context, req *svc.GetOwnSessionReques
 	if err != nil {
 		logger.Log(ctx).WithError(err).Errorf("invalid initiator ID format: %s", req.Initiator.UserId)
 
-		return nil, problems.UnauthenticatedError(ctx, "initiator ID format is invalid")
+		return nil, problem.UnauthenticatedError(ctx, "initiator ID format is invalid")
 	}
 
 	SessionID, err := uuid.Parse(req.Initiator.SessionId)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Errorf("invalid session ID format: %s", req.Initiator.SessionId)
 
-		return nil, problems.UnauthenticatedError(ctx, "session ID format is invalid")
+		return nil, problem.UnauthenticatedError(ctx, "session ID format is invalid")
 	}
 
 	session, err := s.app.GetUserSession(ctx, InitiatorID, SessionID)
@@ -32,5 +32,5 @@ func (s Service) GetOwnSession(ctx context.Context, req *svc.GetOwnSessionReques
 		return nil, err
 	}
 
-	return responses.Session(session), nil
+	return response.Session(session), nil
 }

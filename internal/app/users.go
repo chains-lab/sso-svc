@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/chains-lab/gatekit/roles"
-	"github.com/chains-lab/sso-svc/internal/app/entities"
+	"github.com/chains-lab/sso-svc/internal/app/entity"
 	"github.com/chains-lab/sso-svc/internal/app/models"
 	"github.com/chains-lab/sso-svc/internal/errx"
 	"github.com/google/uuid"
@@ -70,7 +70,7 @@ func (a App) AdminCreateUser(ctx context.Context, initiatorID uuid.UUID, email s
 		}
 	}
 
-	err = a.users.Create(ctx, entities.UserCreateInput{
+	err = a.users.Create(ctx, entity.UserCreateInput{
 		Email:    email,
 		Role:     input.Role,
 		Verified: input.Verified,

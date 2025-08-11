@@ -5,7 +5,7 @@ import (
 
 	"github.com/chains-lab/gatekit/roles"
 	svc "github.com/chains-lab/sso-proto/gen/go/session"
-	"github.com/chains-lab/sso-svc/internal/api/grpc/problems"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/problem"
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -16,14 +16,14 @@ func (s Service) DeleteSessionsByAdmin(ctx context.Context, req *svc.DeleteSessi
 	if req.Initiator.Role == roles.Admin || req.Initiator.Role == roles.SuperUser {
 		logger.Log(ctx).Error("unauthorized access: only admin or super admin can create user")
 
-		return nil, problems.PermissionDeniedError(ctx, "only admins or super admin can create user")
+		return nil, problem.PermissionDeniedError(ctx, "only admins or super admin can create user")
 	}
 
 	userId, err := uuid.Parse(req.UserId)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Errorf("invalid user ID format: %s", req.UserId)
 
-		return nil, problems.InvalidArgumentError(
+		return nil, problem.InvalidArgumentError(
 			ctx,
 			"invalid format user id",
 			&errdetails.BadRequest_FieldViolation{
@@ -36,7 +36,7 @@ func (s Service) DeleteSessionsByAdmin(ctx context.Context, req *svc.DeleteSessi
 	if err != nil {
 		logger.Log(ctx).WithError(err).Errorf("invalid initiator ID format: %s", req.Initiator.UserId)
 
-		return nil, problems.UnauthenticatedError(ctx, "initiator ID format is invalid")
+		return nil, problem.UnauthenticatedError(ctx, "initiator ID format is invalid")
 	}
 
 	err = s.app.AdminDeleteUserSessions(ctx, InitiatorID, userId)

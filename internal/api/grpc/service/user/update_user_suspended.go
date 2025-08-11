@@ -5,8 +5,8 @@ import (
 
 	"github.com/chains-lab/gatekit/roles"
 	svc "github.com/chains-lab/sso-proto/gen/go/user"
-	"github.com/chains-lab/sso-svc/internal/api/grpc/problems"
-	"github.com/chains-lab/sso-svc/internal/api/grpc/responses"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/problem"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/response"
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -16,7 +16,7 @@ func (s Service) UpdateUserSuspended(ctx context.Context, req *svc.UpdateUserSus
 	if req.Initiator.Role == roles.Admin || req.Initiator.Role == roles.SuperUser {
 		logger.Log(ctx).Error("unauthorized access: only admin or super admin can update user suspended status")
 
-		return nil, problems.PermissionDeniedError(
+		return nil, problem.PermissionDeniedError(
 			ctx,
 			"only admin or super admin can update user suspended status",
 		)
@@ -26,14 +26,14 @@ func (s Service) UpdateUserSuspended(ctx context.Context, req *svc.UpdateUserSus
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to parse initiator ID")
 
-		return nil, problems.UnauthenticatedError(ctx, "invalid initiator ID format")
+		return nil, problem.UnauthenticatedError(ctx, "invalid initiator ID format")
 	}
 
 	userID, err := uuid.Parse(req.UserId)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to parse user ID")
 
-		return nil, problems.InvalidArgumentError(
+		return nil, problem.InvalidArgumentError(
 			ctx,
 			"invalid user ID format",
 			&errdetails.BadRequest_FieldViolation{
@@ -51,5 +51,5 @@ func (s Service) UpdateUserSuspended(ctx context.Context, req *svc.UpdateUserSus
 
 	logger.Log(ctx).Warnf("user %s suspended status updated to %v successfully", user.ID, req.Suspended)
 
-	return responses.User(user), nil
+	return response.User(user), nil
 }

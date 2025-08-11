@@ -1,4 +1,4 @@
-package responses
+package response
 
 import (
 	sessionProto "github.com/chains-lab/sso-proto/gen/go/session"

@@ -1,4 +1,4 @@
-package responses
+package response
 
 import (
 	userProto "github.com/chains-lab/sso-proto/gen/go/user"

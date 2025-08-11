@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/chains-lab/gatekit/roles"
-	"github.com/chains-lab/sso-svc/internal/app/entities"
+	"github.com/chains-lab/sso-svc/internal/app/entity"
 	"github.com/chains-lab/sso-svc/internal/app/models"
 	"github.com/chains-lab/sso-svc/internal/errx"
 	"github.com/chains-lab/sso-svc/internal/pagination"
@@ -39,7 +39,7 @@ func (a App) Login(ctx context.Context, email string, client string) (models.Ses
 	user, err := a.GetUserByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, errx.ErrorUserNotFound) {
-			err = a.users.Create(ctx, entities.UserCreateInput{
+			err = a.users.Create(ctx, entity.UserCreateInput{
 				Email:    email,
 				Role:     roles.User,
 				Verified: false,
