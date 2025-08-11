@@ -15,6 +15,8 @@ func (s Service) GetOwnSessions(ctx context.Context, req *svc.GetOwnSessionsRequ
 	InitiatorID, err := uuid.Parse(req.Initiator.UserId)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Errorf("invalid initiator ID format: %s", req.Initiator.UserId)
+
+		return nil, problems.UnauthenticatedError(ctx, "initiator ID format is invalid")
 	}
 
 	session, pag, err := s.app.GetUserSessions(ctx, InitiatorID, pagination.Request{
@@ -24,7 +26,7 @@ func (s Service) GetOwnSessions(ctx context.Context, req *svc.GetOwnSessionsRequ
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to get user session")
 
-		return nil, problems.AppError(ctx, err)
+		return nil, err
 	}
 
 	return responses.SessionList(session, pag), nil

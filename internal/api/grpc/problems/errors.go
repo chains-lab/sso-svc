@@ -13,45 +13,10 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func AppError(
-	ctx context.Context,
-	cause error,
-) error {
-	requestID := meta.RequestID(ctx).String()
-	if requestID == uuid.Nil.String() {
-		requestID = "unknown"
-	}
-
-	st, ok := status.FromError(cause)
-	if !ok {
-		return InternalError(ctx)
-	}
-
-	withReq, err := st.WithDetails(
-		&errdetails.RequestInfo{RequestId: requestID},
-		&errdetails.ErrorInfo{
-			Reason: canonicalString(st.Code()),
-			Domain: constant.ServiceName,
-			Metadata: map[string]string{
-				"timestamp": time.Now().UTC().Format(time.RFC3339Nano),
-			},
-		},
-	)
-	if err != nil {
-		return status.Errorf(
-			codes.Internal,
-			"failed to attach request info: %v",
-			err,
-		)
-	}
-
-	return withReq.Err()
-}
-
 func InternalError(
 	ctx context.Context,
 ) error {
-	requestID := meta.RequestID(ctx).String()
+	requestID := meta.RequestID(ctx)
 	if requestID == uuid.Nil.String() {
 		requestID = "unknown"
 	}
@@ -83,7 +48,7 @@ func InvalidArgumentError(
 	message string,
 	violations ...*errdetails.BadRequest_FieldViolation,
 ) error {
-	requestID := meta.RequestID(ctx).String()
+	requestID := meta.RequestID(ctx)
 	if requestID == uuid.Nil.String() {
 		requestID = "unknown"
 	}
@@ -116,7 +81,7 @@ func UnauthenticatedError(
 	ctx context.Context,
 	message string,
 ) error {
-	requestID := meta.RequestID(ctx).String()
+	requestID := meta.RequestID(ctx)
 	if requestID == uuid.Nil.String() {
 		requestID = "unknown"
 	}
@@ -147,7 +112,7 @@ func PermissionDeniedError(
 	ctx context.Context,
 	message string,
 ) error {
-	requestID := meta.RequestID(ctx).String()
+	requestID := meta.RequestID(ctx)
 	if requestID == uuid.Nil.String() {
 		requestID = "unknown"
 	}

@@ -13,7 +13,7 @@ import (
 )
 
 func (s Service) UpdateUserSuspended(ctx context.Context, req *svc.UpdateUserSuspendedRequest) (*svc.User, error) {
-	if req.Initiator.Role == string(roles.Admin) || req.Initiator.Role == string(roles.SuperUser) {
+	if req.Initiator.Role == roles.Admin || req.Initiator.Role == roles.SuperUser {
 		logger.Log(ctx).Error("unauthorized access: only admin or super admin can update user suspended status")
 
 		return nil, problems.PermissionDeniedError(
@@ -26,7 +26,7 @@ func (s Service) UpdateUserSuspended(ctx context.Context, req *svc.UpdateUserSus
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to parse initiator ID")
 
-		return nil, problems.AppError(ctx, problems.UnauthenticatedError(ctx, "invalid format initiator ID"))
+		return nil, problems.UnauthenticatedError(ctx, "invalid initiator ID format")
 	}
 
 	userID, err := uuid.Parse(req.UserId)
@@ -46,7 +46,7 @@ func (s Service) UpdateUserSuspended(ctx context.Context, req *svc.UpdateUserSus
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to update user suspended status")
 
-		return nil, problems.AppError(ctx, err)
+		return nil, err
 	}
 
 	logger.Log(ctx).Warnf("user %s suspended status updated to %v successfully", user.ID, req.Suspended)

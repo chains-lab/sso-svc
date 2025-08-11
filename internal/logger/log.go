@@ -6,7 +6,6 @@ import (
 	"github.com/chains-lab/sso-svc/internal/api/grpc/interceptor"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/meta"
 	"github.com/chains-lab/svc-errors/ape"
-	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
@@ -40,10 +39,6 @@ func Log(ctx context.Context) Logger {
 	}
 
 	requestID := meta.RequestID(ctx)
-
-	if requestID == uuid.Nil {
-		return &logger{Entry: entry.WithField("request_id", "unknown")}
-	}
 
 	return &logger{Entry: entry.WithField("request_id", requestID)}
 }

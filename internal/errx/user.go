@@ -1,80 +1,164 @@
 package errx
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/chains-lab/sso-svc/internal/api/grpc/meta"
+	"github.com/chains-lab/sso-svc/internal/constant"
 	"github.com/chains-lab/svc-errors/ape"
 	"github.com/google/uuid"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 var ErrorUserNotFound = ape.Declare("USER_NOT_FOUND")
 
-func RaiseUserNotFound(cause error, userID uuid.UUID) error {
-	return ErrorUserNotFound.Raise(
-		cause,
-		status.New(codes.NotFound, fmt.Sprintf("user with id: %s not found", userID)),
+func RaiseUserNotFound(ctx context.Context, cause error, userID string) error {
+	st := status.New(codes.NotFound, fmt.Sprintf("user with id: %s not found", userID))
+	st, _ = st.WithDetails(
+		&errdetails.ErrorInfo{
+			Reason: ErrorUserNotFound.Error(),
+			Domain: constant.ServiceName,
+			Metadata: map[string]string{
+				"timestamp": nowRFC3339Nano(),
+			},
+		},
+		&errdetails.RequestInfo{
+			RequestId: meta.RequestID(ctx),
+		},
 	)
+	return ErrorUserNotFound.Raise(cause, st)
 }
 
-func RaiseUserNotFoundByEmail(cause error, email string) error {
-	return ErrorUserNotFound.Raise(
-		cause,
-		status.New(codes.NotFound, fmt.Sprintf("user with email: %s not found", email)),
+func RaiseUserNotFoundByEmail(ctx context.Context, cause error, email string) error {
+	st := status.New(codes.NotFound, fmt.Sprintf("user with email: %s not found", email))
+	st, _ = st.WithDetails(
+		&errdetails.ErrorInfo{
+			Reason: ErrorUserNotFound.Error(),
+			Domain: constant.ServiceName,
+			Metadata: map[string]string{
+				"timestamp": nowRFC3339Nano(),
+			},
+		},
+		&errdetails.RequestInfo{
+			RequestId: meta.RequestID(ctx),
+		},
 	)
+	return ErrorUserNotFound.Raise(cause, st)
 }
 
 var ErrorUserAlreadyExists = ape.Declare("USER_ALREADY_EXISTS")
 
-func RaiseUserAlreadyExists(cause error, email string) error {
-	return ErrorUserAlreadyExists.Raise(
-		cause,
-		status.New(codes.AlreadyExists, fmt.Sprintf("user with email: %s already exists", email)),
+func RaiseUserAlreadyExists(ctx context.Context, cause error, email string) error {
+	st := status.New(codes.AlreadyExists, fmt.Sprintf("user with email: %s already exists", email))
+	st, _ = st.WithDetails(
+		&errdetails.ErrorInfo{
+			Reason: ErrorUserAlreadyExists.Error(),
+			Domain: constant.ServiceName,
+			Metadata: map[string]string{
+				"timestamp": nowRFC3339Nano(),
+			},
+		},
+		&errdetails.RequestInfo{
+			RequestId: meta.RequestID(ctx),
+		},
 	)
+	return ErrorUserAlreadyExists.Raise(cause, st)
 }
 
 var ErrorUserSuspended = ape.Declare("USER_SUSPENDED")
 
-func RaiseUserSuspended(cause error, userID uuid.UUID) error {
-	return ErrorUserSuspended.Raise(
-		cause,
-		status.New(codes.FailedPrecondition, fmt.Sprintf("user with id: %s is suspended", userID)),
+func RaiseUserSuspended(ctx context.Context, cause error, userID string) error {
+	st := status.New(codes.FailedPrecondition, fmt.Sprintf("user with id: %s is suspended", userID))
+	st, _ = st.WithDetails(
+		&errdetails.ErrorInfo{
+			Reason: ErrorUserSuspended.Error(),
+			Domain: constant.ServiceName,
+			Metadata: map[string]string{
+				"timestamp": nowRFC3339Nano(),
+			},
+		},
+		&errdetails.RequestInfo{
+			RequestId: meta.RequestID(ctx),
+		},
 	)
+	return ErrorUserSuspended.Raise(cause, st)
 }
 
 var ErrorInitiatorUserSuspended = ape.Declare("USER_INITIATOR_SUSPENDED")
 
-func RaiseInitiatorUserSuspended(cause error, userID uuid.UUID) error {
-	return ErrorInitiatorUserSuspended.Raise(
-		cause,
-		status.New(codes.PermissionDenied, fmt.Sprintf("initiator with id: %s is suspended", userID)),
+func RaiseInitiatorUserSuspended(ctx context.Context, cause error, userID string) error {
+	st := status.New(codes.PermissionDenied, fmt.Sprintf("initiator with id: %s is suspended", userID))
+	st, _ = st.WithDetails(
+		&errdetails.ErrorInfo{
+			Reason: ErrorInitiatorUserSuspended.Error(),
+			Domain: constant.ServiceName,
+			Metadata: map[string]string{
+				"timestamp": nowRFC3339Nano(),
+			},
+		},
+		&errdetails.RequestInfo{
+			RequestId: meta.RequestID(ctx),
+		},
 	)
+	return ErrorInitiatorUserSuspended.Raise(cause, st)
 }
 
 var ErrorUserRoleIsNotAllowed = ape.Declare("USER_ROLE_IS_NOT_ALLOWED")
 
-func RaiseUserRoleIsNotAllowed(cause error) error {
-	return ErrorUserRoleIsNotAllowed.Raise(
-		cause,
-		status.New(codes.PermissionDenied, cause.Error()),
+func RaiseUserRoleIsNotAllowed(ctx context.Context, cause error) error {
+	st := status.New(codes.PermissionDenied, cause.Error())
+	st, _ = st.WithDetails(
+		&errdetails.ErrorInfo{
+			Reason: ErrorUserRoleIsNotAllowed.Error(),
+			Domain: constant.ServiceName,
+			Metadata: map[string]string{
+				"timestamp": nowRFC3339Nano(),
+			},
+		},
+		&errdetails.RequestInfo{
+			RequestId: meta.RequestID(ctx),
+		},
 	)
+	return ErrorUserRoleIsNotAllowed.Raise(cause, st)
 }
 
 var ErrorInitiatorRoleIsLowThanTarget = ape.Declare("INITIATOR_ROLE_IS_LOWER_THAN_TARGET")
 
-func RaiseInitiatorRoleIsLowThanTarget(cause error) error {
-	return ErrorInitiatorRoleIsLowThanTarget.Raise(
-		cause,
-		status.New(codes.PermissionDenied, cause.Error()),
+func RaiseInitiatorRoleIsLowThanTarget(ctx context.Context, cause error) error {
+	st := status.New(codes.PermissionDenied, cause.Error())
+	st, _ = st.WithDetails(
+		&errdetails.ErrorInfo{
+			Reason: ErrorInitiatorRoleIsLowThanTarget.Error(),
+			Domain: constant.ServiceName,
+			Metadata: map[string]string{
+				"timestamp": nowRFC3339Nano(),
+			},
+		},
+		&errdetails.RequestInfo{
+			RequestId: meta.RequestID(ctx),
+		},
 	)
+	return ErrorInitiatorRoleIsLowThanTarget.Raise(cause, st)
 }
 
 var ErrorInitiatorNotFound = ape.Declare("INITIATOR_NOT_FOUND")
 
-func RaiseInitiatorNotFound(cause error, initiatorID uuid.UUID) error {
-	return ErrorInitiatorNotFound.Raise(
-		cause,
-		status.New(codes.NotFound, fmt.Sprintf("initiator with id: %s not found", initiatorID)),
+func RaiseInitiatorNotFound(ctx context.Context, cause error, initiatorID uuid.UUID) error {
+	st := status.New(codes.NotFound, fmt.Sprintf("initiator with id: %s not found", initiatorID))
+	st, _ = st.WithDetails(
+		&errdetails.ErrorInfo{
+			Reason: ErrorInitiatorNotFound.Error(),
+			Domain: constant.ServiceName,
+			Metadata: map[string]string{
+				"timestamp": nowRFC3339Nano(),
+			},
+		},
+		&errdetails.RequestInfo{
+			RequestId: meta.RequestID(ctx),
+		},
 	)
+	return ErrorInitiatorNotFound.Raise(cause, st)
 }

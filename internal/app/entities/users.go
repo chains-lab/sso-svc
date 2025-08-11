@@ -34,8 +34,6 @@ type usersQ interface {
 
 	Page(limit, offset uint64) dbx.UserQ
 	Transaction(fn func(ctx context.Context) error) error
-
-	//Drop(ctx context.Context) error
 }
 
 //type Broker interface {
@@ -102,9 +100,9 @@ func (a Users) Create(ctx context.Context, input UserCreateInput) error {
 	if txErr != nil {
 		switch {
 		case errors.Is(txErr, sql.ErrNoRows):
-			return errx.RaiseUserAlreadyExists(txErr, input.Email)
+			return errx.RaiseUserAlreadyExists(ctx, txErr, input.Email)
 		default:
-			return errx.RaiseInternal(txErr)
+			return errx.RaiseInternal(ctx, txErr)
 		}
 	}
 
@@ -117,11 +115,12 @@ func (a Users) GetByID(ctx context.Context, ID uuid.UUID) (models.User, error) {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return models.User{}, errx.RaiseUserNotFound(
+				ctx,
 				fmt.Errorf("user with ID '%s' not found cause: %s", ID, err),
-				ID,
+				ID.String(),
 			)
 		default:
-			return models.User{}, errx.RaiseInternal(err)
+			return models.User{}, errx.RaiseInternal(ctx, err)
 		}
 	}
 
@@ -140,6 +139,7 @@ func (a Users) GetInitiator(ctx context.Context, initiatorID uuid.UUID) (models.
 	initiator, err := a.GetByID(ctx, initiatorID)
 	if err != nil {
 		return models.User{}, errx.RaiseInitiatorNotFound(
+			ctx,
 			fmt.Errorf("initiator with ID '%s' not found cause: %s", initiatorID, err),
 			initiatorID,
 		)
@@ -153,12 +153,13 @@ func (a Users) GetByEmail(ctx context.Context, email string) (models.User, error
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return models.User{}, errx.RaiseUserNotFoundByEmail(
+			return models.User{}, errx.RaiseUserNotFound(
+				ctx,
 				fmt.Errorf("user with email '%s' not found cause: %s", email, err),
 				email,
 			)
 		default:
-			return models.User{}, errx.RaiseInternal(err)
+			return models.User{}, errx.RaiseInternal(ctx, err)
 		}
 	}
 
@@ -184,11 +185,12 @@ func (a Users) UpdateRole(ctx context.Context, ID uuid.UUID, role string) error 
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return errx.RaiseUserNotFound(
+				ctx,
 				fmt.Errorf("user with ID '%s' not found cause: %s", ID, err),
-				ID,
+				ID.String(),
 			)
 		default:
-			return errx.RaiseInternal(err)
+			return errx.RaiseInternal(ctx, err)
 		}
 	}
 
@@ -206,11 +208,12 @@ func (a Users) UpdateVerified(ctx context.Context, ID uuid.UUID, verified bool) 
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return errx.RaiseUserNotFound(
+				ctx,
 				fmt.Errorf("user with ID '%s' not found cause: %s", ID, err),
-				ID,
+				ID.String(),
 			)
 		default:
-			return errx.RaiseInternal(err)
+			return errx.RaiseInternal(ctx, err)
 		}
 	}
 
@@ -228,11 +231,12 @@ func (a Users) UpdateSuspended(ctx context.Context, ID uuid.UUID, suspended bool
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return errx.RaiseUserNotFound(
+				ctx,
 				fmt.Errorf("user with ID '%s' not found cause: %s", ID, err),
-				ID,
+				ID.String(),
 			)
 		default:
-			return errx.RaiseInternal(err)
+			return errx.RaiseInternal(ctx, err)
 		}
 	}
 
@@ -252,13 +256,15 @@ func (a Users) ComparisonRightsForAdmins(ctx context.Context, initiatorID, userI
 
 	if initiator.Suspended {
 		return initiator, user, errx.RaiseInitiatorUserSuspended(
+			ctx,
 			fmt.Errorf("initiator %s is suspended", initiatorID),
-			initiatorID,
+			initiatorID.String(),
 		)
 	}
 
 	if user.Role == roles.User {
 		return initiator, user, errx.RaiseUserRoleIsNotAllowed(
+			ctx,
 			fmt.Errorf("initiator Role %s is not allowed to interact wit with this user", initiator.Role),
 		)
 	}
@@ -270,6 +276,7 @@ func (a Users) ComparisonRightsForAdmins(ctx context.Context, initiatorID, userI
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
 			return initiator, user, errx.RaiseInitiatorRoleIsLowThanTarget(
+				ctx,
 				fmt.Errorf("initiator Role %s is not allowed to interact with this user", initiator.Role),
 			)
 		}

@@ -7,15 +7,15 @@ import (
 	"github.com/google/uuid"
 )
 
-func RequestID(ctx context.Context) uuid.UUID {
+func RequestID(ctx context.Context) string {
 	if ctx == nil {
-		return uuid.Nil
+		return "unknow"
 	}
 
 	requestID, ok := ctx.Value(interceptor.RequestIDCtxKey).(uuid.UUID)
 	if !ok {
-		return uuid.Nil
+		return "unknow"
 	}
 
-	return requestID
+	return requestID.String()
 }

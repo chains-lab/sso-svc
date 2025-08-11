@@ -48,20 +48,23 @@ func (a App) AdminCreateUser(ctx context.Context, initiatorID uuid.UUID, email s
 
 	if initiator.Role == roles.User {
 		return models.User{}, errx.RaiseUserRoleIsNotAllowed(
+			ctx,
 			fmt.Errorf("initiator with role %s is not allowed to create user", initiator.Role),
 		)
 	}
 
 	if initiator.Suspended {
 		return models.User{}, errx.RaiseInitiatorUserSuspended(
+			ctx,
 			fmt.Errorf("initiator %s is suspended", initiatorID),
-			initiatorID,
+			initiatorID.String(),
 		)
 	}
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, input.Role) < 1 {
 			return models.User{}, errx.RaiseInitiatorRoleIsLowThanTarget(
+				ctx,
 				fmt.Errorf("initiator Role %s is not allowed to create user Role %s", initiator.Role, input.Role),
 			)
 		}
@@ -73,12 +76,12 @@ func (a App) AdminCreateUser(ctx context.Context, initiatorID uuid.UUID, email s
 		Verified: input.Verified,
 	})
 	if err != nil {
-		return models.User{}, errx.RaiseInternal(err)
+		return models.User{}, errx.RaiseInternal(ctx, err)
 	}
 
 	user, err = a.users.GetByEmail(ctx, email)
 	if err != nil {
-		return models.User{}, errx.RaiseInternal(err)
+		return models.User{}, errx.RaiseInternal(ctx, err)
 	}
 
 	return user, nil

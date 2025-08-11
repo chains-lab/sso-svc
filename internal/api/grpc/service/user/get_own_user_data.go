@@ -15,14 +15,17 @@ func (s Service) GetOwnUserData(ctx context.Context, req *svc.GetOwnUserDataRequ
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to parse initiator ID")
 
-		return nil, problems.AppError(ctx, err)
+		return nil, problems.UnauthenticatedError(
+			ctx,
+			"invalid initiator ID format",
+		)
 	}
 
 	user, err := s.app.GetUserByID(ctx, initiatorID)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to get user by ID")
 
-		return nil, problems.AppError(ctx, err)
+		return nil, err
 	}
 
 	return responses.User(user), nil

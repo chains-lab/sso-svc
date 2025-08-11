@@ -57,7 +57,7 @@ func (s Service) GoogleCallback(
 	if err != nil {
 		logger.Log(ctx).WithError(err).Errorf("error logging in user with email %s", ui.Email)
 
-		return nil, problems.AppError(ctx, err)
+		return nil, err
 	}
 
 	return responses.TokensPair(tokensPair), nil

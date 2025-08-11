@@ -12,13 +12,10 @@ import (
 )
 
 func (s Service) GetUserByAdmin(ctx context.Context, req *svc.GetUserByAdminRequest) (*svc.User, error) {
-	if req.Initiator.Role == string(roles.Admin) || req.Initiator.Role == string(roles.SuperUser) {
+	if req.Initiator.Role == roles.Admin || req.Initiator.Role == roles.SuperUser {
 		logger.Log(ctx).Error("unauthorized access: only admin or super admin can get user by ID")
 
-		return nil, problems.PermissionDeniedError(
-			ctx,
-			"only admin or super admin can get user by ID",
-		)
+		return nil, problems.PermissionDeniedError(ctx, "only admins roles can get user by ID")
 	}
 
 	userID, err := uuid.Parse(req.UserId)
@@ -38,7 +35,7 @@ func (s Service) GetUserByAdmin(ctx context.Context, req *svc.GetUserByAdminRequ
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to get user")
 
-		return nil, problems.AppError(ctx, err)
+		return nil, err
 	}
 
 	return &svc.User{

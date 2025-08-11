@@ -15,13 +15,10 @@ import (
 )
 
 func (s Service) CreateUserByAdmin(ctx context.Context, req *svc.CreateUserByAdminRequest) (*svc.User, error) {
-	if req.Initiator.Role == string(roles.Admin) || req.Initiator.Role == string(roles.SuperUser) {
+	if req.Initiator.Role == roles.Admin || req.Initiator.Role == roles.SuperUser {
 		logger.Log(ctx).Error("unauthorized access: only admin or super admin can create user")
 
-		return nil, problems.PermissionDeniedError(
-			ctx,
-			"only admin or super admin can create user",
-		)
+		return nil, problems.PermissionDeniedError(ctx, "only admins roles create user")
 	}
 
 	userRole, err := roles.ParseRole(req.Role)
@@ -36,7 +33,7 @@ func (s Service) CreateUserByAdmin(ctx context.Context, req *svc.CreateUserByAdm
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to parse initiator ID")
 
-		return nil, problems.AppError(ctx, problems.UnauthenticatedError(ctx, "invalid format initiator ID"))
+		return nil, problems.UnauthenticatedError(ctx, "invalid initiator ID format")
 	}
 
 	user, err := s.app.AdminCreateUser(ctx, initiatorID, req.Role, app.AdminCreateUserInput{
@@ -46,7 +43,7 @@ func (s Service) CreateUserByAdmin(ctx context.Context, req *svc.CreateUserByAdm
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to create admin user")
 
-		return nil, problems.AppError(ctx, err)
+		return nil, err
 	}
 
 	logger.Log(ctx).Warnf("admin user %s created successfully", user.ID)

@@ -21,8 +21,9 @@ func (a App) Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, t
 
 	if user.Suspended {
 		return models.Session{}, models.TokensPair{}, errx.RaiseInitiatorUserSuspended(
+			ctx,
 			fmt.Errorf("initator user %s is suspended", user.ID),
-			user.ID,
+			user.ID.String(),
 		)
 	}
 
@@ -71,8 +72,9 @@ func (a App) Login(ctx context.Context, email string, client string) (models.Ses
 
 	if user.Suspended {
 		return models.Session{}, models.TokensPair{}, errx.RaiseInitiatorUserSuspended(
+			ctx,
 			fmt.Errorf("user %s is suspended", user.ID),
-			user.ID,
+			user.ID.String(),
 		)
 	}
 
@@ -86,16 +88,17 @@ func (a App) Login(ctx context.Context, email string, client string) (models.Ses
 }
 
 func (a App) GetUserSession(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error) {
-	session, appErr := a.sessions.Get(ctx, sessionID)
+	session, appErr := a.sessions.Get(ctx, sessionID, userID)
 	if appErr != nil {
 		return models.Session{}, appErr
 	}
 
 	if session.UserID != userID {
-		return models.Session{}, errx.RaiseSessionDoesNotBelongToUser(
+		return models.Session{}, errx.RaiseSessionNotFound(
+			ctx,
 			fmt.Errorf("session %s does not belong to user %s", session.ID, userID),
-			sessionID,
-			userID,
+			sessionID.String(),
+			userID.String(),
 		)
 	}
 
@@ -131,14 +134,15 @@ func (a App) DeleteUserSession(ctx context.Context, userID, sessionID uuid.UUID)
 	}
 
 	if session.UserID != userID {
-		return errx.RaiseSessionDoesNotBelongToUser(
+		return errx.RaiseSessionNotFound(
+			ctx,
 			fmt.Errorf("session %s does not belong to user %s", sessionID, userID),
-			sessionID,
-			userID,
+			sessionID.String(),
+			userID.String(),
 		)
 	}
 
-	appErr = a.sessions.Delete(ctx, session.ID)
+	appErr = a.sessions.Delete(ctx, session.ID, userID)
 	if appErr != nil {
 		return appErr
 	}
@@ -154,8 +158,9 @@ func (a App) DeleteUserSessions(ctx context.Context, userID uuid.UUID) error {
 
 	if user.Suspended {
 		return errx.RaiseInitiatorUserSuspended(
+			ctx,
 			fmt.Errorf("initiator user %s is suspended", user.ID),
-			user.ID,
+			user.ID.String(),
 		)
 	}
 
@@ -191,14 +196,15 @@ func (a App) AdminDeleteUserSession(ctx context.Context, initiatorID, userID, se
 	}
 
 	if session.UserID != userID {
-		return errx.RaiseSessionDoesNotBelongToUser(
+		return errx.RaiseSessionNotFound(
+			ctx,
 			fmt.Errorf("session %s does not belong to user %s", sessionID, userID),
-			sessionID,
-			userID,
+			sessionID.String(),
+			userID.String(),
 		)
 	}
 
-	appErr = a.sessions.Delete(ctx, session.ID)
+	appErr = a.sessions.Delete(ctx, session.ID, userID)
 	if appErr != nil {
 		return appErr
 	}

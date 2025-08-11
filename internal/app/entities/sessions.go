@@ -31,8 +31,6 @@ type sessionsQ interface {
 
 	Transaction(fn func(ctx context.Context) error) error
 	Page(limit, offset uint64) dbx.SessionsQ
-	//
-	//Drop(ctx context.Context) error
 }
 
 type JWTManager interface {
@@ -76,17 +74,17 @@ func (s Sessions) Create(ctx context.Context, user models.User, client string) (
 
 	refresh, err := s.jwt.GenerateRefresh(user.ID, id, user.Role)
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(err)
+		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(ctx, err)
 	}
 
 	refreshCrypto, err := s.jwt.EncryptRefresh(refresh)
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(err)
+		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(ctx, err)
 	}
 
 	access, err := s.jwt.GenerateAccess(user.ID, id, user.Role)
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(err)
+		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(ctx, err)
 	}
 
 	err = s.queries.New().Insert(ctx, dbx.SessionModel{
@@ -101,11 +99,12 @@ func (s Sessions) Create(ctx context.Context, user models.User, client string) (
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return models.Session{}, models.TokensPair{}, errx.RaiseUserNotFound(
+				ctx,
 				fmt.Errorf("failed to create session for user %s: %w", user.ID, err),
-				user.ID,
+				user.ID.String(),
 			)
 		default:
-			return models.Session{}, models.TokensPair{}, errx.RaiseInternal(err)
+			return models.Session{}, models.TokensPair{}, errx.RaiseInternal(ctx, err)
 		}
 	}
 
@@ -122,16 +121,19 @@ func (s Sessions) Create(ctx context.Context, user models.User, client string) (
 		}, nil
 }
 
-func (s Sessions) Get(ctx context.Context, sessionID uuid.UUID) (models.Session, error) {
-	session, err := s.queries.New().FilterID(sessionID).Get(ctx)
+func (s Sessions) Get(ctx context.Context, sessionID, userID uuid.UUID) (models.Session, error) {
+	session, err := s.queries.New().FilterID(sessionID).FilterUserID(userID).Get(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return models.Session{}, errx.RaiseSessionNotFound(
-				fmt.Errorf("session with id: %s not found", sessionID), sessionID,
+				ctx,
+				fmt.Errorf("session with id: %s not found for user %s", sessionID, userID),
+				sessionID.String(),
+				userID.String(),
 			)
 		default:
-			return models.Session{}, errx.RaiseInternal(err)
+			return models.Session{}, errx.RaiseInternal(ctx, err)
 		}
 	}
 
@@ -153,11 +155,10 @@ func (s Sessions) SelectByUserID(ctx context.Context, userID uuid.UUID, pag pagi
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, pagination.Response{}, errx.RaiseSessionsForUserNotFound(
-				fmt.Errorf("no sessions found for user %s", userID),
-				userID,
+				ctx, fmt.Errorf("no sessions found for user %s", userID),
 			)
 		default:
-			return nil, pagination.Response{}, errx.RaiseInternal(err)
+			return nil, pagination.Response{}, errx.RaiseInternal(ctx, err)
 		}
 	}
 
@@ -177,41 +178,43 @@ func (s Sessions) SelectByUserID(ctx context.Context, userID uuid.UUID, pag pagi
 }
 
 func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.User, client, token string) (models.Session, models.TokensPair, error) {
-	session, err := s.Get(ctx, sessionID)
+	session, err := s.Get(ctx, user.ID, sessionID)
 	if err != nil {
 		return models.Session{}, models.TokensPair{}, err
 	}
 
 	if session.Client != client {
 		return models.Session{}, models.TokensPair{}, errx.RaiseSessionClientMismatch(
+			ctx,
 			fmt.Errorf("client mismatch: expected"),
 		)
 	}
 
 	access, err := s.jwt.GenerateAccess(session.UserID, session.ID, user.Role)
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(err)
+		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(ctx, err)
 	}
 
 	oldRefresh, err := s.jwt.DecryptRefresh(session.Token)
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(err)
+		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(ctx, err)
 	}
 
 	if oldRefresh != token {
 		return models.Session{}, models.TokensPair{}, errx.RaiseSessionTokenMismatch(
+			ctx,
 			fmt.Errorf("refresh token mismatch"),
 		)
 	}
 
 	newRefresh, err := s.jwt.GenerateRefresh(session.UserID, session.ID, user.Role)
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(err)
+		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(ctx, err)
 	}
 
 	refreshCrypto, err := s.jwt.EncryptRefresh(newRefresh)
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(err)
+		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(ctx, err)
 	}
 
 	LastUsed := time.Now().UTC()
@@ -221,7 +224,7 @@ func (s Sessions) Refresh(ctx context.Context, sessionID uuid.UUID, user models.
 		LastUsed: LastUsed,
 	})
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(err)
+		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(ctx, err)
 	}
 
 	return models.Session{
@@ -243,27 +246,30 @@ func (s Sessions) Terminate(ctx context.Context, userID uuid.UUID) error {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return errx.RaiseUserNotFound(
+				ctx,
 				fmt.Errorf("no sessions found for user %s", userID),
-				userID,
+				userID.String(),
 			)
 		default:
-			return errx.RaiseInternal(err)
+			return errx.RaiseInternal(ctx, err)
 		}
 	}
 	return nil
 }
 
-func (s Sessions) Delete(ctx context.Context, sessionID uuid.UUID) error {
+func (s Sessions) Delete(ctx context.Context, sessionID, userID uuid.UUID) error {
 	err := s.queries.New().FilterID(sessionID).Delete(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return errx.RaiseSessionNotFound(
+				ctx,
 				fmt.Errorf("session with id: %s not found", sessionID),
-				sessionID,
+				sessionID.String(),
+				userID.String(),
 			)
 		default:
-			return errx.RaiseInternal(err)
+			return errx.RaiseInternal(ctx, err)
 		}
 	}
 	return nil

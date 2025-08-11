@@ -12,7 +12,6 @@ import (
 )
 
 func (s Service) DeleteOwnSession(ctx context.Context, req *svc.DeleteOwnSessionRequest) (*emptypb.Empty, error) {
-
 	sessionID, err := uuid.Parse(req.SessionId)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("invalid session ID format")
@@ -30,14 +29,14 @@ func (s Service) DeleteOwnSession(ctx context.Context, req *svc.DeleteOwnSession
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to parse initiator ID")
 
-		return nil, problems.AppError(ctx, problems.UnauthenticatedError(ctx, "invalid format initiator ID"))
+		return nil, err
 	}
 
 	err = s.app.DeleteUserSession(ctx, InitiatorID, sessionID)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to delete user session")
 
-		return nil, problems.AppError(ctx, err)
+		return nil, err
 	}
 
 	logger.Log(ctx).Infof("delete session %s for user %s", sessionID, InitiatorID)

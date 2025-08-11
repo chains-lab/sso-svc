@@ -17,27 +17,21 @@ func (s Service) RefreshToken(ctx context.Context, req *svc.RefreshTokenRequest)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Errorf("invalid initiator ID format: %s", req.Initiator.UserId)
 
-		return nil, problems.UnauthenticatedError(
-			ctx,
-			"invalid initiator ID format",
-		)
+		return nil, problems.UnauthenticatedError(ctx, "invalid initiator ID format")
 	}
 
 	sessionID, err := uuid.Parse(req.Initiator.SessionId)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Errorf("invalid session ID format: %s", req.Initiator.SessionId)
 
-		return nil, problems.UnauthenticatedError(
-			ctx,
-			"invalid session ID format",
-		)
+		return nil, problems.UnauthenticatedError(ctx, "invalid session ID format")
 	}
 
 	session, tokensPair, err := s.app.Refresh(ctx, initiatorID, sessionID, req.Agent, curToken)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to refresh session token")
 
-		return nil, problems.AppError(ctx, err)
+		return nil, err
 	}
 
 	logger.Log(ctx).Infof("Session %s refreshed successfully", session.ID)

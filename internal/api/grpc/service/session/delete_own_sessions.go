@@ -14,13 +14,15 @@ func (s Service) DeleteOwnSessions(ctx context.Context, req *svc.DeleteOwnSessio
 	InitiatorID, err := uuid.Parse(req.Initiator.UserId)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Errorf("invalid initiator ID format: %s", req.Initiator.UserId)
+
+		return nil, problems.UnauthenticatedError(ctx, "initiator ID format is invalid")
 	}
 
 	err = s.app.DeleteUserSessions(ctx, InitiatorID)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Errorf("failed to delete sessions for user %s", InitiatorID)
 
-		return nil, problems.AppError(ctx, err)
+		return nil, err
 	}
 
 	logger.Log(ctx).Warnf("User sessions deleted by admin %s", InitiatorID)

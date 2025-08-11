@@ -14,13 +14,10 @@ import (
 )
 
 func (s Service) GetSessionsByAdmin(ctx context.Context, req *svc.GetSessionsByAdminRequest) (*svc.SessionsList, error) {
-	if req.Initiator.Role == string(roles.Admin) || req.Initiator.Role == string(roles.SuperUser) {
+	if req.Initiator.Role == roles.Admin || req.Initiator.Role == roles.SuperUser {
 		logger.Log(ctx).Error("unauthorized access: only admin or super admin can create user")
 
-		return nil, problems.PermissionDeniedError(
-			ctx,
-			"only admin or super admin can create user",
-		)
+		return nil, problems.PermissionDeniedError(ctx, "only admin or super admin can get user sessions")
 	}
 
 	userId, err := uuid.Parse(req.UserId)
@@ -40,6 +37,11 @@ func (s Service) GetSessionsByAdmin(ctx context.Context, req *svc.GetSessionsByA
 		Page: req.Pagination.Page,
 		Size: req.Pagination.Size,
 	})
+	if err != nil {
+		logger.Log(ctx).WithError(err).Errorf("failed to get sessions for user %s", req.UserId)
+
+		return nil, err
+	}
 
 	return responses.SessionList(sessions, pag), nil
 }
