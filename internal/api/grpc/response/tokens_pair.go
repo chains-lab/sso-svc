@@ -1,7 +1,7 @@
 package response
 
 import (
-	sessionProto "github.com/chains-lab/sso-proto/gen/go/session"
+	sessionProto "github.com/chains-lab/sso-proto/gen/go/svc/session"
 	"github.com/chains-lab/sso-svc/internal/app/models"
 )
 

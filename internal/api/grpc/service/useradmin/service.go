@@ -1,4 +1,4 @@
-package admin
+package useradmin
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/chains-lab/gatekit/roles"
-	adminPoroto "github.com/chains-lab/sso-proto/gen/go/admin"
+	adminPoroto "github.com/chains-lab/sso-proto/gen/go/svc/useradmin"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/problem"
 	"github.com/chains-lab/sso-svc/internal/app"
 	"github.com/chains-lab/sso-svc/internal/app/models"
@@ -37,7 +37,7 @@ type Service struct {
 	app App
 	cfg config.Config
 
-	adminPoroto.UnimplementedAdminPanelServiceServer
+	adminPoroto.UnimplementedUserAdminServiceServer
 }
 
 func NewService(cfg config.Config, app *app.App) Service {

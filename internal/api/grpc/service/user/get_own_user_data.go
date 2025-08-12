@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 
-	svc "github.com/chains-lab/sso-proto/gen/go/user"
+	svc "github.com/chains-lab/sso-proto/gen/go/svc/user"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/problem"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/response"
 	"github.com/chains-lab/sso-svc/internal/logger"

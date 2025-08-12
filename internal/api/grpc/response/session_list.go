@@ -2,7 +2,7 @@ package response
 
 import (
 	pagProto "github.com/chains-lab/sso-proto/gen/go/common/pagination"
-	sessionProto "github.com/chains-lab/sso-proto/gen/go/session"
+	sessionProto "github.com/chains-lab/sso-proto/gen/go/svc/session"
 	"github.com/chains-lab/sso-svc/internal/app/models"
 	"github.com/chains-lab/sso-svc/internal/pagination"
 )

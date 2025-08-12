@@ -1,18 +1,19 @@
-package admin
+package sessionadmin
 
 import (
 	"context"
 
 	"github.com/chains-lab/gatekit/roles"
-	svc "github.com/chains-lab/sso-proto/gen/go/admin"
-	sesionProto "github.com/chains-lab/sso-proto/gen/go/session"
+	sesionProto "github.com/chains-lab/sso-proto/gen/go/svc/session"
+	svc "github.com/chains-lab/sso-proto/gen/go/svc/sessionadmin"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/guard"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/response"
+
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/chains-lab/sso-svc/internal/pagination"
 )
 
-func (s Service) GetSessionsByAdmin(ctx context.Context, req *svc.GetSessionsByAdminRequest) (*sesionProto.SessionsList, error) {
+func (s Service) GetSessions(ctx context.Context, req *svc.GetSessionsRequest) (*sesionProto.SessionsList, error) {
 	_, err := guard.AllowedRoles(ctx, req.Initiator, "get user sessions by admin",
 		roles.Admin, roles.SuperUser)
 	if err != nil {

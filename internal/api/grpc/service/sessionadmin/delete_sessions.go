@@ -1,16 +1,16 @@
-package admin
+package sessionadmin
 
 import (
 	"context"
 
 	"github.com/chains-lab/gatekit/roles"
-	svc "github.com/chains-lab/sso-proto/gen/go/admin"
+	svc "github.com/chains-lab/sso-proto/gen/go/svc/sessionadmin"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/guard"
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func (s Service) DeleteSessionsByAdmin(ctx context.Context, req *svc.DeleteSessionsByAdminRequest) (*emptypb.Empty, error) {
+func (s Service) DeleteSessions(ctx context.Context, req *svc.DeleteSessionsRequest) (*emptypb.Empty, error) {
 	initiatorID, err := guard.AllowedRoles(ctx, req.Initiator, "delete user sessions by admin",
 		roles.Admin, roles.SuperUser)
 	if err != nil {

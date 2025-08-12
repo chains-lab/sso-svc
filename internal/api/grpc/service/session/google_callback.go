@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	svc "github.com/chains-lab/sso-proto/gen/go/session"
+	svc "github.com/chains-lab/sso-proto/gen/go/svc/session"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/problem"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/response"
 	"github.com/chains-lab/sso-svc/internal/logger"

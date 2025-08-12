@@ -1,11 +1,11 @@
-package admin
+package useradmin
 
 import (
 	"context"
 
 	"github.com/chains-lab/gatekit/roles"
-	svc "github.com/chains-lab/sso-proto/gen/go/admin"
-	userProto "github.com/chains-lab/sso-proto/gen/go/user"
+	userProto "github.com/chains-lab/sso-proto/gen/go/svc/user"
+	svc "github.com/chains-lab/sso-proto/gen/go/svc/useradmin"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/guard"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/problem"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/response"
@@ -15,7 +15,7 @@ import (
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 )
 
-func (s Service) CreateUserByAdmin(ctx context.Context, req *svc.CreateUserByAdminRequest) (*userProto.User, error) {
+func (s Service) CreateUser(ctx context.Context, req *svc.CreateUserRequest) (*userProto.User, error) {
 	_, err := guard.AllowedRoles(ctx, req.Initiator, "create user by admin",
 		roles.Admin, roles.SuperUser)
 	if err != nil {

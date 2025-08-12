@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 
-	svc "github.com/chains-lab/sso-proto/gen/go/user"
+	svc "github.com/chains-lab/sso-proto/gen/go/svc/user"
 	"golang.org/x/oauth2"
 	"google.golang.org/protobuf/types/known/emptypb"
 )

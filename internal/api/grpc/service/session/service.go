@@ -3,7 +3,7 @@ package session
 import (
 	"context"
 
-	sessPoroto "github.com/chains-lab/sso-proto/gen/go/session"
+	sessPoroto "github.com/chains-lab/sso-proto/gen/go/svc/session"
 	"github.com/chains-lab/sso-svc/internal/app"
 	"github.com/chains-lab/sso-svc/internal/app/models"
 	"github.com/chains-lab/sso-svc/internal/config"

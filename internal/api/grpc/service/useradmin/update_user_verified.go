@@ -1,11 +1,11 @@
-package admin
+package useradmin
 
 import (
 	"context"
 
 	"github.com/chains-lab/gatekit/roles"
-	svc "github.com/chains-lab/sso-proto/gen/go/admin"
-	userProto "github.com/chains-lab/sso-proto/gen/go/user"
+	userProto "github.com/chains-lab/sso-proto/gen/go/svc/user"
+	svc "github.com/chains-lab/sso-proto/gen/go/svc/useradmin"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/guard"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/response"
 	"github.com/chains-lab/sso-svc/internal/logger"
