@@ -12,13 +12,11 @@ import (
 type ServerConfig struct {
 	Name string `mapstructure:"name"`
 	Port string `mapstructure:"port"`
+	Log  struct {
+		Level  string `mapstructure:"level"`
+		Format string `mapstructure:"format"`
+	} `mapstructure:"log"`
 }
-
-type LoggerConfig struct {
-	Level  string `mapstructure:"level"`
-	Format string `mapstructure:"format"`
-}
-
 type DatabaseConfig struct {
 	SQL struct {
 		URL string `mapstructure:"url"`
@@ -62,7 +60,6 @@ type SwaggerConfig struct {
 
 type Config struct {
 	Server   ServerConfig   `mapstructure:"server"`
-	Logger   LoggerConfig   `mapstructure:"logger"`
 	JWT      JWTConfig      `mapstructure:"jwt"`
 	OAuth    OAuthConfig    `mapstructure:"oauth"`
 	Kafka    KafkaConfig    `mapstructure:"kafka"`

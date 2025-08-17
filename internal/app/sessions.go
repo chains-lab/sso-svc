@@ -19,14 +19,6 @@ func (a App) Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, t
 		return models.Session{}, models.TokensPair{}, appErr
 	}
 
-	if user.Suspended {
-		return models.Session{}, models.TokensPair{}, errx.RaiseInitiatorUserSuspended(
-			ctx,
-			fmt.Errorf("initator user %s is suspended", user.ID),
-			user.ID.String(),
-		)
-	}
-
 	session, tokensPair, appErr := a.sessions.Refresh(ctx, sessionID, user, client, token)
 	if appErr != nil {
 		return models.Session{}, models.TokensPair{}, appErr
@@ -70,14 +62,6 @@ func (a App) Login(ctx context.Context, email string, client string) (models.Ses
 		return models.Session{}, models.TokensPair{}, err
 	}
 
-	if user.Suspended {
-		return models.Session{}, models.TokensPair{}, errx.RaiseInitiatorUserSuspended(
-			ctx,
-			fmt.Errorf("user %s is suspended", user.ID),
-			user.ID.String(),
-		)
-	}
-
 	session, tokensPair, err := a.sessions.Create(ctx, user, client)
 	if err != nil {
 
@@ -111,14 +95,6 @@ func (a App) GetUserSessions(ctx context.Context, userID uuid.UUID, pag paginati
 		return nil, pagination.Response{}, appErr
 	}
 
-	// Uncomment this if you want to check if the user is suspended before fetching sessions
-	//if user.Suspended {
-	//	return nil, pagination.Response{}, errx.RaiseUserSuspended(
-	//		fmt.Errorf("user %s is suspended", user.ID),
-	//		user.ID,
-	//	)
-	//}
-
 	sessions, pagResp, appErr := a.sessions.SelectByUserID(ctx, userID, pag)
 	if appErr != nil {
 		return nil, pagination.Response{}, appErr
@@ -151,17 +127,9 @@ func (a App) DeleteUserSession(ctx context.Context, userID, sessionID uuid.UUID)
 }
 
 func (a App) DeleteUserSessions(ctx context.Context, userID uuid.UUID) error {
-	user, appError := a.GetUserByID(ctx, userID)
+	_, appError := a.GetUserByID(ctx, userID)
 	if appError != nil {
 		return appError
-	}
-
-	if user.Suspended {
-		return errx.RaiseInitiatorUserSuspended(
-			ctx,
-			fmt.Errorf("initiator user %s is suspended", user.ID),
-			user.ID.String(),
-		)
 	}
 
 	appErr := a.sessions.Terminate(ctx, userID)

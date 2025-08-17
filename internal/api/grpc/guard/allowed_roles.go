@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/chains-lab/sso-proto/gen/go/common/userdata"
-	"github.com/chains-lab/sso-svc/internal/api/grpc/problem"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/problems"
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/google/uuid"
 )
@@ -15,7 +15,7 @@ func AllowedRoles(ctx context.Context, req *userdata.UserData, action string, al
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to parse initiator ID")
 
-		return uuid.Nil, problem.UnauthenticatedError(ctx, "invalid initiator ID format")
+		return uuid.Nil, problems.UnauthenticatedError(ctx, "invalid initiator ID format")
 	}
 
 	allow := false
@@ -32,7 +32,7 @@ func AllowedRoles(ctx context.Context, req *userdata.UserData, action string, al
 			req.UserId, req.Role, action, allowed,
 		)
 
-		return uuid.Nil, problem.PermissionDeniedError(ctx,
+		return uuid.Nil, problems.PermissionDeniedError(ctx,
 			fmt.Sprintf("initiator role can perform this '%s' action", action))
 	}
 	return initiatorID, nil

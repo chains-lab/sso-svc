@@ -7,7 +7,7 @@ import (
 	sesionProto "github.com/chains-lab/sso-proto/gen/go/svc/session"
 	svc "github.com/chains-lab/sso-proto/gen/go/svc/sessionadmin"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/guard"
-	"github.com/chains-lab/sso-svc/internal/api/grpc/problem"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/problems"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/response"
 
 	"github.com/google/uuid"
@@ -28,7 +28,7 @@ func (s Service) GetSession(ctx context.Context, req *svc.GetSessionRequest) (*s
 
 	sessionID, err := uuid.Parse(req.SessionId)
 	if err != nil {
-		return nil, problem.InvalidArgumentError(ctx, "invalid session ID format", &errdetails.BadRequest_FieldViolation{
+		return nil, problems.InvalidArgumentError(ctx, "invalid session ID format", &errdetails.BadRequest_FieldViolation{
 			Field:       "session_id",
 			Description: "invalid UUID format for session ID",
 		})

@@ -2,13 +2,39 @@ package logger
 
 import (
 	"context"
+	"errors"
+	"strings"
 
-	"github.com/chains-lab/sso-svc/internal/api/grpc/interceptor"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/meta"
+	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/chains-lab/svc-errors/ape"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
+
+func NewLogger(cfg config.Config) *logrus.Logger {
+	log := logrus.New()
+
+	lvl, err := logrus.ParseLevel(strings.ToLower(cfg.Server.Log.Level))
+	if err != nil {
+		log.Warnf("invalid log level '%s', defaulting to 'info'", cfg.Server.Log.Level)
+		lvl = logrus.InfoLevel
+	}
+	log.SetLevel(lvl)
+
+	switch strings.ToLower(cfg.Server.Log.Format) {
+	case "json":
+		log.SetFormatter(&logrus.JSONFormatter{})
+	case "text":
+		fallthrough
+	default:
+		log.SetFormatter(&logrus.TextFormatter{
+			FullTimestamp: true,
+		})
+	}
+
+	return log
+}
 
 func UnaryLogInterceptor(log Logger) grpc.UnaryServerInterceptor {
 	return func(
@@ -21,7 +47,7 @@ func UnaryLogInterceptor(log Logger) grpc.UnaryServerInterceptor {
 		// чтобы не потерять таймауты и другую информацию.
 		ctxWithLog := context.WithValue(
 			ctx,
-			interceptor.LogCtxKey,
+			meta.LogCtxKey,
 			log, // ваш интерфейс Logger
 		)
 
@@ -31,7 +57,7 @@ func UnaryLogInterceptor(log Logger) grpc.UnaryServerInterceptor {
 }
 
 func Log(ctx context.Context) Logger {
-	entry, ok := ctx.Value(interceptor.LogCtxKey).(Logger)
+	entry, ok := ctx.Value(meta.LogCtxKey).(Logger)
 	if !ok {
 		logrus.Info("no logger in context")
 
@@ -57,11 +83,11 @@ type logger struct {
 
 // WithError — ваш особый метод.
 func (l *logger) WithError(err error) *logrus.Entry {
-	ae := ape.Unwrap(err)
-	if ae != nil {
+	var ae *ape.Error
+	if errors.As(err, &ae) {
 		return l.Entry.WithError(ae.Unwrap())
 	}
-
+	// для “обычных” ошибок просто стандартный путь
 	return l.Entry.WithError(err)
 }
 

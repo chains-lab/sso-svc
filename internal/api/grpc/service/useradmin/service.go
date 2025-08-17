@@ -7,7 +7,7 @@ import (
 
 	"github.com/chains-lab/gatekit/roles"
 	adminPoroto "github.com/chains-lab/sso-proto/gen/go/svc/useradmin"
-	"github.com/chains-lab/sso-svc/internal/api/grpc/problem"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/problems"
 	"github.com/chains-lab/sso-svc/internal/app"
 	"github.com/chains-lab/sso-svc/internal/app/models"
 	"github.com/chains-lab/sso-svc/internal/config"
@@ -52,14 +52,14 @@ func (s Service) ComparisonRightsForAdmins(ctx context.Context, initiatorStrID, 
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("invalid initiator ID format")
 
-		return initiator, user, problem.UnauthenticatedError(ctx, fmt.Sprintf("invalid initiator ID format: %s", initiatorStrID))
+		return initiator, user, problems.UnauthenticatedError(ctx, fmt.Sprintf("invalid initiator ID format: %s", initiatorStrID))
 	}
 
 	userID, err := uuid.Parse(userStrID)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("invalid user ID format")
 
-		return initiator, user, problem.InvalidArgumentError(
+		return initiator, user, problems.InvalidArgumentError(
 			ctx,
 			fmt.Sprintf("invalid user ID format: %s", userStrID),
 			&errdetails.BadRequest_FieldViolation{
@@ -72,7 +72,7 @@ func (s Service) ComparisonRightsForAdmins(ctx context.Context, initiatorStrID, 
 	if err != nil {
 		switch {
 		case errors.Is(err, errx.ErrorUserNotFound):
-			return initiator, user, problem.UnauthenticatedError(ctx, fmt.Sprintf("initiator user %s not found", initiatorStrID))
+			return initiator, user, problems.UnauthenticatedError(ctx, fmt.Sprintf("initiator user %s not found", initiatorStrID))
 		}
 
 		return initiator, user, err

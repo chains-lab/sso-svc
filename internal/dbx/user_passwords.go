@@ -10,18 +10,15 @@ import (
 	"github.com/google/uuid"
 )
 
-const usersTable = "users"
+const usersPassTable = "user_passwords"
 
-type UserModel struct {
-	ID        uuid.UUID `db:"id"`
-	Role      string    `db:"role"`
-	Email     string    `db:"email"`
-	EmailVer  bool      `db:"email_verified"`
-	UpdatedAt time.Time `db:"updated_at"`
-	CreatedAt time.Time `db:"created_at"`
+type UserPasswordModel struct {
+	ID        uuid.UUID `db:"user_id"`
+	PassHash  string    `db:"password_hash"`
+	UpdatedAt string    `db:"updated_at"`
 }
 
-type UserQ struct {
+type UserPassQ struct {
 	db       *sql.DB
 	selector sq.SelectBuilder
 	inserter sq.InsertBuilder
@@ -30,35 +27,32 @@ type UserQ struct {
 	counter  sq.SelectBuilder
 }
 
-func NewUsers(db *sql.DB) UserQ {
+func NewUsersPass(db *sql.DB) UserPassQ {
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	return UserQ{
+	return UserPassQ{
 		db:       db,
-		selector: builder.Select("*").From(usersTable),
-		inserter: builder.Insert(usersTable),
-		updater:  builder.Update(usersTable),
-		deleter:  builder.Delete(usersTable),
-		counter:  builder.Select("COUNT(*) AS count").From(usersTable),
+		selector: builder.Select("*").From(usersPassTable),
+		inserter: builder.Insert(usersPassTable),
+		updater:  builder.Update(usersPassTable),
+		deleter:  builder.Delete(usersPassTable),
+		counter:  builder.Select("COUNT(*) AS count").From(usersPassTable),
 	}
 }
 
-func (q UserQ) New() UserQ {
-	return NewUsers(q.db)
+func (q UserPassQ) New() UserPassQ {
+	return NewUsersPass(q.db)
 }
 
-func (q UserQ) Insert(ctx context.Context, input UserModel) error {
+func (q UserPassQ) Insert(ctx context.Context, input UserPasswordModel) error {
 	values := map[string]interface{}{
-		"id":             input.ID,
-		"email":          input.Email,
-		"role":           input.Role,
-		"email_verified": input.EmailVer,
-		"updated_at":     input.UpdatedAt,
-		"created_at":     input.CreatedAt,
+		"user_id":       input.ID,
+		"password_hash": input.PassHash,
+		"updated_at":    input.UpdatedAt,
 	}
 
 	query, args, err := q.inserter.SetMap(values).ToSql()
 	if err != nil {
-		return fmt.Errorf("building insert query for users: %w", err)
+		return fmt.Errorf("building insert query for table %s: %w", usersPassTable, err)
 	}
 
 	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
@@ -70,19 +64,19 @@ func (q UserQ) Insert(ctx context.Context, input UserModel) error {
 	return err
 }
 
-type UserUpdateInput struct {
-	Verified *bool
+type UserPassUpdate struct {
+	PassHash *string
 }
 
-func (q UserQ) Update(ctx context.Context, input UserUpdateInput) error {
+func (q UserPassQ) Update(ctx context.Context, input UserPassUpdate) error {
 	values := map[string]interface{}{
-		"verified":   input.Verified,
-		"updated_at": time.Now().UTC(),
+		"password_hash": input.PassHash,
+		"updated_at":    time.Now().UTC(),
 	}
 
 	query, args, err := q.updater.SetMap(values).ToSql()
 	if err != nil {
-		return fmt.Errorf("building update query for users: %w", err)
+		return fmt.Errorf("building update query for table %s: %w", usersPassTable, err)
 	}
 
 	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
@@ -94,10 +88,10 @@ func (q UserQ) Update(ctx context.Context, input UserUpdateInput) error {
 	return err
 }
 
-func (q UserQ) Get(ctx context.Context) (UserModel, error) {
+func (q UserPassQ) Get(ctx context.Context) (UserPasswordModel, error) {
 	query, args, err := q.selector.Limit(1).ToSql()
 	if err != nil {
-		return UserModel{}, fmt.Errorf("building get query for users: %w", err)
+		return UserPasswordModel{}, fmt.Errorf("building get query for table %s: %w", usersPassTable, err)
 	}
 
 	var row *sql.Row
@@ -106,26 +100,23 @@ func (q UserQ) Get(ctx context.Context) (UserModel, error) {
 	} else {
 		row = q.db.QueryRowContext(ctx, query, args...)
 	}
-	var acc UserModel
+	var acc UserPasswordModel
 	err = row.Scan(
 		&acc.ID,
-		&acc.Email,
-		&acc.Role,
-		&acc.EmailVer,
+		&acc.PassHash,
 		&acc.UpdatedAt,
-		&acc.CreatedAt,
 	)
 	if err != nil {
-		return UserModel{}, err
+		return UserPasswordModel{}, err
 	}
 
 	return acc, nil
 }
 
-func (q UserQ) Select(ctx context.Context) ([]UserModel, error) {
+func (q UserPassQ) Select(ctx context.Context) ([]UserPasswordModel, error) {
 	query, args, err := q.selector.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("building select query for users: %w", err)
+		return nil, fmt.Errorf("building select query for table %s: %w", usersPassTable, err)
 	}
 
 	var rows *sql.Rows
@@ -140,19 +131,16 @@ func (q UserQ) Select(ctx context.Context) ([]UserModel, error) {
 	}
 	defer rows.Close()
 
-	var users []UserModel
+	var users []UserPasswordModel
 	for rows.Next() {
-		var acc UserModel
+		var acc UserPasswordModel
 		err := rows.Scan(
 			&acc.ID,
-			&acc.Email,
-			&acc.Role,
-			&acc.EmailVer,
+			&acc.PassHash,
 			&acc.UpdatedAt,
-			&acc.CreatedAt,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("scanning user: %w", err)
+			return nil, fmt.Errorf("scanning table %s: %w", usersPassTable, err)
 		}
 		users = append(users, acc)
 	}
@@ -160,10 +148,10 @@ func (q UserQ) Select(ctx context.Context) ([]UserModel, error) {
 	return users, nil
 }
 
-func (q UserQ) Delete(ctx context.Context) error {
+func (q UserPassQ) Delete(ctx context.Context) error {
 	query, args, err := q.deleter.ToSql()
 	if err != nil {
-		return fmt.Errorf("building delete query for users: %w", err)
+		return fmt.Errorf("building delete query for table %s: %w", usersPassTable, err)
 	}
 
 	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
@@ -178,7 +166,7 @@ func (q UserQ) Delete(ctx context.Context) error {
 	return nil
 }
 
-func (q UserQ) FilterID(id uuid.UUID) UserQ {
+func (q UserPassQ) FilterID(id uuid.UUID) UserPassQ {
 	q.selector = q.selector.Where(sq.Eq{"id": id})
 	q.counter = q.counter.Where(sq.Eq{"id": id})
 	q.deleter = q.deleter.Where(sq.Eq{"id": id})
@@ -187,37 +175,10 @@ func (q UserQ) FilterID(id uuid.UUID) UserQ {
 	return q
 }
 
-func (q UserQ) FilterEmail(email string) UserQ {
-	q.selector = q.selector.Where(sq.Eq{"email": email})
-	q.counter = q.counter.Where(sq.Eq{"email": email})
-	q.deleter = q.deleter.Where(sq.Eq{"email": email})
-	q.updater = q.updater.Where(sq.Eq{"email": email})
-
-	return q
-}
-
-func (q UserQ) FilterRole(role string) UserQ {
-	q.selector = q.selector.Where(sq.Eq{"role": role})
-	q.counter = q.counter.Where(sq.Eq{"role": role})
-	q.deleter = q.deleter.Where(sq.Eq{"role": role})
-	q.updater = q.updater.Where(sq.Eq{"role": role})
-
-	return q
-}
-
-func (q UserQ) FilterEmailVer(verified bool) UserQ {
-	q.selector = q.selector.Where(sq.Eq{"email_verified": verified})
-	q.counter = q.counter.Where(sq.Eq{"email_verified": verified})
-	q.deleter = q.deleter.Where(sq.Eq{"email_verified": verified})
-	q.updater = q.updater.Where(sq.Eq{"email_verified": verified})
-
-	return q
-}
-
-func (q UserQ) Count(ctx context.Context) (int, error) {
+func (q UserPassQ) Count(ctx context.Context) (int, error) {
 	query, args, err := q.counter.ToSql()
 	if err != nil {
-		return 0, fmt.Errorf("building count query for users: %w", err)
+		return 0, fmt.Errorf("building count query for %stable %s: %w", usersPassTable, err)
 	}
 
 	var count int64
@@ -233,14 +194,14 @@ func (q UserQ) Count(ctx context.Context) (int, error) {
 	return int(count), nil
 }
 
-func (q UserQ) Page(limit, offset uint64) UserQ {
+func (q UserPassQ) Page(limit, offset uint64) UserPassQ {
 	q.counter = q.counter.Limit(limit).Offset(offset)
 	q.selector = q.selector.Limit(limit).Offset(offset)
 
 	return q
 }
 
-func (q UserQ) Transaction(fn func(ctx context.Context) error) error {
+func (q UserPassQ) Transaction(fn func(ctx context.Context) error) error {
 	ctx := context.Background()
 
 	tx, err := q.db.BeginTx(ctx, nil)

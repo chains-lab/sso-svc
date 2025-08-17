@@ -2,26 +2,28 @@ package cli
 
 import (
 	"context"
-	"log"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 
 	"github.com/alecthomas/kingpin"
+	"github.com/chains-lab/sso-svc/internal/api"
 	"github.com/chains-lab/sso-svc/internal/app"
 	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/chains-lab/sso-svc/internal/dbx"
+	"github.com/chains-lab/sso-svc/internal/logger"
+	"github.com/sirupsen/logrus"
 )
 
 func Run(args []string) bool {
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatalf("failed to load config: %v", err)
+		logrus.Fatalf("failed to load config: %v", err)
 	}
 
-	logger := cfg.GetLogger()
-	logger.Info("Starting server...")
+	log := logger.NewLogger(cfg)
+	log.Info("Starting server...")
 
 	var (
 		service        = kingpin.New("sso-svc", "")
@@ -35,15 +37,15 @@ func Run(args []string) bool {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	application, err := app.NewApp(cfg, logger)
+	application, err := app.NewApp(cfg, log)
 	if err != nil {
-		logger.Fatalf("failed to create server: %v", err)
+		log.Fatalf("failed to create server: %v", err)
 		return false
 	}
 
 	cmd, err := service.Parse(args[1:])
 	if err != nil {
-		logger.WithError(err).Error("failed to parse arguments")
+		log.WithError(err).Error("failed to parse arguments")
 		return false
 	}
 
@@ -51,17 +53,17 @@ func Run(args []string) bool {
 
 	switch cmd {
 	case serviceCmd.FullCommand():
-		err = Start(ctx, cfg, logger, &application)
+		err = api.Start(ctx, cfg, log, &application)
 	case migrateUpCmd.FullCommand():
 		err = dbx.MigrateUp(cfg)
 	case migrateDownCmd.FullCommand():
 		err = dbx.MigrateDown(cfg)
 	default:
-		logger.Errorf("unknown command %s", cmd)
+		log.Errorf("unknown command %s", cmd)
 		return false
 	}
 	if err != nil {
-		logger.WithError(err).Error("failed to exec cmd")
+		log.WithError(err).Error("failed to exec cmd")
 		return false
 	}
 

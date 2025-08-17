@@ -3,7 +3,6 @@ package meta
 import (
 	"context"
 
-	"github.com/chains-lab/sso-svc/internal/api/grpc/interceptor"
 	"github.com/google/uuid"
 )
 
@@ -12,7 +11,7 @@ func RequestID(ctx context.Context) string {
 		return "unknow"
 	}
 
-	requestID, ok := ctx.Value(interceptor.RequestIDCtxKey).(uuid.UUID)
+	requestID, ok := ctx.Value(RequestIDCtxKey).(uuid.UUID)
 	if !ok {
 		return "unknow"
 	}

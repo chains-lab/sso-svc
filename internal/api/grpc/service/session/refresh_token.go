@@ -4,7 +4,7 @@ import (
 	"context"
 
 	svc "github.com/chains-lab/sso-proto/gen/go/svc/session"
-	"github.com/chains-lab/sso-svc/internal/api/grpc/problem"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/problems"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/response"
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/google/uuid"
@@ -17,14 +17,14 @@ func (s Service) RefreshToken(ctx context.Context, req *svc.RefreshTokenRequest)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Errorf("invalid initiator ID format: %s", req.Initiator.UserId)
 
-		return nil, problem.UnauthenticatedError(ctx, "invalid initiator ID format")
+		return nil, problems.UnauthenticatedError(ctx, "invalid initiator ID format")
 	}
 
 	sessionID, err := uuid.Parse(req.Initiator.SessionId)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Errorf("invalid session ID format: %s", req.Initiator.SessionId)
 
-		return nil, problem.UnauthenticatedError(ctx, "invalid session ID format")
+		return nil, problems.UnauthenticatedError(ctx, "invalid session ID format")
 	}
 
 	session, tokensPair, err := s.app.Refresh(ctx, initiatorID, sessionID, req.Agent, curToken)

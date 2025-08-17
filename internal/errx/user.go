@@ -68,44 +68,6 @@ func RaiseUserAlreadyExists(ctx context.Context, cause error, email string) erro
 	return ErrorUserAlreadyExists.Raise(cause, st)
 }
 
-var ErrorUserSuspended = ape.Declare("USER_SUSPENDED")
-
-func RaiseUserSuspended(ctx context.Context, cause error, userID string) error {
-	st := status.New(codes.FailedPrecondition, fmt.Sprintf("user with id: %s is suspended", userID))
-	st, _ = st.WithDetails(
-		&errdetails.ErrorInfo{
-			Reason: ErrorUserSuspended.Error(),
-			Domain: constant.ServiceName,
-			Metadata: map[string]string{
-				"timestamp": nowRFC3339Nano(),
-			},
-		},
-		&errdetails.RequestInfo{
-			RequestId: meta.RequestID(ctx),
-		},
-	)
-	return ErrorUserSuspended.Raise(cause, st)
-}
-
-var ErrorInitiatorUserSuspended = ape.Declare("USER_INITIATOR_SUSPENDED")
-
-func RaiseInitiatorUserSuspended(ctx context.Context, cause error, userID string) error {
-	st := status.New(codes.PermissionDenied, fmt.Sprintf("initiator with id: %s is suspended", userID))
-	st, _ = st.WithDetails(
-		&errdetails.ErrorInfo{
-			Reason: ErrorInitiatorUserSuspended.Error(),
-			Domain: constant.ServiceName,
-			Metadata: map[string]string{
-				"timestamp": nowRFC3339Nano(),
-			},
-		},
-		&errdetails.RequestInfo{
-			RequestId: meta.RequestID(ctx),
-		},
-	)
-	return ErrorInitiatorUserSuspended.Raise(cause, st)
-}
-
 var ErrorUserRoleIsNotAllowed = ape.Declare("USER_ROLE_IS_NOT_ALLOWED")
 
 func RaiseUserRoleIsNotAllowed(ctx context.Context, cause error) error {

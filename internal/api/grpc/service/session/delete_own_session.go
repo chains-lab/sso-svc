@@ -4,7 +4,7 @@ import (
 	"context"
 
 	svc "github.com/chains-lab/sso-proto/gen/go/svc/session"
-	"github.com/chains-lab/sso-svc/internal/api/grpc/problem"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/problems"
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -16,7 +16,7 @@ func (s Service) DeleteOwnSession(ctx context.Context, req *svc.DeleteOwnSession
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("invalid session ID format")
 
-		return nil, problem.InvalidArgumentError(
+		return nil, problems.InvalidArgumentError(
 			ctx,
 			"invalid session ID format",
 			&errdetails.BadRequest_FieldViolation{

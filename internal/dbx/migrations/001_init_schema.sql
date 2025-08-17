@@ -2,13 +2,18 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE users (
-    id           UUID         PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    email        TEXT         NOT NULL UNIQUE,
-    role         VARCHAR(255) DEFAULT 'user' NOT NULL,
-    verified     BOOLEAN      DEFAULT FALSE NOT NULL,
-    suspended    BOOLEAN      DEFAULT FALSE NOT NULL,
-    created_at   TIMESTAMP    NOT NULL DEFAULT now(),
-    updated_at   TIMESTAMP    NOT NULL DEFAULT now()
+    id             UUID         PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    role           VARCHAR(255) DEFAULT 'user' NOT NULL,
+    email          TEXT         NOT NULL UNIQUE,
+    email_verified BOOLEAN      DEFAULT FALSE NOT NULL,
+    updated_at     TIMESTAMP    NOT NULL DEFAULT now(),
+    created_at     TIMESTAMP    NOT NULL DEFAULT now()
+);
+
+CREATE TABLE user_passwords (
+    user_id        UUID         PRIMARY KEY NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    password_hash  TEXT         NOT NULL,
+    updated_at     TIMESTAMP    NOT NULL DEFAULT now()
 );
 
 CREATE TABLE sessions (

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	svc "github.com/chains-lab/sso-proto/gen/go/svc/user"
-	"github.com/chains-lab/sso-svc/internal/api/grpc/problem"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/problems"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/response"
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/google/uuid"
@@ -15,7 +15,7 @@ func (s Service) GetOwnUserData(ctx context.Context, req *svc.GetOwnUserDataRequ
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to parse initiator ID")
 
-		return nil, problem.UnauthenticatedError(
+		return nil, problems.UnauthenticatedError(
 			ctx,
 			"invalid initiator ID format",
 		)

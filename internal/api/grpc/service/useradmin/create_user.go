@@ -7,7 +7,7 @@ import (
 	userProto "github.com/chains-lab/sso-proto/gen/go/svc/user"
 	svc "github.com/chains-lab/sso-proto/gen/go/svc/useradmin"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/guard"
-	"github.com/chains-lab/sso-svc/internal/api/grpc/problem"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/problems"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/response"
 	"github.com/chains-lab/sso-svc/internal/app"
 	"github.com/chains-lab/sso-svc/internal/logger"
@@ -24,7 +24,7 @@ func (s Service) CreateUser(ctx context.Context, req *svc.CreateUserRequest) (*u
 
 	userRole, err := roles.ParseRole(req.Role)
 	if err != nil {
-		return nil, problem.InvalidArgumentError(ctx, "user role is not allowed", &errdetails.BadRequest_FieldViolation{
+		return nil, problems.InvalidArgumentError(ctx, "user role is not allowed", &errdetails.BadRequest_FieldViolation{
 			Field:       "role",
 			Description: "invalid role",
 		})
@@ -34,7 +34,7 @@ func (s Service) CreateUser(ctx context.Context, req *svc.CreateUserRequest) (*u
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to parse initiator ID")
 
-		return nil, problem.UnauthenticatedError(ctx, "invalid initiator ID format")
+		return nil, problems.UnauthenticatedError(ctx, "invalid initiator ID format")
 	}
 
 	user, err := s.app.AdminCreateUser(ctx, initiatorID, req.Role, app.AdminCreateUserInput{

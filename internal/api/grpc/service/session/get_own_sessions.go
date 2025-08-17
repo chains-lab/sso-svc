@@ -4,7 +4,7 @@ import (
 	"context"
 
 	svc "github.com/chains-lab/sso-proto/gen/go/svc/session"
-	"github.com/chains-lab/sso-svc/internal/api/grpc/problem"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/problems"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/response"
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/chains-lab/sso-svc/internal/pagination"
@@ -16,7 +16,7 @@ func (s Service) GetOwnSessions(ctx context.Context, req *svc.GetOwnSessionsRequ
 	if err != nil {
 		logger.Log(ctx).WithError(err).Errorf("invalid initiator ID format: %s", req.Initiator.UserId)
 
-		return nil, problem.UnauthenticatedError(ctx, "initiator ID format is invalid")
+		return nil, problems.UnauthenticatedError(ctx, "initiator ID format is invalid")
 	}
 
 	session, pag, err := s.app.GetUserSessions(ctx, InitiatorID, pagination.Request{

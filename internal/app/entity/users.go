@@ -28,7 +28,7 @@ type usersQ interface {
 	FilterID(id uuid.UUID) dbx.UserQ
 	FilterEmail(email string) dbx.UserQ
 	FilterRole(role string) dbx.UserQ
-	FilterVerified(verified bool) dbx.UserQ
+	FilterEmailVer(verified bool) dbx.UserQ
 
 	Update(ctx context.Context, input dbx.UserUpdateInput) error
 
