@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type UserData struct {
@@ -13,15 +15,15 @@ type UserData struct {
 	Role      string    `json:"role,omitempty"`
 }
 
-func User(ctx context.Context) *UserData {
+func User(ctx context.Context) (UserData, error) {
 	if ctx == nil {
-		return nil
+		return UserData{}, status.Error(codes.Internal, "internal server error")
 	}
 
 	userData, ok := ctx.Value(UserCtxKey).(UserData)
 	if !ok {
-		return nil
+		return UserData{}, status.Error(codes.Unauthenticated, "missing metadata in request")
 	}
 
-	return &userData
+	return userData, nil
 }

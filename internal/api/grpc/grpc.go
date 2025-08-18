@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"net"
 
+	adminProto "github.com/chains-lab/sso-proto/gen/go/svc/admin"
 	sessProto "github.com/chains-lab/sso-proto/gen/go/svc/session"
-	sessionAdminProto "github.com/chains-lab/sso-proto/gen/go/svc/sessionadmin"
 	userProto "github.com/chains-lab/sso-proto/gen/go/svc/user"
-	userAdminProto "github.com/chains-lab/sso-proto/gen/go/svc/useradmin"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/interceptor"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/service/admin"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/service/session"
+	"github.com/chains-lab/sso-svc/internal/api/grpc/service/user"
 	"github.com/chains-lab/sso-svc/internal/app"
 	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/chains-lab/sso-svc/internal/logger"
@@ -31,11 +33,10 @@ func Run(ctx context.Context, cfg config.Config, log logger.Logger, app *app.App
 		),
 	)
 
-	sessProto.RegisterSessionServiceServer(grpcServer, sessionsSVC)
-	userProto.RegisterUserServiceServer(grpcServer, userSVC)
-	sessionAdminProto.RegisterSessionAdminServiceServer(grpcServer, sessionsAminSVC)
-	userAdminProto.RegisterUserAdminServiceServer(grpcServer, userAdminSVC)
-
+	sessProto.RegisterUserServiceServer(grpcServer, session.NewService(cfg, app))
+	adminProto.RegisterAdminServiceServer(grpcServer, admin.NewService(cfg, app))
+	userProto.RegisterAuthServiceServer(grpcServer, user.NewService(cfg, app))
+	
 	// 3) Открываем слушатель
 	lis, err := net.Listen("tcp", cfg.Server.Port)
 	if err != nil {

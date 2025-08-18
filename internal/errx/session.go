@@ -7,6 +7,7 @@ import (
 	"github.com/chains-lab/sso-svc/internal/api/grpc/meta"
 	"github.com/chains-lab/sso-svc/internal/constant"
 	"github.com/chains-lab/svc-errors/ape"
+	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -14,7 +15,7 @@ import (
 
 var ErrorSessionNotFound = ape.Declare("SESSION_NOT_FOUND")
 
-func RaiseSessionNotFound(ctx context.Context, cause error, sessionID, userID string) error {
+func RaiseSessionNotFound(ctx context.Context, cause error, sessionID, userID uuid.UUID) error {
 	st := status.New(codes.NotFound, fmt.Sprintf("session not found for user %s with session ID: %s", userID, sessionID))
 	st, _ = st.WithDetails(
 		&errdetails.ErrorInfo{

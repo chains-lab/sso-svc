@@ -15,7 +15,7 @@ const usersPassTable = "user_passwords"
 type UserPasswordModel struct {
 	ID        uuid.UUID `db:"user_id"`
 	PassHash  string    `db:"password_hash"`
-	UpdatedAt string    `db:"updated_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 type UserPassQ struct {
@@ -64,14 +64,16 @@ func (q UserPassQ) Insert(ctx context.Context, input UserPasswordModel) error {
 	return err
 }
 
-type UserPassUpdate struct {
-	PassHash *string
-}
+func (q UserPassQ) Update(ctx context.Context, input map[string]any) error {
+	values := map[string]interface{}{}
 
-func (q UserPassQ) Update(ctx context.Context, input UserPassUpdate) error {
-	values := map[string]interface{}{
-		"password_hash": input.PassHash,
-		"updated_at":    time.Now().UTC(),
+	if passHash, ok := input["password_hash"]; ok {
+		values["password_hash"] = passHash
+	}
+	if updatedAt, ok := input["updated_at"]; ok {
+		values["updated_at"] = updatedAt
+	} else {
+		values["updated_at"] = time.Now().UTC()
 	}
 
 	query, args, err := q.updater.SetMap(values).ToSql()
@@ -167,21 +169,21 @@ func (q UserPassQ) Delete(ctx context.Context) error {
 }
 
 func (q UserPassQ) FilterID(id uuid.UUID) UserPassQ {
-	q.selector = q.selector.Where(sq.Eq{"id": id})
-	q.counter = q.counter.Where(sq.Eq{"id": id})
-	q.deleter = q.deleter.Where(sq.Eq{"id": id})
-	q.updater = q.updater.Where(sq.Eq{"id": id})
+	q.selector = q.selector.Where(sq.Eq{"user_id": id})
+	q.counter = q.counter.Where(sq.Eq{"user_id": id})
+	q.deleter = q.deleter.Where(sq.Eq{"user_id": id})
+	q.updater = q.updater.Where(sq.Eq{"user_id": id})
 
 	return q
 }
 
-func (q UserPassQ) Count(ctx context.Context) (int, error) {
+func (q UserPassQ) Count(ctx context.Context) (uint64, error) {
 	query, args, err := q.counter.ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("building count query for %stable %s: %w", usersPassTable, err)
 	}
 
-	var count int64
+	var count uint64
 	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
 		err = tx.QueryRowContext(ctx, query, args...).Scan(&count)
 	} else {
@@ -191,7 +193,7 @@ func (q UserPassQ) Count(ctx context.Context) (int, error) {
 		return 0, err
 	}
 
-	return int(count), nil
+	return count, nil
 }
 
 func (q UserPassQ) Page(limit, offset uint64) UserPassQ {

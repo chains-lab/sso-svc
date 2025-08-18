@@ -11,7 +11,6 @@ type Session struct {
 	UserID    uuid.UUID `json:"user_id"`
 	Client    string    `json:"client"`
 	IP        string    `json:"ip"`
-	Token     string    `json:"token"`
-	CreatedAt time.Time `json:"created_at"`
 	LastUsed  time.Time `json:"last_used"`
+	CreatedAt time.Time `json:"created_at"`
 }

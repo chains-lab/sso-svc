@@ -7,12 +7,11 @@ import (
 
 func User(user models.User) *userProto.User {
 	return &userProto.User{
-		Id:        user.ID.String(),
-		Email:     user.Email,
-		Role:      string(user.Role),
-		Verified:  user.Verified,
-		Suspended: user.Suspended,
-		CreatedAt: user.CreatedAt.String(),
-		UpdatedAt: user.UpdatedAt.String(),
+		Id:            user.ID.String(),
+		Role:          user.Role,
+		Email:         user.Email,
+		EmailVerified: user.EmailVer,
+		CreatedAt:     user.CreatedAt.String(),
+		UpdatedAt:     user.EmailUpdatedAt.String(),
 	}
 }

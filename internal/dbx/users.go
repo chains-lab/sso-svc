@@ -13,12 +13,12 @@ import (
 const usersTable = "users"
 
 type UserModel struct {
-	ID        uuid.UUID `db:"id"`
-	Role      string    `db:"role"`
-	Email     string    `db:"email"`
-	EmailVer  bool      `db:"email_verified"`
-	UpdatedAt time.Time `db:"updated_at"`
-	CreatedAt time.Time `db:"created_at"`
+	ID             uuid.UUID `db:"id"`
+	Role           string    `db:"role"`
+	Email          string    `db:"email"`
+	EmailVer       bool      `db:"email_verified"`
+	EmailUpdatedAt time.Time `db:"email_updated_at"`
+	CreatedAt      time.Time `db:"created_at"`
 }
 
 type UserQ struct {
@@ -48,12 +48,12 @@ func (q UserQ) New() UserQ {
 
 func (q UserQ) Insert(ctx context.Context, input UserModel) error {
 	values := map[string]interface{}{
-		"id":             input.ID,
-		"email":          input.Email,
-		"role":           input.Role,
-		"email_verified": input.EmailVer,
-		"updated_at":     input.UpdatedAt,
-		"created_at":     input.CreatedAt,
+		"id":               input.ID,
+		"email":            input.Email,
+		"role":             input.Role,
+		"email_verified":   input.EmailVer,
+		"email_updated_at": input.EmailUpdatedAt,
+		"created_at":       input.CreatedAt,
 	}
 
 	query, args, err := q.inserter.SetMap(values).ToSql()
@@ -74,10 +74,17 @@ type UserUpdateInput struct {
 	Verified *bool
 }
 
-func (q UserQ) Update(ctx context.Context, input UserUpdateInput) error {
-	values := map[string]interface{}{
-		"verified":   input.Verified,
-		"updated_at": time.Now().UTC(),
+func (q UserQ) Update(ctx context.Context, input map[string]any) error {
+	values := map[string]any{}
+
+	if email, ok := input["email"]; ok {
+		values["email"] = email
+	}
+	if emailVer, ok := input["email_verified"]; ok {
+		values["email_verified"] = emailVer
+	}
+	if EmailUpdatedAt, ok := input["email_updated_at"]; ok {
+		values["email_updated_at"] = EmailUpdatedAt
 	}
 
 	query, args, err := q.updater.SetMap(values).ToSql()
@@ -112,7 +119,7 @@ func (q UserQ) Get(ctx context.Context) (UserModel, error) {
 		&acc.Email,
 		&acc.Role,
 		&acc.EmailVer,
-		&acc.UpdatedAt,
+		&acc.EmailUpdatedAt,
 		&acc.CreatedAt,
 	)
 	if err != nil {
@@ -148,7 +155,7 @@ func (q UserQ) Select(ctx context.Context) ([]UserModel, error) {
 			&acc.Email,
 			&acc.Role,
 			&acc.EmailVer,
-			&acc.UpdatedAt,
+			&acc.EmailUpdatedAt,
 			&acc.CreatedAt,
 		)
 		if err != nil {
@@ -214,13 +221,13 @@ func (q UserQ) FilterEmailVer(verified bool) UserQ {
 	return q
 }
 
-func (q UserQ) Count(ctx context.Context) (int, error) {
+func (q UserQ) Count(ctx context.Context) (uint64, error) {
 	query, args, err := q.counter.ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("building count query for users: %w", err)
 	}
 
-	var count int64
+	var count uint64
 	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
 		err = tx.QueryRowContext(ctx, query, args...).Scan(&count)
 	} else {
@@ -230,7 +237,7 @@ func (q UserQ) Count(ctx context.Context) (int, error) {
 		return 0, err
 	}
 
-	return int(count), nil
+	return count, nil
 }
 
 func (q UserQ) Page(limit, offset uint64) UserQ {

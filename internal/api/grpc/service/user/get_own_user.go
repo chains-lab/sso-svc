@@ -1,16 +1,16 @@
-package session
+package user
 
 import (
 	"context"
 
-	svc "github.com/chains-lab/sso-proto/gen/go/svc/session"
+	userProto "github.com/chains-lab/sso-proto/gen/go/svc/user"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/meta"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/response"
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func (s Service) GetOwnSession(ctx context.Context, _ *emptypb.Empty) (*svc.Session, error) {
+func (s Service) GetOwnUserData(ctx context.Context, _ *emptypb.Empty) (*userProto.User, error) {
 	initiator, err := meta.User(ctx)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Error("failed to get user from context")
@@ -18,12 +18,12 @@ func (s Service) GetOwnSession(ctx context.Context, _ *emptypb.Empty) (*svc.Sess
 		return nil, err
 	}
 
-	session, err := s.app.GetUserSession(ctx, initiator.ID, initiator.SessionID)
+	resp, err := s.app.GetUserByID(ctx, initiator.ID)
 	if err != nil {
-		logger.Log(ctx).WithError(err).Error("failed to get user session")
+		logger.Log(ctx).WithError(err).Error("failed to get user by ID")
 
 		return nil, err
 	}
 
-	return response.Session(session), nil
+	return response.User(resp), nil
 }

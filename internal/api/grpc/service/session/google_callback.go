@@ -11,10 +11,7 @@ import (
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 )
 
-func (s Service) GoogleCallback(
-	ctx context.Context,
-	req *svc.GoogleCallbackRequest,
-) (*svc.TokensPair, error) {
+func (s Service) GoogleCallback(ctx context.Context, req *svc.GoogleCallbackRequest) (*svc.TokensPair, error) {
 	code := req.Code
 	if code == "" {
 		logger.Log(ctx).Error("missing code in Google callback request")
@@ -43,9 +40,9 @@ func (s Service) GoogleCallback(
 	defer httpResp.Body.Close()
 
 	var ui struct {
-		Email   string `json:"email"`
-		Name    string `json:"name"`
-		Picture string `json:"picture"`
+		Email  string `json:"email"`
+		Client string `json:"client"`
+		IP     string `json:"ip"`
 	}
 	if err := json.NewDecoder(httpResp.Body).Decode(&ui); err != nil {
 		logger.Log(ctx).WithError(err).Error("error decoding Google userinfo")
@@ -53,7 +50,7 @@ func (s Service) GoogleCallback(
 		return nil, problems.InternalError(ctx)
 	}
 
-	_, tokensPair, err := s.app.Login(ctx, ui.Email, "TODO")
+	_, tokensPair, err := s.app.GoogleLogin(ctx, ui.Email, ui.Client, ui.IP)
 	if err != nil {
 		logger.Log(ctx).WithError(err).Errorf("error logging in user with email %s", ui.Email)
 

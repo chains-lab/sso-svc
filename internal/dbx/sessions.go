@@ -12,11 +12,12 @@ import (
 
 const sessionsTable = "sessions"
 
-type SessionModel struct {
+type Session struct {
 	ID        uuid.UUID `db:"id"`
 	UserID    uuid.UUID `db:"user_id"`
 	Token     string    `db:"token"`
 	Client    string    `db:"client"`
+	IP        string    `db:"ip"`
 	LastUsed  time.Time `db:"last_used"`
 	CreatedAt time.Time `db:"created_at"`
 }
@@ -46,12 +47,13 @@ func (q SessionsQ) New() SessionsQ {
 	return NewSessions(q.db)
 }
 
-func (q SessionsQ) Insert(ctx context.Context, input SessionModel) error {
+func (q SessionsQ) Insert(ctx context.Context, input Session) error {
 	values := map[string]interface{}{
 		"id":         input.ID,
 		"user_id":    input.UserID,
 		"token":      input.Token,
 		"client":     input.Client,
+		"ip":         input.IP,
 		"last_used":  input.LastUsed,
 		"created_at": input.CreatedAt,
 	}
@@ -69,15 +71,17 @@ func (q SessionsQ) Insert(ctx context.Context, input SessionModel) error {
 	return err
 }
 
-type SessionUpdateInput struct {
-	Token    *string
-	LastUsed time.Time
-}
+func (q SessionsQ) Update(ctx context.Context, input map[string]any) error {
+	values := map[string]any{}
 
-func (q SessionsQ) Update(ctx context.Context, input SessionUpdateInput) error {
-	values := map[string]interface{}{
-		"token":     input.Token,
-		"last_used": input.LastUsed,
+	if token, ok := input["token"]; ok {
+		values["token"] = token
+	}
+	if lastUsed, ok := input["last_used"]; ok {
+		values["last_used"] = lastUsed
+	}
+	if IP, ok := input["ip"]; ok {
+		values["ip"] = IP
 	}
 
 	query, args, err := q.updater.SetMap(values).ToSql()
@@ -93,13 +97,13 @@ func (q SessionsQ) Update(ctx context.Context, input SessionUpdateInput) error {
 	return err
 }
 
-func (q SessionsQ) Get(ctx context.Context) (SessionModel, error) {
+func (q SessionsQ) Get(ctx context.Context) (Session, error) {
 	query, args, err := q.selector.Limit(1).ToSql()
 	if err != nil {
-		return SessionModel{}, fmt.Errorf("building get query for sessions: %w", err)
+		return Session{}, fmt.Errorf("building get query for sessions: %w", err)
 	}
 
-	var sess SessionModel
+	var sess Session
 	var row *sql.Row
 	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
 		row = tx.QueryRowContext(ctx, query, args...)
@@ -111,16 +115,17 @@ func (q SessionsQ) Get(ctx context.Context) (SessionModel, error) {
 		&sess.UserID,
 		&sess.Token,
 		&sess.Client,
+		&sess.IP,
 		&sess.CreatedAt,
 		&sess.LastUsed,
 	)
 	if err != nil {
-		return SessionModel{}, err
+		return Session{}, err
 	}
 	return sess, nil
 }
 
-func (q SessionsQ) Select(ctx context.Context) ([]SessionModel, error) {
+func (q SessionsQ) Select(ctx context.Context) ([]Session, error) {
 	query, args, err := q.selector.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("building select query for sessions: %w", err)
@@ -138,14 +143,15 @@ func (q SessionsQ) Select(ctx context.Context) ([]SessionModel, error) {
 	}
 	defer rows.Close()
 
-	var sessions []SessionModel
+	var sessions []Session
 	for rows.Next() {
-		var sess SessionModel
+		var sess Session
 		err = rows.Scan(
 			&sess.ID,
 			&sess.UserID,
 			&sess.Token,
 			&sess.Client,
+			&sess.IP,
 			&sess.CreatedAt,
 			&sess.LastUsed,
 		)
@@ -190,13 +196,13 @@ func (q SessionsQ) FilterUserID(userID uuid.UUID) SessionsQ {
 	return q
 }
 
-func (q SessionsQ) Count(ctx context.Context) (int, error) {
+func (q SessionsQ) Count(ctx context.Context) (uint64, error) {
 	query, args, err := q.counter.ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("building count query for sessions: %w", err)
 	}
 
-	var count int64
+	var count uint64
 	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
 		err = tx.QueryRowContext(ctx, query, args...).Scan(&count)
 	} else {
@@ -206,7 +212,7 @@ func (q SessionsQ) Count(ctx context.Context) (int, error) {
 		return 0, err
 	}
 
-	return int(count), nil
+	return count, nil
 }
 
 func (q SessionsQ) Page(limit, offset uint64) SessionsQ {
@@ -239,21 +245,3 @@ func (q SessionsQ) Transaction(fn func(ctx context.Context) error) error {
 
 	return nil
 }
-
-//func (q SessionsQ) Drop(ctx context.Context) error {
-//	query, args, err := q.deleter.ToSql()
-//	if err != nil {
-//		return fmt.Errorf("building drop query for users: %w", err)
-//	}
-//
-//	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
-//		_, err = tx.ExecContext(ctx, query, args...)
-//	} else {
-//		_, err = q.db.ExecContext(ctx, query, args...)
-//	}
-//	if err != nil {
-//		return fmt.Errorf("error executing drop query: %w", err)
-//	}
-//
-//	return nil
-//}

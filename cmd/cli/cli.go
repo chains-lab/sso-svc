@@ -37,7 +37,7 @@ func Run(args []string) bool {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	application, err := app.NewApp(cfg, log)
+	application, err := app.NewApp(cfg)
 	if err != nil {
 		log.Fatalf("failed to create server: %v", err)
 		return false

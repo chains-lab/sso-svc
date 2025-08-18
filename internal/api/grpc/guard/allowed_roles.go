@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chains-lab/sso-proto/gen/go/common/userdata"
 	"github.com/chains-lab/sso-svc/internal/api/grpc/problems"
 	"github.com/chains-lab/sso-svc/internal/logger"
 	"github.com/google/uuid"

@@ -1,10 +1,9 @@
 server:
   name: "sso-svc"
   port: ":8001"
-
-logger:
-  level: "debug"
-  format: "text"
+  log:
+    level: "debug"
+    format: "text"
 
 database:
   sql:

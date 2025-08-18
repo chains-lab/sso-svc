@@ -1,9 +1,9 @@
-package user
+package session
 
 import (
 	"context"
 
-	svc "github.com/chains-lab/sso-proto/gen/go/svc/user"
+	svc "github.com/chains-lab/sso-proto/gen/go/svc/session"
 	"golang.org/x/oauth2"
 	"google.golang.org/protobuf/types/known/emptypb"
 )

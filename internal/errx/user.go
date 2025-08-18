@@ -15,7 +15,7 @@ import (
 
 var ErrorUserNotFound = ape.Declare("USER_NOT_FOUND")
 
-func RaiseUserNotFound(ctx context.Context, cause error, userID string) error {
+func RaiseUserNotFound(ctx context.Context, cause error, userID uuid.UUID) error {
 	st := status.New(codes.NotFound, fmt.Sprintf("user with id: %s not found", userID))
 	st, _ = st.WithDetails(
 		&errdetails.ErrorInfo{
@@ -68,13 +68,51 @@ func RaiseUserAlreadyExists(ctx context.Context, cause error, email string) erro
 	return ErrorUserAlreadyExists.Raise(cause, st)
 }
 
-var ErrorUserRoleIsNotAllowed = ape.Declare("USER_ROLE_IS_NOT_ALLOWED")
+//var ErrorUserRoleIsNotAllowed = ape.Declare("USER_ROLE_IS_NOT_ALLOWED")
+//
+//func RaiseUserRoleIsNotAllowed(ctx context.Context, cause error) error {
+//	st := status.New(codes.PermissionDenied, cause.Error())
+//	st, _ = st.WithDetails(
+//		&errdetails.ErrorInfo{
+//			Reason: ErrorUserRoleIsNotAllowed.Error(),
+//			Domain: constant.ServiceName,
+//			Metadata: map[string]string{
+//				"timestamp": nowRFC3339Nano(),
+//			},
+//		},
+//		&errdetails.RequestInfo{
+//			RequestId: meta.RequestID(ctx),
+//		},
+//	)
+//	return ErrorUserRoleIsNotAllowed.Raise(cause, st)
+//}
+//
+//var ErrorInitiatorRoleIsLowThanTarget = ape.Declare("INITIATOR_ROLE_IS_LOWER_THAN_TARGET")
+//
+//func RaiseInitiatorRoleIsLowThanTarget(ctx context.Context, cause error) error {
+//	st := status.New(codes.PermissionDenied, cause.Error())
+//	st, _ = st.WithDetails(
+//		&errdetails.ErrorInfo{
+//			Reason: ErrorInitiatorRoleIsLowThanTarget.Error(),
+//			Domain: constant.ServiceName,
+//			Metadata: map[string]string{
+//				"timestamp": nowRFC3339Nano(),
+//			},
+//		},
+//		&errdetails.RequestInfo{
+//			RequestId: meta.RequestID(ctx),
+//		},
+//	)
+//	return ErrorInitiatorRoleIsLowThanTarget.Raise(cause, st)
+//}
 
-func RaiseUserRoleIsNotAllowed(ctx context.Context, cause error) error {
-	st := status.New(codes.PermissionDenied, cause.Error())
+var ErrorLoginIsIncorrect = ape.Declare("LOGIN_IS_INCORRECT")
+
+func RaiseLoginIsIncorrect(ctx context.Context, cause error) error {
+	st := status.New(codes.PermissionDenied, "login is incorrect")
 	st, _ = st.WithDetails(
 		&errdetails.ErrorInfo{
-			Reason: ErrorUserRoleIsNotAllowed.Error(),
+			Reason: ErrorLoginIsIncorrect.Error(),
 			Domain: constant.ServiceName,
 			Metadata: map[string]string{
 				"timestamp": nowRFC3339Nano(),
@@ -84,43 +122,6 @@ func RaiseUserRoleIsNotAllowed(ctx context.Context, cause error) error {
 			RequestId: meta.RequestID(ctx),
 		},
 	)
-	return ErrorUserRoleIsNotAllowed.Raise(cause, st)
-}
 
-var ErrorInitiatorRoleIsLowThanTarget = ape.Declare("INITIATOR_ROLE_IS_LOWER_THAN_TARGET")
-
-func RaiseInitiatorRoleIsLowThanTarget(ctx context.Context, cause error) error {
-	st := status.New(codes.PermissionDenied, cause.Error())
-	st, _ = st.WithDetails(
-		&errdetails.ErrorInfo{
-			Reason: ErrorInitiatorRoleIsLowThanTarget.Error(),
-			Domain: constant.ServiceName,
-			Metadata: map[string]string{
-				"timestamp": nowRFC3339Nano(),
-			},
-		},
-		&errdetails.RequestInfo{
-			RequestId: meta.RequestID(ctx),
-		},
-	)
-	return ErrorInitiatorRoleIsLowThanTarget.Raise(cause, st)
-}
-
-var ErrorInitiatorNotFound = ape.Declare("INITIATOR_NOT_FOUND")
-
-func RaiseInitiatorNotFound(ctx context.Context, cause error, initiatorID uuid.UUID) error {
-	st := status.New(codes.NotFound, fmt.Sprintf("initiator with id: %s not found", initiatorID))
-	st, _ = st.WithDetails(
-		&errdetails.ErrorInfo{
-			Reason: ErrorInitiatorNotFound.Error(),
-			Domain: constant.ServiceName,
-			Metadata: map[string]string{
-				"timestamp": nowRFC3339Nano(),
-			},
-		},
-		&errdetails.RequestInfo{
-			RequestId: meta.RequestID(ctx),
-		},
-	)
-	return ErrorInitiatorNotFound.Raise(cause, st)
+	return ErrorLoginIsIncorrect.Raise(cause, st)
 }

@@ -41,8 +41,7 @@ func RaiseInternal(ctx context.Context, cause error) error {
 var ErrorNoPermissions = ape.Declare("NO_PERMISSIONS")
 
 func RaiseNoPermissions(ctx context.Context, cause error) error {
-
-	res, _ := status.New(codes.PermissionDenied, "no permissions").WithDetails(
+	res, _ := status.New(codes.PermissionDenied, cause.Error()).WithDetails(
 		&errdetails.ErrorInfo{
 			Reason: ErrorNoPermissions.Error(),
 			Domain: constant.ServiceName,
@@ -56,6 +55,28 @@ func RaiseNoPermissions(ctx context.Context, cause error) error {
 	)
 
 	return ErrorNoPermissions.Raise(
+		cause,
+		res,
+	)
+}
+
+var ErrorUnauthenticated = ape.Declare("UNAUTHENTICATED")
+
+func RaiseUnauthenticated(ctx context.Context, cause error) error {
+	res, _ := status.New(codes.Unauthenticated, cause.Error()).WithDetails(
+		&errdetails.ErrorInfo{
+			Reason: ErrorUnauthenticated.Error(),
+			Domain: constant.ServiceName,
+			Metadata: map[string]string{
+				"timestamp": nowRFC3339Nano(),
+			},
+		},
+		&errdetails.RequestInfo{
+			RequestId: meta.RequestID(ctx),
+		},
+	)
+
+	return ErrorUnauthenticated.Raise(
 		cause,
 		res,
 	)
