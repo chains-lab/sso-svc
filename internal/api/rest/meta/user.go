@@ -2,10 +2,9 @@ package meta
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type UserData struct {
@@ -17,12 +16,12 @@ type UserData struct {
 
 func User(ctx context.Context) (UserData, error) {
 	if ctx == nil {
-		return UserData{}, status.Error(codes.Internal, "internal server error")
+		return UserData{}, fmt.Errorf("mising context")
 	}
 
 	userData, ok := ctx.Value(UserCtxKey).(UserData)
 	if !ok {
-		return UserData{}, status.Error(codes.Unauthenticated, "missing metadata in request")
+		return UserData{}, fmt.Errorf("mising context")
 	}
 
 	return userData, nil

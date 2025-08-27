@@ -23,6 +23,8 @@ type sessionsQ interface {
 	Page(limit, offset uint64) dbx.SessionsQ
 	Count(ctx context.Context) (uint64, error)
 
+	OrderCreatedAt(ascending bool) dbx.SessionsQ
+
 	Transaction(fn func(ctx context.Context) error) error
 }
 

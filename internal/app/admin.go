@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/chains-lab/gatekit/roles"
+	"github.com/chains-lab/pagi"
 	"github.com/chains-lab/sso-svc/internal/app/models"
 	"github.com/chains-lab/sso-svc/internal/errx"
-	"github.com/chains-lab/sso-svc/internal/pagination"
 	"github.com/google/uuid"
 )
 
@@ -23,9 +23,8 @@ func (a App) ComparisonRightsForAdmins(ctx context.Context, initiatorID, userID 
 	}
 
 	if user.Role == roles.User {
-		return initiator, user, errx.RaiseNoPermissions(
-			ctx,
-			fmt.Errorf("initiator Role %s is not allowed to interact wit with this user", initiator.Role),
+		return initiator, user, errx.ErrorNoPermissions.Raise(
+			fmt.Errorf("user %s is already a user", userID),
 		)
 	}
 
@@ -35,8 +34,7 @@ func (a App) ComparisonRightsForAdmins(ctx context.Context, initiatorID, userID 
 
 	if user.Role != roles.SuperUser {
 		if roles.CompareRolesUser(initiator.Role, user.Role) < 1 {
-			return initiator, user, errx.RaiseNoPermissions(
-				ctx,
+			return initiator, user, errx.ErrorNoPermissions.Raise(
 				fmt.Errorf("initiator Role %s is not allowed to interact with this user", initiator.Role),
 			)
 		}
@@ -70,11 +68,8 @@ func (a App) AdminDeleteUserSession(ctx context.Context, initiatorID, userID, se
 	}
 
 	if session.UserID != userID {
-		return errx.RaiseSessionNotFound(
-			ctx,
+		return errx.ErrorSessionNotFound.Raise(
 			fmt.Errorf("session %s does not belong to user %s", sessionID, userID),
-			sessionID,
-			userID,
 		)
 	}
 
@@ -93,8 +88,7 @@ func (a App) AdminGetUser(ctx context.Context, initiatorID, userID uuid.UUID) (m
 	}
 
 	if !(roles.CompareRolesUser(initiator.Role, user.Role) > 1 || initiator.Role == roles.SuperUser) {
-		return models.User{}, errx.RaiseNoPermissions(
-			ctx,
+		return models.User{}, errx.ErrorNoPermissions.Raise(
 			fmt.Errorf("initiator %s does not have permission to access user %s", initiator.ID, userID),
 		)
 	}
@@ -109,8 +103,7 @@ func (a App) AdminGetUserSession(ctx context.Context, initiatorID, userID, sessi
 	}
 
 	if !(roles.CompareRolesUser(initiator.Role, user.Role) > 1 || initiator.Role == roles.SuperUser) {
-		return models.Session{}, errx.RaiseNoPermissions(
-			ctx,
+		return models.Session{}, errx.ErrorNoPermissions.Raise(
 			fmt.Errorf("initiator %s does not have permission to access session of user %s", initiator.ID, userID),
 		)
 	}
@@ -123,18 +116,22 @@ func (a App) AdminGetUserSession(ctx context.Context, initiatorID, userID, sessi
 	return session, nil
 }
 
-func (a App) AdminGetUserSessions(ctx context.Context, initiatorID, userID uuid.UUID, pag pagination.Request) ([]models.Session, pagination.Response, error) {
+func (a App) AdminGetUserSessions(
+	ctx context.Context,
+	initiatorID, userID uuid.UUID,
+	pag pagi.Request,
+	sort []pagi.SortField,
+) ([]models.Session, pagi.Response, error) {
 	initiator, user, err := a.ComparisonRightsForAdmins(ctx, initiatorID, userID)
 	if err != nil {
-		return nil, pagination.Response{}, err
+		return nil, pagi.Response{}, err
 	}
 
 	if !(roles.CompareRolesUser(initiator.Role, user.Role) > 1 || initiator.Role == roles.SuperUser) {
-		return nil, pagination.Response{}, errx.RaiseNoPermissions(
-			ctx,
+		return nil, pagi.Response{}, errx.ErrorNoPermissions.Raise(
 			fmt.Errorf("initiator %s does not have permission to access sessions of user %s", initiator.ID, userID),
 		)
 	}
 
-	return a.GetUserSessions(ctx, userID, pag)
+	return a.GetUserSessions(ctx, userID, pag, sort)
 }

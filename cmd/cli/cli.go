@@ -12,7 +12,7 @@ import (
 	"github.com/chains-lab/sso-svc/internal/app"
 	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/chains-lab/sso-svc/internal/dbx"
-	"github.com/chains-lab/sso-svc/internal/logger"
+
 	"github.com/sirupsen/logrus"
 )
 

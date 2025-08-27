@@ -24,17 +24,20 @@ func (a App) GoogleLogin(ctx context.Context, email, client, ip string) (models.
 
 	access, err := a.jwt.GenerateAccess(user.ID, sessionID, user.Role)
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(ctx, err)
+		return models.Session{}, models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to generate access token for user %s: %w", user.ID, err))
 	}
 
 	refresh, err := a.jwt.GenerateRefresh(user.ID, sessionID, user.Role)
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(ctx, err)
+		return models.Session{}, models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to generate refresh token for user %s: %w", user.ID, err))
 	}
 
 	refreshCrypto, err := a.jwt.EncryptRefresh(refresh)
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(ctx, err)
+		return models.Session{}, models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to encrypt refresh token for user %s: %w", user.ID, err))
 	}
 
 	session := dbx.Session{
@@ -50,14 +53,10 @@ func (a App) GoogleLogin(ctx context.Context, email, client, ip string) (models.
 	err = a.sessionQ.New().Insert(ctx, session)
 	if err != nil {
 		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return models.Session{}, models.TokensPair{}, errx.RaiseUserNotFound(
-				ctx,
-				fmt.Errorf("failed to create session for user %s: %w", user.ID, err),
-				user.ID,
-			)
 		default:
-			return models.Session{}, models.TokensPair{}, errx.RaiseInternal(ctx, err)
+			return models.Session{}, models.TokensPair{}, errx.ErrorInternal.Raise(
+				fmt.Errorf("failed to create session for user %s: %w", user.ID, err),
+			)
 		}
 	}
 
@@ -84,37 +83,48 @@ func (a App) Login(ctx context.Context, email, password, client, ip string) (mod
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return models.Session{}, models.TokensPair{}, errx.RaiseUserNotFoundByEmail(ctx, err, email)
+			return models.Session{}, models.TokensPair{}, errx.ErrorUserNotFound.Raise(
+				fmt.Errorf("password for user %s not found: %w", user.ID, err),
+			)
 		default:
-			return models.Session{}, models.TokensPair{}, errx.RaiseInternal(ctx, err)
+			return models.Session{}, models.TokensPair{}, errx.ErrorInternal.Raise(
+				fmt.Errorf("getting password for user %s: %w", user.ID, err),
+			)
 		}
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(secret.PassHash), []byte(password)); err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			return models.Session{}, models.TokensPair{}, errx.RaiseLoginIsIncorrect(
-				ctx,
+			return models.Session{}, models.TokensPair{}, errx.ErrorInternal.Raise(
 				fmt.Errorf("invalid credentials for user %s: %w", user.ID, err),
 			)
 		}
-		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(ctx, err)
+		return models.Session{}, models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("comparing password hash for user %s: %w", user.ID, err),
+		)
 	}
 
 	sessionID := uuid.New()
 
 	access, err := a.jwt.GenerateAccess(user.ID, sessionID, user.Role)
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(ctx, err)
+		return models.Session{}, models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to generate access token for user %s: %w", user.ID, err),
+		)
 	}
 
 	refresh, err := a.jwt.GenerateRefresh(user.ID, sessionID, user.Role)
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(ctx, err)
+		return models.Session{}, models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to generate refresh token for user %s: %w", user.ID, err),
+		)
 	}
 
 	refreshCrypto, err := a.jwt.EncryptRefresh(refresh)
 	if err != nil {
-		return models.Session{}, models.TokensPair{}, errx.RaiseInternal(ctx, err)
+		return models.Session{}, models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to encrypt refresh token for user %s: %w", user.ID, err),
+		)
 	}
 
 	session := dbx.Session{
@@ -131,13 +141,13 @@ func (a App) Login(ctx context.Context, email, password, client, ip string) (mod
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return models.Session{}, models.TokensPair{}, errx.RaiseUserNotFound(
-				ctx,
+			return models.Session{}, models.TokensPair{}, errx.ErrorInternal.Raise(
 				fmt.Errorf("failed to create session for user %s: %w", user.ID, err),
-				user.ID,
 			)
 		default:
-			return models.Session{}, models.TokensPair{}, errx.RaiseInternal(ctx, err)
+			return models.Session{}, models.TokensPair{}, errx.ErrorInternal.Raise(
+				fmt.Errorf("creating session for user %s: %w", user.ID, err),
+			)
 		}
 	}
 

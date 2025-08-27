@@ -222,6 +222,15 @@ func (q SessionsQ) Page(limit, offset uint64) SessionsQ {
 	return q
 }
 
+func (q SessionsQ) OrderCreatedAt(ascending bool) SessionsQ {
+	if ascending {
+		q.selector = q.selector.OrderBy("created_at ASC")
+	} else {
+		q.selector = q.selector.OrderBy("created_at DESC")
+	}
+	return q
+}
+
 func (q SessionsQ) Transaction(fn func(ctx context.Context) error) error {
 	ctx := context.Background()
 
