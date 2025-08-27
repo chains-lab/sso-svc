@@ -5,99 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/chains-lab/pagi"
 	"github.com/chains-lab/sso-svc/internal/app/models"
+	"github.com/chains-lab/sso-svc/internal/constant"
 	"github.com/chains-lab/sso-svc/internal/errx"
 	"github.com/google/uuid"
 )
-
-func (a App) Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, ip, token string) (models.Session, models.TokensPair, error) {
-	user, appErr := a.GetUserByID(ctx, userID)
-	if appErr != nil {
-		return models.Session{}, models.TokensPair{}, appErr
-	}
-
-	session, err := a.sessionQ.New().FilterID(sessionID).FilterUserID(userID).Get(ctx)
-	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return models.Session{}, models.TokensPair{}, errx.ErrorSessionNotFound.Raise(
-				fmt.Errorf("session with id: %s not found for user %s", sessionID, userID),
-			)
-		default:
-			return models.Session{}, models.TokensPair{}, errx.ErrorInternal.Raise(
-				fmt.Errorf("failed to get session with id: %s for user %s: %w", sessionID, userID, err),
-			)
-		}
-	}
-
-	if session.Client != client {
-		return models.Session{}, models.TokensPair{}, errx.ErrorSessionClientMismatch.Raise(
-			fmt.Errorf("client mismatch"),
-		)
-	}
-
-	access, err := a.jwt.GenerateAccess(session.UserID, session.ID, user.Role)
-	if err != nil {
-		return models.Session{}, models.TokensPair{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to generate access token for user %s: %w", user.ID, err),
-		)
-	}
-
-	oldRefresh, err := a.jwt.DecryptRefresh(session.Token)
-	if err != nil {
-		return models.Session{}, models.TokensPair{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to decrypt refresh token for user %s: %w", user.ID, err),
-		)
-	}
-
-	if oldRefresh != token {
-		return models.Session{}, models.TokensPair{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("refresh token mismatch"),
-		)
-	}
-
-	newRefresh, err := a.jwt.GenerateRefresh(session.UserID, session.ID, user.Role)
-	if err != nil {
-		return models.Session{}, models.TokensPair{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to generate refresh token for user %s: %w", user.ID, err),
-		)
-	}
-
-	refreshCrypto, err := a.jwt.EncryptRefresh(newRefresh)
-	if err != nil {
-		return models.Session{}, models.TokensPair{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to encrypt refresh token for user %s: %w", user.ID, err),
-		)
-	}
-
-	LastUsed := time.Now().UTC()
-
-	err = a.sessionQ.New().FilterID(sessionID).Update(ctx, map[string]any{
-		"token":     refreshCrypto,
-		"ip":        ip,
-		"last_used": LastUsed,
-	})
-	if err != nil {
-		return models.Session{}, models.TokensPair{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to update session for user %s: %w", user.ID, err),
-		)
-	}
-
-	return models.Session{
-			ID:        session.ID,
-			UserID:    session.UserID,
-			Client:    session.Client,
-			IP:        ip,
-			LastUsed:  LastUsed,
-			CreatedAt: session.CreatedAt,
-		}, models.TokensPair{
-			Refresh: newRefresh,
-			Access:  access,
-		}, nil
-}
 
 func (a App) GetUserSession(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error) {
 	session, err := a.sessionQ.New().FilterID(sessionID).FilterUserID(userID).Get(ctx)
@@ -193,7 +107,18 @@ func (a App) GetUserSessions(
 }
 
 func (a App) DeleteUserSession(ctx context.Context, userID, sessionID uuid.UUID) error {
-	err := a.sessionQ.New().FilterID(sessionID).Delete(ctx)
+	user, err := a.GetInitiatorByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if user.Status == constant.UserStatusBlocked {
+		return errx.ErrorInitiatorIsBlocked.Raise(
+			fmt.Errorf("initator user %s is blocked", userID),
+		)
+	}
+
+	err = a.sessionQ.New().FilterID(sessionID).Delete(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -210,6 +135,17 @@ func (a App) DeleteUserSession(ctx context.Context, userID, sessionID uuid.UUID)
 }
 
 func (a App) DeleteUserSessions(ctx context.Context, userID uuid.UUID) error {
+	user, err := a.GetInitiatorByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if user.Status == constant.UserStatusBlocked {
+		return errx.ErrorInitiatorIsBlocked.Raise(
+			fmt.Errorf("initator user %s is blocked", userID),
+		)
+	}
+
 	err := a.sessionQ.New().FilterUserID(userID).Delete(ctx)
 	if err != nil {
 		switch {
@@ -223,5 +159,42 @@ func (a App) DeleteUserSessions(ctx context.Context, userID uuid.UUID) error {
 			)
 		}
 	}
+	return nil
+}
+
+func (a App) DeleteUser(ctx context.Context, userID uuid.UUID) error {
+	user, err := a.GetInitiatorByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if user.Status == constant.UserStatusBlocked {
+		return errx.ErrorInitiatorIsBlocked.Raise(
+			fmt.Errorf("initator user %s is blocked", userID),
+		)
+	}
+
+	txErr := a.usersQ.Transaction(func(ctx context.Context) error {
+		err = a.DeleteUserSessions(ctx, userID)
+		if err != nil {
+			return err
+		}
+
+		err = a.passQ.New().FilterID(user.ID).Delete(ctx)
+		if err != nil {
+			return errx.ErrorInternal.Raise(err)
+		}
+
+		err = a.usersQ.New().FilterID(user.ID).Delete(ctx)
+		if err != nil {
+			return errx.ErrorInternal.Raise(err)
+		}
+
+		return nil
+	})
+	if txErr != nil {
+		return txErr
+	}
+
 	return nil
 }

@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/alecthomas/kingpin"
+	"github.com/chains-lab/logium"
 	"github.com/chains-lab/sso-svc/internal/api"
 	"github.com/chains-lab/sso-svc/internal/app"
 	"github.com/chains-lab/sso-svc/internal/config"
@@ -22,7 +23,7 @@ func Run(args []string) bool {
 		logrus.Fatalf("failed to load config: %v", err)
 	}
 
-	log := logger.NewLogger(cfg)
+	log := logium.NewLogger(cfg.Server.Log.Level, cfg.Server.Log.Format)
 	log.Info("Starting server...")
 
 	var (
@@ -53,7 +54,7 @@ func Run(args []string) bool {
 
 	switch cmd {
 	case serviceCmd.FullCommand():
-		err = api.Start(ctx, cfg, log, &application)
+		api.Start(ctx, cfg, log, &wg, &application)
 	case migrateUpCmd.FullCommand():
 		err = dbx.MigrateUp(cfg)
 	case migrateDownCmd.FullCommand():

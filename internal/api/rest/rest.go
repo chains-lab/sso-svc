@@ -50,6 +50,56 @@ func (a *Rest) Run(ctx context.Context) {
 
 	a.router.Route("/sso-svc/", func(r chi.Router) {
 		r.Use(svcAuth)
+		r.Route("/v1", func(r chi.Router) {
+			r.Route("/users", func(r chi.Router) {
+				r.With(userAuth).Get("/own", a.handlers.GetOwnUser)
+
+				r.Post("/register", a.handlers.RegisterUser)
+				r.Post("/login", a.handlers.Login)
+				r.With(userAuth).Post("/logout", a.handlers.Logout)
+
+				r.With(userAuth).Route("sessions", func(r chi.Router) {
+					r.Get("/", a.handlers.SelectOwnSessions)
+					r.Delete("/", a.handlers.DeleteOwnSessions)
+
+					r.Route("/{session_id}", func(r chi.Router) {
+						r.Get("/", a.handlers.GetOwnSession)
+						r.Delete("/", a.handlers.DeleteOwnSession)
+					})
+				})
+			})
+
+			r.With(userAuth).Route("/admin", func(r chi.Router) {
+				r.Use(adminGrant)
+
+				r.Route("/users", func(r chi.Router) {
+					r.Post("/", a.handlers.CreateUser)
+
+					r.Route("/{user_id}", func(r chi.Router) {
+						r.Get("/", a.handlers.GetUser)
+
+						r.Route("/sessions", func(r chi.Router) {
+							r.Get("/", a.handlers.SelectSessions)
+							r.Delete("/", a.handlers.DeleteSessions)
+
+							r.Route("/{session_id}", func(r chi.Router) {
+								r.Get("/", a.handlers.GetSession)
+								r.Delete("/", a.handlers.DeleteSession)
+							})
+						})
+					})
+
+					r.Put("/block", a.handlers.BlockUser)
+					r.Put("/unblock", a.handlers.UnblockUser)
+				})
+
+				r.Route("/admins", func(r chi.Router) {
+					r.Route("/{user_id}", func(r chi.Router) {
+						r.Delete("/", a.handlers.DeleteAdmin)
+					})
+				})
+			})
+		})
 	})
 
 	a.Start(ctx)

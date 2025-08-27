@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/chains-lab/sso-svc/internal/api/rest"
 	"github.com/chains-lab/sso-svc/internal/app"
 	"github.com/chains-lab/sso-svc/internal/config"
 

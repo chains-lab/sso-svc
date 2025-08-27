@@ -43,6 +43,15 @@ func NewSessions(db *sql.DB) SessionsQ {
 	}
 }
 
+func (q SessionsQ) applyConditions(conditions ...sq.Sqlizer) SessionsQ {
+	q.selector = q.selector.Where(conditions)
+	q.counter = q.counter.Where(conditions)
+	q.updater = q.updater.Where(conditions)
+	q.deleter = q.deleter.Where(conditions)
+
+	return q
+}
+
 func (q SessionsQ) New() SessionsQ {
 	return NewSessions(q.db)
 }
@@ -179,19 +188,13 @@ func (q SessionsQ) Delete(ctx context.Context) error {
 }
 
 func (q SessionsQ) FilterID(id uuid.UUID) SessionsQ {
-	q.selector = q.selector.Where(sq.Eq{"id": id})
-	q.counter = q.counter.Where(sq.Eq{"id": id})
-	q.deleter = q.deleter.Where(sq.Eq{"id": id})
-	q.updater = q.updater.Where(sq.Eq{"id": id})
+	q.applyConditions(sq.Eq{"id": id})
 
 	return q
 }
 
 func (q SessionsQ) FilterUserID(userID uuid.UUID) SessionsQ {
-	q.selector = q.selector.Where(sq.Eq{"user_id": userID})
-	q.counter = q.counter.Where(sq.Eq{"user_id": userID})
-	q.deleter = q.deleter.Where(sq.Eq{"user_id": userID})
-	q.updater = q.updater.Where(sq.Eq{"user_id": userID})
+	q.applyConditions(sq.Eq{"user_id": userID})
 
 	return q
 }

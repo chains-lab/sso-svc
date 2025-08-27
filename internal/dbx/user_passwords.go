@@ -39,6 +39,15 @@ func NewUsersPass(db *sql.DB) UserPassQ {
 	}
 }
 
+func (q UserPassQ) applyConditions(conditions ...sq.Sqlizer) UserPassQ {
+	q.selector = q.selector.Where(conditions)
+	q.counter = q.counter.Where(conditions)
+	q.updater = q.updater.Where(conditions)
+	q.deleter = q.deleter.Where(conditions)
+
+	return q
+}
+
 func (q UserPassQ) New() UserPassQ {
 	return NewUsersPass(q.db)
 }
@@ -168,11 +177,8 @@ func (q UserPassQ) Delete(ctx context.Context) error {
 	return nil
 }
 
-func (q UserPassQ) FilterID(id uuid.UUID) UserPassQ {
-	q.selector = q.selector.Where(sq.Eq{"user_id": id})
-	q.counter = q.counter.Where(sq.Eq{"user_id": id})
-	q.deleter = q.deleter.Where(sq.Eq{"user_id": id})
-	q.updater = q.updater.Where(sq.Eq{"user_id": id})
+func (q UserPassQ) FilterID(userID uuid.UUID) UserPassQ {
+	q.applyConditions(sq.Eq{"user_id": userID})
 
 	return q
 }

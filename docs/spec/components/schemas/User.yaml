@@ -1,0 +1,39 @@
+type: object
+required:
+  - data
+properties:
+  data:
+    type: object
+    required:
+      - id
+      - type
+      - attributes
+    properties:
+      id:
+        type: string
+        description: "User ID"
+      type:
+        type: string
+        enum: [ user ]
+      attributes:
+        type: object
+        required:
+          - email
+          - role
+          - created_at
+          - updated_at
+        properties:
+          email:
+            type: string
+            description: "Email"
+          role:
+            type: string
+            description: "Role"
+          created_at:
+            type: string
+            format: date-time
+            description: "Created At"
+          updated_at:
+            type: string
+            format: date-time
+            description: "Updated At"

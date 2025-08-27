@@ -1,6 +1,9 @@
 package models
 
+import "github.com/google/uuid"
+
 type TokensPair struct {
-	Refresh string `json:"refresh"`
-	Access  string `json:"access"`
+	SessionID uuid.UUID `json:"session_id"`
+	Refresh   string    `json:"refresh"`
+	Access    string    `json:"access"`
 }

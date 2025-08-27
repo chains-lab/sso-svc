@@ -1,0 +1,373 @@
+openapi: 3.0.0
+info:
+  description: SSO REST API for Cifra app
+  title: Cifra SSO REST API
+  version: 0.0.1
+servers:
+- url: /
+paths:
+  /test:
+    post:
+      description: Test
+      responses:
+        "201":
+          description: successfully
+      tags:
+      - Test
+components:
+  schemas:
+    Login:
+      properties:
+        data:
+          $ref: '#/components/schemas/Login_data'
+      required:
+      - data
+      type: object
+    RegisterUser:
+      properties:
+        data:
+          $ref: '#/components/schemas/RegisterUser_data'
+      required:
+      - data
+      type: object
+    RegisterAdmin:
+      properties:
+        data:
+          $ref: '#/components/schemas/RegisterAdmin_data'
+      required:
+      - data
+      type: object
+    RefreshSession:
+      properties:
+        data:
+          $ref: '#/components/schemas/RefreshSession_data'
+      required:
+      - data
+      type: object
+    TokensPair:
+      properties:
+        data:
+          $ref: '#/components/schemas/TokensPair_data'
+      required:
+      - data
+      type: object
+    AccessToken:
+      properties:
+        data:
+          $ref: '#/components/schemas/AccessToken_data'
+      required:
+      - data
+      type: object
+    UserSession:
+      properties:
+        data:
+          $ref: '#/components/schemas/UserSessionData'
+      required:
+      - data
+      type: object
+    UserSessionData:
+      properties:
+        id:
+          description: session id
+          format: uuid
+          type: string
+        type:
+          enum:
+          - user_session
+          type: string
+        attributes:
+          $ref: '#/components/schemas/UserSessionAttributes'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+    UserSessionAttributes:
+      properties:
+        user_id:
+          description: user id
+          format: uuid
+          type: string
+        client:
+          description: client name and version
+          type: string
+        ip:
+          description: IP address
+          type: string
+        created_at:
+          description: session creation date
+          format: date-time
+          type: string
+        last_used:
+          description: last used date
+          format: date-time
+          type: string
+      required:
+      - client
+      - created_at
+      - ip
+      - last_used
+      - user_id
+      type: object
+    UserSessionsCollection:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/UserSessionData'
+          type: array
+        links:
+          $ref: '#/components/schemas/PaginationData'
+      required:
+      - data
+      - links
+      type: object
+    User:
+      properties:
+        data:
+          $ref: '#/components/schemas/User_data'
+      required:
+      - data
+      type: object
+    Errors:
+      description: Standard JSON:API error
+      properties:
+        errors:
+          description: Non empty array of errors occurred during request processing
+          items:
+            $ref: '#/components/schemas/Errors_errors_inner'
+          type: array
+      required:
+      - errors
+      type: object
+    PaginationData:
+      properties:
+        page_number:
+          description: The current page number.
+          example: 1
+          format: int64
+          type: integer
+        page_size:
+          description: The number of items per page.
+          example: 10
+          format: int64
+          type: integer
+        total_items:
+          description: The total number of items available.
+          example: 100
+          format: int64
+          type: integer
+      required:
+      - page_number
+      - page_size
+      - total_items
+      type: object
+    Login_data_attributes:
+      properties:
+        email:
+          description: The user's email address.
+          example: example1312@gmail.com
+          format: email
+          type: string
+        password:
+          description: The user's password.
+          example: StrongP@ssw0rd!
+          format: password
+          type: string
+      required:
+      - email
+      - password
+      type: object
+    Login_data:
+      properties:
+        type:
+          enum:
+          - registration
+          type: string
+        attributes:
+          $ref: '#/components/schemas/Login_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
+    RegisterUser_data_attributes:
+      properties:
+        email:
+          description: The user's email address.
+          example: example1312@gmail.com
+          format: email
+          type: string
+        password:
+          description: The user's password.
+          example: StrongP@ssw0rd!
+          format: password
+          type: string
+        confirm_password:
+          description: Confirmation of the user's password. Must match the password
+            field.
+          example: StrongP@ssw0rd!
+          format: password
+          type: string
+      required:
+      - confirm_password
+      - email
+      - password
+      type: object
+    RegisterUser_data:
+      properties:
+        type:
+          enum:
+          - register_user
+          type: string
+        attributes:
+          $ref: '#/components/schemas/RegisterUser_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
+    RegisterAdmin_data:
+      properties:
+        type:
+          enum:
+          - register_admin
+          type: string
+        attributes:
+          $ref: '#/components/schemas/RegisterUser_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
+    RefreshSession_data_attributes:
+      properties:
+        refresh_token:
+          description: The refresh token to generate a new access token.
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+          type: string
+      required:
+      - refresh_token
+      type: object
+    RefreshSession_data:
+      properties:
+        type:
+          enum:
+          - refresh_session
+          type: string
+        attributes:
+          $ref: '#/components/schemas/RefreshSession_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
+    TokensPair_data_attributes:
+      properties:
+        access_token:
+          description: Access Token
+          type: string
+        refresh_token:
+          description: Refresh Token
+          type: string
+      required:
+      - access_token
+      - refresh_token
+      type: object
+    TokensPair_data:
+      properties:
+        id:
+          description: user id
+          format: uuid
+          type: string
+        type:
+          enum:
+          - tokens_pair
+          type: string
+        attributes:
+          $ref: '#/components/schemas/TokensPair_data_attributes'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+    AccessToken_data_attributes:
+      properties:
+        refresh_token:
+          description: The access token to generate a new access token.
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+          type: string
+      required:
+      - access_token
+      type: object
+    AccessToken_data:
+      properties:
+        type:
+          enum:
+          - access_token
+          type: string
+        attributes:
+          $ref: '#/components/schemas/AccessToken_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
+    User_data_attributes:
+      properties:
+        email:
+          description: Email
+          type: string
+        role:
+          description: Role
+          type: string
+        created_at:
+          description: Created At
+          format: date-time
+          type: string
+        updated_at:
+          description: Updated At
+          format: date-time
+          type: string
+      required:
+      - created_at
+      - email
+      - role
+      - updated_at
+      type: object
+    User_data:
+      properties:
+        id:
+          description: User ID
+          type: string
+        type:
+          enum:
+          - user
+          type: string
+        attributes:
+          $ref: '#/components/schemas/User_data_attributes'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+    Errors_errors_inner:
+      properties:
+        title:
+          description: "Title is a short, human-readable summary of the problem"
+          example: Bad Request
+          type: string
+        detail:
+          description: Detail is a human-readable explanation specific to this occurrence
+            of the problem
+          example: Request body was expected
+          type: string
+        status:
+          description: Status is the HTTP status code applicable to this problem
+          enum:
+          - 400
+          - 401
+          - 403
+          - 404
+          - 409
+          - 500
+          example: 400
+          type: integer
+      required:
+      - status
+      - title
+      type: object

@@ -12,6 +12,7 @@ require (
 	github.com/chains-lab/logium v0.1.1
 	github.com/chains-lab/pagi v0.1.4
 	github.com/go-chi/chi/v5 v5.2.2
+	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/google/jsonapi v1.0.0
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
