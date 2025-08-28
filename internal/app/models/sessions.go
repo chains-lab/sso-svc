@@ -9,6 +9,7 @@ import (
 type Session struct {
 	ID        uuid.UUID `json:"id"`
 	UserID    uuid.UUID `json:"user_id"`
+	Token     string    `json:"token"`
 	Client    string    `json:"client"`
 	IP        string    `json:"ip"`
 	LastUsed  time.Time `json:"last_used"`

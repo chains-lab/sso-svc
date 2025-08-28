@@ -15,7 +15,7 @@ var Migrations embed.FS
 
 type txKeyType struct{}
 
-var txKey = txKeyType{}
+var TxKey = txKeyType{}
 
 var migrations = &migrate.EmbedFileSystemMigrationSource{
 	FileSystem: Migrations,

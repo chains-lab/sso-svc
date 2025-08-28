@@ -5,16 +5,77 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/chains-lab/pagi"
+	"github.com/chains-lab/sso-svc/internal/app/jwtmanager"
 	"github.com/chains-lab/sso-svc/internal/app/models"
 	"github.com/chains-lab/sso-svc/internal/dbx"
 	"github.com/chains-lab/sso-svc/internal/errx"
 	"github.com/google/uuid"
 )
 
+type JWTManager interface {
+	EncryptAccess(token string) (string, error)
+	EncryptRefresh(token string) (string, error)
+	DecryptRefresh(encryptedToken string) (string, error)
+
+	GenerateAccess(
+		userID uuid.UUID,
+		sessionID uuid.UUID,
+		idn string,
+	) (string, error)
+
+	GenerateRefresh(
+		userID uuid.UUID,
+		sessionID uuid.UUID,
+		idn string,
+	) (string, error)
+}
+
 type Session struct {
 	query dbx.SessionsQ
+
+	jwt JWTManager
+}
+
+func CreateSession(pg *sql.DB, manager jwtmanager.Manager) Session {
+	return Session{
+		query: dbx.NewSessions(pg),
+		jwt:   manager,
+	}
+}
+
+func (a Session) CreateUserSession(
+	ctx context.Context,
+	userID uuid.UUID,
+	token, client, ip string,
+) (models.Session, error) {
+	session := dbx.Session{
+		ID:        uuid.New(),
+		UserID:    userID,
+		Client:    client,
+		Token:     token,
+		IP:        ip,
+		LastUsed:  time.Now().UTC(),
+		CreatedAt: time.Now().UTC(),
+	}
+
+	err := a.query.Insert(ctx, session)
+	if err != nil {
+		return models.Session{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to create session for user %s: %w", userID, err),
+		)
+	}
+
+	return models.Session{
+		ID:        session.ID,
+		UserID:    session.UserID,
+		Client:    session.Client,
+		IP:        session.IP,
+		LastUsed:  session.LastUsed,
+		CreatedAt: session.CreatedAt,
+	}, nil
 }
 
 func (a Session) GetUserSession(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error) {
@@ -42,7 +103,7 @@ func (a Session) GetUserSession(ctx context.Context, userID, sessionID uuid.UUID
 	}, nil
 }
 
-func (a Session) GetUserSessions(
+func (a Session) SelectUserSessions(
 	ctx context.Context,
 	userID uuid.UUID,
 	pag pagi.Request,
@@ -142,4 +203,34 @@ func (a Session) DeleteUserSessions(ctx context.Context, userID uuid.UUID) error
 		}
 	}
 	return nil
+}
+
+func (a Session) UpdateToken(ctx context.Context, userID, sessionID uuid.UUID, role, ip string) (string, error) {
+	newRefresh, err := a.jwt.GenerateRefresh(userID, sessionID, role)
+	if err != nil {
+		return "", errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to generate refresh token for user %s: %w", userID, err),
+		)
+	}
+
+	refreshCrypto, err := a.jwt.EncryptRefresh(newRefresh)
+	if err != nil {
+		return "", errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to encrypt refresh token for user %s: %w", userID, err),
+		)
+	}
+
+	LastUsed := time.Now().UTC()
+
+	err = a.query.New().FilterID(sessionID).Update(ctx, map[string]any{
+		"token":     refreshCrypto,
+		"ip":        ip,
+		"last_used": LastUsed,
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	return newRefresh, nil
 }

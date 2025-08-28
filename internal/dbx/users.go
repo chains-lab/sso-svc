@@ -72,7 +72,7 @@ func (q UserQ) Insert(ctx context.Context, input UserModel) error {
 		return fmt.Errorf("building insert query for users: %w", err)
 	}
 
-	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
+	if tx, ok := ctx.Value(TxKey).(*sql.Tx); ok {
 		_, err = tx.ExecContext(ctx, query, args...)
 	} else {
 		_, err = q.db.ExecContext(ctx, query, args...)
@@ -106,7 +106,7 @@ func (q UserQ) Update(ctx context.Context, input map[string]any) error {
 		return fmt.Errorf("building update query for users: %w", err)
 	}
 
-	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
+	if tx, ok := ctx.Value(TxKey).(*sql.Tx); ok {
 		_, err = tx.ExecContext(ctx, query, args...)
 	} else {
 		_, err = q.db.ExecContext(ctx, query, args...)
@@ -122,7 +122,7 @@ func (q UserQ) Get(ctx context.Context) (UserModel, error) {
 	}
 
 	var row *sql.Row
-	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
+	if tx, ok := ctx.Value(TxKey).(*sql.Tx); ok {
 		row = tx.QueryRowContext(ctx, query, args...)
 	} else {
 		row = q.db.QueryRowContext(ctx, query, args...)
@@ -152,7 +152,7 @@ func (q UserQ) Select(ctx context.Context) ([]UserModel, error) {
 
 	var rows *sql.Rows
 
-	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
+	if tx, ok := ctx.Value(TxKey).(*sql.Tx); ok {
 		rows, err = tx.QueryContext(ctx, query, args...)
 	} else {
 		rows, err = q.db.QueryContext(ctx, query, args...)
@@ -189,7 +189,7 @@ func (q UserQ) Delete(ctx context.Context) error {
 		return fmt.Errorf("building delete query for users: %w", err)
 	}
 
-	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
+	if tx, ok := ctx.Value(TxKey).(*sql.Tx); ok {
 		_, err = tx.ExecContext(ctx, query, args...)
 	} else {
 		_, err = q.db.ExecContext(ctx, query, args...)
@@ -237,7 +237,7 @@ func (q UserQ) Count(ctx context.Context) (uint64, error) {
 	}
 
 	var count uint64
-	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
+	if tx, ok := ctx.Value(TxKey).(*sql.Tx); ok {
 		err = tx.QueryRowContext(ctx, query, args...).Scan(&count)
 	} else {
 		err = q.db.QueryRowContext(ctx, query, args...).Scan(&count)
@@ -264,7 +264,7 @@ func (q UserQ) Transaction(fn func(ctx context.Context) error) error {
 		return fmt.Errorf("failed to start transaction: %w", err)
 	}
 
-	ctxWithTx := context.WithValue(ctx, txKey, tx)
+	ctxWithTx := context.WithValue(ctx, TxKey, tx)
 
 	if err := fn(ctxWithTx); err != nil {
 		if rbErr := tx.Rollback(); rbErr != nil {

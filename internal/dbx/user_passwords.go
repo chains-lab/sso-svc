@@ -64,7 +64,7 @@ func (q UserPassQ) Insert(ctx context.Context, input UserPasswordModel) error {
 		return fmt.Errorf("building insert query for table %s: %w", usersPassTable, err)
 	}
 
-	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
+	if tx, ok := ctx.Value(TxKey).(*sql.Tx); ok {
 		_, err = tx.ExecContext(ctx, query, args...)
 	} else {
 		_, err = q.db.ExecContext(ctx, query, args...)
@@ -90,7 +90,7 @@ func (q UserPassQ) Update(ctx context.Context, input map[string]any) error {
 		return fmt.Errorf("building update query for table %s: %w", usersPassTable, err)
 	}
 
-	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
+	if tx, ok := ctx.Value(TxKey).(*sql.Tx); ok {
 		_, err = tx.ExecContext(ctx, query, args...)
 	} else {
 		_, err = q.db.ExecContext(ctx, query, args...)
@@ -106,7 +106,7 @@ func (q UserPassQ) Get(ctx context.Context) (UserPasswordModel, error) {
 	}
 
 	var row *sql.Row
-	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
+	if tx, ok := ctx.Value(TxKey).(*sql.Tx); ok {
 		row = tx.QueryRowContext(ctx, query, args...)
 	} else {
 		row = q.db.QueryRowContext(ctx, query, args...)
@@ -132,7 +132,7 @@ func (q UserPassQ) Select(ctx context.Context) ([]UserPasswordModel, error) {
 
 	var rows *sql.Rows
 
-	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
+	if tx, ok := ctx.Value(TxKey).(*sql.Tx); ok {
 		rows, err = tx.QueryContext(ctx, query, args...)
 	} else {
 		rows, err = q.db.QueryContext(ctx, query, args...)
@@ -165,7 +165,7 @@ func (q UserPassQ) Delete(ctx context.Context) error {
 		return fmt.Errorf("building delete query for table %s: %w", usersPassTable, err)
 	}
 
-	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
+	if tx, ok := ctx.Value(TxKey).(*sql.Tx); ok {
 		_, err = tx.ExecContext(ctx, query, args...)
 	} else {
 		_, err = q.db.ExecContext(ctx, query, args...)
@@ -190,7 +190,7 @@ func (q UserPassQ) Count(ctx context.Context) (uint64, error) {
 	}
 
 	var count uint64
-	if tx, ok := ctx.Value(txKey).(*sql.Tx); ok {
+	if tx, ok := ctx.Value(TxKey).(*sql.Tx); ok {
 		err = tx.QueryRowContext(ctx, query, args...).Scan(&count)
 	} else {
 		err = q.db.QueryRowContext(ctx, query, args...).Scan(&count)
@@ -217,7 +217,7 @@ func (q UserPassQ) Transaction(fn func(ctx context.Context) error) error {
 		return fmt.Errorf("failed to start transaction: %w", err)
 	}
 
-	ctxWithTx := context.WithValue(ctx, txKey, tx)
+	ctxWithTx := context.WithValue(ctx, TxKey, tx)
 
 	if err := fn(ctxWithTx); err != nil {
 		if rbErr := tx.Rollback(); rbErr != nil {

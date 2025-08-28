@@ -2,199 +2,48 @@ package app
 
 import (
 	"context"
-	"database/sql"
-	"errors"
-	"fmt"
 
 	"github.com/chains-lab/pagi"
 	"github.com/chains-lab/sso-svc/internal/app/models"
-	"github.com/chains-lab/sso-svc/internal/constant"
-	"github.com/chains-lab/sso-svc/internal/errx"
 	"github.com/google/uuid"
 )
 
-func (a App) GetUserSession(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error) {
-	session, err := a.sessionQ.New().FilterID(sessionID).FilterUserID(userID).Get(ctx)
-	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return models.Session{}, errx.ErrorSessionNotFound.Raise(
-				fmt.Errorf("session with id: %s not found for user %s", sessionID, userID),
-			)
-		default:
-			return models.Session{}, errx.ErrorInternal.Raise(
-				fmt.Errorf("failed to get session with id: %s for user %s: %w", sessionID, userID, err),
-			)
-		}
-	}
-
-	return models.Session{
-		ID:        session.ID,
-		UserID:    session.UserID,
-		Client:    session.Client,
-		IP:        session.IP,
-		LastUsed:  session.LastUsed,
-		CreatedAt: session.CreatedAt,
-	}, nil
+func (a App) GetOwnSession(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error) {
+	return a.session.GetUserSession(ctx, userID, sessionID)
 }
 
-func (a App) GetUserSessions(
+func (a App) SelectOwnSessions(
 	ctx context.Context,
 	userID uuid.UUID,
 	pag pagi.Request,
 	sort []pagi.SortField,
 ) ([]models.Session, pagi.Response, error) {
-	if pag.Page == 0 {
-		pag.Page = 1
-	}
-	if pag.Size == 0 {
-		pag.Size = 20
-	}
-	if pag.Size > 100 {
-		pag.Size = 100
-	}
-
-	limit := pag.Size + 1
-	offset := (pag.Page - 1) * pag.Size
-
-	query := a.sessionQ.New().Page(limit, offset).FilterUserID(userID)
-
-	for _, sort := range sort {
-		ascend := sort.Ascend
-		switch sort.Field {
-		case "created_at":
-			query = query.OrderCreatedAt(ascend)
-		default:
-
-		}
-	}
-
-	total, err := query.Count(ctx)
-	if err != nil {
-		return nil, pagi.Response{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("counting rows: %w", err),
-		)
-	}
-
-	rows, err := query.Select(ctx)
-	if err != nil {
-		return nil, pagi.Response{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("selecting rows: %w", err),
-		)
-	}
-
-	if len(rows) == int(limit) {
-		rows = rows[:pag.Size]
-	}
-
-	result := make([]models.Session, len(rows))
-	for i, session := range rows {
-		result[i] = models.Session{
-			ID:        session.ID,
-			UserID:    session.UserID,
-			Client:    session.Client,
-			IP:        session.IP,
-			LastUsed:  session.LastUsed,
-			CreatedAt: session.CreatedAt,
-		}
-	}
-
-	return result, pagi.Response{
-		Page:  pag.Page,
-		Size:  pag.Size,
-		Total: total,
-	}, nil
+	return a.session.SelectUserSessions(ctx, userID, pag, sort)
 }
 
-func (a App) DeleteUserSession(ctx context.Context, userID, sessionID uuid.UUID) error {
-	user, err := a.GetInitiatorByID(ctx, userID)
+func (a App) DeleteOwnSession(ctx context.Context, userID, sessionID uuid.UUID) error {
+	_, err := a.users.GetInitiatorByID(ctx, userID)
 	if err != nil {
 		return err
 	}
 
-	if user.Status == constant.UserStatusBlocked {
-		return errx.ErrorInitiatorIsBlocked.Raise(
-			fmt.Errorf("initator user %s is blocked", userID),
-		)
-	}
-
-	err = a.sessionQ.New().FilterID(sessionID).Delete(ctx)
-	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return errx.ErrorSessionNotFound.Raise(
-				fmt.Errorf("session with id: %s not found", sessionID),
-			)
-		default:
-			return errx.ErrorInternal.Raise(
-				fmt.Errorf("failed to delete session with id: %s for user %s: %w", sessionID, userID, err),
-			)
-		}
-	}
-	return nil
+	return a.session.DeleteUserSession(ctx, userID, sessionID)
 }
 
-func (a App) DeleteUserSessions(ctx context.Context, userID uuid.UUID) error {
-	user, err := a.GetInitiatorByID(ctx, userID)
+func (a App) DeleteOwnSessions(ctx context.Context, userID uuid.UUID) error {
+	_, err := a.users.GetInitiatorByID(ctx, userID)
 	if err != nil {
 		return err
 	}
 
-	if user.Status == constant.UserStatusBlocked {
-		return errx.ErrorInitiatorIsBlocked.Raise(
-			fmt.Errorf("initator user %s is blocked", userID),
-		)
-	}
-
-	err := a.sessionQ.New().FilterUserID(userID).Delete(ctx)
-	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return errx.ErrorSessionNotFound.Raise(
-				fmt.Errorf("no sessions found for user %s", userID),
-			)
-		default:
-			return errx.ErrorInternal.Raise(
-				fmt.Errorf("failed to delete sessions for user %s: %w", userID, err),
-			)
-		}
-	}
-	return nil
+	return a.session.DeleteUserSessions(ctx, userID)
 }
 
-func (a App) DeleteUser(ctx context.Context, userID uuid.UUID) error {
-	user, err := a.GetInitiatorByID(ctx, userID)
+func (a App) DeleteOwn(ctx context.Context, userID uuid.UUID) error {
+	_, err := a.users.GetInitiatorByID(ctx, userID)
 	if err != nil {
 		return err
 	}
 
-	if user.Status == constant.UserStatusBlocked {
-		return errx.ErrorInitiatorIsBlocked.Raise(
-			fmt.Errorf("initator user %s is blocked", userID),
-		)
-	}
-
-	txErr := a.usersQ.Transaction(func(ctx context.Context) error {
-		err = a.DeleteUserSessions(ctx, userID)
-		if err != nil {
-			return err
-		}
-
-		err = a.passQ.New().FilterID(user.ID).Delete(ctx)
-		if err != nil {
-			return errx.ErrorInternal.Raise(err)
-		}
-
-		err = a.usersQ.New().FilterID(user.ID).Delete(ctx)
-		if err != nil {
-			return errx.ErrorInternal.Raise(err)
-		}
-
-		return nil
-	})
-	if txErr != nil {
-		return txErr
-	}
-
-	return nil
+	return a.users.DeleteUser(ctx, userID)
 }

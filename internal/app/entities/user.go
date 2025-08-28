@@ -21,7 +21,13 @@ type User struct {
 	passQ dbx.UserPassQ
 }
 
-func (a User) comparisonRightsForAdmins(
+func CreateUser(pg *sql.DB) User {
+	return User{
+		query: dbx.NewUsers(pg),
+	}
+}
+
+func (a User) ComparisonRightsForAdmins(
 	ctx context.Context,
 	initiatorID uuid.UUID,
 	userID uuid.UUID,
@@ -48,7 +54,14 @@ func (a User) comparisonRightsForAdmins(
 	}
 
 	if user.Role != roles.SuperUser {
-		if roles.CompareRolesUser(initiator.Role, user.Role) < dif {
+		allowed, err := roles.CompareRolesUser(initiator.Role, user.Role)
+		if err != nil {
+			return initiator, user, errx.ErrorRoleNotSupported.Raise(
+				fmt.Errorf("comparing roles between initiator %s and user %s: %w", initiator.Role, user.Role, err),
+			)
+		}
+
+		if allowed < dif {
 			return initiator, user, errx.ErrorNoPermissions.Raise(
 				fmt.Errorf("initiator Role %s is not allowed to interact with this user", initiator.Role),
 			)
@@ -58,7 +71,36 @@ func (a User) comparisonRightsForAdmins(
 	return initiator, user, nil
 }
 
-func (a User) RegisterUser(ctx context.Context, email, password string) error {
+func (a User) CheckUserPassword(ctx context.Context, userID uuid.UUID, password string) error {
+	secret, err := a.passQ.New().FilterID(userID).Get(ctx)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return errx.ErrorUserNotFound.Raise(
+				fmt.Errorf("password for user %s not found: %w", userID, err),
+			)
+		default:
+			return errx.ErrorInternal.Raise(
+				fmt.Errorf("getting password for user %s: %w", userID, err),
+			)
+		}
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(secret.PassHash), []byte(password)); err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return errx.ErrorInternal.Raise(
+				fmt.Errorf("invalid credentials for user %s: %w", userID, err),
+			)
+		}
+		return errx.ErrorInternal.Raise(
+			fmt.Errorf("comparing password hash for user %s: %w", userID, err),
+		)
+	}
+
+	return nil
+}
+
+func (a User) CreateUser(ctx context.Context, email, password, role string) error {
 	_, err := a.GetUserByEmail(ctx, email)
 	if err == nil {
 		return errx.ErrorUserAlreadyExists.Raise(
@@ -70,11 +112,19 @@ func (a User) RegisterUser(ctx context.Context, email, password string) error {
 		)
 	}
 
+	err = roles.ParseRole(role)
+	if err != nil {
+		return errx.ErrorRoleNotSupported.Raise(
+			fmt.Errorf("parsing role for new user with email '%s': %w", email, err),
+		)
+	}
+
 	stmt := dbx.UserModel{
 		ID:             uuid.New(),
+		Role:           roles.User,
+		Status:         constant.UserStatusActive,
 		Email:          email,
 		EmailVer:       false,
-		Role:           roles.User,
 		EmailUpdatedAt: time.Now().UTC(),
 		CreatedAt:      time.Now().UTC(),
 	}
@@ -170,21 +220,34 @@ func (a User) GetUserByEmail(ctx context.Context, email string) (models.User, er
 }
 
 func (a User) DeleteUser(ctx context.Context, userID uuid.UUID) error {
-	txErr := a.query.Transaction(func(ctx context.Context) error {
-		err := a.passQ.New().FilterID(userID).Delete(ctx)
-		if err != nil {
-			return errx.ErrorInternal.Raise(err)
-		}
+	err := a.passQ.New().FilterID(userID).Delete(ctx)
+	if err != nil {
+		return errx.ErrorInternal.Raise(err)
+	}
 
-		err = a.query.New().FilterID(userID).Delete(ctx)
-		if err != nil {
-			return errx.ErrorInternal.Raise(err)
-		}
+	err = a.query.New().FilterID(userID).Delete(ctx)
+	if err != nil {
+		return errx.ErrorInternal.Raise(err)
+	}
 
-		return nil
-	})
-	if txErr != nil {
-		return txErr
+	return nil
+}
+
+func (a User) SetStatus(ctx context.Context, userID uuid.UUID, status string) error {
+	err := constant.ParseUserStatus(status)
+	if err != nil {
+		return errx.ErrorUserStatusNotSupported.Raise(
+			fmt.Errorf("parsing status for user %s: %w", userID, err),
+		)
+	}
+
+	err = a.query.New().FilterID(userID).Update(ctx,
+		map[string]interface{}{"status": status},
+	)
+	if err != nil {
+		return errx.ErrorInternal.Raise(
+			fmt.Errorf("updating status for user %s: %w", userID, err),
+		)
 	}
 
 	return nil

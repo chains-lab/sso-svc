@@ -4,25 +4,22 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/chains-lab/pagi"
 	"github.com/chains-lab/sso-svc/internal/app/models"
 	"github.com/chains-lab/sso-svc/internal/constant"
-	"github.com/chains-lab/sso-svc/internal/dbx"
 	"github.com/chains-lab/sso-svc/internal/errx"
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func (a App) RegisterAdmin(ctx context.Context, initiatorID uuid.UUID, email, password, role string) (models.User, error) {
-	user, err := a.GetUserByEmail(ctx, email)
+	_, err := a.users.GetUserByEmail(ctx, email)
 	if !errors.Is(err, errx.ErrorUserNotFound) {
 		return models.User{}, err
 	}
 
-	initiator, err := a.GetUserByID(ctx, initiatorID)
+	initiator, err := a.users.GetInitiatorByID(ctx, initiatorID)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -33,117 +30,42 @@ func (a App) RegisterAdmin(ctx context.Context, initiatorID uuid.UUID, email, pa
 		)
 	}
 
-	if user.Role != roles.SuperUser {
-		if roles.CompareRolesUser(initiator.Role, role) < 1 {
-			return models.User{}, errx.ErrorNoPermissions.Raise(
-				fmt.Errorf("initiator Role %s is not allowed to create user Role %s", initiator.Role, role),
-			)
-		}
-	}
-
-	txErr := a.usersQ.Transaction(func(ctx context.Context) error {
-		err = a.usersQ.New().Insert(ctx, dbx.UserModel{
-			ID:             uuid.New(),
-			Email:          email,
-			Role:           role,
-			EmailVer:       true,
-			EmailUpdatedAt: time.Now().UTC(),
-			CreatedAt:      time.Now().UTC(),
-		})
-		if err != nil {
-			return errx.ErrorInternal.Raise(
-				fmt.Errorf("creating user with email '%s': %w", email, err),
-			)
-		}
-
-		hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-		if err != nil {
-			return errx.ErrorInternal.Raise(
-				fmt.Errorf("hashing password for user: %w", err),
-			)
-		}
-
-		err = a.passQ.New().Insert(ctx, dbx.UserPasswordModel{
-			ID:        uuid.New(),
-			PassHash:  string(hash),
-			UpdatedAt: time.Now().UTC(),
-		})
-		if err != nil {
-			return errx.ErrorInternal.Raise(
-				fmt.Errorf("creating user with password '%s': %w", password, err),
-			)
-		}
-
-		return nil
-	})
-
-	if txErr != nil {
-		return models.User{}, txErr
-	}
-
-	user, err = a.GetUserByEmail(ctx, email)
+	err = a.users.CreateUser(ctx, email, password, role)
 	if err != nil {
 		return models.User{}, err
 	}
-	return user, nil
-}
 
-// comparisonRightsForAdmins compares the roles of the initiator and the user to determine
-// if the initiator has the necessary permissions to perform actions on the user.
-//
-// dif its - 1 if initiator role must be strictly greater than user role, 0 - equal, -1 - less
-func (a App) comparisonRightsForAdmins(ctx context.Context, initiatorID, userID uuid.UUID, dif int) (initiator, user models.User, err error) {
-	initiator, err = a.GetInitiatorByID(ctx, initiatorID)
+	user, err := a.users.GetUserByEmail(ctx, email)
 	if err != nil {
-		return initiator, user, err
-	}
-
-	user, err = a.GetUserByID(ctx, userID)
-	if err != nil {
-		return initiator, user, err
-	}
-
-	if user.Role == roles.User {
-		return initiator, user, errx.ErrorNoPermissions.Raise(
-			fmt.Errorf("user %s is already a user", userID),
+		return models.User{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to get user by email %s after creation: %w", email, err),
 		)
 	}
 
-	if initiatorID == userID {
-		return initiator, user, nil
-	}
-
-	if user.Role != roles.SuperUser {
-		if roles.CompareRolesUser(initiator.Role, user.Role) < dif {
-			return initiator, user, errx.ErrorNoPermissions.Raise(
-				fmt.Errorf("initiator Role %s is not allowed to interact with this user", initiator.Role),
-			)
-		}
-	}
-
-	return initiator, user, nil
+	return user, nil
 }
 
 func (a App) AdminDeleteUserSessions(ctx context.Context, initiatorID, userID uuid.UUID) error {
-	_, _, err := a.comparisonRightsForAdmins(ctx, initiatorID, userID, 1)
+	_, _, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID, 1)
 	if err != nil {
 		return err
 	}
 
-	appErr := a.DeleteUserSessions(ctx, userID)
+	appErr := a.users.DeleteUser(ctx, userID)
 	if appErr != nil {
 		return appErr
 	}
+
 	return nil
 }
 
 func (a App) AdminDeleteUserSession(ctx context.Context, initiatorID, userID, sessionID uuid.UUID) error {
-	_, _, err := a.comparisonRightsForAdmins(ctx, initiatorID, userID, 1)
+	_, _, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID, 1)
 	if err != nil {
 		return err
 	}
 
-	session, appErr := a.GetUserSession(ctx, userID, sessionID)
+	session, appErr := a.session.GetUserSession(ctx, userID, sessionID)
 	if appErr != nil {
 		return appErr
 	}
@@ -154,7 +76,7 @@ func (a App) AdminDeleteUserSession(ctx context.Context, initiatorID, userID, se
 		)
 	}
 
-	appErr = a.DeleteUserSession(ctx, session.ID, userID)
+	appErr = a.session.DeleteUserSession(ctx, session.ID, userID)
 	if appErr != nil {
 		return appErr
 	}
@@ -163,33 +85,21 @@ func (a App) AdminDeleteUserSession(ctx context.Context, initiatorID, userID, se
 }
 
 func (a App) AdminGetUser(ctx context.Context, initiatorID, userID uuid.UUID) (models.User, error) {
-	initiator, user, err := a.comparisonRightsForAdmins(ctx, initiatorID, userID, 0)
+	_, user, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID, 1)
 	if err != nil {
 		return models.User{}, err
-	}
-
-	if !(roles.CompareRolesUser(initiator.Role, user.Role) > 1 || initiator.Role == roles.SuperUser) {
-		return models.User{}, errx.ErrorNoPermissions.Raise(
-			fmt.Errorf("initiator %s does not have permission to access user %s", initiator.ID, userID),
-		)
 	}
 
 	return user, nil
 }
 
 func (a App) AdminGetUserSession(ctx context.Context, initiatorID, userID, sessionID uuid.UUID) (models.Session, error) {
-	initiator, user, err := a.comparisonRightsForAdmins(ctx, initiatorID, userID, 0)
+	_, _, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID, 1)
 	if err != nil {
 		return models.Session{}, err
 	}
 
-	if !(roles.CompareRolesUser(initiator.Role, user.Role) > 1 || initiator.Role == roles.SuperUser) {
-		return models.Session{}, errx.ErrorNoPermissions.Raise(
-			fmt.Errorf("initiator %s does not have permission to access session of user %s", initiator.ID, userID),
-		)
-	}
-
-	session, appErr := a.GetUserSession(ctx, userID, sessionID)
+	session, appErr := a.session.GetUserSession(ctx, userID, sessionID)
 	if appErr != nil {
 		return models.Session{}, appErr
 	}
@@ -197,54 +107,41 @@ func (a App) AdminGetUserSession(ctx context.Context, initiatorID, userID, sessi
 	return session, nil
 }
 
-func (a App) AdminGetUserSessions(
+func (a App) AdminSelectUserSessions(
 	ctx context.Context,
 	initiatorID, userID uuid.UUID,
 	pag pagi.Request,
 	sort []pagi.SortField,
 ) ([]models.Session, pagi.Response, error) {
-	initiator, user, err := a.comparisonRightsForAdmins(ctx, initiatorID, userID, 0)
+	_, _, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID, 1)
 	if err != nil {
 		return nil, pagi.Response{}, err
 	}
 
-	if !(roles.CompareRolesUser(initiator.Role, user.Role) > 1 || initiator.Role == roles.SuperUser) {
-		return nil, pagi.Response{}, errx.ErrorNoPermissions.Raise(
-			fmt.Errorf("initiator %s does not have permission to access sessions of user %s", initiator.ID, userID),
-		)
-	}
-
-	return a.GetUserSessions(ctx, userID, pag, sort)
+	return a.session.SelectUserSessions(ctx, userID, pag, sort)
 }
 
-func (a App) AdminDeleteAdmin(
+func (a App) AdminDelete(
 	ctx context.Context,
 	initiatorID, userID uuid.UUID,
 ) error {
-	_, user, err := a.comparisonRightsForAdmins(ctx, initiatorID, userID, 1)
+	_, _, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID, 1)
 	if err != nil {
 		return err
 	}
 
-	txErr := a.usersQ.New().Transaction(func(ctx context.Context) error {
-		err := a.DeleteUserSessions(ctx, user.ID)
+	txErr := a.Transaction(func(ctx context.Context) error {
+		err := a.session.DeleteUserSessions(ctx, userID)
 		if err != nil {
 			return errx.ErrorInternal.Raise(
-				fmt.Errorf("deleting sessions for user %s: %w", user.ID, err),
+				fmt.Errorf("deleting sessions for user %s: %w", userID, err),
 			)
 		}
 
-		err = a.passQ.New().FilterID(user.ID).Delete(ctx)
+		err = a.users.DeleteUser(ctx, userID)
 		if err != nil {
 			return errx.ErrorInternal.Raise(
-				fmt.Errorf("deleting password for user %s: %w", user.ID, err),
-			)
-		}
-
-		err = a.usersQ.New().FilterID(user.ID).Delete(ctx)
-		if err != nil {
-			return errx.ErrorInternal.Raise(
-				fmt.Errorf("deleting user %s: %w", user.ID, err),
+				fmt.Errorf("deleting user %s: %w", userID, err),
 			)
 		}
 
@@ -262,43 +159,105 @@ func (a App) AdminBlockUser(
 	ctx context.Context,
 	initiatorID, userID uuid.UUID,
 ) (models.User, error) {
-	_, user, err := a.comparisonRightsForAdmins(ctx, initiatorID, userID, 1)
+	_, _, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID, 1)
 	if err != nil {
 		return models.User{}, err
 	}
 
-	txErr := a.usersQ.New().Transaction(func(ctx context.Context) error {
-		err := a.usersQ.New().FilterID(user.ID).Update(ctx,
-			map[string]interface{}{"status": constant.UserStatusBlocked},
-		)
+	txErr := a.Transaction(func(ctx context.Context) error {
+		err := a.session.DeleteUserSessions(ctx, userID)
 		if err != nil {
-			return errx.ErrorInternal.Raise(err)
+			return errx.ErrorInternal.Raise(
+				fmt.Errorf("deleting sessions for user %s: %w", userID, err),
+			)
 		}
 
-		err = a.DeleteUserSessions(ctx, user.ID)
+		err = a.users.SetStatus(ctx, userID, constant.UserStatusBlocked)
 		if err != nil {
-			return err
+			return errx.ErrorInternal.Raise(
+				fmt.Errorf("deleting user %s: %w", userID, err),
+			)
 		}
 
 		return nil
 	})
+
 	if txErr != nil {
+		return models.User{}, txErr
+	}
+
+	user, err := a.users.GetUserByID(ctx, userID)
+	if err != nil {
 		return models.User{}, txErr
 	}
 
 	return user, nil
 }
 
-func (a App) DeleteAdmin(
+func (a App) AdminUnblockUser(
 	ctx context.Context,
 	initiatorID, userID uuid.UUID,
-) error {
-	_, user, err := a.comparisonRightsForAdmins(ctx, initiatorID, userID, 1)
+) (models.User, error) {
+	_, _, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID, 1)
 	if err != nil {
-		return err
+		return models.User{}, err
 	}
 
-	txErr := a.usersQ.New().Transaction(func(ctx context.Context) error {
+	txErr := a.Transaction(func(ctx context.Context) error {
+		err := a.session.DeleteUserSessions(ctx, userID)
+		if err != nil {
+			return errx.ErrorInternal.Raise(
+				fmt.Errorf("deleting sessions for user %s: %w", userID, err),
+			)
+		}
+
+		err = a.users.SetStatus(ctx, userID, constant.UserStatusActive)
+		if err != nil {
+			return errx.ErrorInternal.Raise(
+				fmt.Errorf("deleting user %s: %w", userID, err),
+			)
+		}
+
+		return nil
 	})
 
+	if txErr != nil {
+		return models.User{}, txErr
+	}
+
+	user, err := a.users.GetUserByID(ctx, userID)
+	if err != nil {
+		return models.User{}, txErr
+	}
+
+	return user, nil
+}
+
+func (a App) DeleteOwnUser(
+	ctx context.Context,
+	userID uuid.UUID,
+) error {
+	txErr := a.Transaction(func(ctx context.Context) error {
+		err := a.session.DeleteUserSessions(ctx, userID)
+		if err != nil {
+			return errx.ErrorInternal.Raise(
+				fmt.Errorf("deleting sessions for user %s: %w", userID, err),
+			)
+		}
+
+		err = a.users.DeleteUser(ctx, userID)
+		if err != nil {
+			return errx.ErrorInternal.Raise(
+				fmt.Errorf("deleting user %s: %w", userID, err),
+			)
+		}
+
+		return nil
+	})
+
+	if txErr != nil {
+		return txErr
+	}
+
+	return nil
 }

@@ -7,7 +7,7 @@ require (
 	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/chains-lab/ape v0.4.10
 	github.com/chains-lab/distributors-svc v0.0.0-20250827041942-59ecfb2b06c0
-	github.com/chains-lab/gatekit v0.2.0
+	github.com/chains-lab/gatekit v0.2.1
 	github.com/chains-lab/httplab v0.0.2
 	github.com/chains-lab/logium v0.1.1
 	github.com/chains-lab/pagi v0.1.4
