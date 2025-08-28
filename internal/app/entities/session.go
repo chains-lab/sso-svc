@@ -193,8 +193,8 @@ func (s Session) DeleteUserSessions(ctx context.Context, userID uuid.UUID) error
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return errx.ErrorSessionNotFound.Raise(
-				fmt.Errorf("no sessions found for user %s", userID),
+			return errx.ErrorUserNotFound.Raise(
+				fmt.Errorf("no sessions found for user %s: %w", userID, err),
 			)
 		default:
 			return errx.ErrorInternal.Raise(

@@ -51,12 +51,16 @@ func (a App) AdminDeleteUserSessions(ctx context.Context, initiatorID, userID uu
 		return err
 	}
 
-	appErr := a.users.DeleteUser(ctx, userID)
-	if appErr != nil {
-		return appErr
-	}
+	err = a.Transaction(func(ctx context.Context) error {
+		err = a.users.DeleteUser(ctx, userID)
+		if err != nil {
+			return err
+		}
 
-	return nil
+		return nil
+	})
+
+	return err
 }
 
 func (a App) AdminDeleteUserSession(ctx context.Context, initiatorID, userID, sessionID uuid.UUID) error {

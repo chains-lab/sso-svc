@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/chains-lab/ape"
 	"github.com/chains-lab/ape/problems"
 	"github.com/chains-lab/sso-svc/internal/api/rest/requests"
 	"github.com/chains-lab/sso-svc/internal/api/rest/responses"
+	"github.com/chains-lab/sso-svc/internal/errx"
 )
 
 func (s Service) Login(w http.ResponseWriter, r *http.Request) {
@@ -21,11 +23,17 @@ func (s Service) Login(w http.ResponseWriter, r *http.Request) {
 	token, err := s.app.Login(r.Context(), req.Data.Attributes.Email, req.Data.Attributes.Password, "TODO", "TODO")
 	if err != nil {
 		s.Log(r).WithError(err).Errorf("failed to login user")
-
 		switch {
+		case errors.Is(err, errx.ErrorUserNotFound):
+			ape.RenderErr(w, problems.NotFound("user with this email not found"))
+		case errors.Is(err, errx.ErrorInitiatorIsBlocked):
+			ape.RenderErr(w, problems.Forbidden("user is blocked"))
+		case errors.Is(err, errx.ErrorInvalidCredentials):
+			ape.RenderErr(w, problems.Unauthorized("invalid credentials"))
 		default:
 			ape.RenderErr(w, problems.InternalError())
 		}
+
 		return
 	}
 

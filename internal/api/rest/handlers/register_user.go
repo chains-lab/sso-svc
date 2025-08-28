@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/chains-lab/ape"
 	"github.com/chains-lab/ape/problems"
 	"github.com/chains-lab/sso-svc/internal/api/rest/requests"
+	"github.com/chains-lab/sso-svc/internal/errx"
 )
 
 func (s Service) RegisterUser(w http.ResponseWriter, r *http.Request) {
@@ -35,11 +37,15 @@ func (s Service) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	err = s.app.RegisterUser(r.Context(), req.Data.Attributes.Email, req.Data.Attributes.Password)
 	if err != nil {
 		s.Log(r).WithError(err).Errorf("failed to register admin")
-
 		switch {
+		case errors.Is(err, errx.ErrorUserAlreadyExists):
+			ape.RenderErr(w, problems.Conflict("user with this email already exists"))
+		case errors.Is(err, errx.ErrorRoleNotSupported):
+			ape.RenderErr(w, problems.InvalidParameter("data/attributes/role", err))
 		default:
 			ape.RenderErr(w, problems.InternalError())
 		}
+
 		return
 	}
 

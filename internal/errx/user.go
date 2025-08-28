@@ -15,3 +15,5 @@ var ErrorInitiatorIsBlocked = ape.DeclareError("USER_IS_BLOCKED")
 var ErrorRoleNotSupported = ape.DeclareError("USER_ROLE_NOT_SUPPORTED")
 
 var ErrorUserStatusNotSupported = ape.DeclareError("USER_STATUS_NOT_SUPPORTED")
+
+var ErrorInvalidCredentials = ape.DeclareError("INVALID_CREDENTIALS")

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/chains-lab/ape"
@@ -8,6 +9,7 @@ import (
 	"github.com/chains-lab/pagi"
 	"github.com/chains-lab/sso-svc/internal/api/rest/meta"
 	"github.com/chains-lab/sso-svc/internal/api/rest/responses"
+	"github.com/chains-lab/sso-svc/internal/errx"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
@@ -36,6 +38,14 @@ func (s Service) SelectUserSessions(w http.ResponseWriter, r *http.Request) {
 		s.Log(r).WithError(err).Errorf("failed to select own sessions")
 
 		switch {
+		case errors.Is(err, errx.ErrorUnauthenticated):
+			ape.RenderErr(w, problems.Unauthorized("failed to select user sessions"))
+		case errors.Is(err, errx.ErrorInitiatorIsBlocked):
+			ape.RenderErr(w, problems.Forbidden("user is blocked"))
+		case errors.Is(err, errx.ErrorNoPermissions):
+			ape.RenderErr(w, problems.Forbidden("no permissions to select user sessions"))
+		case errors.Is(err, errx.ErrorUserNotFound):
+			ape.RenderErr(w, problems.NotFound("user not found"))
 		default:
 			ape.RenderErr(w, problems.InternalError())
 		}

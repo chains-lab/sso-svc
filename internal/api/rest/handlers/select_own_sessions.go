@@ -24,11 +24,11 @@ func (s Service) SelectOwnSessions(w http.ResponseWriter, r *http.Request) {
 	sessions, pag, err := s.app.SelectOwnSessions(r.Context(), initiator.UserID, pagReq, sort)
 	if err != nil {
 		s.Log(r).WithError(err).Errorf("failed to select own sessions")
-
 		switch {
 		default:
 			ape.RenderErr(w, problems.InternalError())
 		}
+
 		return
 	}
 

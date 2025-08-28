@@ -12,7 +12,6 @@ import (
 	"github.com/chains-lab/sso-svc/internal/api/rest/meta"
 	"github.com/chains-lab/sso-svc/internal/app"
 	"github.com/chains-lab/sso-svc/internal/config"
-	"github.com/chains-lab/sso-svc/internal/constant"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -46,12 +45,12 @@ func NewRest(cfg config.Config, log logium.Logger, app *app.App) Rest {
 }
 
 func (a *Rest) Run(ctx context.Context) {
-	svcAuth := mdlv.ServiceAuthMdl(constant.ServiceName, a.cfg.JWT.Service.SecretKey)
+	//svcAuth := mdlv.ServiceAuthMdl(constant.ServiceName, a.cfg.JWT.Service.SecretKey)
 	userAuth := mdlv.AuthMdl(meta.UserCtxKey, a.cfg.JWT.User.AccessToken.SecretKey)
 	adminGrant := mdlv.AccessGrant(meta.UserCtxKey, roles.Admin, roles.SuperUser)
 
 	a.router.Route("/sso-svc/", func(r chi.Router) {
-		r.Use(svcAuth)
+		//r.Use(svcAuth)
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/users", func(r chi.Router) {
 				r.Post("/register", a.handlers.RegisterUser)

@@ -5,7 +5,7 @@ CREATE TYPE "user_role" AS ENUM (
     'super_user',
     'admin',
     'moderator',
-    'user',
+    'user'
 );
 
 CREATE TYPE "user_status" AS ENUM (
@@ -46,5 +46,9 @@ CREATE INDEX idx_sessions_last_used ON sessions(last_used);
 -- +migrate Down
 DROP TABLE IF EXISTS sessions CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS user_passwords CASCADE;
+
+DROP TYPE IF EXISTS user_role;
+DROP TYPE IF EXISTS user_status;
 
 DROP EXTENSION IF EXISTS "uuid-ossp";

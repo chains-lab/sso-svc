@@ -1,13 +1,13 @@
 server:
   name: "sso-svc"
-  port: ":8001"
+  port: ":8000"
   log:
     level: "debug"
     format: "text"
 
 database:
   sql:
-    url: "postgresql://postgres:postgres@db:7001/postgres?sslmode=disable"
+    url: "postgresql://postgres:postgres@localhost:7001/postgres?sslmode=disable"
 
 oauth:
   google:

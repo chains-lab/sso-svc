@@ -43,12 +43,6 @@ func (u User) ComparisonRightsForAdmins(
 		return initiator, user, err
 	}
 
-	if user.Role == roles.User {
-		return initiator, user, errx.ErrorNoPermissions.Raise(
-			fmt.Errorf("user %s is already u user", userID),
-		)
-	}
-
 	if initiatorID == userID {
 		return initiator, user, nil
 	}
@@ -88,10 +82,11 @@ func (u User) CheckUserPassword(ctx context.Context, userID uuid.UUID, password 
 
 	if err := bcrypt.CompareHashAndPassword([]byte(secret.PassHash), []byte(password)); err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			return errx.ErrorInternal.Raise(
+			return errx.ErrorInvalidCredentials.Raise(
 				fmt.Errorf("invalid credentials for user %s: %w", userID, err),
 			)
 		}
+
 		return errx.ErrorInternal.Raise(
 			fmt.Errorf("comparing password hash for user %s: %w", userID, err),
 		)

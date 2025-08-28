@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"github.com/chains-lab/ape"
 	"github.com/chains-lab/ape/problems"
 	"github.com/chains-lab/sso-svc/internal/api/rest/responses"
+	"github.com/chains-lab/sso-svc/internal/errx"
 )
 
 func (s Service) GoogleCallback(w http.ResponseWriter, r *http.Request) {
@@ -48,9 +50,7 @@ func (s Service) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	}(resp.Body)
 
 	var userInfo struct {
-		Email   string `json:"email"`
-		Name    string `json:"name"`
-		Picture string `json:"picture"`
+		Email string `json:"email"`
 	}
 	if err = json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
 		s.Log(r).WithError(err).Errorf("error decoding user info from google")
@@ -59,14 +59,16 @@ func (s Service) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokensPair, err := s.app.Login(r.Context(), userInfo.Email, userInfo.Name, "TODO", "TODO")
+	tokensPair, err := s.app.GoogleLogin(r.Context(), userInfo.Email, "TODO", "TODO")
 	if err != nil {
 		s.Log(r).WithError(err).Errorf("error logging in user: %s", userInfo.Email)
-
 		switch {
+		case errors.Is(err, errx.ErrorUserNotFound):
+			ape.RenderErr(w, problems.NotFound("user with this email not found"))
 		default:
 			ape.RenderErr(w, problems.InternalError())
 		}
+
 		return
 
 	}

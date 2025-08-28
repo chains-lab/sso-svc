@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/chains-lab/sso-svc/internal/api/rest/meta"
 	"github.com/chains-lab/sso-svc/internal/api/rest/requests"
 	"github.com/chains-lab/sso-svc/internal/api/rest/responses"
+	"github.com/chains-lab/sso-svc/internal/errx"
 )
 
 func (s Service) RegisterAdmin(w http.ResponseWriter, r *http.Request) {
@@ -61,11 +63,21 @@ func (s Service) RegisterAdmin(w http.ResponseWriter, r *http.Request) {
 	user, err := s.app.RegisterAdmin(r.Context(), initiator.UserID, req.Data.Attributes.Email, req.Data.Attributes.Password, req.Data.Attributes.Role)
 	if err != nil {
 		s.Log(r).WithError(err).Errorf("failed to register admin")
-
 		switch {
+		case errors.Is(err, errx.ErrorNoPermissions):
+			ape.RenderErr(w, problems.Forbidden("no permissions to register admin"))
+		case errors.Is(err, errx.ErrorUnauthenticated):
+			ape.RenderErr(w, problems.Unauthorized("failed to register admin"))
+		case errors.Is(err, errx.ErrorInitiatorIsBlocked):
+			ape.RenderErr(w, problems.Forbidden("initiator is blocked"))
+		case errors.Is(err, errx.ErrorUserAlreadyExists):
+			ape.RenderErr(w, problems.Conflict("user with this email already exists"))
+		case errors.Is(err, errx.ErrorRoleNotSupported):
+			ape.RenderErr(w, problems.InvalidParameter("data/attributes/role", err))
 		default:
 			ape.RenderErr(w, problems.InternalError())
 		}
+
 		return
 	}
 

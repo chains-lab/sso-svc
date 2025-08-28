@@ -102,15 +102,9 @@ func (a App) Login(ctx context.Context, email, password, client, ip string) (mod
 }
 
 func (a App) RefreshSessionToken(ctx context.Context, userID, sessionID uuid.UUID, client, ip, token string) (models.TokensPair, error) {
-	user, appErr := a.GetUserByID(ctx, userID)
+	user, appErr := a.users.GetInitiatorByID(ctx, userID)
 	if appErr != nil {
 		return models.TokensPair{}, appErr
-	}
-
-	if user.Status == constant.UserStatusBlocked {
-		return models.TokensPair{}, errx.ErrorInitiatorIsBlocked.Raise(
-			fmt.Errorf("initator user %s is blocked", user.ID),
-		)
 	}
 
 	session, err := a.session.GetUserSession(ctx, sessionID, user.ID)
