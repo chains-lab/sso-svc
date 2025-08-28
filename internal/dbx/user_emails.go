@@ -4,21 +4,20 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 )
 
-const usersPassTable = "user_passwords"
+const usersEmailTable = "user_emails"
 
-type UserPasswordModel struct {
-	ID        uuid.UUID `db:"user_id"`
-	PassHash  string    `db:"password_hash"`
-	UpdatedAt time.Time `db:"updated_at"`
+type UserEmailModel struct {
+	ID       uuid.UUID `db:"user_id"`
+	Email    string    `db:"email"`
+	Verified bool      `db:"verified"`
 }
 
-type UserPassQ struct {
+type UserEmailQ struct {
 	db       *sql.DB
 	selector sq.SelectBuilder
 	inserter sq.InsertBuilder
@@ -27,32 +26,32 @@ type UserPassQ struct {
 	counter  sq.SelectBuilder
 }
 
-func NewUsersPass(db *sql.DB) UserPassQ {
-	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	return UserPassQ{
+func NewUsersEmail(db *sql.DB) UserEmailQ {
+	b := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	return UserEmailQ{
 		db:       db,
-		selector: builder.Select("*").From(usersPassTable),
-		inserter: builder.Insert(usersPassTable),
-		updater:  builder.Update(usersPassTable),
-		deleter:  builder.Delete(usersPassTable),
-		counter:  builder.Select("COUNT(*) AS count").From(usersPassTable),
+		selector: b.Select("*").From(usersEmailTable),
+		inserter: b.Insert(usersEmailTable),
+		updater:  b.Update(usersEmailTable),
+		deleter:  b.Delete(usersEmailTable),
+		counter:  b.Select("COUNT(*) AS count").From(usersEmailTable),
 	}
 }
 
-func (q UserPassQ) New() UserPassQ {
-	return NewUsersPass(q.db)
+func (q UserEmailQ) New() UserEmailQ {
+	return NewUsersEmail(q.db)
 }
 
-func (q UserPassQ) Insert(ctx context.Context, input UserPasswordModel) error {
-	values := map[string]interface{}{
-		"user_id":       input.ID,
-		"password_hash": input.PassHash,
-		"updated_at":    input.UpdatedAt,
+func (q UserEmailQ) Insert(ctx context.Context, input UserEmailModel) error {
+	values := map[string]any{
+		"user_id":  input.ID,
+		"email":    input.Email,
+		"verified": input.Verified,
 	}
 
 	query, args, err := q.inserter.SetMap(values).ToSql()
 	if err != nil {
-		return fmt.Errorf("building insert query for table %s: %w", usersPassTable, err)
+		return fmt.Errorf("building insert query for %s: %w", usersEmailTable, err)
 	}
 
 	if tx, ok := ctx.Value(TxKey).(*sql.Tx); ok {
@@ -60,25 +59,22 @@ func (q UserPassQ) Insert(ctx context.Context, input UserPasswordModel) error {
 	} else {
 		_, err = q.db.ExecContext(ctx, query, args...)
 	}
-
 	return err
 }
 
-func (q UserPassQ) Update(ctx context.Context, input map[string]any) error {
-	values := map[string]interface{}{}
+func (q UserEmailQ) Update(ctx context.Context, input map[string]any) error {
+	values := map[string]any{}
 
-	if passHash, ok := input["password_hash"]; ok {
-		values["password_hash"] = passHash
+	if email, ok := input["email"]; ok {
+		values["email"] = email
 	}
-	if updatedAt, ok := input["updated_at"]; ok {
-		values["updated_at"] = updatedAt
-	} else {
-		values["updated_at"] = time.Now().UTC()
+	if verified, ok := input["verified"]; ok {
+		values["verified"] = verified
 	}
 
 	query, args, err := q.updater.SetMap(values).ToSql()
 	if err != nil {
-		return fmt.Errorf("building update query for table %s: %w", usersPassTable, err)
+		return fmt.Errorf("building update query for %s: %w", usersEmailTable, err)
 	}
 
 	if tx, ok := ctx.Value(TxKey).(*sql.Tx); ok {
@@ -86,14 +82,13 @@ func (q UserPassQ) Update(ctx context.Context, input map[string]any) error {
 	} else {
 		_, err = q.db.ExecContext(ctx, query, args...)
 	}
-
 	return err
 }
 
-func (q UserPassQ) Get(ctx context.Context) (UserPasswordModel, error) {
+func (q UserEmailQ) Get(ctx context.Context) (UserEmailModel, error) {
 	query, args, err := q.selector.Limit(1).ToSql()
 	if err != nil {
-		return UserPasswordModel{}, fmt.Errorf("building get query for table %s: %w", usersPassTable, err)
+		return UserEmailModel{}, fmt.Errorf("building get query for %s: %w", usersEmailTable, err)
 	}
 
 	var row *sql.Row
@@ -102,27 +97,22 @@ func (q UserPassQ) Get(ctx context.Context) (UserPasswordModel, error) {
 	} else {
 		row = q.db.QueryRowContext(ctx, query, args...)
 	}
-	var acc UserPasswordModel
-	err = row.Scan(
-		&acc.ID,
-		&acc.PassHash,
-		&acc.UpdatedAt,
-	)
-	if err != nil {
-		return UserPasswordModel{}, err
-	}
 
-	return acc, nil
+	var m UserEmailModel
+	err = row.Scan(&m.ID, &m.Email, &m.Verified)
+	if err != nil {
+		return UserEmailModel{}, err
+	}
+	return m, nil
 }
 
-func (q UserPassQ) Select(ctx context.Context) ([]UserPasswordModel, error) {
+func (q UserEmailQ) Select(ctx context.Context) ([]UserEmailModel, error) {
 	query, args, err := q.selector.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("building select query for table %s: %w", usersPassTable, err)
+		return nil, fmt.Errorf("building select query for %s: %w", usersEmailTable, err)
 	}
 
 	var rows *sql.Rows
-
 	if tx, ok := ctx.Value(TxKey).(*sql.Tx); ok {
 		rows, err = tx.QueryContext(ctx, query, args...)
 	} else {
@@ -133,27 +123,24 @@ func (q UserPassQ) Select(ctx context.Context) ([]UserPasswordModel, error) {
 	}
 	defer rows.Close()
 
-	var users []UserPasswordModel
+	var out []UserEmailModel
 	for rows.Next() {
-		var acc UserPasswordModel
-		err := rows.Scan(
-			&acc.ID,
-			&acc.PassHash,
-			&acc.UpdatedAt,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("scanning table %s: %w", usersPassTable, err)
+		var m UserEmailModel
+		if err := rows.Scan(&m.ID, &m.Email, &m.Verified); err != nil {
+			return nil, fmt.Errorf("scanning %s: %w", usersEmailTable, err)
 		}
-		users = append(users, acc)
+		out = append(out, m)
 	}
-
-	return users, nil
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
-func (q UserPassQ) Delete(ctx context.Context) error {
+func (q UserEmailQ) Delete(ctx context.Context) error {
 	query, args, err := q.deleter.ToSql()
 	if err != nil {
-		return fmt.Errorf("building delete query for table %s: %w", usersPassTable, err)
+		return fmt.Errorf("building delete query for %s: %w", usersEmailTable, err)
 	}
 
 	if tx, ok := ctx.Value(TxKey).(*sql.Tx); ok {
@@ -161,26 +148,29 @@ func (q UserPassQ) Delete(ctx context.Context) error {
 	} else {
 		_, err = q.db.ExecContext(ctx, query, args...)
 	}
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
-func (q UserPassQ) FilterID(userID uuid.UUID) UserPassQ {
+func (q UserEmailQ) FilterID(userID uuid.UUID) UserEmailQ {
 	q.selector = q.selector.Where(sq.Eq{"user_id": userID})
 	q.counter = q.counter.Where(sq.Eq{"user_id": userID})
 	q.updater = q.updater.Where(sq.Eq{"user_id": userID})
 	q.deleter = q.deleter.Where(sq.Eq{"user_id": userID})
-
 	return q
 }
 
-func (q UserPassQ) Count(ctx context.Context) (uint64, error) {
+func (q UserEmailQ) FilterEmail(email string) UserEmailQ {
+	q.selector = q.selector.Where(sq.Eq{"email": email})
+	q.counter = q.counter.Where(sq.Eq{"email": email})
+	q.updater = q.updater.Where(sq.Eq{"email": email})
+	q.deleter = q.deleter.Where(sq.Eq{"email": email})
+	return q
+}
+
+func (q UserEmailQ) Count(ctx context.Context) (uint64, error) {
 	query, args, err := q.counter.ToSql()
 	if err != nil {
-		return 0, fmt.Errorf("building count query for %stable %s: %w", usersPassTable, err)
+		return 0, fmt.Errorf("building count query for %s: %w", usersEmailTable, err)
 	}
 
 	var count uint64
@@ -192,25 +182,22 @@ func (q UserPassQ) Count(ctx context.Context) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
-
 	return count, nil
 }
 
-func (q UserPassQ) Page(limit, offset uint64) UserPassQ {
+func (q UserEmailQ) Page(limit, offset uint64) UserEmailQ {
 	q.counter = q.counter.Limit(limit).Offset(offset)
 	q.selector = q.selector.Limit(limit).Offset(offset)
-
 	return q
 }
 
-func (q UserPassQ) Transaction(fn func(ctx context.Context) error) error {
+func (q UserEmailQ) Transaction(fn func(ctx context.Context) error) error {
 	ctx := context.Background()
 
 	tx, err := q.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("failed to start transaction: %w", err)
 	}
-
 	ctxWithTx := context.WithValue(ctx, TxKey, tx)
 
 	if err := fn(ctxWithTx); err != nil {
@@ -223,6 +210,5 @@ func (q UserPassQ) Transaction(fn func(ctx context.Context) error) error {
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
-
 	return nil
 }

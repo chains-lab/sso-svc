@@ -1,11 +1,12 @@
 package resources
 
 const (
-	AccessTokenType    = "access_token_type"
 	RefreshSessionType = "refresh_session"
 	TokensPairType     = "tokens_pair"
 
-	LoginType = "login_type"
+	LoginType = "login"
+
+	UpdatePasswordType = "update_password"
 
 	RegisterUserType  = "register_user"
 	RegisterAdminType = "register_admin"

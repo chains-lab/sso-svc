@@ -25,6 +25,8 @@ components:
       $ref: './spec/components/schemas/RegisterAdmin.yaml'
     RefreshSession:
       $ref: './spec/components/schemas/RefreshSession.yaml'
+    UpdatePassword:
+      $ref: './spec/components/schemas/UpdatePassword.yaml'
 
     #responses
     TokensPair:

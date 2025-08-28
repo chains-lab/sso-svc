@@ -8,12 +8,14 @@ var ErrorUserNotFound = ape.DeclareError("USER_NOT_FOUND")
 
 var ErrorUserAlreadyExists = ape.DeclareError("USER_ALREADY_EXISTS")
 
-var ErrorLoginIsIncorrect = ape.DeclareError("LOGIN_IS_INCORRECT")
-
 var ErrorInitiatorIsBlocked = ape.DeclareError("USER_IS_BLOCKED")
+
+var ErrorInitiatorSessionNotFound = ape.DeclareError("INITIATOR_SESSION_NOT_FOUND")
 
 var ErrorRoleNotSupported = ape.DeclareError("USER_ROLE_NOT_SUPPORTED")
 
 var ErrorUserStatusNotSupported = ape.DeclareError("USER_STATUS_NOT_SUPPORTED")
 
-var ErrorInvalidCredentials = ape.DeclareError("INVALID_CREDENTIALS")
+var ErrorInvalidLogin = ape.DeclareError("INVALID_LOGIN")
+
+var ErrorPasswordIsInappropriate = ape.DeclareError("PASSWORD_IS_INAPPROPRIATE")

@@ -1,15 +1,18 @@
 package jwtmanager
 
 import (
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"time"
 
 	"github.com/chains-lab/gatekit/auth"
 	"github.com/chains-lab/sso-svc/internal/config"
+	"github.com/chains-lab/sso-svc/internal/constant"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
@@ -24,6 +27,14 @@ type Manager struct {
 	iss string
 }
 
+func newGCM(key []byte) (cipher.AEAD, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	return cipher.NewGCM(block)
+}
+
 func NewManager(cfg config.Config) Manager {
 	return Manager{
 		accessSK:  cfg.JWT.User.AccessToken.SecretKey,
@@ -36,73 +47,59 @@ func NewManager(cfg config.Config) Manager {
 	}
 }
 
-func (m Manager) EncryptAccess(token string) (string, error) {
-	block, err := aes.NewCipher([]byte(m.accessSK))
+func encryptAESGCM(plain string, key []byte) (string, error) {
+	gcm, err := newGCM(key)
 	if err != nil {
 		return "", err
 	}
-
-	nonce := make([]byte, 12) // 96-битный nonce для AES-GCM
+	nonce := make([]byte, gcm.NonceSize())
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
 		return "", err
 	}
+	// Пишем nonce в начало шифртекста (как ты и делал)
+	ct := gcm.Seal(nonce, nonce, []byte(plain), nil)
+	return hex.EncodeToString(ct), nil
+}
 
-	aesGCM, err := cipher.NewGCM(block)
+func decryptAESGCM(encHex string, key []byte) (string, error) {
+	gcm, err := newGCM(key)
 	if err != nil {
 		return "", err
 	}
+	ct, err := hex.DecodeString(encHex)
+	if err != nil {
+		return "", err
+	}
+	if len(ct) < gcm.NonceSize() {
+		return "", errors.New("ciphertext too short")
+	}
+	nonce, ciphertext := ct[:gcm.NonceSize()], ct[gcm.NonceSize():]
+	pt, err := gcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return "", err
+	}
+	return string(pt), nil
+}
 
-	ciphertext := aesGCM.Seal(nonce, nonce, []byte(token), nil)
-	return hex.EncodeToString(ciphertext), nil
+func (m Manager) EncryptAccess(token string) (string, error) {
+	return encryptAESGCM(token, []byte(m.accessSK))
 }
 
 func (m Manager) EncryptRefresh(token string) (string, error) {
-	block, err := aes.NewCipher([]byte(m.refreshSK))
-	if err != nil {
-		return "", err
-	}
-
-	nonce := make([]byte, 12) // 96-битный nonce для AES-GCM
-	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		return "", err
-	}
-
-	aesGCM, err := cipher.NewGCM(block)
-	if err != nil {
-		return "", err
-	}
-
-	ciphertext := aesGCM.Seal(nonce, nonce, []byte(token), nil)
-	return hex.EncodeToString(ciphertext), nil
+	return encryptAESGCM(token, []byte(m.refreshSK))
 }
 
 func (m Manager) DecryptRefresh(encryptedToken string) (string, error) {
-	ciphertext, err := hex.DecodeString(encryptedToken)
+	raw, err := decryptAESGCM(encryptedToken, []byte(m.refreshSK))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("decrypt refresh: %w", err)
 	}
 
-	block, err := aes.NewCipher([]byte(m.refreshSK))
-	if err != nil {
-		return "", err
-	}
+	return raw, nil
+}
 
-	aesGCM, err := cipher.NewGCM(block)
-	if err != nil {
-		return "", err
-	}
-
-	if len(ciphertext) < aesGCM.NonceSize() {
-		return "", errors.New("ciphertext too short")
-	}
-
-	nonce, ciphertext := ciphertext[:aesGCM.NonceSize()], ciphertext[aesGCM.NonceSize():]
-	plaintext, err := aesGCM.Open(nil, nonce, ciphertext, nil)
-	if err != nil {
-		return "", err
-	}
-
-	return string(plaintext), nil
+func (m Manager) ParseRefreshClaims(token string) (auth.UsersClaims, error) {
+	return auth.VerifyUserJWT(context.Background(), token, m.refreshSK)
 }
 
 func (m Manager) GenerateAccess(
@@ -122,13 +119,16 @@ func (m Manager) GenerateAccess(
 func (m Manager) GenerateRefresh(
 	userID uuid.UUID,
 	sessionID uuid.UUID,
-	idn string,
+	role string,
+	emailVerified bool,
 ) (string, error) {
 	return auth.GenerateUserJWT(auth.GenerateUserJwtRequest{
-		Issuer:  m.iss,
-		User:    userID,
-		Session: sessionID,
-		Role:    idn,
-		Ttl:     m.refreshTTL,
+		Issuer:   m.iss,
+		Audience: []string{constant.ServiceApiGateway},
+		User:     userID,
+		Session:  sessionID,
+		Verified: emailVerified,
+		Role:     role,
+		Ttl:      m.refreshTTL,
 	}, m.refreshSK)
 }

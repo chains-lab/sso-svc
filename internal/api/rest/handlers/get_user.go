@@ -17,20 +17,20 @@ func (s Service) GetUser(w http.ResponseWriter, r *http.Request) {
 	initiator, err := meta.User(r.Context())
 	if err != nil {
 		s.Log(r).WithError(err).Error("failed to get user from context")
-
 		ape.RenderErr(w, problems.Unauthorized("failed to get user from context"))
+
 		return
 	}
 
 	userID, err := uuid.Parse(chi.URLParam(r, "user_id"))
 	if err != nil {
 		s.Log(r).WithError(err).Errorf("invalid user id: %s", chi.URLParam(r, "user_id"))
-
 		ape.RenderErr(w, problems.InvalidParameter("user_id", err))
+
 		return
 	}
 
-	user, err := s.app.AdminGetUser(r.Context(), initiator.UserID, userID)
+	user, err := s.app.AdminGetUser(r.Context(), initiator.UserID, initiator.SessionID, userID)
 	if err != nil {
 		s.Log(r).WithError(err).Errorf("failed to get user by id: %s", userID)
 		switch {

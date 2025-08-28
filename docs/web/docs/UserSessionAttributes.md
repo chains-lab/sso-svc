@@ -5,8 +5,6 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **UserId** | **string** | user id | 
-**Client** | **string** | client name and version | 
-**Ip** | **string** | IP address | 
 **CreatedAt** | **time.Time** | session creation date | 
 **LastUsed** | **time.Time** | last used date | 
 
@@ -14,7 +12,7 @@ Name | Type | Description | Notes
 
 ### NewUserSessionAttributes
 
-`func NewUserSessionAttributes(userId string, client string, ip string, createdAt time.Time, lastUsed time.Time, ) *UserSessionAttributes`
+`func NewUserSessionAttributes(userId string, createdAt time.Time, lastUsed time.Time, ) *UserSessionAttributes`
 
 NewUserSessionAttributes instantiates a new UserSessionAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -47,46 +45,6 @@ and a boolean to check if the value has been set.
 `func (o *UserSessionAttributes) SetUserId(v string)`
 
 SetUserId sets UserId field to given value.
-
-
-### GetClient
-
-`func (o *UserSessionAttributes) GetClient() string`
-
-GetClient returns the Client field if non-nil, zero value otherwise.
-
-### GetClientOk
-
-`func (o *UserSessionAttributes) GetClientOk() (*string, bool)`
-
-GetClientOk returns a tuple with the Client field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetClient
-
-`func (o *UserSessionAttributes) SetClient(v string)`
-
-SetClient sets Client field to given value.
-
-
-### GetIp
-
-`func (o *UserSessionAttributes) GetIp() string`
-
-GetIp returns the Ip field if non-nil, zero value otherwise.
-
-### GetIpOk
-
-`func (o *UserSessionAttributes) GetIpOk() (*string, bool)`
-
-GetIpOk returns a tuple with the Ip field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetIp
-
-`func (o *UserSessionAttributes) SetIp(v string)`
-
-SetIp sets Ip field to given value.
 
 
 ### GetCreatedAt

@@ -18,16 +18,16 @@ func (s Service) RegisterAdmin(w http.ResponseWriter, r *http.Request) {
 	initiator, err := meta.User(r.Context())
 	if err != nil {
 		s.Log(r).WithError(err).Error("failed to get user from context")
-
 		ape.RenderErr(w, problems.Unauthorized("failed to get user from context"))
+
 		return
 	}
 
 	req, err := requests.RegisterAdmin(r)
 	if err != nil {
 		s.Log(r).WithError(err).Error("failed to decode register admin request")
-
 		ape.RenderErr(w, problems.BadRequest(err)...)
+
 		return
 	}
 
@@ -60,7 +60,7 @@ func (s Service) RegisterAdmin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := s.app.RegisterAdmin(r.Context(), initiator.UserID, req.Data.Attributes.Email, req.Data.Attributes.Password, req.Data.Attributes.Role)
+	user, err := s.app.RegisterAdmin(r.Context(), initiator.UserID, initiator.SessionID, req.Data.Attributes.Email, req.Data.Attributes.Password, req.Data.Attributes.Role)
 	if err != nil {
 		s.Log(r).WithError(err).Errorf("failed to register admin")
 		switch {
@@ -74,6 +74,8 @@ func (s Service) RegisterAdmin(w http.ResponseWriter, r *http.Request) {
 			ape.RenderErr(w, problems.Conflict("user with this email already exists"))
 		case errors.Is(err, errx.ErrorRoleNotSupported):
 			ape.RenderErr(w, problems.InvalidParameter("data/attributes/role", err))
+		case errors.Is(err, errx.ErrorPasswordIsInappropriate):
+			ape.RenderErr(w, problems.InvalidParameter("data/attributes/password", err))
 		default:
 			ape.RenderErr(w, problems.InternalError())
 		}

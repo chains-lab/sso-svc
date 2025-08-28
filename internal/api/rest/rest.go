@@ -52,22 +52,23 @@ func (a *Rest) Run(ctx context.Context) {
 	a.router.Route("/sso-svc/", func(r chi.Router) {
 		//r.Use(svcAuth)
 		r.Route("/v1", func(r chi.Router) {
-			r.Route("/users", func(r chi.Router) {
-				r.Post("/register", a.handlers.RegisterUser)
+			r.Post("/register", a.handlers.RegisterUser)
 
-				r.With(userAuth).Get("/own", a.handlers.GetOwnUser)
+			r.Route("/login", func(r chi.Router) {
+				r.Post("/", a.handlers.Login)
 
-				r.Route("/login", func(r chi.Router) {
-					r.Post("/", a.handlers.Login)
-
-					r.Route("/google", func(r chi.Router) {
-						r.Post("/", a.handlers.GoogleLogin)
-						r.Post("/callback", a.handlers.GoogleCallback)
-					})
+				r.Route("/google", func(r chi.Router) {
+					r.Post("/", a.handlers.GoogleLogin)
+					r.Post("/callback", a.handlers.GoogleCallback)
 				})
+			})
 
-				r.With(userAuth).Post("/refresh", a.handlers.RefreshToken)
+			r.Post("/refresh", a.handlers.RefreshToken)
+
+			r.With(userAuth).Route("/own", func(r chi.Router) {
+				r.With(userAuth).Get("/", a.handlers.GetOwnUser)
 				r.With(userAuth).Post("/logout", a.handlers.Logout)
+				r.With(userAuth).Post("/password", a.handlers.UpdatePassword)
 
 				r.With(userAuth).Route("/sessions", func(r chi.Router) {
 					r.Get("/", a.handlers.SelectOwnSessions)

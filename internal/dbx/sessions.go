@@ -16,8 +16,6 @@ type Session struct {
 	ID        uuid.UUID `db:"id"`
 	UserID    uuid.UUID `db:"user_id"`
 	Token     string    `db:"token"`
-	Client    string    `db:"client"`
-	IP        string    `db:"ip"`
 	LastUsed  time.Time `db:"last_used"`
 	CreatedAt time.Time `db:"created_at"`
 }
@@ -43,15 +41,6 @@ func NewSessions(db *sql.DB) SessionsQ {
 	}
 }
 
-func (q SessionsQ) applyConditions(conditions ...sq.Sqlizer) SessionsQ {
-	q.selector = q.selector.Where(conditions)
-	q.counter = q.counter.Where(conditions)
-	q.updater = q.updater.Where(conditions)
-	q.deleter = q.deleter.Where(conditions)
-
-	return q
-}
-
 func (q SessionsQ) New() SessionsQ {
 	return NewSessions(q.db)
 }
@@ -61,8 +50,6 @@ func (q SessionsQ) Insert(ctx context.Context, input Session) error {
 		"id":         input.ID,
 		"user_id":    input.UserID,
 		"token":      input.Token,
-		"client":     input.Client,
-		"ip":         input.IP,
 		"last_used":  input.LastUsed,
 		"created_at": input.CreatedAt,
 	}
@@ -88,9 +75,6 @@ func (q SessionsQ) Update(ctx context.Context, input map[string]any) error {
 	}
 	if lastUsed, ok := input["last_used"]; ok {
 		values["last_used"] = lastUsed
-	}
-	if IP, ok := input["ip"]; ok {
-		values["ip"] = IP
 	}
 
 	query, args, err := q.updater.SetMap(values).ToSql()
@@ -123,8 +107,6 @@ func (q SessionsQ) Get(ctx context.Context) (Session, error) {
 		&sess.ID,
 		&sess.UserID,
 		&sess.Token,
-		&sess.Client,
-		&sess.IP,
 		&sess.CreatedAt,
 		&sess.LastUsed,
 	)
@@ -159,8 +141,6 @@ func (q SessionsQ) Select(ctx context.Context) ([]Session, error) {
 			&sess.ID,
 			&sess.UserID,
 			&sess.Token,
-			&sess.Client,
-			&sess.IP,
 			&sess.CreatedAt,
 			&sess.LastUsed,
 		)
@@ -187,14 +167,20 @@ func (q SessionsQ) Delete(ctx context.Context) error {
 	return err
 }
 
-func (q SessionsQ) FilterID(id uuid.UUID) SessionsQ {
-	q.applyConditions(sq.Eq{"id": id})
+func (q SessionsQ) FilterID(ID uuid.UUID) SessionsQ {
+	q.selector = q.selector.Where(sq.Eq{"id": ID})
+	q.deleter = q.deleter.Where(sq.Eq{"id": ID})
+	q.updater = q.updater.Where(sq.Eq{"id": ID})
+	q.counter = q.counter.Where(sq.Eq{"id": ID})
 
 	return q
 }
 
 func (q SessionsQ) FilterUserID(userID uuid.UUID) SessionsQ {
-	q.applyConditions(sq.Eq{"user_id": userID})
+	q.selector = q.selector.Where(sq.Eq{"user_id": userID})
+	q.deleter = q.deleter.Where(sq.Eq{"user_id": userID})
+	q.updater = q.updater.Where(sq.Eq{"user_id": userID})
+	q.counter = q.counter.Where(sq.Eq{"user_id": userID})
 
 	return q
 }

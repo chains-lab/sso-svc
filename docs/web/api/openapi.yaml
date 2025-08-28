@@ -44,6 +44,13 @@ components:
       required:
       - data
       type: object
+    UpdatePassword:
+      properties:
+        data:
+          $ref: '#/components/schemas/UpdatePassword_data'
+      required:
+      - data
+      type: object
     TokensPair:
       properties:
         data:
@@ -88,12 +95,6 @@ components:
           description: user id
           format: uuid
           type: string
-        client:
-          description: client name and version
-          type: string
-        ip:
-          description: IP address
-          type: string
         created_at:
           description: session creation date
           format: date-time
@@ -103,9 +104,7 @@ components:
           format: date-time
           type: string
       required:
-      - client
       - created_at
-      - ip
       - last_used
       - user_id
       type: object
@@ -181,7 +180,7 @@ components:
       properties:
         type:
           enum:
-          - registration
+          - login
           type: string
         attributes:
           $ref: '#/components/schemas/Login_data_attributes'
@@ -288,6 +287,41 @@ components:
       - attributes
       - type
       type: object
+    UpdatePassword_data_attributes:
+      properties:
+        old_password:
+          description: The user's current password.
+          example: OldP@ssw0rd!
+          format: password
+          type: string
+        new_password:
+          description: The user's password.
+          example: StrongP@ssw0rd!
+          format: password
+          type: string
+        confirm_password:
+          description: Confirmation of the user's password. Must match the password
+            field.
+          example: StrongP@ssw0rd!
+          format: password
+          type: string
+      required:
+      - confirm_password
+      - new_password
+      - old_password
+      type: object
+    UpdatePassword_data:
+      properties:
+        type:
+          enum:
+          - update_password
+          type: string
+        attributes:
+          $ref: '#/components/schemas/UpdatePassword_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
     TokensPair_data_attributes:
       properties:
         access_token:
@@ -346,19 +380,18 @@ components:
         role:
           description: Role
           type: string
+        email_verified:
+          description: Email Verified
+          type: boolean
         created_at:
           description: Created At
-          format: date-time
-          type: string
-        updated_at:
-          description: Updated At
           format: date-time
           type: string
       required:
       - created_at
       - email
+      - email_verified
       - role
-      - updated_at
       type: object
     User_data:
       properties:

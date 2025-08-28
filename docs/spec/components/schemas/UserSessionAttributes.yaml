@@ -1,8 +1,6 @@
 type: object
 required:
   - user_id
-  - client
-  - ip
   - created_at
   - last_used
 properties:
@@ -10,12 +8,6 @@ properties:
     type: string
     format: uuid
     description: "user id"
-  client:
-    type: string
-    description: "client name and version"
-  ip:
-    type: string
-    description: "IP address"
   created_at:
     type: string
     format: date-time

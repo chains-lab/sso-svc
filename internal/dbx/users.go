@@ -13,13 +13,10 @@ import (
 const usersTable = "users"
 
 type UserModel struct {
-	ID             uuid.UUID `db:"id"`
-	Email          string    `db:"email"`
-	Role           string    `db:"role"`
-	Status         string    `db:"status"`
-	EmailVer       bool      `db:"email_verified"`
-	EmailUpdatedAt time.Time `db:"email_updated_at"`
-	CreatedAt      time.Time `db:"created_at"`
+	ID        uuid.UUID `db:"id"`
+	Role      string    `db:"role"`
+	Status    string    `db:"status"`
+	CreatedAt time.Time `db:"created_at"`
 }
 
 type UserQ struct {
@@ -29,15 +26,6 @@ type UserQ struct {
 	updater  sq.UpdateBuilder
 	deleter  sq.DeleteBuilder
 	counter  sq.SelectBuilder
-}
-
-func (q UserQ) applyConditions(conditions ...sq.Sqlizer) UserQ {
-	q.selector = q.selector.Where(conditions)
-	q.counter = q.counter.Where(conditions)
-	q.updater = q.updater.Where(conditions)
-	q.deleter = q.deleter.Where(conditions)
-
-	return q
 }
 
 func NewUsers(db *sql.DB) UserQ {
@@ -58,13 +46,10 @@ func (q UserQ) New() UserQ {
 
 func (q UserQ) Insert(ctx context.Context, input UserModel) error {
 	values := map[string]interface{}{
-		"id":               input.ID,
-		"email":            input.Email,
-		"role":             input.Role,
-		"status":           input.Status,
-		"email_verified":   input.EmailVer,
-		"email_updated_at": input.EmailUpdatedAt,
-		"created_at":       input.CreatedAt,
+		"id":         input.ID,
+		"role":       input.Role,
+		"status":     input.Status,
+		"created_at": input.CreatedAt,
 	}
 
 	query, args, err := q.inserter.SetMap(values).ToSql()
@@ -90,12 +75,6 @@ func (q UserQ) Update(ctx context.Context, input map[string]any) error {
 
 	if email, ok := input["email"]; ok {
 		values["email"] = email
-	}
-	if emailVer, ok := input["email_verified"]; ok {
-		values["email_verified"] = emailVer
-	}
-	if EmailUpdatedAt, ok := input["email_updated_at"]; ok {
-		values["email_updated_at"] = EmailUpdatedAt
 	}
 	if Status, ok := input["status"]; ok {
 		values["status"] = Status
@@ -127,14 +106,12 @@ func (q UserQ) Get(ctx context.Context) (UserModel, error) {
 	} else {
 		row = q.db.QueryRowContext(ctx, query, args...)
 	}
+
 	var acc UserModel
 	err = row.Scan(
 		&acc.ID,
-		&acc.Email,
 		&acc.Role,
 		&acc.Status,
-		&acc.EmailVer,
-		&acc.EmailUpdatedAt,
 		&acc.CreatedAt,
 	)
 	if err != nil {
@@ -167,11 +144,8 @@ func (q UserQ) Select(ctx context.Context) ([]UserModel, error) {
 		var acc UserModel
 		err := rows.Scan(
 			&acc.ID,
-			&acc.Email,
 			&acc.Role,
 			&acc.Status,
-			&acc.EmailVer,
-			&acc.EmailUpdatedAt,
 			&acc.CreatedAt,
 		)
 		if err != nil {
@@ -202,30 +176,28 @@ func (q UserQ) Delete(ctx context.Context) error {
 }
 
 func (q UserQ) FilterID(id uuid.UUID) UserQ {
-	q.applyConditions(sq.Eq{"id": id})
-	return q
-}
-
-func (q UserQ) FilterEmail(email string) UserQ {
-	q.applyConditions(sq.Eq{"email": email})
+	q.selector = q.selector.Where(sq.Eq{"id": id})
+	q.counter = q.counter.Where(sq.Eq{"id": id})
+	q.deleter = q.deleter.Where(sq.Eq{"id": id})
+	q.updater = q.updater.Where(sq.Eq{"id": id})
 
 	return q
 }
 
 func (q UserQ) FilterRole(role string) UserQ {
-	q.applyConditions(sq.Eq{"role": role})
+	q.selector = q.selector.Where(sq.Eq{"role": role})
+	q.counter = q.counter.Where(sq.Eq{"role": role})
+	q.deleter = q.deleter.Where(sq.Eq{"role": role})
+	q.updater = q.updater.Where(sq.Eq{"role": role})
 
 	return q
 }
 
-func (q UserQ) FilterEmailVer(verified bool) UserQ {
-	q.applyConditions(sq.Eq{"email_verified": verified})
-
-	return q
-}
-
-func (q UserQ) FilterStatus(role string) UserQ {
-	q.applyConditions(sq.Eq{"status": role})
+func (q UserQ) FilterStatus(status string) UserQ {
+	q.selector = q.selector.Where(sq.Eq{"status": status})
+	q.counter = q.counter.Where(sq.Eq{"status": status})
+	q.deleter = q.deleter.Where(sq.Eq{"status": status})
+	q.updater = q.updater.Where(sq.Eq{"status": status})
 
 	return q
 }

@@ -14,12 +14,12 @@ func (s Service) Logout(w http.ResponseWriter, r *http.Request) {
 	initiator, err := meta.User(r.Context())
 	if err != nil {
 		s.Log(r).WithError(err).Error("failed to get user from context")
-
 		ape.RenderErr(w, problems.Unauthorized("failed to get user from context"))
+
 		return
 	}
 
-	err = s.app.DeleteOwnSession(r.Context(), initiator.UserID, initiator.SessionID)
+	err = s.app.DeleteOwnSession(r.Context(), initiator.UserID, initiator.SessionID, initiator.SessionID)
 	if err != nil {
 		s.Log(r).WithError(err).Errorf("failed to logout user")
 		switch {
@@ -36,5 +36,5 @@ func (s Service) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ape.Render(w, http.StatusNoContent, nil)
+	w.WriteHeader(http.StatusNoContent)
 }

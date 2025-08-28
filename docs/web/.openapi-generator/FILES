@@ -27,6 +27,9 @@ docs/TestAPI.md
 docs/TokensPair.md
 docs/TokensPairData.md
 docs/TokensPairDataAttributes.md
+docs/UpdatePassword.md
+docs/UpdatePasswordData.md
+docs/UpdatePasswordDataAttributes.md
 docs/User.md
 docs/UserData.md
 docs/UserDataAttributes.md
@@ -58,6 +61,9 @@ model_register_user_data_attributes.go
 model_tokens_pair.go
 model_tokens_pair_data.go
 model_tokens_pair_data_attributes.go
+model_update_password.go
+model_update_password_data.go
+model_update_password_data_attributes.go
 model_user.go
 model_user_data.go
 model_user_data_attributes.go

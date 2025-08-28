@@ -13,8 +13,6 @@ func UserSession(m models.Session) resources.UserSession {
 			Type: resources.UserSessionType,
 			Attributes: resources.UserSessionAttributes{
 				UserId:    m.UserID.String(),
-				Ip:        m.IP,
-				Client:    m.Client,
 				CreatedAt: m.CreatedAt,
 				LastUsed:  m.LastUsed,
 			},

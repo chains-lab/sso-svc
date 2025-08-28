@@ -15,8 +15,8 @@ func (s Service) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	req, err := requests.RegisterUser(r)
 	if err != nil {
 		s.Log(r).WithError(err).Error("failed to decode register admin request")
-
 		ape.RenderErr(w, problems.BadRequest(err)...)
+
 		return
 	}
 
@@ -31,6 +31,7 @@ func (s Service) RegisterUser(w http.ResponseWriter, r *http.Request) {
 				fmt.Errorf("passwords and confirm do not match"),
 			),
 		)
+
 		return
 	}
 
@@ -42,6 +43,8 @@ func (s Service) RegisterUser(w http.ResponseWriter, r *http.Request) {
 			ape.RenderErr(w, problems.Conflict("user with this email already exists"))
 		case errors.Is(err, errx.ErrorRoleNotSupported):
 			ape.RenderErr(w, problems.InvalidParameter("data/attributes/role", err))
+		case errors.Is(err, errx.ErrorPasswordIsInappropriate):
+			ape.RenderErr(w, problems.InvalidParameter("data/attributes/password", err))
 		default:
 			ape.RenderErr(w, problems.InternalError())
 		}
@@ -51,5 +54,5 @@ func (s Service) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 	s.Log(r).Infof("user %s registered successfully", req.Data.Attributes.Email)
 
-	ape.Render(w, http.StatusCreated, nil)
+	w.WriteHeader(http.StatusCreated)
 }

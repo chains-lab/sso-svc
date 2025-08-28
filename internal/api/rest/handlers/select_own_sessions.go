@@ -14,8 +14,8 @@ func (s Service) SelectOwnSessions(w http.ResponseWriter, r *http.Request) {
 	initiator, err := meta.User(r.Context())
 	if err != nil {
 		s.Log(r).WithError(err).Error("failed to get user from context")
-
 		ape.RenderErr(w, problems.Unauthorized("failed to get user from context"))
+
 		return
 	}
 

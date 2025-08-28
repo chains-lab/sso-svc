@@ -18,10 +18,10 @@ properties:
       attributes:
         type: object
         required:
-          - email
           - role
+          - email
+          - email_verified
           - created_at
-          - updated_at
         properties:
           email:
             type: string
@@ -29,11 +29,10 @@ properties:
           role:
             type: string
             description: "Role"
+          email_verified:
+            type: boolean
+            description: "Email Verified"
           created_at:
             type: string
             format: date-time
             description: "Created At"
-          updated_at:
-            type: string
-            format: date-time
-            description: "Updated At"

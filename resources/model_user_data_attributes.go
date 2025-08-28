@@ -26,10 +26,10 @@ type UserDataAttributes struct {
 	Email string `json:"email"`
 	// Role
 	Role string `json:"role"`
+	// Email Verified
+	EmailVerified bool `json:"email_verified"`
 	// Created At
 	CreatedAt time.Time `json:"created_at"`
-	// Updated At
-	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type _UserDataAttributes UserDataAttributes
@@ -38,12 +38,12 @@ type _UserDataAttributes UserDataAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewUserDataAttributes(email string, role string, createdAt time.Time, updatedAt time.Time) *UserDataAttributes {
+func NewUserDataAttributes(email string, role string, emailVerified bool, createdAt time.Time) *UserDataAttributes {
 	this := UserDataAttributes{}
 	this.Email = email
 	this.Role = role
+	this.EmailVerified = emailVerified
 	this.CreatedAt = createdAt
-	this.UpdatedAt = updatedAt
 	return &this
 }
 
@@ -103,6 +103,30 @@ func (o *UserDataAttributes) SetRole(v string) {
 	o.Role = v
 }
 
+// GetEmailVerified returns the EmailVerified field value
+func (o *UserDataAttributes) GetEmailVerified() bool {
+	if o == nil {
+		var ret bool
+		return ret
+	}
+
+	return o.EmailVerified
+}
+
+// GetEmailVerifiedOk returns a tuple with the EmailVerified field value
+// and a boolean to check if the value has been set.
+func (o *UserDataAttributes) GetEmailVerifiedOk() (*bool, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.EmailVerified, true
+}
+
+// SetEmailVerified sets field value
+func (o *UserDataAttributes) SetEmailVerified(v bool) {
+	o.EmailVerified = v
+}
+
 // GetCreatedAt returns the CreatedAt field value
 func (o *UserDataAttributes) GetCreatedAt() time.Time {
 	if o == nil {
@@ -127,30 +151,6 @@ func (o *UserDataAttributes) SetCreatedAt(v time.Time) {
 	o.CreatedAt = v
 }
 
-// GetUpdatedAt returns the UpdatedAt field value
-func (o *UserDataAttributes) GetUpdatedAt() time.Time {
-	if o == nil {
-		var ret time.Time
-		return ret
-	}
-
-	return o.UpdatedAt
-}
-
-// GetUpdatedAtOk returns a tuple with the UpdatedAt field value
-// and a boolean to check if the value has been set.
-func (o *UserDataAttributes) GetUpdatedAtOk() (*time.Time, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.UpdatedAt, true
-}
-
-// SetUpdatedAt sets field value
-func (o *UserDataAttributes) SetUpdatedAt(v time.Time) {
-	o.UpdatedAt = v
-}
-
 func (o UserDataAttributes) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -163,8 +163,8 @@ func (o UserDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["email"] = o.Email
 	toSerialize["role"] = o.Role
+	toSerialize["email_verified"] = o.EmailVerified
 	toSerialize["created_at"] = o.CreatedAt
-	toSerialize["updated_at"] = o.UpdatedAt
 	return toSerialize, nil
 }
 
@@ -175,8 +175,8 @@ func (o *UserDataAttributes) UnmarshalJSON(data []byte) (err error) {
 	requiredProperties := []string{
 		"email",
 		"role",
+		"email_verified",
 		"created_at",
-		"updated_at",
 	}
 
 	allProperties := make(map[string]interface{})

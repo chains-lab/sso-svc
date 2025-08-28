@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/chains-lab/gatekit/auth"
 	"github.com/chains-lab/pagi"
 	"github.com/chains-lab/sso-svc/internal/app/jwtmanager"
 	"github.com/chains-lab/sso-svc/internal/app/models"
@@ -15,10 +16,29 @@ import (
 	"github.com/google/uuid"
 )
 
+type sessionsQ interface {
+	New() dbx.SessionsQ
+	Insert(ctx context.Context, input dbx.Session) error
+	Update(ctx context.Context, input map[string]any) error
+	Delete(ctx context.Context) error
+	Select(ctx context.Context) ([]dbx.Session, error)
+	Get(ctx context.Context) (dbx.Session, error)
+
+	FilterID(id uuid.UUID) dbx.SessionsQ
+	FilterUserID(userID uuid.UUID) dbx.SessionsQ
+
+	Page(limit, offset uint64) dbx.SessionsQ
+	Count(ctx context.Context) (uint64, error)
+
+	OrderCreatedAt(ascending bool) dbx.SessionsQ
+}
+
 type JWTManager interface {
 	EncryptAccess(token string) (string, error)
 	EncryptRefresh(token string) (string, error)
 	DecryptRefresh(encryptedToken string) (string, error)
+
+	ParseRefreshClaims(enc string) (auth.UsersClaims, error)
 
 	GenerateAccess(
 		userID uuid.UUID,
@@ -29,12 +49,13 @@ type JWTManager interface {
 	GenerateRefresh(
 		userID uuid.UUID,
 		sessionID uuid.UUID,
-		idn string,
+		role string,
+		emailVerified bool,
 	) (string, error)
 }
 
 type Session struct {
-	query dbx.SessionsQ
+	query sessionsQ
 
 	jwt JWTManager
 }
@@ -46,49 +67,65 @@ func CreateSession(pg *sql.DB, manager jwtmanager.Manager) Session {
 	}
 }
 
-func (s Session) CreateUserSession(
+func (s Session) Create(
 	ctx context.Context,
 	userID uuid.UUID,
-	token, client, ip string,
-) (models.Session, error) {
+	role string,
+	verified bool,
+) (models.TokensPair, error) {
+	sessionID := uuid.New()
+
+	access, err := s.jwt.GenerateAccess(userID, sessionID, role)
+	if err != nil {
+		return models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to generate access token for user %s, cause: %w", userID, err))
+	}
+
+	refresh, err := s.jwt.GenerateRefresh(userID, sessionID, role, verified)
+	if err != nil {
+		return models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to generate refresh token for user %s, cause: %w", userID, err))
+	}
+
+	refreshCrypto, err := s.jwt.EncryptRefresh(refresh)
+	if err != nil {
+		return models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to encrypt refresh token for user %s, cause: %w", userID, err))
+	}
+
 	session := dbx.Session{
-		ID:        uuid.New(),
+		ID:        sessionID,
 		UserID:    userID,
-		Client:    client,
-		Token:     token,
-		IP:        ip,
+		Token:     refreshCrypto,
 		LastUsed:  time.Now().UTC(),
 		CreatedAt: time.Now().UTC(),
 	}
 
-	err := s.query.Insert(ctx, session)
+	err = s.query.Insert(ctx, session)
 	if err != nil {
-		return models.Session{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to create session for user %s: %w", userID, err),
+		return models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to create session for user %s, cause: %w", userID, err),
 		)
 	}
 
-	return models.Session{
-		ID:        session.ID,
-		UserID:    session.UserID,
-		Client:    session.Client,
-		IP:        session.IP,
-		LastUsed:  session.LastUsed,
-		CreatedAt: session.CreatedAt,
+	return models.TokensPair{
+		SessionID: sessionID,
+		Refresh:   refresh,
+		Access:    access,
 	}, nil
 }
 
-func (s Session) GetUserSession(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error) {
-	session, err := s.query.New().FilterID(sessionID).FilterUserID(userID).Get(ctx)
+func (s Session) Get(ctx context.Context, sessionID uuid.UUID) (models.Session, error) {
+	session, err := s.query.New().FilterID(sessionID).Get(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return models.Session{}, errx.ErrorSessionNotFound.Raise(
-				fmt.Errorf("session with id: %s not found for user %s", sessionID, userID),
+				fmt.Errorf("session with id: %s not found, cause: %w", sessionID, err),
 			)
 		default:
 			return models.Session{}, errx.ErrorInternal.Raise(
-				fmt.Errorf("failed to get session with id: %s for user %s: %w", sessionID, userID, err),
+				fmt.Errorf("failed to get session with id: %s cause: %w", sessionID, err),
 			)
 		}
 	}
@@ -96,14 +133,58 @@ func (s Session) GetUserSession(ctx context.Context, userID, sessionID uuid.UUID
 	return models.Session{
 		ID:        session.ID,
 		UserID:    session.UserID,
-		Client:    session.Client,
-		IP:        session.IP,
 		LastUsed:  session.LastUsed,
 		CreatedAt: session.CreatedAt,
 	}, nil
 }
 
-func (s Session) SelectUserSessions(
+func (s Session) GetSessionForInitiator(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error) {
+	session, err := s.query.New().FilterUserID(userID).FilterID(sessionID).Get(ctx)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return models.Session{}, errx.ErrorInitiatorSessionNotFound.Raise(
+				fmt.Errorf("session with id: %s not found for user %s, cause: %w", sessionID, userID, err),
+			)
+		default:
+			return models.Session{}, errx.ErrorInternal.Raise(
+				fmt.Errorf("failed to get session with id: %s for user %s, cause: %w", sessionID, userID, err),
+			)
+		}
+	}
+
+	return models.Session{
+		ID:        session.ID,
+		UserID:    session.UserID,
+		LastUsed:  session.LastUsed,
+		CreatedAt: session.CreatedAt,
+	}, nil
+}
+
+func (s Session) GetForUser(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error) {
+	session, err := s.query.New().FilterUserID(userID).FilterID(sessionID).Get(ctx)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return models.Session{}, errx.ErrorSessionNotFound.Raise(
+				fmt.Errorf("session with id: %s not found for user %s, cause: %w", sessionID, userID, err),
+			)
+		default:
+			return models.Session{}, errx.ErrorInternal.Raise(
+				fmt.Errorf("failed to get session with id: %s for user %s, cause: %w", sessionID, userID, err),
+			)
+		}
+	}
+
+	return models.Session{
+		ID:        session.ID,
+		UserID:    session.UserID,
+		LastUsed:  session.LastUsed,
+		CreatedAt: session.CreatedAt,
+	}, nil
+}
+
+func (s Session) SelectForUSer(
 	ctx context.Context,
 	userID uuid.UUID,
 	pag pagi.Request,
@@ -137,14 +218,14 @@ func (s Session) SelectUserSessions(
 	total, err := query.Count(ctx)
 	if err != nil {
 		return nil, pagi.Response{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("counting rows: %w", err),
+			fmt.Errorf("counting rows, cause: %w", err),
 		)
 	}
 
 	rows, err := query.Select(ctx)
 	if err != nil {
 		return nil, pagi.Response{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("selecting rows: %w", err),
+			fmt.Errorf("selecting rows, cause: %w", err),
 		)
 	}
 
@@ -157,8 +238,6 @@ func (s Session) SelectUserSessions(
 		result[i] = models.Session{
 			ID:        session.ID,
 			UserID:    session.UserID,
-			Client:    session.Client,
-			IP:        session.IP,
 			LastUsed:  session.LastUsed,
 			CreatedAt: session.CreatedAt,
 		}
@@ -171,66 +250,128 @@ func (s Session) SelectUserSessions(
 	}, nil
 }
 
-func (s Session) DeleteUserSession(ctx context.Context, userID, sessionID uuid.UUID) error {
+func (s Session) Delete(ctx context.Context, sessionID uuid.UUID) error {
 	err := s.query.New().FilterID(sessionID).Delete(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return errx.ErrorSessionNotFound.Raise(
-				fmt.Errorf("session with id: %s not found", sessionID),
+				fmt.Errorf("session with id: %s not found, cause: %w", sessionID, err),
 			)
 		default:
 			return errx.ErrorInternal.Raise(
-				fmt.Errorf("failed to delete session with id: %s for user %s: %w", sessionID, userID, err),
+				fmt.Errorf("failed to delete session with id: %s, cause: %w", sessionID, err),
 			)
 		}
 	}
 	return nil
 }
 
-func (s Session) DeleteUserSessions(ctx context.Context, userID uuid.UUID) error {
+func (s Session) DeleteOneForUser(ctx context.Context, userID, sessionID uuid.UUID) error {
+	err := s.query.New().FilterUserID(userID).FilterID(sessionID).Delete(ctx)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return errx.ErrorSessionNotFound.Raise(
+				fmt.Errorf("session with id: %s not found for user %s, cause: %w", sessionID, userID, err),
+			)
+		default:
+			return errx.ErrorInternal.Raise(
+				fmt.Errorf("failed to delete session with id: %s for user %s, cause: %w", sessionID, userID, err),
+			)
+		}
+	}
+	return nil
+}
+
+func (s Session) DeleteAllForUser(ctx context.Context, userID uuid.UUID) error {
 	err := s.query.New().FilterUserID(userID).Delete(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return errx.ErrorUserNotFound.Raise(
-				fmt.Errorf("no sessions found for user %s: %w", userID, err),
+				fmt.Errorf("no sessions found for user %s, cause: %w", userID, err),
 			)
 		default:
 			return errx.ErrorInternal.Raise(
-				fmt.Errorf("failed to delete sessions for user %s: %w", userID, err),
+				fmt.Errorf("failed to delete sessions for user %s, cause: %w", userID, err),
 			)
 		}
 	}
 	return nil
 }
 
-func (s Session) UpdateToken(ctx context.Context, userID, sessionID uuid.UUID, role, ip string) (string, error) {
-	newRefresh, err := s.jwt.GenerateRefresh(userID, sessionID, role)
+func (s Session) Refresh(ctx context.Context, oldRefreshToken string) (models.TokensPair, error) {
+	tokenData, err := s.jwt.ParseRefreshClaims(oldRefreshToken)
 	if err != nil {
-		return "", errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to generate refresh token for user %s: %w", userID, err),
+		return models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to decrypt refresh token claims, cause: %w", err),
 		)
 	}
 
-	refreshCrypto, err := s.jwt.EncryptRefresh(newRefresh)
+	userID, err := uuid.Parse(tokenData.Subject)
 	if err != nil {
-		return "", errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to encrypt refresh token for user %s: %w", userID, err),
+		return models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to parse user id from token claims, cause: %w", err),
 		)
 	}
 
-	LastUsed := time.Now().UTC()
+	session, err := s.query.New().FilterID(tokenData.Session).Get(ctx)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return models.TokensPair{}, errx.ErrorSessionNotFound.Raise(
+				fmt.Errorf("session with id: %s not found for user %s, cause: %w", tokenData.Session, userID, err),
+			)
+		default:
+			return models.TokensPair{}, errx.ErrorInternal.Raise(
+				fmt.Errorf("failed to get session with id: %s for user %s, cause: %w", tokenData.Session, userID, err),
+			)
+		}
+	}
 
-	err = s.query.New().FilterID(sessionID).Update(ctx, map[string]any{
+	refresh, err := s.jwt.DecryptRefresh(session.Token)
+	if err != nil {
+		return models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to generate refresh token for user %s, cause: %w", userID, err),
+		)
+	}
+
+	if refresh != oldRefreshToken {
+		return models.TokensPair{}, errx.ErrorSessionTokenMismatch.Raise(
+			fmt.Errorf("refresh token does not match for session %s and user %s, cause: %w", session.ID, userID, err),
+		)
+	}
+
+	refresh, err = s.jwt.GenerateRefresh(userID, tokenData.Session, tokenData.Role, tokenData.Verified)
+	if err != nil {
+		return models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to generate refresh token for user %s, cause: %w", userID, err),
+		)
+	}
+
+	refreshCrypto, err := s.jwt.EncryptRefresh(refresh)
+	if err != nil {
+		return models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to encrypt refresh token for user %s, cause: %w", userID, err),
+		)
+	}
+
+	access, err := s.jwt.GenerateAccess(userID, tokenData.Session, tokenData.Role)
+	if err != nil {
+		return models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to generate access token for user %s, cause: %w", userID, err),
+		)
+	}
+
+	err = s.query.New().FilterID(tokenData.Session).Update(ctx, map[string]any{
 		"token":     refreshCrypto,
-		"ip":        ip,
-		"last_used": LastUsed,
+		"last_used": time.Now().UTC(),
 	})
 
-	if err != nil {
-		return "", err
-	}
-
-	return newRefresh, nil
+	return models.TokensPair{
+		SessionID: tokenData.Session,
+		Refresh:   refresh,
+		Access:    access,
+	}, nil
 }

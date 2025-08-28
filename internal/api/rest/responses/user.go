@@ -14,7 +14,6 @@ func User(m models.User) resources.User {
 				Email:     m.Email,
 				Role:      m.Role,
 				CreatedAt: m.CreatedAt,
-				UpdatedAt: m.EmailUpdatedAt,
 			},
 		},
 	}

@@ -6,14 +6,14 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Email** | **string** | Email | 
 **Role** | **string** | Role | 
+**EmailVerified** | **bool** | Email Verified | 
 **CreatedAt** | **time.Time** | Created At | 
-**UpdatedAt** | **time.Time** | Updated At | 
 
 ## Methods
 
 ### NewUserDataAttributes
 
-`func NewUserDataAttributes(email string, role string, createdAt time.Time, updatedAt time.Time, ) *UserDataAttributes`
+`func NewUserDataAttributes(email string, role string, emailVerified bool, createdAt time.Time, ) *UserDataAttributes`
 
 NewUserDataAttributes instantiates a new UserDataAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -68,6 +68,26 @@ and a boolean to check if the value has been set.
 SetRole sets Role field to given value.
 
 
+### GetEmailVerified
+
+`func (o *UserDataAttributes) GetEmailVerified() bool`
+
+GetEmailVerified returns the EmailVerified field if non-nil, zero value otherwise.
+
+### GetEmailVerifiedOk
+
+`func (o *UserDataAttributes) GetEmailVerifiedOk() (*bool, bool)`
+
+GetEmailVerifiedOk returns a tuple with the EmailVerified field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetEmailVerified
+
+`func (o *UserDataAttributes) SetEmailVerified(v bool)`
+
+SetEmailVerified sets EmailVerified field to given value.
+
+
 ### GetCreatedAt
 
 `func (o *UserDataAttributes) GetCreatedAt() time.Time`
@@ -86,26 +106,6 @@ and a boolean to check if the value has been set.
 `func (o *UserDataAttributes) SetCreatedAt(v time.Time)`
 
 SetCreatedAt sets CreatedAt field to given value.
-
-
-### GetUpdatedAt
-
-`func (o *UserDataAttributes) GetUpdatedAt() time.Time`
-
-GetUpdatedAt returns the UpdatedAt field if non-nil, zero value otherwise.
-
-### GetUpdatedAtOk
-
-`func (o *UserDataAttributes) GetUpdatedAtOk() (*time.Time, bool)`
-
-GetUpdatedAtOk returns a tuple with the UpdatedAt field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetUpdatedAt
-
-`func (o *UserDataAttributes) SetUpdatedAt(v time.Time)`
-
-SetUpdatedAt sets UpdatedAt field to given value.
 
 
 

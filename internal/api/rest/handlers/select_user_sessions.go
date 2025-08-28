@@ -18,8 +18,8 @@ func (s Service) SelectUserSessions(w http.ResponseWriter, r *http.Request) {
 	initiator, err := meta.User(r.Context())
 	if err != nil {
 		s.Log(r).WithError(err).Error("failed to get user from context")
-
 		ape.RenderErr(w, problems.Unauthorized("failed to get user from context"))
+
 		return
 	}
 
@@ -28,15 +28,14 @@ func (s Service) SelectUserSessions(w http.ResponseWriter, r *http.Request) {
 	userID, err := uuid.Parse(chi.URLParam(r, "user_id"))
 	if err != nil {
 		s.Log(r).WithError(err).Errorf("invalid user id: %s", chi.URLParam(r, "user_id"))
-
 		ape.RenderErr(w, problems.InvalidParameter("user_id", err))
+
 		return
 	}
 
-	sessions, pag, err := s.app.AdminSelectUserSessions(r.Context(), initiator.UserID, userID, pagReq, sort)
+	sessions, pag, err := s.app.AdminSelectUserSessions(r.Context(), initiator.UserID, initiator.SessionID, userID, pagReq, sort)
 	if err != nil {
 		s.Log(r).WithError(err).Errorf("failed to select own sessions")
-
 		switch {
 		case errors.Is(err, errx.ErrorUnauthenticated):
 			ape.RenderErr(w, problems.Unauthorized("failed to select user sessions"))
@@ -49,6 +48,7 @@ func (s Service) SelectUserSessions(w http.ResponseWriter, r *http.Request) {
 		default:
 			ape.RenderErr(w, problems.InternalError())
 		}
+
 		return
 	}
 

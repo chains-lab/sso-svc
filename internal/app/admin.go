@@ -13,13 +13,13 @@ import (
 	"github.com/google/uuid"
 )
 
-func (a App) RegisterAdmin(ctx context.Context, initiatorID uuid.UUID, email, password, role string) (models.User, error) {
-	_, err := a.users.GetUserByEmail(ctx, email)
+func (a App) RegisterAdmin(ctx context.Context, initiatorID, initiatorSessionID uuid.UUID, email, password, role string) (models.User, error) {
+	_, err := a.users.GetByEmail(ctx, email)
 	if !errors.Is(err, errx.ErrorUserNotFound) {
 		return models.User{}, err
 	}
 
-	initiator, err := a.users.GetInitiatorByID(ctx, initiatorID)
+	initiator, err := a.GetInitiator(ctx, initiatorID, initiatorSessionID)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -30,12 +30,12 @@ func (a App) RegisterAdmin(ctx context.Context, initiatorID uuid.UUID, email, pa
 		)
 	}
 
-	err = a.users.CreateUser(ctx, email, password, role)
+	err = a.users.Create(ctx, email, password, role)
 	if err != nil {
 		return models.User{}, err
 	}
 
-	user, err := a.users.GetUserByEmail(ctx, email)
+	user, err := a.users.GetByEmail(ctx, email)
 	if err != nil {
 		return models.User{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to get user by email %s after creation: %w", email, err),
@@ -45,14 +45,19 @@ func (a App) RegisterAdmin(ctx context.Context, initiatorID uuid.UUID, email, pa
 	return user, nil
 }
 
-func (a App) AdminDeleteUserSessions(ctx context.Context, initiatorID, userID uuid.UUID) error {
+func (a App) AdminDeleteUserSessions(ctx context.Context, initiatorID, initiatorSessionID, userID uuid.UUID) error {
 	_, _, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID, 1)
 	if err != nil {
 		return err
 	}
 
+	_, err = a.session.GetSessionForInitiator(ctx, initiatorID, initiatorSessionID)
+	if err != nil {
+		return err
+	}
+
 	err = a.Transaction(func(ctx context.Context) error {
-		err = a.users.DeleteUser(ctx, userID)
+		err = a.session.DeleteAllForUser(ctx, userID)
 		if err != nil {
 			return err
 		}
@@ -63,13 +68,18 @@ func (a App) AdminDeleteUserSessions(ctx context.Context, initiatorID, userID uu
 	return err
 }
 
-func (a App) AdminDeleteUserSession(ctx context.Context, initiatorID, userID, sessionID uuid.UUID) error {
+func (a App) AdminDeleteUserSession(ctx context.Context, initiatorID, initiatorSessionID, userID, sessionID uuid.UUID) error {
 	_, _, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID, 1)
 	if err != nil {
 		return err
 	}
 
-	session, appErr := a.session.GetUserSession(ctx, userID, sessionID)
+	_, err = a.session.GetSessionForInitiator(ctx, initiatorID, initiatorSessionID)
+	if err != nil {
+		return err
+	}
+
+	session, appErr := a.session.GetForUser(ctx, userID, sessionID)
 	if appErr != nil {
 		return appErr
 	}
@@ -80,7 +90,7 @@ func (a App) AdminDeleteUserSession(ctx context.Context, initiatorID, userID, se
 		)
 	}
 
-	appErr = a.session.DeleteUserSession(ctx, session.ID, userID)
+	appErr = a.session.DeleteOneForUser(ctx, session.ID, userID)
 	if appErr != nil {
 		return appErr
 	}
@@ -88,8 +98,13 @@ func (a App) AdminDeleteUserSession(ctx context.Context, initiatorID, userID, se
 	return nil
 }
 
-func (a App) AdminGetUser(ctx context.Context, initiatorID, userID uuid.UUID) (models.User, error) {
+func (a App) AdminGetUser(ctx context.Context, initiatorID, initiatorSessionID, userID uuid.UUID) (models.User, error) {
 	_, user, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID, 1)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	_, err = a.session.GetSessionForInitiator(ctx, initiatorID, initiatorSessionID)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -97,13 +112,18 @@ func (a App) AdminGetUser(ctx context.Context, initiatorID, userID uuid.UUID) (m
 	return user, nil
 }
 
-func (a App) AdminGetUserSession(ctx context.Context, initiatorID, userID, sessionID uuid.UUID) (models.Session, error) {
+func (a App) AdminGetUserSession(ctx context.Context, initiatorID, initiatorSessionID, userID, sessionID uuid.UUID) (models.Session, error) {
 	_, _, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID, 1)
 	if err != nil {
 		return models.Session{}, err
 	}
 
-	session, appErr := a.session.GetUserSession(ctx, userID, sessionID)
+	_, err = a.session.GetSessionForInitiator(ctx, initiatorID, initiatorSessionID)
+	if err != nil {
+		return models.Session{}, err
+	}
+
+	session, appErr := a.session.GetForUser(ctx, userID, sessionID)
 	if appErr != nil {
 		return models.Session{}, appErr
 	}
@@ -113,7 +133,7 @@ func (a App) AdminGetUserSession(ctx context.Context, initiatorID, userID, sessi
 
 func (a App) AdminSelectUserSessions(
 	ctx context.Context,
-	initiatorID, userID uuid.UUID,
+	initiatorID, initiatorSessionID, userID uuid.UUID,
 	pag pagi.Request,
 	sort []pagi.SortField,
 ) ([]models.Session, pagi.Response, error) {
@@ -122,27 +142,37 @@ func (a App) AdminSelectUserSessions(
 		return nil, pagi.Response{}, err
 	}
 
-	return a.session.SelectUserSessions(ctx, userID, pag, sort)
+	_, err = a.session.GetSessionForInitiator(ctx, initiatorID, initiatorSessionID)
+	if err != nil {
+		return nil, pagi.Response{}, err
+	}
+
+	return a.session.SelectForUSer(ctx, userID, pag, sort)
 }
 
 func (a App) AdminDeleteUser(
 	ctx context.Context,
-	initiatorID, userID uuid.UUID,
+	initiatorID, initiatorSessionID, userID uuid.UUID,
 ) error {
 	_, _, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID, 1)
 	if err != nil {
 		return err
 	}
 
+	_, err = a.session.GetSessionForInitiator(ctx, initiatorID, initiatorSessionID)
+	if err != nil {
+		return err
+	}
+
 	txErr := a.Transaction(func(ctx context.Context) error {
-		err := a.session.DeleteUserSessions(ctx, userID)
+		err := a.session.DeleteAllForUser(ctx, userID)
 		if err != nil {
 			return errx.ErrorInternal.Raise(
 				fmt.Errorf("deleting sessions for user %s: %w", userID, err),
 			)
 		}
 
-		err = a.users.DeleteUser(ctx, userID)
+		err = a.users.Delete(ctx, userID)
 		if err != nil {
 			return errx.ErrorInternal.Raise(
 				fmt.Errorf("deleting user %s: %w", userID, err),
@@ -161,15 +191,20 @@ func (a App) AdminDeleteUser(
 
 func (a App) AdminBlockUser(
 	ctx context.Context,
-	initiatorID, userID uuid.UUID,
+	initiatorID, initiatorSessionID, userID uuid.UUID,
 ) (models.User, error) {
 	_, _, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID, 1)
 	if err != nil {
 		return models.User{}, err
 	}
 
+	_, err = a.session.GetSessionForInitiator(ctx, initiatorID, initiatorSessionID)
+	if err != nil {
+		return models.User{}, err
+	}
+
 	txErr := a.Transaction(func(ctx context.Context) error {
-		err := a.session.DeleteUserSessions(ctx, userID)
+		err := a.session.DeleteAllForUser(ctx, userID)
 		if err != nil {
 			return errx.ErrorInternal.Raise(
 				fmt.Errorf("deleting sessions for user %s: %w", userID, err),
@@ -190,7 +225,7 @@ func (a App) AdminBlockUser(
 		return models.User{}, txErr
 	}
 
-	user, err := a.users.GetUserByID(ctx, userID)
+	user, err := a.users.GetByID(ctx, userID)
 	if err != nil {
 		return models.User{}, txErr
 	}
@@ -200,15 +235,20 @@ func (a App) AdminBlockUser(
 
 func (a App) AdminUnblockUser(
 	ctx context.Context,
-	initiatorID, userID uuid.UUID,
+	initiatorID, initiatorSessionID, userID uuid.UUID,
 ) (models.User, error) {
 	_, _, err := a.users.ComparisonRightsForAdmins(ctx, initiatorID, userID, 1)
 	if err != nil {
 		return models.User{}, err
 	}
 
+	_, err = a.session.GetSessionForInitiator(ctx, initiatorID, initiatorSessionID)
+	if err != nil {
+		return models.User{}, err
+	}
+
 	txErr := a.Transaction(func(ctx context.Context) error {
-		err := a.session.DeleteUserSessions(ctx, userID)
+		err := a.session.DeleteAllForUser(ctx, userID)
 		if err != nil {
 			return errx.ErrorInternal.Raise(
 				fmt.Errorf("deleting sessions for user %s: %w", userID, err),
@@ -229,39 +269,10 @@ func (a App) AdminUnblockUser(
 		return models.User{}, txErr
 	}
 
-	user, err := a.users.GetUserByID(ctx, userID)
+	user, err := a.users.GetByID(ctx, userID)
 	if err != nil {
 		return models.User{}, txErr
 	}
 
 	return user, nil
-}
-
-func (a App) DeleteOwnUser(
-	ctx context.Context,
-	userID uuid.UUID,
-) error {
-	txErr := a.Transaction(func(ctx context.Context) error {
-		err := a.session.DeleteUserSessions(ctx, userID)
-		if err != nil {
-			return errx.ErrorInternal.Raise(
-				fmt.Errorf("deleting sessions for user %s: %w", userID, err),
-			)
-		}
-
-		err = a.users.DeleteUser(ctx, userID)
-		if err != nil {
-			return errx.ErrorInternal.Raise(
-				fmt.Errorf("deleting user %s: %w", userID, err),
-			)
-		}
-
-		return nil
-	})
-
-	if txErr != nil {
-		return txErr
-	}
-
-	return nil
 }

@@ -15,12 +15,12 @@ func (s Service) Login(w http.ResponseWriter, r *http.Request) {
 	req, err := requests.Login(r)
 	if err != nil {
 		s.Log(r).WithError(err).Error("failed to decode login request")
-
 		ape.RenderErr(w, problems.BadRequest(err)...)
+
 		return
 	}
 
-	token, err := s.app.Login(r.Context(), req.Data.Attributes.Email, req.Data.Attributes.Password, "TODO", "TODO")
+	token, err := s.app.Login(r.Context(), req.Data.Attributes.Email, req.Data.Attributes.Password)
 	if err != nil {
 		s.Log(r).WithError(err).Errorf("failed to login user")
 		switch {
@@ -28,8 +28,8 @@ func (s Service) Login(w http.ResponseWriter, r *http.Request) {
 			ape.RenderErr(w, problems.NotFound("user with this email not found"))
 		case errors.Is(err, errx.ErrorInitiatorIsBlocked):
 			ape.RenderErr(w, problems.Forbidden("user is blocked"))
-		case errors.Is(err, errx.ErrorInvalidCredentials):
-			ape.RenderErr(w, problems.Unauthorized("invalid credentials"))
+		case errors.Is(err, errx.ErrorInvalidLogin):
+			ape.RenderErr(w, problems.Unauthorized("invalid login or password"))
 		default:
 			ape.RenderErr(w, problems.InternalError())
 		}

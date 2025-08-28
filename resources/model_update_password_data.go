@@ -16,65 +16,38 @@ import (
 	"fmt"
 )
 
-// checks if the UserData type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &UserData{}
+// checks if the UpdatePasswordData type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &UpdatePasswordData{}
 
-// UserData struct for UserData
-type UserData struct {
-	// User ID
-	Id string `json:"id"`
+// UpdatePasswordData struct for UpdatePasswordData
+type UpdatePasswordData struct {
 	Type string `json:"type"`
-	Attributes UserDataAttributes `json:"attributes"`
+	Attributes UpdatePasswordDataAttributes `json:"attributes"`
 }
 
-type _UserData UserData
+type _UpdatePasswordData UpdatePasswordData
 
-// NewUserData instantiates a new UserData object
+// NewUpdatePasswordData instantiates a new UpdatePasswordData object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewUserData(id string, type_ string, attributes UserDataAttributes) *UserData {
-	this := UserData{}
-	this.Id = id
+func NewUpdatePasswordData(type_ string, attributes UpdatePasswordDataAttributes) *UpdatePasswordData {
+	this := UpdatePasswordData{}
 	this.Type = type_
 	this.Attributes = attributes
 	return &this
 }
 
-// NewUserDataWithDefaults instantiates a new UserData object
+// NewUpdatePasswordDataWithDefaults instantiates a new UpdatePasswordData object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewUserDataWithDefaults() *UserData {
-	this := UserData{}
+func NewUpdatePasswordDataWithDefaults() *UpdatePasswordData {
+	this := UpdatePasswordData{}
 	return &this
 }
 
-// GetId returns the Id field value
-func (o *UserData) GetId() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Id
-}
-
-// GetIdOk returns a tuple with the Id field value
-// and a boolean to check if the value has been set.
-func (o *UserData) GetIdOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Id, true
-}
-
-// SetId sets field value
-func (o *UserData) SetId(v string) {
-	o.Id = v
-}
-
 // GetType returns the Type field value
-func (o *UserData) GetType() string {
+func (o *UpdatePasswordData) GetType() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -85,7 +58,7 @@ func (o *UserData) GetType() string {
 
 // GetTypeOk returns a tuple with the Type field value
 // and a boolean to check if the value has been set.
-func (o *UserData) GetTypeOk() (*string, bool) {
+func (o *UpdatePasswordData) GetTypeOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -93,14 +66,14 @@ func (o *UserData) GetTypeOk() (*string, bool) {
 }
 
 // SetType sets field value
-func (o *UserData) SetType(v string) {
+func (o *UpdatePasswordData) SetType(v string) {
 	o.Type = v
 }
 
 // GetAttributes returns the Attributes field value
-func (o *UserData) GetAttributes() UserDataAttributes {
+func (o *UpdatePasswordData) GetAttributes() UpdatePasswordDataAttributes {
 	if o == nil {
-		var ret UserDataAttributes
+		var ret UpdatePasswordDataAttributes
 		return ret
 	}
 
@@ -109,7 +82,7 @@ func (o *UserData) GetAttributes() UserDataAttributes {
 
 // GetAttributesOk returns a tuple with the Attributes field value
 // and a boolean to check if the value has been set.
-func (o *UserData) GetAttributesOk() (*UserDataAttributes, bool) {
+func (o *UpdatePasswordData) GetAttributesOk() (*UpdatePasswordDataAttributes, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -117,11 +90,11 @@ func (o *UserData) GetAttributesOk() (*UserDataAttributes, bool) {
 }
 
 // SetAttributes sets field value
-func (o *UserData) SetAttributes(v UserDataAttributes) {
+func (o *UpdatePasswordData) SetAttributes(v UpdatePasswordDataAttributes) {
 	o.Attributes = v
 }
 
-func (o UserData) MarshalJSON() ([]byte, error) {
+func (o UpdatePasswordData) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -129,20 +102,18 @@ func (o UserData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o UserData) ToMap() (map[string]interface{}, error) {
+func (o UpdatePasswordData) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["id"] = o.Id
 	toSerialize["type"] = o.Type
 	toSerialize["attributes"] = o.Attributes
 	return toSerialize, nil
 }
 
-func (o *UserData) UnmarshalJSON(data []byte) (err error) {
+func (o *UpdatePasswordData) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"id",
 		"type",
 		"attributes",
 	}
@@ -161,53 +132,53 @@ func (o *UserData) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varUserData := _UserData{}
+	varUpdatePasswordData := _UpdatePasswordData{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varUserData)
+	err = decoder.Decode(&varUpdatePasswordData)
 
 	if err != nil {
 		return err
 	}
 
-	*o = UserData(varUserData)
+	*o = UpdatePasswordData(varUpdatePasswordData)
 
 	return err
 }
 
-type NullableUserData struct {
-	value *UserData
+type NullableUpdatePasswordData struct {
+	value *UpdatePasswordData
 	isSet bool
 }
 
-func (v NullableUserData) Get() *UserData {
+func (v NullableUpdatePasswordData) Get() *UpdatePasswordData {
 	return v.value
 }
 
-func (v *NullableUserData) Set(val *UserData) {
+func (v *NullableUpdatePasswordData) Set(val *UpdatePasswordData) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableUserData) IsSet() bool {
+func (v NullableUpdatePasswordData) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableUserData) Unset() {
+func (v *NullableUpdatePasswordData) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableUserData(val *UserData) *NullableUserData {
-	return &NullableUserData{value: val, isSet: true}
+func NewNullableUpdatePasswordData(val *UpdatePasswordData) *NullableUpdatePasswordData {
+	return &NullableUpdatePasswordData{value: val, isSet: true}
 }
 
-func (v NullableUserData) MarshalJSON() ([]byte, error) {
+func (v NullableUpdatePasswordData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableUserData) UnmarshalJSON(src []byte) error {
+func (v *NullableUpdatePasswordData) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
