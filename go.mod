@@ -6,14 +6,11 @@ require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/chains-lab/ape v0.4.10
-	github.com/chains-lab/distributors-svc v0.0.0-20250827041942-59ecfb2b06c0
-	github.com/chains-lab/gatekit v0.2.1
-	github.com/chains-lab/httplab v0.0.2
+	github.com/chains-lab/gatekit v0.2.2
 	github.com/chains-lab/logium v0.1.1
 	github.com/chains-lab/pagi v0.1.4
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
-	github.com/google/jsonapi v1.0.0
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
 	github.com/pkg/errors v0.9.1
@@ -36,6 +33,7 @@ require (
 	github.com/go-gorp/gorp/v3 v3.1.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
+	github.com/google/jsonapi v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.2 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect

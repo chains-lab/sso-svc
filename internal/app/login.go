@@ -101,7 +101,7 @@ func (a App) Login(ctx context.Context, email, password, client, ip string) (mod
 	}, nil
 }
 
-func (a App) Refresh(ctx context.Context, userID, sessionID uuid.UUID, client, ip, token string) (models.TokensPair, error) {
+func (a App) RefreshSessionToken(ctx context.Context, userID, sessionID uuid.UUID, client, ip, token string) (models.TokensPair, error) {
 	user, appErr := a.GetUserByID(ctx, userID)
 	if appErr != nil {
 		return models.TokensPair{}, appErr

@@ -103,6 +103,7 @@ components:
                 - email
                 - password
                 - confirm_password
+                - role
               properties:
                 email:
                   type: string
@@ -119,6 +120,13 @@ components:
                   format: password
                   description: Confirmation of the user's password. Must match the password field.
                   example: StrongP@ssw0rd!
+                role:
+                  type: string
+                  description: The role assigned to the registering user.
+                  enum:
+                    - admin
+                    - moderator
+                  example: admin
     RefreshSession:
       type: object
       required:

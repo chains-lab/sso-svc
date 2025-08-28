@@ -97,6 +97,7 @@ Class | Method | HTTP request | Description
  - [RefreshSessionDataAttributes](docs/RefreshSessionDataAttributes.md)
  - [RegisterAdmin](docs/RegisterAdmin.md)
  - [RegisterAdminData](docs/RegisterAdminData.md)
+ - [RegisterAdminDataAttributes](docs/RegisterAdminDataAttributes.md)
  - [RegisterUser](docs/RegisterUser.md)
  - [RegisterUserData](docs/RegisterUserData.md)
  - [RegisterUserDataAttributes](docs/RegisterUserDataAttributes.md)

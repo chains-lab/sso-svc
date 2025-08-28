@@ -6,19 +6,22 @@ import (
 	"github.com/chains-lab/logium"
 	"github.com/chains-lab/sso-svc/internal/app"
 	"github.com/chains-lab/sso-svc/internal/config"
+	"golang.org/x/oauth2"
 )
 
 type Service struct {
-	app *app.App
-	log logium.Logger
-	cfg config.Config
+	app    *app.App
+	log    logium.Logger
+	cfg    config.Config
+	google oauth2.Config
 }
 
 func NewService(cfg config.Config, log logium.Logger, a *app.App) Service {
 	return Service{
-		app: a,
-		cfg: cfg,
-		log: log,
+		app:    a,
+		log:    log,
+		cfg:    cfg,
+		google: cfg.GoogleOAuth(),
 	}
 }
 

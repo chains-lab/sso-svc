@@ -224,6 +224,37 @@ components:
       - attributes
       - type
       type: object
+    RegisterAdmin_data_attributes:
+      properties:
+        email:
+          description: The user's email address.
+          example: example1312@gmail.com
+          format: email
+          type: string
+        password:
+          description: The user's password.
+          example: StrongP@ssw0rd!
+          format: password
+          type: string
+        confirm_password:
+          description: Confirmation of the user's password. Must match the password
+            field.
+          example: StrongP@ssw0rd!
+          format: password
+          type: string
+        role:
+          description: The role assigned to the registering user.
+          enum:
+          - admin
+          - moderator
+          example: admin
+          type: string
+      required:
+      - confirm_password
+      - email
+      - password
+      - role
+      type: object
     RegisterAdmin_data:
       properties:
         type:
@@ -231,7 +262,7 @@ components:
           - register_admin
           type: string
         attributes:
-          $ref: '#/components/schemas/RegisterUser_data_attributes'
+          $ref: '#/components/schemas/RegisterAdmin_data_attributes'
       required:
       - attributes
       - type

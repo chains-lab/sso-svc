@@ -121,7 +121,7 @@ func (a App) AdminSelectUserSessions(
 	return a.session.SelectUserSessions(ctx, userID, pag, sort)
 }
 
-func (a App) AdminDelete(
+func (a App) AdminDeleteUser(
 	ctx context.Context,
 	initiatorID, userID uuid.UUID,
 ) error {

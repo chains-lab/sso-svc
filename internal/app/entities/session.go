@@ -46,7 +46,7 @@ func CreateSession(pg *sql.DB, manager jwtmanager.Manager) Session {
 	}
 }
 
-func (a Session) CreateUserSession(
+func (s Session) CreateUserSession(
 	ctx context.Context,
 	userID uuid.UUID,
 	token, client, ip string,
@@ -61,7 +61,7 @@ func (a Session) CreateUserSession(
 		CreatedAt: time.Now().UTC(),
 	}
 
-	err := a.query.Insert(ctx, session)
+	err := s.query.Insert(ctx, session)
 	if err != nil {
 		return models.Session{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to create session for user %s: %w", userID, err),
@@ -78,8 +78,8 @@ func (a Session) CreateUserSession(
 	}, nil
 }
 
-func (a Session) GetUserSession(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error) {
-	session, err := a.query.New().FilterID(sessionID).FilterUserID(userID).Get(ctx)
+func (s Session) GetUserSession(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error) {
+	session, err := s.query.New().FilterID(sessionID).FilterUserID(userID).Get(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -103,7 +103,7 @@ func (a Session) GetUserSession(ctx context.Context, userID, sessionID uuid.UUID
 	}, nil
 }
 
-func (a Session) SelectUserSessions(
+func (s Session) SelectUserSessions(
 	ctx context.Context,
 	userID uuid.UUID,
 	pag pagi.Request,
@@ -122,7 +122,7 @@ func (a Session) SelectUserSessions(
 	limit := pag.Size + 1
 	offset := (pag.Page - 1) * pag.Size
 
-	query := a.query.New().Page(limit, offset).FilterUserID(userID)
+	query := s.query.New().Page(limit, offset).FilterUserID(userID)
 
 	for _, sort := range sort {
 		ascend := sort.Ascend
@@ -171,8 +171,8 @@ func (a Session) SelectUserSessions(
 	}, nil
 }
 
-func (a Session) DeleteUserSession(ctx context.Context, userID, sessionID uuid.UUID) error {
-	err := a.query.New().FilterID(sessionID).Delete(ctx)
+func (s Session) DeleteUserSession(ctx context.Context, userID, sessionID uuid.UUID) error {
+	err := s.query.New().FilterID(sessionID).Delete(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -188,8 +188,8 @@ func (a Session) DeleteUserSession(ctx context.Context, userID, sessionID uuid.U
 	return nil
 }
 
-func (a Session) DeleteUserSessions(ctx context.Context, userID uuid.UUID) error {
-	err := a.query.New().FilterUserID(userID).Delete(ctx)
+func (s Session) DeleteUserSessions(ctx context.Context, userID uuid.UUID) error {
+	err := s.query.New().FilterUserID(userID).Delete(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -205,15 +205,15 @@ func (a Session) DeleteUserSessions(ctx context.Context, userID uuid.UUID) error
 	return nil
 }
 
-func (a Session) UpdateToken(ctx context.Context, userID, sessionID uuid.UUID, role, ip string) (string, error) {
-	newRefresh, err := a.jwt.GenerateRefresh(userID, sessionID, role)
+func (s Session) UpdateToken(ctx context.Context, userID, sessionID uuid.UUID, role, ip string) (string, error) {
+	newRefresh, err := s.jwt.GenerateRefresh(userID, sessionID, role)
 	if err != nil {
 		return "", errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to generate refresh token for user %s: %w", userID, err),
 		)
 	}
 
-	refreshCrypto, err := a.jwt.EncryptRefresh(newRefresh)
+	refreshCrypto, err := s.jwt.EncryptRefresh(newRefresh)
 	if err != nil {
 		return "", errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to encrypt refresh token for user %s: %w", userID, err),
@@ -222,7 +222,7 @@ func (a Session) UpdateToken(ctx context.Context, userID, sessionID uuid.UUID, r
 
 	LastUsed := time.Now().UTC()
 
-	err = a.query.New().FilterID(sessionID).Update(ctx, map[string]any{
+	err = s.query.New().FilterID(sessionID).Update(ctx, map[string]any{
 		"token":     refreshCrypto,
 		"ip":        ip,
 		"last_used": LastUsed,

@@ -27,25 +27,25 @@ func CreateUser(pg *sql.DB) User {
 	}
 }
 
-func (a User) ComparisonRightsForAdmins(
+func (u User) ComparisonRightsForAdmins(
 	ctx context.Context,
 	initiatorID uuid.UUID,
 	userID uuid.UUID,
 	dif int,
 ) (initiator, user models.User, err error) {
-	initiator, err = a.GetInitiatorByID(ctx, initiatorID)
+	initiator, err = u.GetInitiatorByID(ctx, initiatorID)
 	if err != nil {
 		return initiator, user, err
 	}
 
-	user, err = a.GetUserByID(ctx, userID)
+	user, err = u.GetUserByID(ctx, userID)
 	if err != nil {
 		return initiator, user, err
 	}
 
 	if user.Role == roles.User {
 		return initiator, user, errx.ErrorNoPermissions.Raise(
-			fmt.Errorf("user %s is already a user", userID),
+			fmt.Errorf("user %s is already u user", userID),
 		)
 	}
 
@@ -71,8 +71,8 @@ func (a User) ComparisonRightsForAdmins(
 	return initiator, user, nil
 }
 
-func (a User) CheckUserPassword(ctx context.Context, userID uuid.UUID, password string) error {
-	secret, err := a.passQ.New().FilterID(userID).Get(ctx)
+func (u User) CheckUserPassword(ctx context.Context, userID uuid.UUID, password string) error {
+	secret, err := u.passQ.New().FilterID(userID).Get(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -100,8 +100,8 @@ func (a User) CheckUserPassword(ctx context.Context, userID uuid.UUID, password 
 	return nil
 }
 
-func (a User) CreateUser(ctx context.Context, email, password, role string) error {
-	_, err := a.GetUserByEmail(ctx, email)
+func (u User) CreateUser(ctx context.Context, email, password, role string) error {
+	_, err := u.GetUserByEmail(ctx, email)
 	if err == nil {
 		return errx.ErrorUserAlreadyExists.Raise(
 			fmt.Errorf("user with email '%s' already exists", email),
@@ -129,8 +129,8 @@ func (a User) CreateUser(ctx context.Context, email, password, role string) erro
 		CreatedAt:      time.Now().UTC(),
 	}
 
-	txErr := a.query.Transaction(func(ctx context.Context) error {
-		err = a.query.New().Insert(ctx, stmt)
+	txErr := u.query.Transaction(func(ctx context.Context) error {
+		err = u.query.New().Insert(ctx, stmt)
 		if err != nil {
 		}
 
@@ -141,7 +141,7 @@ func (a User) CreateUser(ctx context.Context, email, password, role string) erro
 			)
 		}
 
-		err = a.passQ.New().Insert(ctx, dbx.UserPasswordModel{
+		err = u.passQ.New().Insert(ctx, dbx.UserPasswordModel{
 			ID:        stmt.ID,
 			PassHash:  string(hash),
 			UpdatedAt: time.Now().UTC(),
@@ -159,8 +159,8 @@ func (a User) CreateUser(ctx context.Context, email, password, role string) erro
 	return nil
 }
 
-func (a User) GetInitiatorByID(ctx context.Context, ID uuid.UUID) (models.User, error) {
-	user, err := a.query.FilterID(ID).Get(ctx)
+func (u User) GetInitiatorByID(ctx context.Context, ID uuid.UUID) (models.User, error) {
+	user, err := u.query.FilterID(ID).Get(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -183,8 +183,8 @@ func (a User) GetInitiatorByID(ctx context.Context, ID uuid.UUID) (models.User, 
 	return userModel(user), nil
 }
 
-func (a User) GetUserByID(ctx context.Context, ID uuid.UUID) (models.User, error) {
-	user, err := a.query.FilterID(ID).Get(ctx)
+func (u User) GetUserByID(ctx context.Context, ID uuid.UUID) (models.User, error) {
+	user, err := u.query.FilterID(ID).Get(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -201,8 +201,8 @@ func (a User) GetUserByID(ctx context.Context, ID uuid.UUID) (models.User, error
 	return userModel(user), nil
 }
 
-func (a User) GetUserByEmail(ctx context.Context, email string) (models.User, error) {
-	user, err := a.query.FilterEmail(email).Get(ctx)
+func (u User) GetUserByEmail(ctx context.Context, email string) (models.User, error) {
+	user, err := u.query.FilterEmail(email).Get(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -219,13 +219,13 @@ func (a User) GetUserByEmail(ctx context.Context, email string) (models.User, er
 	return userModel(user), nil
 }
 
-func (a User) DeleteUser(ctx context.Context, userID uuid.UUID) error {
-	err := a.passQ.New().FilterID(userID).Delete(ctx)
+func (u User) DeleteUser(ctx context.Context, userID uuid.UUID) error {
+	err := u.passQ.New().FilterID(userID).Delete(ctx)
 	if err != nil {
 		return errx.ErrorInternal.Raise(err)
 	}
 
-	err = a.query.New().FilterID(userID).Delete(ctx)
+	err = u.query.New().FilterID(userID).Delete(ctx)
 	if err != nil {
 		return errx.ErrorInternal.Raise(err)
 	}
@@ -233,7 +233,7 @@ func (a User) DeleteUser(ctx context.Context, userID uuid.UUID) error {
 	return nil
 }
 
-func (a User) SetStatus(ctx context.Context, userID uuid.UUID, status string) error {
+func (u User) SetStatus(ctx context.Context, userID uuid.UUID, status string) error {
 	err := constant.ParseUserStatus(status)
 	if err != nil {
 		return errx.ErrorUserStatusNotSupported.Raise(
@@ -241,7 +241,7 @@ func (a User) SetStatus(ctx context.Context, userID uuid.UUID, status string) er
 		)
 	}
 
-	err = a.query.New().FilterID(userID).Update(ctx,
+	err = u.query.New().FilterID(userID).Update(ctx,
 		map[string]interface{}{"status": status},
 	)
 	if err != nil {

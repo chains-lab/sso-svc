@@ -1,1 +1,49 @@
 package handlers
+
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/chains-lab/ape"
+	"github.com/chains-lab/ape/problems"
+	"github.com/chains-lab/sso-svc/internal/api/rest/requests"
+)
+
+func (s Service) RegisterUser(w http.ResponseWriter, r *http.Request) {
+	req, err := requests.RegisterUser(r)
+	if err != nil {
+		s.Log(r).WithError(err).Error("failed to decode register admin request")
+
+		ape.RenderErr(w, problems.BadRequest(err)...)
+		return
+	}
+
+	if req.Data.Attributes.Password != req.Data.Attributes.ConfirmPassword {
+		ape.RenderErr(w,
+			problems.InvalidParameter(
+				"data/attributes/confirm_password",
+				fmt.Errorf("passwords and confirm do not match"),
+			),
+			problems.InvalidParameter(
+				"data/attributes/password",
+				fmt.Errorf("passwords and confirm do not match"),
+			),
+		)
+		return
+	}
+
+	err = s.app.RegisterUser(r.Context(), req.Data.Attributes.Email, req.Data.Attributes.Password)
+	if err != nil {
+		s.Log(r).WithError(err).Errorf("failed to register admin")
+
+		switch {
+		default:
+			ape.RenderErr(w, problems.InternalError())
+		}
+		return
+	}
+
+	s.Log(r).Infof("user %s registered successfully", req.Data.Attributes.Email)
+
+	ape.Render(w, http.StatusCreated, nil)
+}

@@ -5,12 +5,14 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/chains-lab/gatekit/mdlv"
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/chains-lab/logium"
 	"github.com/chains-lab/sso-svc/internal/api/rest/handlers"
-	"github.com/chains-lab/sso-svc/internal/api/rest/mdlv"
+	"github.com/chains-lab/sso-svc/internal/api/rest/meta"
 	"github.com/chains-lab/sso-svc/internal/app"
 	"github.com/chains-lab/sso-svc/internal/config"
+	"github.com/chains-lab/sso-svc/internal/constant"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -32,6 +34,8 @@ func NewRest(cfg config.Config, log logium.Logger, app *app.App) Rest {
 	}
 	hands := handlers.NewService(cfg, logger, app)
 
+	router.Use()
+
 	return Rest{
 		handlers: hands,
 		router:   router,
@@ -42,23 +46,31 @@ func NewRest(cfg config.Config, log logium.Logger, app *app.App) Rest {
 }
 
 func (a *Rest) Run(ctx context.Context) {
-	userAuth := mdlv.AuthMdl(a.cfg.JWT.User.AccessToken.SecretKey)
-	adminGrant := mdlv.AccessGrant(roles.Admin, roles.SuperUser)
-	svcAuth := mdlv.ServiceAuthMdl(a.cfg.JWT.Service.SecretKey)
-
-	a.log.WithField("module", "api").Info("Starting API server")
+	svcAuth := mdlv.ServiceAuthMdl(constant.ServiceName, a.cfg.JWT.Service.SecretKey)
+	userAuth := mdlv.AuthMdl(meta.UserCtxKey, a.cfg.JWT.User.AccessToken.SecretKey)
+	adminGrant := mdlv.AccessGrant(meta.UserCtxKey, roles.Admin, roles.SuperUser)
 
 	a.router.Route("/sso-svc/", func(r chi.Router) {
 		r.Use(svcAuth)
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/users", func(r chi.Router) {
+				r.Post("/register", a.handlers.RegisterUser)
+
 				r.With(userAuth).Get("/own", a.handlers.GetOwnUser)
 
-				r.Post("/register", a.handlers.RegisterUser)
-				r.Post("/login", a.handlers.Login)
+				r.Route("/login", func(r chi.Router) {
+					r.Post("/", a.handlers.Login)
+
+					r.Route("/google", func(r chi.Router) {
+						r.Post("/", a.handlers.GoogleLogin)
+						r.Post("/callback", a.handlers.GoogleCallback)
+					})
+				})
+
+				r.With(userAuth).Post("/refresh", a.handlers.RefreshToken)
 				r.With(userAuth).Post("/logout", a.handlers.Logout)
 
-				r.With(userAuth).Route("sessions", func(r chi.Router) {
+				r.With(userAuth).Route("/sessions", func(r chi.Router) {
 					r.Get("/", a.handlers.SelectOwnSessions)
 					r.Delete("/", a.handlers.DeleteOwnSessions)
 
@@ -69,33 +81,23 @@ func (a *Rest) Run(ctx context.Context) {
 				})
 			})
 
-			r.With(userAuth).Route("/admin", func(r chi.Router) {
+			r.Route("/admin", func(r chi.Router) {
+				r.Use(userAuth)
 				r.Use(adminGrant)
 
-				r.Route("/users", func(r chi.Router) {
-					r.Post("/", a.handlers.CreateUser)
+				r.Post("/", a.handlers.RegisterAdmin)
 
-					r.Route("/{user_id}", func(r chi.Router) {
-						r.Get("/", a.handlers.GetUser)
+				r.Route("/{user_id}", func(r chi.Router) {
+					r.Get("/", a.handlers.GetUser)
 
-						r.Route("/sessions", func(r chi.Router) {
-							r.Get("/", a.handlers.SelectSessions)
-							r.Delete("/", a.handlers.DeleteSessions)
+					r.Route("/sessions", func(r chi.Router) {
+						r.Get("/", a.handlers.SelectUserSessions)
+						r.Delete("/", a.handlers.DeleteSessions)
 
-							r.Route("/{session_id}", func(r chi.Router) {
-								r.Get("/", a.handlers.GetSession)
-								r.Delete("/", a.handlers.DeleteSession)
-							})
+						r.Route("/{session_id}", func(r chi.Router) {
+							r.Get("/", a.handlers.GetSession)
+							r.Delete("/", a.handlers.DeleteSession)
 						})
-					})
-
-					r.Put("/block", a.handlers.BlockUser)
-					r.Put("/unblock", a.handlers.UnblockUser)
-				})
-
-				r.Route("/admins", func(r chi.Router) {
-					r.Route("/{user_id}", func(r chi.Router) {
-						r.Delete("/", a.handlers.DeleteAdmin)
 					})
 				})
 			})

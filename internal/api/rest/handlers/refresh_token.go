@@ -6,12 +6,11 @@ import (
 	"github.com/chains-lab/ape"
 	"github.com/chains-lab/ape/problems"
 	"github.com/chains-lab/sso-svc/internal/api/rest/meta"
+	"github.com/chains-lab/sso-svc/internal/api/rest/requests"
 	"github.com/chains-lab/sso-svc/internal/api/rest/responses"
-	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 )
 
-func (s Service) GetOwnSession(w http.ResponseWriter, r *http.Request) {
+func (s Service) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	initiator, err := meta.User(r.Context())
 	if err != nil {
 		s.Log(r).WithError(err).Error("failed to get user from context")
@@ -20,17 +19,17 @@ func (s Service) GetOwnSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionId, err := uuid.Parse(chi.URLParam(r, "session_id"))
+	req, err := requests.RefreshSession(r)
 	if err != nil {
-		s.Log(r).WithError(err).Errorf("invalid session id: %s", chi.URLParam(r, "session_id"))
+		s.Log(r).WithError(err).Error("failed to parse refresh session request")
 
-		ape.RenderErr(w, problems.InvalidParameter("session_id", err))
+		ape.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
 
-	session, err := s.app.GetOwnSession(r.Context(), initiator.UserID, sessionId)
+	tokensPair, err := s.app.RefreshSessionToken(r.Context(), initiator.UserID, initiator.SessionID, "TODO", "TODO", req.Data.Attributes.RefreshToken)
 	if err != nil {
-		s.Log(r).WithError(err).Errorf("failed to get own session")
+		s.Log(r).WithError(err).Errorf("failed to refresh session token")
 
 		switch {
 		default:
@@ -39,5 +38,5 @@ func (s Service) GetOwnSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ape.Render(w, http.StatusOK, responses.UserSession(session))
+	ape.Render(w, http.StatusOK, responses.TokensPair(tokensPair))
 }
