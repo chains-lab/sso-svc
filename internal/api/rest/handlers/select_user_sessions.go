@@ -33,7 +33,7 @@ func (s Service) SelectUserSessions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessions, pag, err := s.app.AdminSelectUserSessions(r.Context(), initiator.UserID, initiator.SessionID, userID, pagReq, sort)
+	sessions, pag, err := s.app.AdminListUserSessions(r.Context(), initiator.UserID, initiator.SessionID, userID, pagReq, sort)
 	if err != nil {
 		s.Log(r).WithError(err).Errorf("failed to select own sessions")
 		switch {

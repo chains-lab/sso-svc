@@ -21,7 +21,7 @@ func (s Service) SelectOwnSessions(w http.ResponseWriter, r *http.Request) {
 
 	pagReq, sort := pagi.GetPagination(r)
 
-	sessions, pag, err := s.app.SelectOwnSessions(r.Context(), initiator.UserID, pagReq, sort)
+	sessions, pag, err := s.app.ListOwnSessions(r.Context(), initiator.UserID, pagReq, sort)
 	if err != nil {
 		s.Log(r).WithError(err).Errorf("failed to select own sessions")
 		switch {

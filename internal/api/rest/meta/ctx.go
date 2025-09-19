@@ -11,9 +11,6 @@ type ctxKey int
 
 const (
 	UserCtxKey ctxKey = iota
-	IpCtxKey
-	UserAgentCtxKey
-	ClientTxKey
 )
 
 func User(ctx context.Context) (auth.UserData, error) {
@@ -28,15 +25,3 @@ func User(ctx context.Context) (auth.UserData, error) {
 
 	return userData, nil
 }
-
-//func Ip(r *http.Request) string {
-//	return r.Context().Value(IpCtxKey).(string)
-//}
-//
-//func UserAgent(r *http.Request) string {
-//	return r.Context().Value(UserAgentCtxKey).(string)
-//}
-//
-//func Client(r *http.Request) string {
-//	return r.Context().Value(ClientTxKey).(string)
-//}

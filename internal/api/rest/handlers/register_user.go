@@ -35,7 +35,7 @@ func (s Service) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.app.RegisterUser(r.Context(), req.Data.Attributes.Email, req.Data.Attributes.Password)
+	err = s.app.Register(r.Context(), req.Data.Attributes.Email, req.Data.Attributes.Password)
 	if err != nil {
 		s.Log(r).WithError(err).Errorf("failed to register admin")
 		switch {

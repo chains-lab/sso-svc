@@ -5,17 +5,18 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/chains-lab/sso-svc/internal/app/entities"
-	"github.com/chains-lab/sso-svc/internal/app/jwtmanager"
+	"github.com/chains-lab/sso-svc/internal/app/domain/session"
+	"github.com/chains-lab/sso-svc/internal/app/domain/user"
 	"github.com/chains-lab/sso-svc/internal/app/models"
+	"github.com/chains-lab/sso-svc/internal/app/modules/jwtmanager"
 	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/chains-lab/sso-svc/internal/dbx"
 	"github.com/google/uuid"
 )
 
 type App struct {
-	session entities.Session
-	users   entities.User
+	session session.Session
+	users   user.User
 
 	db *sql.DB
 }
@@ -29,8 +30,8 @@ func NewApp(cfg config.Config) (App, error) {
 	manager := jwtmanager.NewManager(cfg)
 
 	return App{
-		session: entities.CreateSession(pg, manager),
-		users:   entities.CreateUser(pg),
+		session: session.CreateSession(pg, manager),
+		users:   user.CreateUser(pg),
 
 		db: pg,
 	}, nil
