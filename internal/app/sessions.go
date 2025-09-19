@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/chains-lab/enum"
 	"github.com/chains-lab/pagi"
 	"github.com/chains-lab/sso-svc/internal/app/models"
-	"github.com/chains-lab/sso-svc/internal/constant"
 	"github.com/chains-lab/sso-svc/internal/errx"
 	"github.com/google/uuid"
 )
@@ -33,7 +33,7 @@ func (a App) Login(ctx context.Context, email, password string) (models.TokensPa
 		return models.TokensPair{}, err
 	}
 
-	if user.Status == constant.UserStatusBlocked {
+	if user.Status == enum.UserStatusBlocked {
 		return models.TokensPair{}, errx.ErrorInitiatorIsBlocked.Raise(
 			fmt.Errorf("initator user %s is blocked", user.ID),
 		)
@@ -63,7 +63,7 @@ func (a App) RefreshSessionToken(
 ) (models.TokensPair, error) {
 	var pair models.TokensPair
 	var err error
-	txErr := a.Transaction(func(ctx context.Context) error {
+	txErr := a.transaction(func(ctx context.Context) error {
 		pair, err = a.session.Refresh(ctx, token)
 		if err != nil {
 			return err
@@ -108,7 +108,7 @@ func (a App) SelectOwnSessions(
 }
 
 func (a App) DeleteOwnSession(ctx context.Context, userID, initiatorSessionID, sessionID uuid.UUID) error {
-	_, err := a.GetInitiator(ctx, userID, initiatorSessionID)
+	_, err := a.getInitiator(ctx, userID, initiatorSessionID)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func (a App) DeleteOwnSession(ctx context.Context, userID, initiatorSessionID, s
 }
 
 func (a App) DeleteOwnSessions(ctx context.Context, userID, initiatorSessionID uuid.UUID) error {
-	_, err := a.GetInitiator(ctx, userID, initiatorSessionID)
+	_, err := a.getInitiator(ctx, userID, initiatorSessionID)
 	if err != nil {
 		return err
 	}

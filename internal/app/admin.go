@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/chains-lab/enum"
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/chains-lab/pagi"
 	"github.com/chains-lab/sso-svc/internal/app/models"
-	"github.com/chains-lab/sso-svc/internal/constant"
 	"github.com/chains-lab/sso-svc/internal/errx"
 	"github.com/google/uuid"
 )
@@ -19,7 +19,7 @@ func (a App) RegisterAdmin(ctx context.Context, initiatorID, initiatorSessionID 
 		return models.User{}, err
 	}
 
-	initiator, err := a.GetInitiator(ctx, initiatorID, initiatorSessionID)
+	initiator, err := a.getInitiator(ctx, initiatorID, initiatorSessionID)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -56,7 +56,7 @@ func (a App) AdminDeleteUserSessions(ctx context.Context, initiatorID, initiator
 		return err
 	}
 
-	err = a.Transaction(func(ctx context.Context) error {
+	err = a.transaction(func(ctx context.Context) error {
 		err = a.session.DeleteAllForUser(ctx, userID)
 		if err != nil {
 			return err
@@ -164,7 +164,7 @@ func (a App) AdminDeleteUser(
 		return err
 	}
 
-	txErr := a.Transaction(func(ctx context.Context) error {
+	txErr := a.transaction(func(ctx context.Context) error {
 		err := a.session.DeleteAllForUser(ctx, userID)
 		if err != nil {
 			return errx.ErrorInternal.Raise(
@@ -203,7 +203,7 @@ func (a App) AdminBlockUser(
 		return models.User{}, err
 	}
 
-	txErr := a.Transaction(func(ctx context.Context) error {
+	txErr := a.transaction(func(ctx context.Context) error {
 		err := a.session.DeleteAllForUser(ctx, userID)
 		if err != nil {
 			return errx.ErrorInternal.Raise(
@@ -211,7 +211,7 @@ func (a App) AdminBlockUser(
 			)
 		}
 
-		err = a.users.SetStatus(ctx, userID, constant.UserStatusBlocked)
+		err = a.users.SetStatus(ctx, userID, enum.UserStatusBlocked)
 		if err != nil {
 			return errx.ErrorInternal.Raise(
 				fmt.Errorf("deleting user %s: %w", userID, err),
@@ -247,7 +247,7 @@ func (a App) AdminUnblockUser(
 		return models.User{}, err
 	}
 
-	txErr := a.Transaction(func(ctx context.Context) error {
+	txErr := a.transaction(func(ctx context.Context) error {
 		err := a.session.DeleteAllForUser(ctx, userID)
 		if err != nil {
 			return errx.ErrorInternal.Raise(
@@ -255,7 +255,7 @@ func (a App) AdminUnblockUser(
 			)
 		}
 
-		err = a.users.SetStatus(ctx, userID, constant.UserStatusActive)
+		err = a.users.SetStatus(ctx, userID, enum.UserStatusActive)
 		if err != nil {
 			return errx.ErrorInternal.Raise(
 				fmt.Errorf("deleting user %s: %w", userID, err),

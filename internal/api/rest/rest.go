@@ -16,22 +16,21 @@ import (
 )
 
 type Rest struct {
-	server   *http.Server
-	router   *chi.Mux
-	handlers handlers.Service
+	server *http.Server
+	router *chi.Mux
 
-	log logium.Logger
-	cfg config.Config
+	handlers handlers.Service
+	log      logium.Logger
+	cfg      config.Config
 }
 
 func NewRest(cfg config.Config, log logium.Logger, app *app.App) Rest {
-	logger := log.WithField("module", "api")
 	router := chi.NewRouter()
 	server := &http.Server{
 		Addr:    cfg.Server.Port,
 		Handler: router,
 	}
-	hands := handlers.NewService(cfg, logger, app)
+	hands := handlers.NewService(cfg, log, app)
 
 	router.Use()
 
@@ -39,13 +38,13 @@ func NewRest(cfg config.Config, log logium.Logger, app *app.App) Rest {
 		handlers: hands,
 		router:   router,
 		server:   server,
-		log:      logger,
+		log:      log,
 		cfg:      cfg,
 	}
 }
 
 func (a *Rest) Run(ctx context.Context) {
-	//svcAuth := mdlv.ServiceAuthMdl(constant.ServiceName, a.cfg.JWT.Service.SecretKey)
+	//svcAuth := mdlv.ServiceAuthMdl(enum.ServiceName, a.cfg.JWT.Service.SecretKey)
 	userAuth := mdlv.AuthMdl(meta.UserCtxKey, a.cfg.JWT.User.AccessToken.SecretKey)
 	adminGrant := mdlv.AccessGrant(meta.UserCtxKey, roles.Admin, roles.SuperUser)
 

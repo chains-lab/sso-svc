@@ -17,8 +17,6 @@ type App struct {
 	session entities.Session
 	users   entities.User
 
-	//jwt JWTManager
-
 	db *sql.DB
 }
 
@@ -38,7 +36,7 @@ func NewApp(cfg config.Config) (App, error) {
 	}, nil
 }
 
-func (a App) Transaction(fn func(ctx context.Context) error) error {
+func (a App) transaction(fn func(ctx context.Context) error) error {
 	ctx := context.Background()
 
 	tx, err := a.db.BeginTx(ctx, nil)
@@ -62,7 +60,7 @@ func (a App) Transaction(fn func(ctx context.Context) error) error {
 	return nil
 }
 
-func (a App) GetInitiator(ctx context.Context, userID, sessionID uuid.UUID) (models.User, error) {
+func (a App) getInitiator(ctx context.Context, userID, sessionID uuid.UUID) (models.User, error) {
 	_, err := a.session.GetSessionForInitiator(ctx, userID, sessionID)
 	if err != nil {
 		return models.User{}, err

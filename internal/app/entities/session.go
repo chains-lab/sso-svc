@@ -206,10 +206,9 @@ func (s Session) SelectForUSer(
 	query := s.query.New().Page(limit, offset).FilterUserID(userID)
 
 	for _, sort := range sort {
-		ascend := sort.Ascend
 		switch sort.Field {
 		case "created_at":
-			query = query.OrderCreatedAt(ascend)
+			query = query.OrderCreatedAt(sort.Ascend)
 		default:
 
 		}

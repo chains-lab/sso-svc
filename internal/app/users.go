@@ -40,7 +40,7 @@ func (a App) GetUserByEmail(ctx context.Context, email string) (models.User, err
 }
 
 func (a App) UpdatePassword(ctx context.Context, userID, SessionID uuid.UUID, currentPassword, newPassword string) error {
-	user, err := a.GetInitiator(ctx, userID, SessionID)
+	user, err := a.getInitiator(ctx, userID, SessionID)
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func (a App) UpdatePassword(ctx context.Context, userID, SessionID uuid.UUID, cu
 		)
 	}
 
-	err = a.Transaction(func(ctx context.Context) error {
+	err = a.transaction(func(ctx context.Context) error {
 		err = a.users.UpdatePassword(ctx, user.ID, newPassword)
 		if err != nil {
 			return err
@@ -69,7 +69,7 @@ func (a App) UpdatePassword(ctx context.Context, userID, SessionID uuid.UUID, cu
 }
 
 func (a App) DeleteOwnUser(ctx context.Context, userID, initiatorSessionID uuid.UUID) error {
-	_, err := a.GetInitiator(ctx, userID, initiatorSessionID)
+	_, err := a.getInitiator(ctx, userID, initiatorSessionID)
 	if err != nil {
 		return err
 	}

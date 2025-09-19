@@ -9,9 +9,9 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/chains-lab/enum"
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/chains-lab/sso-svc/internal/app/models"
-	"github.com/chains-lab/sso-svc/internal/constant"
 	"github.com/chains-lab/sso-svc/internal/dbx"
 	"github.com/chains-lab/sso-svc/internal/errx"
 	"github.com/google/uuid"
@@ -236,7 +236,7 @@ func (u User) Create(ctx context.Context, email, password, role string) error {
 	err = u.query.New().Insert(ctx, dbx.UserModel{
 		ID:        id,
 		Role:      role,
-		Status:    constant.UserStatusActive,
+		Status:    enum.UserStatusActive,
 		CreatedAt: now,
 	})
 
@@ -307,7 +307,7 @@ func (u User) GetInitiator(ctx context.Context, userID uuid.UUID) (models.User, 
 		}
 	}
 
-	if user.Status == constant.UserStatusBlocked {
+	if user.Status == enum.UserStatusBlocked {
 		return models.User{}, errx.ErrorInitiatorIsBlocked.Raise(
 			fmt.Errorf("user with id '%s' is blocked", userID),
 		)
@@ -416,7 +416,7 @@ func (u User) Delete(ctx context.Context, userID uuid.UUID) error {
 }
 
 func (u User) SetStatus(ctx context.Context, userID uuid.UUID, status string) error {
-	err := constant.ParseUserStatus(status)
+	err := enum.ParseUserStatus(status)
 	if err != nil {
 		return errx.ErrorUserStatusNotSupported.Raise(
 			fmt.Errorf("parsing status for user %s, cause: %w", userID, err),

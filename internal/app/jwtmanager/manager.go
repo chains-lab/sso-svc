@@ -10,9 +10,9 @@ import (
 	"io"
 	"time"
 
+	"github.com/chains-lab/enum"
 	"github.com/chains-lab/gatekit/auth"
 	"github.com/chains-lab/sso-svc/internal/config"
-	"github.com/chains-lab/sso-svc/internal/constant"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
@@ -124,7 +124,7 @@ func (m Manager) GenerateRefresh(
 ) (string, error) {
 	return auth.GenerateUserJWT(auth.GenerateUserJwtRequest{
 		Issuer:   m.iss,
-		Audience: []string{constant.ServiceApiGateway},
+		Audience: []string{enum.SsoSVC},
 		User:     userID,
 		Session:  sessionID,
 		Verified: emailVerified,
