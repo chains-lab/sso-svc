@@ -34,18 +34,18 @@ func NewRest(cfg config.Config, log logium.Logger) Service {
 	}
 }
 
-func (a *Service) Start(ctx context.Context) {
+func (s *Service) Start(ctx context.Context) {
 	go func() {
-		a.log.Infof("Starting server on port %s", a.cfg.Server.Port)
-		if err := a.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			a.log.Fatalf("Server failed to start: %v", err)
+		s.log.Infof("Starting server on port %s", s.cfg.Server.Port)
+		if err := s.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			s.log.Fatalf("Server failed to start: %v", err)
 		}
 	}()
 }
 
-func (a *Service) Stop(ctx context.Context) {
-	a.log.Info("Shutting down server...")
-	if err := a.server.Shutdown(ctx); err != nil {
-		a.log.Errorf("Server shutdown failed: %v", err)
+func (s *Service) Stop(ctx context.Context) {
+	s.log.Info("Shutting down server...")
+	if err := s.server.Shutdown(ctx); err != nil {
+		s.log.Errorf("Server shutdown failed: %v", err)
 	}
 }

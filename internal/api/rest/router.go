@@ -32,12 +32,15 @@ type Handlers interface {
 	DeleteSession(w http.ResponseWriter, r *http.Request)
 }
 
-func (a *Service) Run(ctx context.Context, h Handlers) {
-	svcAuth := mdlv.ServiceAuthMdl(enum.SsoSVC, a.cfg.JWT.Service.SecretKey)
-	userAuth := mdlv.AuthMdl(meta.UserCtxKey, a.cfg.JWT.User.AccessToken.SecretKey)
-	adminGrant := mdlv.AccessGrant(meta.UserCtxKey, roles.Admin, roles.SuperUser)
+func (s *Service) Run(ctx context.Context, h Handlers) {
+	svcAuth := mdlv.ServiceGrant(enum.SsoSVC, s.cfg.JWT.Service.SecretKey)
+	userAuth := mdlv.Auth(meta.UserCtxKey, s.cfg.JWT.User.AccessToken.SecretKey)
+	sysadmin := mdlv.RoleGrant(meta.UserCtxKey, map[string]bool{
+		roles.Admin:     true,
+		roles.SuperUser: true,
+	})
 
-	a.router.Route("/sso-svc/", func(r chi.Router) {
+	s.router.Route("/sso-svc/", func(r chi.Router) {
 		r.Use(svcAuth)
 		r.Route("/v1", func(r chi.Router) {
 			r.Post("/register", h.RegisterUser)
@@ -71,7 +74,7 @@ func (a *Service) Run(ctx context.Context, h Handlers) {
 
 			r.Route("/admin", func(r chi.Router) {
 				r.Use(userAuth)
-				r.Use(adminGrant)
+				r.Use(sysadmin)
 
 				r.Post("/", h.RegisterAdmin)
 
@@ -92,8 +95,8 @@ func (a *Service) Run(ctx context.Context, h Handlers) {
 		})
 	})
 
-	a.Start(ctx)
+	s.Start(ctx)
 
 	<-ctx.Done()
-	a.Stop(ctx)
+	s.Stop(ctx)
 }
