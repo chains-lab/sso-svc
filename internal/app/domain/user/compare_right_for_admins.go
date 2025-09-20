@@ -30,7 +30,7 @@ func (u User) CompareRightsForAdmins(
 		return initiator, user, nil
 	}
 
-	if user.Role != roles.SuperUser {
+	if initiator.Role != roles.SuperUser {
 		allowed, err := roles.CompareRolesUser(initiator.Role, user.Role)
 		if err != nil {
 			return initiator, user, errx.ErrorRoleNotSupported.Raise(

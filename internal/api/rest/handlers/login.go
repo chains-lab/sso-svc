@@ -11,10 +11,10 @@ import (
 	"github.com/chains-lab/sso-svc/internal/errx"
 )
 
-func (s Service) Login(w http.ResponseWriter, r *http.Request) {
+func (s Handler) Login(w http.ResponseWriter, r *http.Request) {
 	req, err := requests.Login(r)
 	if err != nil {
-		s.Log(r).WithError(err).Error("failed to decode login request")
+		s.log.WithError(err).Error("failed to decode login request")
 		ape.RenderErr(w, problems.BadRequest(err)...)
 
 		return
@@ -22,7 +22,7 @@ func (s Service) Login(w http.ResponseWriter, r *http.Request) {
 
 	token, err := s.app.Login(r.Context(), req.Data.Attributes.Email, req.Data.Attributes.Password)
 	if err != nil {
-		s.Log(r).WithError(err).Errorf("failed to login user")
+		s.log.WithError(err).Errorf("failed to login user")
 		switch {
 		case errors.Is(err, errx.ErrorUserNotFound):
 			ape.RenderErr(w, problems.NotFound("user with this email not found"))
@@ -37,7 +37,7 @@ func (s Service) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.Log(r).Infof("user %s logged in successfully", req.Data.Attributes.Email)
+	s.log.Infof("user %s logged in successfully", req.Data.Attributes.Email)
 
 	ape.Render(w, http.StatusOK, responses.TokensPair(token))
 }

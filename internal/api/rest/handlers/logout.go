@@ -10,10 +10,10 @@ import (
 	"github.com/chains-lab/sso-svc/internal/errx"
 )
 
-func (s Service) Logout(w http.ResponseWriter, r *http.Request) {
+func (s Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	initiator, err := meta.User(r.Context())
 	if err != nil {
-		s.Log(r).WithError(err).Error("failed to get user from context")
+		s.log.WithError(err).Error("failed to get user from context")
 		ape.RenderErr(w, problems.Unauthorized("failed to get user from context"))
 
 		return
@@ -21,7 +21,7 @@ func (s Service) Logout(w http.ResponseWriter, r *http.Request) {
 
 	err = s.app.DeleteOwnSession(r.Context(), initiator.UserID, initiator.SessionID, initiator.SessionID)
 	if err != nil {
-		s.Log(r).WithError(err).Errorf("failed to logout user")
+		s.log.WithError(err).Errorf("failed to logout user")
 		switch {
 		case errors.Is(err, errx.ErrorUnauthenticated):
 			ape.RenderErr(w, problems.Unauthorized("failed to logout user"))

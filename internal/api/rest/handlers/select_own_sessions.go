@@ -10,10 +10,10 @@ import (
 	"github.com/chains-lab/sso-svc/internal/api/rest/responses"
 )
 
-func (s Service) SelectOwnSessions(w http.ResponseWriter, r *http.Request) {
+func (s Handler) SelectOwnSessions(w http.ResponseWriter, r *http.Request) {
 	initiator, err := meta.User(r.Context())
 	if err != nil {
-		s.Log(r).WithError(err).Error("failed to get user from context")
+		s.log.WithError(err).Error("failed to get user from context")
 		ape.RenderErr(w, problems.Unauthorized("failed to get user from context"))
 
 		return
@@ -23,7 +23,7 @@ func (s Service) SelectOwnSessions(w http.ResponseWriter, r *http.Request) {
 
 	sessions, pag, err := s.app.ListOwnSessions(r.Context(), initiator.UserID, pagReq, sort)
 	if err != nil {
-		s.Log(r).WithError(err).Errorf("failed to select own sessions")
+		s.log.WithError(err).Errorf("failed to select own sessions")
 		switch {
 		default:
 			ape.RenderErr(w, problems.InternalError())

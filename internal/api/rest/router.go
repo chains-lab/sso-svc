@@ -32,7 +32,7 @@ type Handlers interface {
 	DeleteSession(w http.ResponseWriter, r *http.Request)
 }
 
-func (a *Rest) Run(ctx context.Context, h Handlers) {
+func (a *Service) Run(ctx context.Context, h Handlers) {
 	svcAuth := mdlv.ServiceAuthMdl(enum.SsoSVC, a.cfg.JWT.Service.SecretKey)
 	userAuth := mdlv.AuthMdl(meta.UserCtxKey, a.cfg.JWT.User.AccessToken.SecretKey)
 	adminGrant := mdlv.AccessGrant(meta.UserCtxKey, roles.Admin, roles.SuperUser)

@@ -11,10 +11,10 @@ import (
 	"github.com/chains-lab/sso-svc/internal/errx"
 )
 
-func (s Service) RegisterUser(w http.ResponseWriter, r *http.Request) {
+func (s Handler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	req, err := requests.RegisterUser(r)
 	if err != nil {
-		s.Log(r).WithError(err).Error("failed to decode register admin request")
+		s.log.WithError(err).Error("failed to decode register admin request")
 		ape.RenderErr(w, problems.BadRequest(err)...)
 
 		return
@@ -37,7 +37,7 @@ func (s Service) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 	err = s.app.Register(r.Context(), req.Data.Attributes.Email, req.Data.Attributes.Password)
 	if err != nil {
-		s.Log(r).WithError(err).Errorf("failed to register admin")
+		s.log.WithError(err).Errorf("failed to register admin")
 		switch {
 		case errors.Is(err, errx.ErrorUserAlreadyExists):
 			ape.RenderErr(w, problems.Conflict("user with this email already exists"))
@@ -52,7 +52,7 @@ func (s Service) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.Log(r).Infof("user %s registered successfully", req.Data.Attributes.Email)
+	s.log.Infof("user %s registered successfully", req.Data.Attributes.Email)
 
 	w.WriteHeader(http.StatusCreated)
 }

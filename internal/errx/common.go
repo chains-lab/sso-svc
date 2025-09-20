@@ -15,3 +15,5 @@ var ErrorInternal = ape.DeclareError("INTERNAL_ERROR")
 var ErrorNoPermissions = ape.DeclareError("NO_PERMISSIONS")
 
 var ErrorUnauthenticated = ape.DeclareError("UNAUTHENTICATED")
+
+var ErrorUserCannotBlockHimself = ape.DeclareError("USER_CANNOT_BLOCK_HIMSELF")

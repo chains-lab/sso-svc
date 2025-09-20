@@ -31,8 +31,18 @@ func (a App) Register(ctx context.Context, email, password string) error {
 	return nil
 }
 
-func (a App) RegisterAdmin(ctx context.Context, initiatorID, initiatorSessionID uuid.UUID, email, password, role string) (models.User, error) {
-	_, err := a.users.GetByEmail(ctx, email)
+type RegisterAdminParams struct {
+	Email    string
+	Password string
+	Role     string
+}
+
+func (a App) RegisterAdmin(
+	ctx context.Context,
+	initiatorID, initiatorSessionID uuid.UUID,
+	params RegisterAdminParams,
+) (models.User, error) {
+	_, err := a.users.GetByEmail(ctx, params.Email)
 	if !errors.Is(err, errx.ErrorUserNotFound) {
 		return models.User{}, err
 	}
@@ -48,7 +58,23 @@ func (a App) RegisterAdmin(ctx context.Context, initiatorID, initiatorSessionID 
 		)
 	}
 
-	err = a.users.Create(ctx, email, password, role)
+	err = a.users.Create(ctx, params.Email, params.Password, params.Role)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	user, err := a.users.GetByEmail(ctx, params.Email)
+	if err != nil {
+		return models.User{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to get user by email %s after creation: %w", params.Email, err),
+		)
+	}
+
+	return user, nil
+}
+
+func (a App) Register_ONLY_FOR_TESTS(ctx context.Context, email, password, role string) (models.User, error) {
+	err := a.users.Create(ctx, email, password, role)
 	if err != nil {
 		return models.User{}, err
 	}

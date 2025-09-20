@@ -13,10 +13,10 @@ import (
 	"github.com/chains-lab/sso-svc/internal/errx"
 )
 
-func (s Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
+func (s Handler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	initiator, err := meta.User(r.Context())
 	if err != nil {
-		s.Log(r).WithError(err).Error("failed to get user from context")
+		s.log.WithError(err).Error("failed to get user from context")
 		ape.RenderErr(w, problems.Unauthorized("failed to get user from context"))
 
 		return
@@ -30,7 +30,7 @@ func (s Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 
 	req, err := requests.UpdatePassword(r)
 	if err != nil {
-		s.Log(r).WithError(err).Error("failed to decode update password request")
+		s.log.WithError(err).Error("failed to decode update password request")
 		ape.RenderErr(w, problems.BadRequest(err)...)
 
 		return
@@ -64,7 +64,7 @@ func (s Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 
 	err = s.app.UpdatePassword(r.Context(), initiator.UserID, initiator.SessionID, req.Data.Attributes.OldPassword, req.Data.Attributes.NewPassword)
 	if err != nil {
-		s.Log(r).WithError(err).Errorf("failed to update password")
+		s.log.WithError(err).Errorf("failed to update password")
 		switch {
 		case errors.Is(err, errx.ErrorUnauthenticated):
 			ape.RenderErr(w, problems.Unauthorized("failed to update password"))

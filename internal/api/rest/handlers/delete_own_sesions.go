@@ -10,17 +10,17 @@ import (
 	"github.com/chains-lab/sso-svc/internal/errx"
 )
 
-func (s Service) DeleteOwnSessions(w http.ResponseWriter, r *http.Request) {
+func (s Handler) DeleteOwnSessions(w http.ResponseWriter, r *http.Request) {
 	initiator, err := meta.User(r.Context())
 	if err != nil {
-		s.Log(r).WithError(err).Error("failed to get user from context")
+		s.log.WithError(err).Error("failed to get user from context")
 		ape.RenderErr(w, problems.Unauthorized("failed to get user from context"))
 
 		return
 	}
 
 	if err = s.app.DeleteOwnSessions(r.Context(), initiator.UserID, initiator.SessionID); err != nil {
-		s.Log(r).WithError(err).Errorf("failed to delete own sessions")
+		s.log.WithError(err).Errorf("failed to delete own sessions")
 		switch {
 		case errors.Is(err, errx.ErrorUnauthenticated):
 			ape.RenderErr(w, problems.Unauthorized("failed to authenticate user"))

@@ -13,10 +13,10 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s Service) GetOwnSession(w http.ResponseWriter, r *http.Request) {
+func (s Handler) GetOwnSession(w http.ResponseWriter, r *http.Request) {
 	initiator, err := meta.User(r.Context())
 	if err != nil {
-		s.Log(r).WithError(err).Error("failed to get user from context")
+		s.log.WithError(err).Error("failed to get user from context")
 		ape.RenderErr(w, problems.Unauthorized("failed to get user from context"))
 
 		return
@@ -24,7 +24,7 @@ func (s Service) GetOwnSession(w http.ResponseWriter, r *http.Request) {
 
 	sessionId, err := uuid.Parse(chi.URLParam(r, "session_id"))
 	if err != nil {
-		s.Log(r).WithError(err).Errorf("invalid session id: %s", chi.URLParam(r, "session_id"))
+		s.log.WithError(err).Errorf("invalid session id: %s", chi.URLParam(r, "session_id"))
 		ape.RenderErr(w, problems.InvalidParameter("session_id", err))
 
 		return
@@ -32,7 +32,7 @@ func (s Service) GetOwnSession(w http.ResponseWriter, r *http.Request) {
 
 	session, err := s.app.GetOwnSession(r.Context(), initiator.UserID, sessionId)
 	if err != nil {
-		s.Log(r).WithError(err).Errorf("failed to get own session")
+		s.log.WithError(err).Errorf("failed to get own session")
 		switch {
 		case errors.Is(err, errx.ErrorSessionNotFound):
 			ape.RenderErr(w, problems.NotFound("session not found"))

@@ -77,3 +77,19 @@ func (a App) RefreshSession(
 		Access:    pair.Access,
 	}, nil
 }
+
+func (a App) CreateSession_ONLY_FOR_TESTS(ctx context.Context, userID uuid.UUID) (models.Session, error) {
+	user, err := a.users.GetByID(ctx, userID)
+	if err != nil {
+		return models.Session{}, errx.ErrorUserNotFound.Raise(
+			fmt.Errorf("user %s not found: %w", userID, err),
+		)
+	}
+
+	t, err := a.session.Create(ctx, userID, user.Role, user.EmailVer)
+	if err != nil {
+		return models.Session{}, err
+	}
+
+	return a.session.GetForUser(ctx, userID, t.SessionID)
+}

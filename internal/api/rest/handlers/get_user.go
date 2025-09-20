@@ -13,10 +13,10 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s Service) GetUser(w http.ResponseWriter, r *http.Request) {
+func (s Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	initiator, err := meta.User(r.Context())
 	if err != nil {
-		s.Log(r).WithError(err).Error("failed to get user from context")
+		s.log.WithError(err).Error("failed to get user from context")
 		ape.RenderErr(w, problems.Unauthorized("failed to get user from context"))
 
 		return
@@ -24,7 +24,7 @@ func (s Service) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := uuid.Parse(chi.URLParam(r, "user_id"))
 	if err != nil {
-		s.Log(r).WithError(err).Errorf("invalid user id: %s", chi.URLParam(r, "user_id"))
+		s.log.WithError(err).Errorf("invalid user id: %s", chi.URLParam(r, "user_id"))
 		ape.RenderErr(w, problems.InvalidParameter("user_id", err))
 
 		return
@@ -32,7 +32,7 @@ func (s Service) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := s.app.AdminGetUser(r.Context(), initiator.UserID, initiator.SessionID, userID)
 	if err != nil {
-		s.Log(r).WithError(err).Errorf("failed to get user by id: %s", userID)
+		s.log.WithError(err).Errorf("failed to get user by id: %s", userID)
 		switch {
 		case errors.Is(err, errx.ErrorUnauthenticated):
 			ape.RenderErr(w, problems.Unauthorized("unauthenticated"))

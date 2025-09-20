@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"embed"
 
-	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/pkg/errors"
 	migrate "github.com/rubenv/sql-migrate"
 	"github.com/sirupsen/logrus"
@@ -22,24 +21,26 @@ var migrations = &migrate.EmbedFileSystemMigrationSource{
 	Root:       "migrations",
 }
 
-func MigrateUp(cfg config.Config) error {
-	db, err := sql.Open("postgres", cfg.Database.SQL.URL)
+func MigrateUp(url string) error {
+	db, err := sql.Open("postgres", url)
 
 	applied, err := migrate.Exec(db, "postgres", migrations, migrate.Up)
 	if err != nil {
-		return errors.Wrap(err, "failed to apply migrations")
+		return errors.Wrap(err, "failed to applyConditions migrations")
 	}
 	logrus.WithField("applied", applied).Info("migrations applied")
+
 	return nil
 }
 
-func MigrateDown(cfg config.Config) error {
-	db, err := sql.Open("postgres", cfg.Database.SQL.URL)
+func MigrateDown(url string) error {
+	db, err := sql.Open("postgres", url)
 
 	applied, err := migrate.Exec(db, "postgres", migrations, migrate.Down)
 	if err != nil {
-		return errors.Wrap(err, "failed to apply migrations")
+		return errors.Wrap(err, "failed to applyConditions migrations")
 	}
 	logrus.WithField("applied", applied).Info("migrations applied")
+
 	return nil
 }

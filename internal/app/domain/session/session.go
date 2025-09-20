@@ -5,7 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/chains-lab/gatekit/auth"
-	"github.com/chains-lab/sso-svc/internal/app/modules/jwtmanager"
+	"github.com/chains-lab/sso-svc/internal/app/jwtmanager"
 	"github.com/chains-lab/sso-svc/internal/dbx"
 	"github.com/google/uuid"
 )

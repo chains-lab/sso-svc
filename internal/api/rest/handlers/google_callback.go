@@ -13,7 +13,7 @@ import (
 	"github.com/chains-lab/sso-svc/internal/errx"
 )
 
-func (s Service) GoogleCallback(w http.ResponseWriter, r *http.Request) {
+func (s Handler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 	if code == "" {
 		ape.RenderErr(w, problems.InvalidParameter(
@@ -25,7 +25,7 @@ func (s Service) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 
 	token, err := s.google.Exchange(r.Context(), code)
 	if err != nil {
-		s.Log(r).WithError(err).Errorf("error exchanging code for user id: %s", code)
+		s.log.WithError(err).Errorf("error exchanging code for user id: %s", code)
 		ape.RenderErr(w, problems.InternalError())
 
 		return
@@ -34,7 +34,7 @@ func (s Service) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	client := s.google.Client(r.Context(), token)
 	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
 	if err != nil {
-		s.Log(r).WithError(err).Errorf("error getting user info from google")
+		s.log.WithError(err).Errorf("error getting user info from google")
 		ape.RenderErr(w, problems.InternalError())
 
 		return
@@ -42,7 +42,7 @@ func (s Service) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	defer func(Body io.ReadCloser) {
 		err = Body.Close()
 		if err != nil {
-			s.Log(r).WithError(err).Errorf("error closing response body")
+			s.log.WithError(err).Errorf("error closing response body")
 			ape.RenderErr(w, problems.InternalError())
 
 			return
@@ -53,7 +53,7 @@ func (s Service) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		Email string `json:"email"`
 	}
 	if err = json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
-		s.Log(r).WithError(err).Errorf("error decoding user info from google")
+		s.log.WithError(err).Errorf("error decoding user info from google")
 		ape.RenderErr(w, problems.InternalError())
 
 		return
@@ -61,7 +61,7 @@ func (s Service) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 
 	tokensPair, err := s.app.LoginByGoogle(r.Context(), userInfo.Email)
 	if err != nil {
-		s.Log(r).WithError(err).Errorf("error logging in user: %s", userInfo.Email)
+		s.log.WithError(err).Errorf("error logging in user: %s", userInfo.Email)
 		switch {
 		case errors.Is(err, errx.ErrorUserNotFound):
 			ape.RenderErr(w, problems.NotFound("user with this email not found"))

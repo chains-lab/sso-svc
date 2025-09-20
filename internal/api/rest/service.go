@@ -10,14 +10,14 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type Rest struct {
+type Service struct {
 	server *http.Server
 	router *chi.Mux
 	log    logium.Logger
 	cfg    config.Config
 }
 
-func NewRest(cfg config.Config, log logium.Logger) Rest {
+func NewRest(cfg config.Config, log logium.Logger) Service {
 	router := chi.NewRouter()
 	server := &http.Server{
 		Addr:    cfg.Server.Port,
@@ -26,7 +26,7 @@ func NewRest(cfg config.Config, log logium.Logger) Rest {
 
 	router.Use()
 
-	return Rest{
+	return Service{
 		router: router,
 		server: server,
 		log:    log,
@@ -34,7 +34,7 @@ func NewRest(cfg config.Config, log logium.Logger) Rest {
 	}
 }
 
-func (a *Rest) Start(ctx context.Context) {
+func (a *Service) Start(ctx context.Context) {
 	go func() {
 		a.log.Infof("Starting server on port %s", a.cfg.Server.Port)
 		if err := a.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
@@ -43,7 +43,7 @@ func (a *Rest) Start(ctx context.Context) {
 	}()
 }
 
-func (a *Rest) Stop(ctx context.Context) {
+func (a *Service) Stop(ctx context.Context) {
 	a.log.Info("Shutting down server...")
 	if err := a.server.Shutdown(ctx); err != nil {
 		a.log.Errorf("Server shutdown failed: %v", err)

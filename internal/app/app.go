@@ -7,8 +7,8 @@ import (
 
 	"github.com/chains-lab/sso-svc/internal/app/domain/session"
 	"github.com/chains-lab/sso-svc/internal/app/domain/user"
+	"github.com/chains-lab/sso-svc/internal/app/jwtmanager"
 	"github.com/chains-lab/sso-svc/internal/app/models"
-	"github.com/chains-lab/sso-svc/internal/app/modules/jwtmanager"
 	"github.com/chains-lab/sso-svc/internal/config"
 	"github.com/chains-lab/sso-svc/internal/dbx"
 	"github.com/google/uuid"

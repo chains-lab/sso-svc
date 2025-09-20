@@ -14,6 +14,12 @@ func (a App) AdminBlockUser(
 	ctx context.Context,
 	initiatorID, initiatorSessionID, userID uuid.UUID,
 ) (models.User, error) {
+	if initiatorID == userID {
+		return models.User{}, errx.ErrorUserCannotBlockHimself.Raise(
+			fmt.Errorf("admin cannot block themselves"),
+		)
+	}
+
 	_, _, err := a.users.CompareRightsForAdmins(ctx, initiatorID, userID, 1)
 	if err != nil {
 		return models.User{}, err

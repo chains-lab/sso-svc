@@ -11,10 +11,10 @@ import (
 	"github.com/chains-lab/sso-svc/internal/errx"
 )
 
-func (s Service) RefreshToken(w http.ResponseWriter, r *http.Request) {
+func (s Handler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	req, err := requests.RefreshSession(r)
 	if err != nil {
-		s.Log(r).WithError(err).Error("failed to parse refresh session request")
+		s.log.WithError(err).Error("failed to parse refresh session request")
 		ape.RenderErr(w, problems.BadRequest(err)...)
 
 		return
@@ -22,7 +22,7 @@ func (s Service) RefreshToken(w http.ResponseWriter, r *http.Request) {
 
 	tokensPair, err := s.app.RefreshSession(r.Context(), req.Data.Attributes.RefreshToken)
 	if err != nil {
-		s.Log(r).WithError(err).Errorf("failed to refresh session token")
+		s.log.WithError(err).Errorf("failed to refresh session token")
 		switch {
 		case errors.Is(err, errx.ErrorUnauthenticated):
 			ape.RenderErr(w, problems.Unauthorized("failed to refresh session token"))

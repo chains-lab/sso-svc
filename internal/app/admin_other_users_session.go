@@ -70,7 +70,7 @@ func (a App) AdminDeleteUserSession(ctx context.Context, initiatorID, initiatorS
 		)
 	}
 
-	appErr = a.session.DeleteOneForUser(ctx, session.ID, userID)
+	appErr = a.session.DeleteOneForUser(ctx, userID, session.ID)
 	if appErr != nil {
 		return appErr
 	}

@@ -23,7 +23,7 @@ func StartServices(ctx context.Context, cfg config.Config, log logium.Logger, wg
 	restSVC := rest.NewRest(cfg, log)
 
 	run(func() {
-		handl := handlers.NewService(cfg, log, app)
+		handl := handlers.NewHandler(cfg, log, app)
 
 		restSVC.Run(ctx, handl)
 	})
