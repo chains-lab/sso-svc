@@ -11,7 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type Handlers interface {
+type Controller interface {
 	RegisterUser(w http.ResponseWriter, r *http.Request)
 	Login(w http.ResponseWriter, r *http.Request)
 	GoogleLogin(w http.ResponseWriter, r *http.Request)
@@ -27,47 +27,46 @@ type Handlers interface {
 	RegisterAdmin(w http.ResponseWriter, r *http.Request)
 	GetUser(w http.ResponseWriter, r *http.Request)
 	SelectUserSessions(w http.ResponseWriter, r *http.Request)
-	DeleteSessions(w http.ResponseWriter, r *http.Request)
+	DeleteUserSessions(w http.ResponseWriter, r *http.Request)
 	GetSession(w http.ResponseWriter, r *http.Request)
-	DeleteSession(w http.ResponseWriter, r *http.Request)
+	DeleteUserSession(w http.ResponseWriter, r *http.Request)
 }
 
-func (s *Service) Run(ctx context.Context, h Handlers) {
+func (s *Service) Run(ctx context.Context, c Controller) {
 	svcAuth := mdlv.ServiceGrant(enum.SsoSVC, s.cfg.JWT.Service.SecretKey)
 	userAuth := mdlv.Auth(meta.UserCtxKey, s.cfg.JWT.User.AccessToken.SecretKey)
 	sysadmin := mdlv.RoleGrant(meta.UserCtxKey, map[string]bool{
-		roles.Admin:     true,
-		roles.SuperUser: true,
+		roles.Admin: true,
 	})
 
 	s.router.Route("/sso-svc/", func(r chi.Router) {
 		r.Use(svcAuth)
 		r.Route("/v1", func(r chi.Router) {
-			r.Post("/register", h.RegisterUser)
+			r.Post("/register", c.RegisterUser)
 
 			r.Route("/login", func(r chi.Router) {
-				r.Post("/", h.Login)
+				r.Post("/", c.Login)
 
 				r.Route("/google", func(r chi.Router) {
-					r.Post("/", h.GoogleLogin)
-					r.Post("/callback", h.GoogleCallback)
+					r.Post("/", c.GoogleLogin)
+					r.Post("/callback", c.GoogleCallback)
 				})
 			})
 
-			r.Post("/refresh", h.RefreshToken)
+			r.Post("/refresh", c.RefreshToken)
 
 			r.With(userAuth).Route("/own", func(r chi.Router) {
-				r.With(userAuth).Get("/", h.GetOwnUser)
-				r.With(userAuth).Post("/logout", h.Logout)
-				r.With(userAuth).Post("/password", h.UpdatePassword)
+				r.With(userAuth).Get("/", c.GetOwnUser)
+				r.With(userAuth).Post("/logout", c.Logout)
+				r.With(userAuth).Post("/password", c.UpdatePassword)
 
 				r.With(userAuth).Route("/sessions", func(r chi.Router) {
-					r.Get("/", h.SelectOwnSessions)
-					r.Delete("/", h.DeleteOwnSessions)
+					r.Get("/", c.SelectOwnSessions)
+					r.Delete("/", c.DeleteOwnSessions)
 
 					r.Route("/{session_id}", func(r chi.Router) {
-						r.Get("/", h.GetOwnSession)
-						r.Delete("/", h.DeleteOwnSession)
+						r.Get("/", c.GetOwnSession)
+						r.Delete("/", c.DeleteOwnSession)
 					})
 				})
 			})
@@ -76,18 +75,18 @@ func (s *Service) Run(ctx context.Context, h Handlers) {
 				r.Use(userAuth)
 				r.Use(sysadmin)
 
-				r.Post("/", h.RegisterAdmin)
+				r.Post("/", c.RegisterAdmin)
 
 				r.Route("/{user_id}", func(r chi.Router) {
-					r.Get("/", h.GetUser)
+					r.Get("/", c.GetUser)
 
 					r.Route("/sessions", func(r chi.Router) {
-						r.Get("/", h.SelectUserSessions)
-						r.Delete("/", h.DeleteSessions)
+						r.Get("/", c.SelectUserSessions)
+						r.Delete("/", c.DeleteUserSessions)
 
 						r.Route("/{session_id}", func(r chi.Router) {
-							r.Get("/", h.GetSession)
-							r.Delete("/", h.DeleteSession)
+							r.Get("/", c.GetSession)
+							r.Delete("/", c.DeleteUserSession)
 						})
 					})
 				})

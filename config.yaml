@@ -1,9 +1,14 @@
 server:
   name: "sso-svc"
-  port: ":8000"
+  port: ":8001"
   log:
     level: "debug"
     format: "text"
+  timeouts:
+    read: 15 #seconds
+    read_header: 15 #seconds
+    write: 15 #seconds
+    idle: 60 #seconds
 
 database:
   sql:
@@ -13,13 +18,13 @@ oauth:
   google:
     client_id: "client_id"
     client_secret: "megasupersecret"
-    redirect_url: "http://localhost:8000/v1/sso/google/login/callback"
+    redirect_url: "http://localhost:8001/v1/sso/google/login/callback"
 
 jwt:
   user:
     access_token:
       secret_key: "UnG06MAU2i1Mvqf8" #example
-      token_lifetime: 900
+      token_lifetime: 3600
     refresh_token:
       secret_key: "6DSjhhT9KIezubpR" #example
       encryption_key: "Zlyh20N8uojZHFdO"  # Key for decrypting Refresh Token in the database

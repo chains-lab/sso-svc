@@ -1,0 +1,57 @@
+package apptest
+
+import (
+	"context"
+	"testing"
+
+	"github.com/chains-lab/gatekit/roles"
+)
+
+func TestAdminBlockUser(t *testing.T) {
+	s, err := newSetup(t)
+	if err != nil {
+		t.Fatalf("newSetup: %v", err)
+	}
+
+	cleanDb(t)
+
+	ctx := context.Background()
+
+	admin := CreateUser(s, t, "admin@example", "Admin@1234", roles.Admin)
+	_ = CreateSession(s, t, admin.ID)
+	_ = CreateSession(s, t, admin.ID)
+	_ = CreateSession(s, t, admin.ID)
+	user := CreateUser(s, t, "user@example", "User@1234", roles.User)
+	_ = CreateSession(s, t, user.ID)
+	_ = CreateSession(s, t, user.ID)
+	_ = CreateSession(s, t, user.ID)
+
+	sess, err := s.domain.session.ListForUser(ctx, user.ID, 0, 100)
+	if err != nil {
+		t.Fatalf("ListOwnSessions: unexpected error: %v", err)
+	}
+	if len(sess.Data) != 3 {
+		t.Fatalf("ListOwnSessions: expected 3 sessions, got %d", len(sess.Data))
+	}
+
+	_, err = s.domain.user.AdminBlockUser(ctx, user.ID)
+	if err != nil {
+		t.Fatalf("AdminBlockUser: unexpected error: %v", err)
+	}
+
+	sess, err = s.domain.session.ListForUser(ctx, user.ID, 0, 100)
+	if err != nil {
+		t.Fatalf("ListOwnSessions: unexpected error: %v", err)
+	}
+	if len(sess.Data) != 0 {
+		t.Fatalf("ListOwnSessions: expected 0 sessions, got %d", len(sess.Data))
+	}
+
+	sess, err = s.domain.session.ListForUser(ctx, admin.ID, 0, 100)
+	if err != nil {
+		t.Fatalf("ListOwnSessions: unexpected error: %v", err)
+	}
+	if len(sess.Data) != 3 {
+		t.Fatalf("ListOwnSessions: expected 3 sessions, got %d", len(sess.Data))
+	}
+}

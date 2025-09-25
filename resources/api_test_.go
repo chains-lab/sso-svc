@@ -59,7 +59,7 @@ func (a *TestAPIService) TestPostExecute(r ApiTestPostRequest) (*http.Response, 
 		return nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/test"
+	localVarPath := localBasePath + "/tests"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}

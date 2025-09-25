@@ -4,24 +4,30 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/chains-lab/logium"
-	"github.com/chains-lab/sso-svc/internal/config"
+	"github.com/chains-lab/sso-svc/internal"
 	"github.com/go-chi/chi/v5"
 )
 
 type Service struct {
 	server *http.Server
 	router *chi.Mux
-	log    logium.Logger
-	cfg    config.Config
+
+	log logium.Logger
+	cfg internal.Config
 }
 
-func NewRest(cfg config.Config, log logium.Logger) Service {
+func NewRest(cfg internal.Config, log logium.Logger) Service {
 	router := chi.NewRouter()
 	server := &http.Server{
-		Addr:    cfg.Server.Port,
-		Handler: router,
+		Addr:              cfg.Server.Port,
+		ReadTimeout:       cfg.Server.Timeouts.Read * time.Second,
+		ReadHeaderTimeout: cfg.Server.Timeouts.ReadHeader * time.Second,
+		WriteTimeout:      cfg.Server.Timeouts.Write * time.Second,
+		IdleTimeout:       cfg.Server.Timeouts.Idle * time.Second,
+		Handler:           router,
 	}
 
 	router.Use()
