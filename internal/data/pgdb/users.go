@@ -3,10 +3,13 @@ package pgdb
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/chains-lab/sso-svc/internal/data/schemas"
+	"github.com/chains-lab/sso-svc/internal/data"
+	"github.com/chains-lab/sso-svc/internal/models"
 	"github.com/google/uuid"
 )
 
@@ -21,7 +24,7 @@ type UsersQ struct {
 	counter  sq.SelectBuilder
 }
 
-func NewUsers(db *sql.DB) UsersQ {
+func NewUsers(db *sql.DB) data.Users {
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	return UsersQ{
 		db:       db,
@@ -33,17 +36,25 @@ func NewUsers(db *sql.DB) UsersQ {
 	}
 }
 
-func (q UsersQ) Insert(ctx context.Context, input schemas.UserModel) error {
+func (q UsersQ) Insert(ctx context.Context, input models.UserRow) error {
 	values := map[string]interface{}{
-		"id":         input.ID,
-		"role":       input.Role,
-		"status":     input.Status,
+		"id":     input.ID,
+		"role":   input.Role,
+		"status": input.Status,
+
+		"password_hash":       input.PasswordHash,
+		"password_updated_at": input.PasswordUpAt,
+
+		"email":          input.Email,
+		"email_verified": input.EmailVer,
+
+		"updated_at": input.UpdatedAt,
 		"created_at": input.CreatedAt,
 	}
 
 	query, args, err := q.inserter.SetMap(values).ToSql()
 	if err != nil {
-		return fmt.Errorf("building insert query for users: %w", err)
+		return fmt.Errorf("building insert query for %s: %w", usersTable, err)
 	}
 
 	if tx, ok := TxFromCtx(ctx); ok {
@@ -55,16 +66,12 @@ func (q UsersQ) Insert(ctx context.Context, input schemas.UserModel) error {
 	return err
 }
 
-func (q UsersQ) Update(ctx context.Context, input schemas.UserUpdateInput) error {
-	values := map[string]any{}
+func (q UsersQ) Update(ctx context.Context, updatedAt time.Time) error {
+	q.updater = q.updater.Set("updated_at", updatedAt)
 
-	if input.Status != nil {
-		values["status"] = *input.Status
-	}
-
-	query, args, err := q.updater.SetMap(values).ToSql()
+	query, args, err := q.updater.ToSql()
 	if err != nil {
-		return fmt.Errorf("building update query for users: %w", err)
+		return fmt.Errorf("building update query for %s: %w", usersTable, err)
 	}
 
 	if tx, ok := TxFromCtx(ctx); ok {
@@ -72,14 +79,35 @@ func (q UsersQ) Update(ctx context.Context, input schemas.UserUpdateInput) error
 	} else {
 		_, err = q.db.ExecContext(ctx, query, args...)
 	}
-
 	return err
 }
 
-func (q UsersQ) Get(ctx context.Context) (schemas.UserModel, error) {
+func (q UsersQ) UpdateStatus(status string) data.Users {
+	q.updater = q.updater.Set("status", status)
+	return q
+}
+
+func (q UsersQ) UpdatePassword(passwordHash string, passwordUpAt time.Time) data.Users {
+	q.updater = q.updater.
+		Set("password_hash", passwordHash).
+		Set("password_updated_at", passwordUpAt)
+	return q
+}
+
+func (q UsersQ) UpdateEmailVerified(emailVer bool) data.Users {
+	q.updater = q.updater.Set("email_verified", emailVer)
+	return q
+}
+
+func (q UsersQ) UpdateEmail(email string) data.Users {
+	q.updater = q.updater.Set("email", email)
+	return q
+}
+
+func (q UsersQ) Get(ctx context.Context) (models.UserRow, error) {
 	query, args, err := q.selector.Limit(1).ToSql()
 	if err != nil {
-		return schemas.UserModel{}, fmt.Errorf("building get query for users: %w", err)
+		return models.UserRow{}, fmt.Errorf("building get query for %s: %w", usersTable, err)
 	}
 
 	var row *sql.Row
@@ -89,24 +117,29 @@ func (q UsersQ) Get(ctx context.Context) (schemas.UserModel, error) {
 		row = q.db.QueryRowContext(ctx, query, args...)
 	}
 
-	var acc schemas.UserModel
+	var acc models.UserRow
 	err = row.Scan(
 		&acc.ID,
 		&acc.Role,
 		&acc.Status,
+		&acc.PasswordHash,
+		&acc.PasswordUpAt,
+		&acc.Email,
+		&acc.EmailVer,
+		&acc.UpdatedAt,
 		&acc.CreatedAt,
 	)
 	if err != nil {
-		return schemas.UserModel{}, err
+		return models.UserRow{}, err
 	}
 
 	return acc, nil
 }
 
-func (q UsersQ) Select(ctx context.Context) ([]schemas.UserModel, error) {
+func (q UsersQ) Select(ctx context.Context) ([]models.UserRow, error) {
 	query, args, err := q.selector.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("building select query for users: %w", err)
+		return nil, fmt.Errorf("building select query for %s: %w", usersTable, err)
 	}
 
 	var rows *sql.Rows
@@ -121,13 +154,18 @@ func (q UsersQ) Select(ctx context.Context) ([]schemas.UserModel, error) {
 	}
 	defer rows.Close()
 
-	var users []schemas.UserModel
+	var users []models.UserRow
 	for rows.Next() {
-		var acc schemas.UserModel
-		err := rows.Scan(
+		var acc models.UserRow
+		err = rows.Scan(
 			&acc.ID,
 			&acc.Role,
 			&acc.Status,
+			&acc.PasswordHash,
+			&acc.PasswordUpAt,
+			&acc.Email,
+			&acc.EmailVer,
+			&acc.UpdatedAt,
 			&acc.CreatedAt,
 		)
 		if err != nil {
@@ -142,7 +180,7 @@ func (q UsersQ) Select(ctx context.Context) ([]schemas.UserModel, error) {
 func (q UsersQ) Delete(ctx context.Context) error {
 	query, args, err := q.deleter.ToSql()
 	if err != nil {
-		return fmt.Errorf("building delete query for users: %w", err)
+		return fmt.Errorf("building delete query for %s: %w", usersTable, err)
 	}
 
 	if tx, ok := TxFromCtx(ctx); ok {
@@ -157,7 +195,7 @@ func (q UsersQ) Delete(ctx context.Context) error {
 	return nil
 }
 
-func (q UsersQ) FilterID(id uuid.UUID) schemas.UsersQ {
+func (q UsersQ) FilterID(id uuid.UUID) data.Users {
 	q.selector = q.selector.Where(sq.Eq{"id": id})
 	q.counter = q.counter.Where(sq.Eq{"id": id})
 	q.deleter = q.deleter.Where(sq.Eq{"id": id})
@@ -166,7 +204,16 @@ func (q UsersQ) FilterID(id uuid.UUID) schemas.UsersQ {
 	return q
 }
 
-func (q UsersQ) FilterRole(role string) schemas.UsersQ {
+func (q UsersQ) FilterEmail(email string) data.Users {
+	q.selector = q.selector.Where(sq.Eq{"email": email})
+	q.counter = q.counter.Where(sq.Eq{"email": email})
+	q.deleter = q.deleter.Where(sq.Eq{"email": email})
+	q.updater = q.updater.Where(sq.Eq{"email": email})
+
+	return q
+}
+
+func (q UsersQ) FilterRole(role string) data.Users {
 	q.selector = q.selector.Where(sq.Eq{"role": role})
 	q.counter = q.counter.Where(sq.Eq{"role": role})
 	q.deleter = q.deleter.Where(sq.Eq{"role": role})
@@ -175,7 +222,7 @@ func (q UsersQ) FilterRole(role string) schemas.UsersQ {
 	return q
 }
 
-func (q UsersQ) FilterStatus(status string) schemas.UsersQ {
+func (q UsersQ) FilterStatus(status string) data.Users {
 	q.selector = q.selector.Where(sq.Eq{"status": status})
 	q.counter = q.counter.Where(sq.Eq{"status": status})
 	q.deleter = q.deleter.Where(sq.Eq{"status": status})
@@ -187,7 +234,7 @@ func (q UsersQ) FilterStatus(status string) schemas.UsersQ {
 func (q UsersQ) Count(ctx context.Context) (uint, error) {
 	query, args, err := q.counter.ToSql()
 	if err != nil {
-		return 0, fmt.Errorf("building count query for users: %w", err)
+		return 0, fmt.Errorf("building count query for %s: %w", usersTable, err)
 	}
 
 	var count uint
@@ -203,8 +250,48 @@ func (q UsersQ) Count(ctx context.Context) (uint, error) {
 	return count, nil
 }
 
-func (q UsersQ) Page(limit, offset uint) schemas.UsersQ {
+func (q UsersQ) Page(limit, offset uint) data.Users {
 	q.counter = q.counter.Limit(uint64(limit)).Offset(uint64(offset))
 
 	return q
+}
+
+func (q UsersQ) Transaction(ctx context.Context, fn func(ctx context.Context) error) error {
+	_, ok := TxFromCtx(ctx)
+	if ok {
+		return fn(ctx)
+	}
+
+	tx, err := q.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to start transaction: %w", err)
+	}
+
+	defer func() {
+		if p := recover(); p != nil {
+			_ = tx.Rollback()
+			panic(p)
+		}
+		if err != nil {
+			rbErr := tx.Rollback()
+			if rbErr != nil && !errors.Is(rbErr, sql.ErrTxDone) {
+				err = fmt.Errorf("tx err: %v; rollback err: %v", err, rbErr)
+			}
+		}
+	}()
+
+	ctxWithTx := context.WithValue(ctx, TxKey, tx)
+
+	if err = fn(ctxWithTx); err != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			return fmt.Errorf("transaction failed: %v, rollback error: %v", err, rbErr)
+		}
+		return fmt.Errorf("transaction failed: %w", err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
 }

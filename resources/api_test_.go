@@ -1,7 +1,7 @@
 /*
 Cifra SSO REST API
 
-SSO REST API for Cifra app
+SSO REST API for Cifra services
 
 API version: 0.0.1
 */
@@ -59,7 +59,7 @@ func (a *TestAPIService) TestPostExecute(r ApiTestPostRequest) (*http.Response, 
 		return nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/tests"
+	localVarPath := localBasePath + "/test"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}

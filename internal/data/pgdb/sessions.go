@@ -3,10 +3,13 @@ package pgdb
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/chains-lab/sso-svc/internal/data/schemas"
+	"github.com/chains-lab/sso-svc/internal/data"
+	"github.com/chains-lab/sso-svc/internal/models"
 	"github.com/google/uuid"
 )
 
@@ -21,7 +24,7 @@ type SessionsQ struct {
 	counter  sq.SelectBuilder
 }
 
-func NewSessions(db *sql.DB) SessionsQ {
+func NewSessions(db *sql.DB) data.Sessions {
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	return SessionsQ{
 		db:       db,
@@ -33,7 +36,7 @@ func NewSessions(db *sql.DB) SessionsQ {
 	}
 }
 
-func (q SessionsQ) Insert(ctx context.Context, input schemas.Session) error {
+func (q SessionsQ) Insert(ctx context.Context, input models.SessionRow) error {
 	values := map[string]interface{}{
 		"id":         input.ID,
 		"user_id":    input.UserID,
@@ -44,7 +47,7 @@ func (q SessionsQ) Insert(ctx context.Context, input schemas.Session) error {
 
 	query, args, err := q.inserter.SetMap(values).ToSql()
 	if err != nil {
-		return fmt.Errorf("building insert query for users: %w", err)
+		return fmt.Errorf("building insert query for %s: %w", usersTable, err)
 	}
 
 	if tx, ok := TxFromCtx(ctx); ok {
@@ -55,17 +58,10 @@ func (q SessionsQ) Insert(ctx context.Context, input schemas.Session) error {
 	return err
 }
 
-func (q SessionsQ) Update(ctx context.Context, input schemas.UpdateSessionInput) error {
-	values := map[string]any{
-		"updated_at": input.LastUsed,
-	}
-	if input.Token != nil {
-		values["token"] = *input.Token
-	}
-
-	query, args, err := q.updater.SetMap(values).ToSql()
+func (q SessionsQ) Update(ctx context.Context) error {
+	query, args, err := q.updater.ToSql()
 	if err != nil {
-		return fmt.Errorf("building update query for users: %w", err)
+		return fmt.Errorf("building update query for %s: %w", usersTable, err)
 	}
 
 	if tx, ok := TxFromCtx(ctx); ok {
@@ -76,13 +72,23 @@ func (q SessionsQ) Update(ctx context.Context, input schemas.UpdateSessionInput)
 	return err
 }
 
-func (q SessionsQ) Get(ctx context.Context) (schemas.Session, error) {
+func (q SessionsQ) UpdateToken(token string) data.Sessions {
+	q.updater = q.updater.Set("token", token)
+	return q
+}
+
+func (q SessionsQ) UpdateLastUsed(lastUsed time.Time) data.Sessions {
+	q.updater = q.updater.Set("last_used", lastUsed)
+	return q
+}
+
+func (q SessionsQ) Get(ctx context.Context) (models.SessionRow, error) {
 	query, args, err := q.selector.Limit(1).ToSql()
 	if err != nil {
-		return schemas.Session{}, fmt.Errorf("building get query for sessions: %w", err)
+		return models.SessionRow{}, fmt.Errorf("building get query for sessions: %w", err)
 	}
 
-	var sess schemas.Session
+	var sess models.SessionRow
 	var row *sql.Row
 	if tx, ok := TxFromCtx(ctx); ok {
 		row = tx.QueryRowContext(ctx, query, args...)
@@ -97,12 +103,12 @@ func (q SessionsQ) Get(ctx context.Context) (schemas.Session, error) {
 		&sess.LastUsed,
 	)
 	if err != nil {
-		return schemas.Session{}, err
+		return models.SessionRow{}, err
 	}
 	return sess, nil
 }
 
-func (q SessionsQ) Select(ctx context.Context) ([]schemas.Session, error) {
+func (q SessionsQ) Select(ctx context.Context) ([]models.SessionRow, error) {
 	query, args, err := q.selector.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("building select query for sessions: %w", err)
@@ -120,9 +126,9 @@ func (q SessionsQ) Select(ctx context.Context) ([]schemas.Session, error) {
 	}
 	defer rows.Close()
 
-	var sessions []schemas.Session
+	var sessions []models.SessionRow
 	for rows.Next() {
-		var sess schemas.Session
+		var sess models.SessionRow
 		err = rows.Scan(
 			&sess.ID,
 			&sess.UserID,
@@ -153,7 +159,7 @@ func (q SessionsQ) Delete(ctx context.Context) error {
 	return err
 }
 
-func (q SessionsQ) FilterID(ID uuid.UUID) schemas.SessionsQ {
+func (q SessionsQ) FilterID(ID uuid.UUID) data.Sessions {
 	q.selector = q.selector.Where(sq.Eq{"id": ID})
 	q.deleter = q.deleter.Where(sq.Eq{"id": ID})
 	q.updater = q.updater.Where(sq.Eq{"id": ID})
@@ -162,7 +168,7 @@ func (q SessionsQ) FilterID(ID uuid.UUID) schemas.SessionsQ {
 	return q
 }
 
-func (q SessionsQ) FilterUserID(userID uuid.UUID) schemas.SessionsQ {
+func (q SessionsQ) FilterUserID(userID uuid.UUID) data.Sessions {
 	q.selector = q.selector.Where(sq.Eq{"user_id": userID})
 	q.deleter = q.deleter.Where(sq.Eq{"user_id": userID})
 	q.updater = q.updater.Where(sq.Eq{"user_id": userID})
@@ -171,7 +177,7 @@ func (q SessionsQ) FilterUserID(userID uuid.UUID) schemas.SessionsQ {
 	return q
 }
 
-func (q SessionsQ) OrderCreatedAt(ascending bool) schemas.SessionsQ {
+func (q SessionsQ) OrderCreatedAt(ascending bool) data.Sessions {
 	if ascending {
 		q.selector = q.selector.OrderBy("created_at ASC")
 	} else {
@@ -199,8 +205,48 @@ func (q SessionsQ) Count(ctx context.Context) (uint, error) {
 	return count, nil
 }
 
-func (q SessionsQ) Page(limit, offset uint) schemas.SessionsQ {
+func (q SessionsQ) Page(limit, offset uint) data.Sessions {
 	q.selector = q.selector.Limit(uint64(limit)).Offset(uint64(offset))
 
 	return q
+}
+
+func (q SessionsQ) Transaction(ctx context.Context, fn func(ctx context.Context) error) error {
+	_, ok := TxFromCtx(ctx)
+	if ok {
+		return fn(ctx)
+	}
+
+	tx, err := q.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to start transaction: %w", err)
+	}
+
+	defer func() {
+		if p := recover(); p != nil {
+			_ = tx.Rollback()
+			panic(p)
+		}
+		if err != nil {
+			rbErr := tx.Rollback()
+			if rbErr != nil && !errors.Is(rbErr, sql.ErrTxDone) {
+				err = fmt.Errorf("tx err: %v; rollback err: %v", err, rbErr)
+			}
+		}
+	}()
+
+	ctxWithTx := context.WithValue(ctx, TxKey, tx)
+
+	if err = fn(ctxWithTx); err != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			return fmt.Errorf("transaction failed: %v, rollback error: %v", err, rbErr)
+		}
+		return fmt.Errorf("transaction failed: %w", err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
 }

@@ -1,7 +1,7 @@
 /*
 Cifra SSO REST API
 
-SSO REST API for Cifra app
+SSO REST API for Cifra services
 
 API version: 0.0.1
 */
@@ -12,6 +12,7 @@ package resources
 
 import (
 	"encoding/json"
+	"github.com/google/uuid"
 	"time"
 	"bytes"
 	"fmt"
@@ -23,7 +24,7 @@ var _ MappedNullable = &UserSessionAttributes{}
 // UserSessionAttributes struct for UserSessionAttributes
 type UserSessionAttributes struct {
 	// user id
-	UserId string `json:"user_id"`
+	UserId uuid.UUID `json:"user_id"`
 	// session creation date
 	CreatedAt time.Time `json:"created_at"`
 	// last used date
@@ -36,7 +37,7 @@ type _UserSessionAttributes UserSessionAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewUserSessionAttributes(userId string, createdAt time.Time, lastUsed time.Time) *UserSessionAttributes {
+func NewUserSessionAttributes(userId uuid.UUID, createdAt time.Time, lastUsed time.Time) *UserSessionAttributes {
 	this := UserSessionAttributes{}
 	this.UserId = userId
 	this.CreatedAt = createdAt
@@ -53,9 +54,9 @@ func NewUserSessionAttributesWithDefaults() *UserSessionAttributes {
 }
 
 // GetUserId returns the UserId field value
-func (o *UserSessionAttributes) GetUserId() string {
+func (o *UserSessionAttributes) GetUserId() uuid.UUID {
 	if o == nil {
-		var ret string
+		var ret uuid.UUID
 		return ret
 	}
 
@@ -64,7 +65,7 @@ func (o *UserSessionAttributes) GetUserId() string {
 
 // GetUserIdOk returns a tuple with the UserId field value
 // and a boolean to check if the value has been set.
-func (o *UserSessionAttributes) GetUserIdOk() (*string, bool) {
+func (o *UserSessionAttributes) GetUserIdOk() (*uuid.UUID, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -72,7 +73,7 @@ func (o *UserSessionAttributes) GetUserIdOk() (*string, bool) {
 }
 
 // SetUserId sets field value
-func (o *UserSessionAttributes) SetUserId(v string) {
+func (o *UserSessionAttributes) SetUserId(v uuid.UUID) {
 	o.UserId = v
 }
 

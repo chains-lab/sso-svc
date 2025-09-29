@@ -8,29 +8,14 @@ import (
 	"time"
 
 	"github.com/chains-lab/enum"
-	"github.com/chains-lab/sso-svc/internal/data/schemas"
-	"github.com/chains-lab/sso-svc/internal/domain/errx"
-	"github.com/chains-lab/sso-svc/internal/domain/models"
+	"github.com/chains-lab/sso-svc/internal/errx"
+	"github.com/chains-lab/sso-svc/internal/models"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func (s Service) Login(ctx context.Context, email, password string) (models.TokensPair, error) {
-	emailData, err := s.db.UsersEmail().FilterEmail(email).Get(ctx)
-	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return models.TokensPair{}, errx.ErrorUserNotFound.Raise(
-				fmt.Errorf("user with email '%s' not found, cause: %w", email, err),
-			)
-		default:
-			return models.TokensPair{}, errx.ErrorInternal.Raise(
-				fmt.Errorf("failed to get user with email '%s', cause: %w", email, err),
-			)
-		}
-	}
-
-	user, err := s.db.Users().FilterID(emailData.ID).Get(ctx)
+	user, err := s.db.Users().FilterEmail(email).Get(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -50,21 +35,7 @@ func (s Service) Login(ctx context.Context, email, password string) (models.Toke
 		)
 	}
 
-	secret, err := s.db.UsersPassword().FilterID(user.ID).Get(ctx)
-	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return models.TokensPair{}, errx.ErrorUserNotFound.Raise(
-				fmt.Errorf("password for user %s not found, cause: %w", user.ID, err),
-			)
-		default:
-			return models.TokensPair{}, errx.ErrorInternal.Raise(
-				fmt.Errorf("getting password for user %s, cause: %w", user.ID, err),
-			)
-		}
-	}
-
-	if err = bcrypt.CompareHashAndPassword([]byte(secret.PassHash), []byte(password)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			return models.TokensPair{}, errx.ErrorInvalidLogin.Raise(
 				fmt.Errorf("invalid credentials for user %s, cause: %w", user.ID, err),
@@ -76,7 +47,7 @@ func (s Service) Login(ctx context.Context, email, password string) (models.Toke
 		)
 	}
 
-	pair, err := s.Create(ctx, user.ID, user.Role, emailData.Verified)
+	pair, err := s.Create(ctx, user.ID, user.Role)
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to Create session for user %s: %w", user.ID, err),
@@ -91,7 +62,7 @@ func (s Service) Login(ctx context.Context, email, password string) (models.Toke
 }
 
 func (s Service) LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error) {
-	emailData, err := s.db.UsersEmail().FilterEmail(email).Get(ctx)
+	user, err := s.db.Users().FilterEmail(email).Get(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -105,21 +76,7 @@ func (s Service) LoginByGoogle(ctx context.Context, email string) (models.Tokens
 		}
 	}
 
-	user, err := s.db.Users().FilterID(emailData.ID).Get(ctx)
-	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return models.TokensPair{}, errx.ErrorUserNotFound.Raise(
-				fmt.Errorf("user with email '%s' not found, cause: %w", email, err),
-			)
-		default:
-			return models.TokensPair{}, errx.ErrorInternal.Raise(
-				fmt.Errorf("failed to get user with email '%s', cause: %w", email, err),
-			)
-		}
-	}
-
-	pair, err := s.Create(ctx, user.ID, user.Role, emailData.Verified)
+	pair, err := s.Create(ctx, user.ID, user.Role)
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to Create session for user %s: %w", user.ID, err),
@@ -137,7 +94,6 @@ func (s Service) Create(
 	ctx context.Context,
 	userID uuid.UUID,
 	role string,
-	verified bool,
 ) (models.TokensPair, error) {
 	sessionID := uuid.New()
 
@@ -147,7 +103,7 @@ func (s Service) Create(
 			fmt.Errorf("failed to generate access token for user %s, cause: %w", userID, err))
 	}
 
-	refresh, err := s.jwt.GenerateRefresh(userID, sessionID, role, verified)
+	refresh, err := s.jwt.GenerateRefresh(userID, sessionID, role)
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to generate refresh token for user %s, cause: %w", userID, err))
@@ -159,7 +115,7 @@ func (s Service) Create(
 			fmt.Errorf("failed to encrypt refresh token for user %s, cause: %w", userID, err))
 	}
 
-	session := schemas.Session{
+	session := models.SessionRow{
 		ID:        sessionID,
 		UserID:    userID,
 		Token:     refreshCrypto,

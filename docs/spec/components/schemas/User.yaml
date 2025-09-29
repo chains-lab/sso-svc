@@ -11,6 +11,7 @@ properties:
     properties:
       id:
         type: string
+        format: uuid
         description: "User ID"
       type:
         type: string

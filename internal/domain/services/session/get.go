@@ -6,8 +6,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/chains-lab/sso-svc/internal/domain/errx"
-	"github.com/chains-lab/sso-svc/internal/domain/models"
+	"github.com/chains-lab/sso-svc/internal/errx"
+	"github.com/chains-lab/sso-svc/internal/models"
+
 	"github.com/google/uuid"
 )
 

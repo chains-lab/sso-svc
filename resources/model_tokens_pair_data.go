@@ -1,7 +1,7 @@
 /*
 Cifra SSO REST API
 
-SSO REST API for Cifra app
+SSO REST API for Cifra services
 
 API version: 0.0.1
 */
@@ -12,6 +12,7 @@ package resources
 
 import (
 	"encoding/json"
+	"github.com/google/uuid"
 	"bytes"
 	"fmt"
 )
@@ -22,7 +23,7 @@ var _ MappedNullable = &TokensPairData{}
 // TokensPairData struct for TokensPairData
 type TokensPairData struct {
 	// user id
-	Id string `json:"id"`
+	Id uuid.UUID `json:"id"`
 	Type string `json:"type"`
 	Attributes TokensPairDataAttributes `json:"attributes"`
 }
@@ -33,7 +34,7 @@ type _TokensPairData TokensPairData
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewTokensPairData(id string, type_ string, attributes TokensPairDataAttributes) *TokensPairData {
+func NewTokensPairData(id uuid.UUID, type_ string, attributes TokensPairDataAttributes) *TokensPairData {
 	this := TokensPairData{}
 	this.Id = id
 	this.Type = type_
@@ -50,9 +51,9 @@ func NewTokensPairDataWithDefaults() *TokensPairData {
 }
 
 // GetId returns the Id field value
-func (o *TokensPairData) GetId() string {
+func (o *TokensPairData) GetId() uuid.UUID {
 	if o == nil {
-		var ret string
+		var ret uuid.UUID
 		return ret
 	}
 
@@ -61,7 +62,7 @@ func (o *TokensPairData) GetId() string {
 
 // GetIdOk returns a tuple with the Id field value
 // and a boolean to check if the value has been set.
-func (o *TokensPairData) GetIdOk() (*string, bool) {
+func (o *TokensPairData) GetIdOk() (*uuid.UUID, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -69,7 +70,7 @@ func (o *TokensPairData) GetIdOk() (*string, bool) {
 }
 
 // SetId sets field value
-func (o *TokensPairData) SetId(v string) {
+func (o *TokensPairData) SetId(v uuid.UUID) {
 	o.Id = v
 }
 

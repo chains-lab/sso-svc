@@ -2,17 +2,19 @@ package apptest
 
 import (
 	"database/sql"
+	"log"
 	"testing"
 	"time"
 
 	"github.com/chains-lab/logium"
 	"github.com/chains-lab/sso-svc/cmd/migrations"
 	"github.com/chains-lab/sso-svc/internal"
-	"github.com/chains-lab/sso-svc/internal/domain/services/session"
-	"github.com/chains-lab/sso-svc/internal/domain/services/session/jwtmanager"
-	"github.com/chains-lab/sso-svc/internal/domain/services/user"
-
 	"github.com/chains-lab/sso-svc/internal/data"
+	"github.com/chains-lab/sso-svc/internal/data/pgdb"
+	"github.com/chains-lab/sso-svc/internal/domain"
+	"github.com/chains-lab/sso-svc/internal/domain/services/session"
+	"github.com/chains-lab/sso-svc/internal/domain/services/user"
+	"github.com/chains-lab/sso-svc/internal/infra/jwtmanager"
 )
 
 // TEST DATABASE CONNECTION
@@ -25,12 +27,8 @@ func mustExec(t *testing.T, db *sql.DB, q string, args ...any) {
 	}
 }
 
-type services struct {
-	user    user.Service
-	session session.Service
-}
 type Setup struct {
-	domain services
+	app domain.Core
 
 	Log logium.Logger
 	Cfg internal.Config
@@ -88,15 +86,30 @@ func newSetup(t *testing.T) (Setup, error) {
 		},
 	}
 
-	manager := jwtmanager.NewManager(cfg)
-	database := data.NewDatabase(testDatabaseURL)
-	userMod := user.NewService(database)
-	sessionMod := session.NewService(database, manager)
+	pg, err := sql.Open("postgres", cfg.Database.SQL.URL)
+	if err != nil {
+		log.Fatal("failed to connect to database", "error", err)
+	}
+
+	database := data.NewDatabase(
+		pgdb.NewUsers(pg),
+		pgdb.NewSessions(pg),
+	)
+
+	jwtTokenManager := jwtmanager.NewManager(jwtmanager.Config{
+		AccessSK:   cfg.JWT.User.AccessToken.SecretKey,
+		RefreshSK:  cfg.JWT.User.RefreshToken.SecretKey,
+		AccessTTL:  cfg.JWT.User.AccessToken.TokenLifetime,
+		RefreshTTL: cfg.JWT.User.RefreshToken.TokenLifetime,
+		Iss:        cfg.Service.Name,
+	})
+
+	logic := domain.NewCore(
+		user.New(database),
+		session.New(database, jwtTokenManager),
+	)
 
 	return Setup{
-		domain: services{
-			user:    userMod,
-			session: sessionMod,
-		},
+		app: logic,
 	}, nil
 }

@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  description: SSO REST API for Cifra app
+  description: SSO REST API for Cifra services
   title: Cifra SSO REST API
   version: 0.0.1
 servers:

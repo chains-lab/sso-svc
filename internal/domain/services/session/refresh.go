@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/chains-lab/sso-svc/internal/data/schemas"
-	"github.com/chains-lab/sso-svc/internal/domain/errx"
-	"github.com/chains-lab/sso-svc/internal/domain/models"
+	"github.com/chains-lab/sso-svc/internal/errx"
+	"github.com/chains-lab/sso-svc/internal/models"
+
 	"github.com/google/uuid"
 )
 
@@ -55,7 +55,7 @@ func (s Service) Refresh(ctx context.Context, oldRefreshToken string) (models.To
 		)
 	}
 
-	refresh, err = s.jwt.GenerateRefresh(userID, tokenData.SessionID, tokenData.Role, tokenData.Verified)
+	refresh, err = s.jwt.GenerateRefresh(userID, tokenData.SessionID, tokenData.Role)
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to generate refresh token for user %s, cause: %w", userID, err),
@@ -76,10 +76,10 @@ func (s Service) Refresh(ctx context.Context, oldRefreshToken string) (models.To
 		)
 	}
 
-	err = s.db.Sessions().FilterID(tokenData.SessionID).Update(ctx, schemas.UpdateSessionInput{
-		Token:    &refreshCrypto,
-		LastUsed: time.Now().UTC(),
-	})
+	err = s.db.Sessions().FilterID(tokenData.SessionID).
+		UpdateToken(refreshCrypto).
+		UpdateLastUsed(time.Now().UTC()).
+		Update(ctx)
 
 	return models.TokensPair{
 		SessionID: tokenData.SessionID,

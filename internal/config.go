@@ -13,11 +13,15 @@ import (
 
 type ServerConfig struct {
 	Name string `mapstructure:"name"`
-	Port string `mapstructure:"port"`
-	Log  struct {
-		Level  string `mapstructure:"level"`
-		Format string `mapstructure:"format"`
-	} `mapstructure:"log"`
+}
+
+type LogConfig struct {
+	Level  string `mapstructure:"level"`
+	Format string `mapstructure:"format"`
+}
+
+type RestConfig struct {
+	Port     string `mapstructure:"port"`
 	Timeouts struct {
 		Read       time.Duration `mapstructure:"read"`
 		ReadHeader time.Duration `mapstructure:"read_header"`
@@ -25,6 +29,7 @@ type ServerConfig struct {
 		Idle       time.Duration `mapstructure:"idle"`
 	} `mapstructure:"timeouts"`
 }
+
 type DatabaseConfig struct {
 	SQL struct {
 		URL string `mapstructure:"url"`
@@ -67,7 +72,9 @@ type SwaggerConfig struct {
 }
 
 type Config struct {
-	Server   ServerConfig   `mapstructure:"server"`
+	Service  ServerConfig   `mapstructure:"service"`
+	Log      LogConfig      `mapstructure:"log"`
+	Rest     RestConfig     `mapstructure:"rest"`
 	JWT      JWTConfig      `mapstructure:"jwt"`
 	OAuth    OAuthConfig    `mapstructure:"oauth"`
 	Kafka    KafkaConfig    `mapstructure:"kafka"`

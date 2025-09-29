@@ -4,7 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Id** | **string** | session id | 
+**Id** | [**uuid.UUID**](uuid.UUID.md) | session id | 
 **Type** | **string** |  | 
 **Attributes** | [**UserSessionAttributes**](UserSessionAttributes.md) |  | 
 
@@ -12,7 +12,7 @@ Name | Type | Description | Notes
 
 ### NewUserSessionData
 
-`func NewUserSessionData(id string, type_ string, attributes UserSessionAttributes, ) *UserSessionData`
+`func NewUserSessionData(id uuid.UUID, type_ string, attributes UserSessionAttributes, ) *UserSessionData`
 
 NewUserSessionData instantiates a new UserSessionData object
 This constructor will assign default values to properties that have it defined,
@@ -29,20 +29,20 @@ but it doesn't guarantee that properties required by API are set
 
 ### GetId
 
-`func (o *UserSessionData) GetId() string`
+`func (o *UserSessionData) GetId() uuid.UUID`
 
 GetId returns the Id field if non-nil, zero value otherwise.
 
 ### GetIdOk
 
-`func (o *UserSessionData) GetIdOk() (*string, bool)`
+`func (o *UserSessionData) GetIdOk() (*uuid.UUID, bool)`
 
 GetIdOk returns a tuple with the Id field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetId
 
-`func (o *UserSessionData) SetId(v string)`
+`func (o *UserSessionData) SetId(v uuid.UUID)`
 
 SetId sets Id field to given value.
 

@@ -4,7 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**UserId** | **string** | user id | 
+**UserId** | [**uuid.UUID**](uuid.UUID.md) | user id | 
 **CreatedAt** | **time.Time** | session creation date | 
 **LastUsed** | **time.Time** | last used date | 
 
@@ -12,7 +12,7 @@ Name | Type | Description | Notes
 
 ### NewUserSessionAttributes
 
-`func NewUserSessionAttributes(userId string, createdAt time.Time, lastUsed time.Time, ) *UserSessionAttributes`
+`func NewUserSessionAttributes(userId uuid.UUID, createdAt time.Time, lastUsed time.Time, ) *UserSessionAttributes`
 
 NewUserSessionAttributes instantiates a new UserSessionAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -29,20 +29,20 @@ but it doesn't guarantee that properties required by API are set
 
 ### GetUserId
 
-`func (o *UserSessionAttributes) GetUserId() string`
+`func (o *UserSessionAttributes) GetUserId() uuid.UUID`
 
 GetUserId returns the UserId field if non-nil, zero value otherwise.
 
 ### GetUserIdOk
 
-`func (o *UserSessionAttributes) GetUserIdOk() (*string, bool)`
+`func (o *UserSessionAttributes) GetUserIdOk() (*uuid.UUID, bool)`
 
 GetUserIdOk returns a tuple with the UserId field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetUserId
 
-`func (o *UserSessionAttributes) SetUserId(v string)`
+`func (o *UserSessionAttributes) SetUserId(v uuid.UUID)`
 
 SetUserId sets UserId field to given value.
 

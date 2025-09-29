@@ -12,16 +12,15 @@ import (
 	"github.com/chains-lab/sso-svc/cmd"
 	"github.com/chains-lab/sso-svc/cmd/migrations"
 	"github.com/chains-lab/sso-svc/internal"
-	"github.com/sirupsen/logrus"
 )
 
 func Run(args []string) bool {
 	cfg, err := internal.LoadConfig()
 	if err != nil {
-		logrus.Fatalf("failed to load config: %v", err)
+		panic(err)
 	}
 
-	log := logium.NewLogger(cfg.Server.Log.Level, cfg.Server.Log.Format)
+	log := logium.NewLogger(cfg.Log.Level, cfg.Log.Format)
 	log.Info("Starting server...")
 
 	var (

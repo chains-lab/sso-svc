@@ -1,7 +1,7 @@
 /*
 Cifra SSO REST API
 
-SSO REST API for Cifra app
+SSO REST API for Cifra services
 
 API version: 0.0.1
 */
@@ -12,6 +12,7 @@ package resources
 
 import (
 	"encoding/json"
+	"github.com/google/uuid"
 	"bytes"
 	"fmt"
 )
@@ -22,7 +23,7 @@ var _ MappedNullable = &UserSessionData{}
 // UserSessionData struct for UserSessionData
 type UserSessionData struct {
 	// session id
-	Id string `json:"id"`
+	Id uuid.UUID `json:"id"`
 	Type string `json:"type"`
 	Attributes UserSessionAttributes `json:"attributes"`
 }
@@ -33,7 +34,7 @@ type _UserSessionData UserSessionData
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewUserSessionData(id string, type_ string, attributes UserSessionAttributes) *UserSessionData {
+func NewUserSessionData(id uuid.UUID, type_ string, attributes UserSessionAttributes) *UserSessionData {
 	this := UserSessionData{}
 	this.Id = id
 	this.Type = type_
@@ -50,9 +51,9 @@ func NewUserSessionDataWithDefaults() *UserSessionData {
 }
 
 // GetId returns the Id field value
-func (o *UserSessionData) GetId() string {
+func (o *UserSessionData) GetId() uuid.UUID {
 	if o == nil {
-		var ret string
+		var ret uuid.UUID
 		return ret
 	}
 
@@ -61,7 +62,7 @@ func (o *UserSessionData) GetId() string {
 
 // GetIdOk returns a tuple with the Id field value
 // and a boolean to check if the value has been set.
-func (o *UserSessionData) GetIdOk() (*string, bool) {
+func (o *UserSessionData) GetIdOk() (*uuid.UUID, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -69,7 +70,7 @@ func (o *UserSessionData) GetIdOk() (*string, bool) {
 }
 
 // SetId sets field value
-func (o *UserSessionData) SetId(v string) {
+func (o *UserSessionData) SetId(v uuid.UUID) {
 	o.Id = v
 }
 

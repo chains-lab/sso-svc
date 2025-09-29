@@ -3,7 +3,6 @@ package session
 import (
 	"github.com/chains-lab/gatekit/auth"
 	"github.com/chains-lab/sso-svc/internal/data"
-	"github.com/chains-lab/sso-svc/internal/domain/services/session/jwtmanager"
 	"github.com/google/uuid"
 )
 
@@ -24,18 +23,17 @@ type JWTManager interface {
 		userID uuid.UUID,
 		sessionID uuid.UUID,
 		role string,
-		emailVerified bool,
 	) (string, error)
 }
 
 type Service struct {
-	db  data.Database
 	jwt JWTManager
+	db  data.Database
 }
 
-func NewService(db data.Database, manager jwtmanager.Manager) Service {
+func New(db data.Database, jwt JWTManager) Service {
 	return Service{
+		jwt: jwt,
 		db:  db,
-		jwt: manager,
 	}
 }

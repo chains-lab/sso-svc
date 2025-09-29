@@ -6,13 +6,13 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/chains-lab/sso-svc/internal/domain/errx"
+	"github.com/chains-lab/sso-svc/internal/errx"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (u Service) CheckPassword(ctx context.Context, userID uuid.UUID, password string) error {
-	secret, err := u.db.UsersPassword().FilterID(userID).Get(ctx)
+func (s Service) CheckPassword(ctx context.Context, userID uuid.UUID, password string) error {
+	user, err := s.db.Users().FilterID(userID).Get(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -26,7 +26,7 @@ func (u Service) CheckPassword(ctx context.Context, userID uuid.UUID, password s
 		}
 	}
 
-	if err = bcrypt.CompareHashAndPassword([]byte(secret.PassHash), []byte(password)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			return errx.ErrorInvalidLogin.Raise(
 				fmt.Errorf("invalid credentials for user %s, cause: %w", userID, err),

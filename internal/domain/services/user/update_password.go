@@ -8,19 +8,18 @@ import (
 	"time"
 
 	"github.com/chains-lab/enum"
-	"github.com/chains-lab/sso-svc/internal/data/schemas"
-	"github.com/chains-lab/sso-svc/internal/domain/errx"
-	"github.com/chains-lab/sso-svc/internal/domain/services/user/password"
+	"github.com/chains-lab/sso-svc/internal/errx"
+	"github.com/chains-lab/sso-svc/internal/infra/password"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (u Service) UpdatePassword(
+func (s Service) UpdatePassword(
 	ctx context.Context,
 	userID uuid.UUID,
 	oldPassword, newPassword string,
 ) error {
-	user, err := u.GetInitiator(ctx, userID)
+	user, err := s.GetInitiator(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -31,7 +30,7 @@ func (u Service) UpdatePassword(
 		)
 	}
 
-	secret, err := u.db.UsersPassword().FilterID(userID).Get(ctx)
+	userRow, err := s.db.Users().FilterID(userID).Get(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -45,7 +44,7 @@ func (u Service) UpdatePassword(
 		}
 	}
 
-	if err = bcrypt.CompareHashAndPassword([]byte(secret.PassHash), []byte(oldPassword)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(userRow.PasswordHash), []byte(oldPassword)); err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			return errx.ErrorInvalidLogin.Raise(
 				fmt.Errorf("invalid credentials for user %s, cause: %w", userID, err),
@@ -71,26 +70,14 @@ func (u Service) UpdatePassword(
 
 	hashStr := string(hash)
 
-	err = u.db.UsersPassword().FilterID(userID).Update(ctx, schemas.UserPassUpdateInput{
-		PassHash:  &hashStr,
-		UpdatedAt: time.Now().UTC(),
-	})
-	if err != nil {
-		return errx.ErrorInternal.Raise(
-			fmt.Errorf("updating newPassword for user '%s', cause: %w", userID, err),
-		)
-	}
-
-	err = u.db.Transaction(ctx, func(ctx context.Context) error {
-		err = u.db.UsersPassword().FilterID(userID).Update(ctx, schemas.UserPassUpdateInput{
-			PassHash:  &hashStr,
-			UpdatedAt: time.Now().UTC(),
-		})
+	now := time.Now().UTC()
+	err = s.db.Users().Transaction(ctx, func(ctx context.Context) error {
+		err = s.db.Users().FilterID(userID).UpdatePassword(hashStr, now).Update(ctx, now)
 		if err != nil {
 			return err
 		}
 
-		err = u.db.Sessions().FilterUserID(userID).Delete(ctx)
+		err = s.db.Sessions().FilterUserID(userID).Delete(ctx)
 		if err != nil {
 			return err
 		}

@@ -4,7 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Id** | **string** | user id | 
+**Id** | [**uuid.UUID**](uuid.UUID.md) | user id | 
 **Type** | **string** |  | 
 **Attributes** | [**TokensPairDataAttributes**](TokensPairDataAttributes.md) |  | 
 
@@ -12,7 +12,7 @@ Name | Type | Description | Notes
 
 ### NewTokensPairData
 
-`func NewTokensPairData(id string, type_ string, attributes TokensPairDataAttributes, ) *TokensPairData`
+`func NewTokensPairData(id uuid.UUID, type_ string, attributes TokensPairDataAttributes, ) *TokensPairData`
 
 NewTokensPairData instantiates a new TokensPairData object
 This constructor will assign default values to properties that have it defined,
@@ -29,20 +29,20 @@ but it doesn't guarantee that properties required by API are set
 
 ### GetId
 
-`func (o *TokensPairData) GetId() string`
+`func (o *TokensPairData) GetId() uuid.UUID`
 
 GetId returns the Id field if non-nil, zero value otherwise.
 
 ### GetIdOk
 
-`func (o *TokensPairData) GetIdOk() (*string, bool)`
+`func (o *TokensPairData) GetIdOk() (*uuid.UUID, bool)`
 
 GetIdOk returns a tuple with the Id field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetId
 
-`func (o *TokensPairData) SetId(v string)`
+`func (o *TokensPairData) SetId(v uuid.UUID)`
 
 SetId sets Id field to given value.
 

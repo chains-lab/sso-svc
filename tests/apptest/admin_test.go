@@ -26,7 +26,7 @@ func TestAdminBlockUser(t *testing.T) {
 	_ = CreateSession(s, t, user.ID)
 	_ = CreateSession(s, t, user.ID)
 
-	sess, err := s.domain.session.ListForUser(ctx, user.ID, 0, 100)
+	sess, err := s.app.Session().ListForUser(ctx, user.ID, 0, 100)
 	if err != nil {
 		t.Fatalf("ListOwnSessions: unexpected error: %v", err)
 	}
@@ -34,12 +34,12 @@ func TestAdminBlockUser(t *testing.T) {
 		t.Fatalf("ListOwnSessions: expected 3 sessions, got %d", len(sess.Data))
 	}
 
-	_, err = s.domain.user.AdminBlockUser(ctx, user.ID)
+	_, err = s.app.User().AdminBlockUser(ctx, user.ID)
 	if err != nil {
 		t.Fatalf("AdminBlockUser: unexpected error: %v", err)
 	}
 
-	sess, err = s.domain.session.ListForUser(ctx, user.ID, 0, 100)
+	sess, err = s.app.Session().ListForUser(ctx, user.ID, 0, 100)
 	if err != nil {
 		t.Fatalf("ListOwnSessions: unexpected error: %v", err)
 	}
@@ -47,7 +47,7 @@ func TestAdminBlockUser(t *testing.T) {
 		t.Fatalf("ListOwnSessions: expected 0 sessions, got %d", len(sess.Data))
 	}
 
-	sess, err = s.domain.session.ListForUser(ctx, admin.ID, 0, 100)
+	sess, err = s.app.Session().ListForUser(ctx, admin.ID, 0, 100)
 	if err != nil {
 		t.Fatalf("ListOwnSessions: unexpected error: %v", err)
 	}

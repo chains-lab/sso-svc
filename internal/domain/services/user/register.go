@@ -8,19 +8,18 @@ import (
 
 	"github.com/chains-lab/enum"
 	"github.com/chains-lab/gatekit/roles"
-	"github.com/chains-lab/sso-svc/internal/data/schemas"
-	"github.com/chains-lab/sso-svc/internal/domain/errx"
-	"github.com/chains-lab/sso-svc/internal/domain/models"
-	"github.com/chains-lab/sso-svc/internal/domain/services/user/password"
+	"github.com/chains-lab/sso-svc/internal/errx"
+	"github.com/chains-lab/sso-svc/internal/infra/password"
+	"github.com/chains-lab/sso-svc/internal/models"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (u Service) Register(
+func (s Service) Register(
 	ctx context.Context,
 	email, pass, role string,
 ) (models.User, error) {
-	_, err := u.GetByEmail(ctx, email)
+	_, err := s.GetByEmail(ctx, email)
 	if err == nil {
 		return models.User{}, errx.ErrorUserAlreadyExists.Raise(
 			fmt.Errorf("user with email '%s' already exists", email),
@@ -46,19 +45,6 @@ func (u Service) Register(
 	id := uuid.New()
 	now := time.Now().UTC()
 
-	err = u.db.Users().Insert(ctx, schemas.UserModel{
-		ID:        id,
-		Role:      role,
-		Status:    enum.UserStatusActive,
-		CreatedAt: now,
-	})
-
-	if err != nil {
-		return models.User{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("inserting new user with email '%s', cause: %w", email, err),
-		)
-	}
-
 	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
 	if err != nil {
 		return models.User{}, errx.ErrorInternal.Raise(
@@ -66,29 +52,27 @@ func (u Service) Register(
 		)
 	}
 
-	err = u.db.UsersPassword().Insert(ctx, schemas.UserPasswordModel{
-		ID:        id,
-		PassHash:  string(hash),
-		UpdatedAt: time.Now().UTC(),
-	})
-	if err != nil {
-		return models.User{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("inserting password for new user with email '%s', cause: %w", email, err),
-		)
-	}
+	err = s.db.Users().Insert(ctx, models.UserRow{
+		ID:     id,
+		Role:   role,
+		Status: enum.UserStatusActive,
 
-	err = u.db.UsersEmail().Insert(ctx, schemas.UserEmailModel{
-		ID:       id,
+		PasswordHash: string(hash),
+		PasswordUpAt: now,
+
 		Email:    email,
-		Verified: true,
+		EmailVer: false,
+
+		UpdatedAt: now,
+		CreatedAt: now,
 	})
 	if err != nil {
 		return models.User{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("inserting email for new user with email '%s', cause: %w", email, err),
+			fmt.Errorf("inserting new user with email '%s', cause: %w", email, err),
 		)
 	}
 
-	user, err := u.GetByID(ctx, id)
+	user, err := s.GetByID(ctx, id)
 	if err != nil {
 		return models.User{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("getting newly created user with email '%s', cause: %w", email, err),
@@ -98,17 +82,17 @@ func (u Service) Register(
 	return user, nil
 }
 
-func (u Service) RegisterAdmin(
+func (s Service) RegisterAdmin(
 	ctx context.Context,
 	initiatorID uuid.UUID,
 	email, pass, role string,
 ) (models.User, error) {
-	_, err := u.GetByEmail(ctx, email)
+	_, err := s.GetByEmail(ctx, email)
 	if !errors.Is(err, errx.ErrorUserNotFound) {
 		return models.User{}, err
 	}
 
-	initiator, err := u.GetInitiator(ctx, initiatorID)
+	initiator, err := s.GetInitiator(ctx, initiatorID)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -125,7 +109,7 @@ func (u Service) RegisterAdmin(
 		)
 	}
 
-	user, err := u.Register(ctx, email, pass, role)
+	user, err := s.Register(ctx, email, pass, role)
 	if err != nil {
 		return models.User{}, err
 	}
