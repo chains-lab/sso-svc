@@ -31,7 +31,7 @@ func (s *Service) RegisterAdmin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := s.app.User().RegisterAdmin(r.Context(), initiator.ID,
+	u, err := s.domain.Auth.RegisterAdmin(r.Context(), initiator.ID,
 		req.Data.Attributes.Email,
 		req.Data.Attributes.Password,
 		req.Data.Attributes.Role,

@@ -1,6 +1,0 @@
-#none actual code, need to update this file to generate mocks
-
-packages:
-  github.com/chains-lab/sso-svc/internal/repo:
-    interfaces:
-#TODO

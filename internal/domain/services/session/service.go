@@ -1,39 +1,33 @@
 package session
 
 import (
-	"github.com/chains-lab/gatekit/auth"
-	"github.com/chains-lab/sso-svc/internal/data"
+	"context"
+
+	"github.com/chains-lab/sso-svc/internal/data/schemas"
 	"github.com/google/uuid"
 )
 
-type JWTManager interface {
-	EncryptAccess(token string) (string, error)
-	EncryptRefresh(token string) (string, error)
-	DecryptRefresh(encryptedToken string) (string, error)
-
-	ParseRefreshClaims(enc string) (auth.UsersClaims, error)
-
-	GenerateAccess(
-		userID uuid.UUID,
-		sessionID uuid.UUID,
-		idn string,
-	) (string, error)
-
-	GenerateRefresh(
-		userID uuid.UUID,
-		sessionID uuid.UUID,
-		role string,
-	) (string, error)
-}
-
 type Service struct {
-	jwt JWTManager
-	db  data.Database
+	db database
 }
 
-func New(db data.Database, jwt JWTManager) Service {
+func New(db database) Service {
 	return Service{
-		jwt: jwt,
-		db:  db,
+		db: db,
 	}
+}
+
+type database interface {
+	Transaction(ctx context.Context, fn func(ctx context.Context) error) error
+
+	GetSession(ctx context.Context, sessionID uuid.UUID) (schemas.Session, error)
+	GetOneSessionForUser(ctx context.Context, userID, sessionID uuid.UUID) (schemas.Session, error)
+	GetAllSessionsForUser(ctx context.Context, userID uuid.UUID, limit, offset uint) ([]schemas.Session, uint, error)
+
+	DeleteSession(ctx context.Context, sessionID uuid.UUID) error
+	DeleteOneSessionForUser(ctx context.Context, userID, sessionID uuid.UUID) error
+	DeleteAllSessionsForUser(ctx context.Context, userID uuid.UUID) error
+
+	GetUserByID(ctx context.Context, userID uuid.UUID) (schemas.User, error)
+	GetUserByEmail(ctx context.Context, email string) (schemas.User, error)
 }

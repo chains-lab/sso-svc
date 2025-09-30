@@ -8,8 +8,7 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/chains-lab/sso-svc/internal/data"
-	"github.com/chains-lab/sso-svc/internal/models"
+	"github.com/chains-lab/sso-svc/internal/data/schemas"
 	"github.com/google/uuid"
 )
 
@@ -24,7 +23,7 @@ type UsersQ struct {
 	counter  sq.SelectBuilder
 }
 
-func NewUsers(db *sql.DB) data.Users {
+func NewUsers(db *sql.DB) UsersQ {
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	return UsersQ{
 		db:       db,
@@ -36,7 +35,11 @@ func NewUsers(db *sql.DB) data.Users {
 	}
 }
 
-func (q UsersQ) Insert(ctx context.Context, input models.UserRow) error {
+func (q UsersQ) New() UsersQ {
+	return NewUsers(q.db)
+}
+
+func (q UsersQ) Insert(ctx context.Context, input schemas.User) error {
 	values := map[string]interface{}{
 		"id":     input.ID,
 		"role":   input.Role,
@@ -82,32 +85,32 @@ func (q UsersQ) Update(ctx context.Context, updatedAt time.Time) error {
 	return err
 }
 
-func (q UsersQ) UpdateStatus(status string) data.Users {
+func (q UsersQ) UpdateStatus(status string) UsersQ {
 	q.updater = q.updater.Set("status", status)
 	return q
 }
 
-func (q UsersQ) UpdatePassword(passwordHash string, passwordUpAt time.Time) data.Users {
+func (q UsersQ) UpdatePassword(passwordHash string, passwordUpAt time.Time) UsersQ {
 	q.updater = q.updater.
 		Set("password_hash", passwordHash).
 		Set("password_updated_at", passwordUpAt)
 	return q
 }
 
-func (q UsersQ) UpdateEmailVerified(emailVer bool) data.Users {
+func (q UsersQ) UpdateEmailVerified(emailVer bool) UsersQ {
 	q.updater = q.updater.Set("email_verified", emailVer)
 	return q
 }
 
-func (q UsersQ) UpdateEmail(email string) data.Users {
+func (q UsersQ) UpdateEmail(email string) UsersQ {
 	q.updater = q.updater.Set("email", email)
 	return q
 }
 
-func (q UsersQ) Get(ctx context.Context) (models.UserRow, error) {
+func (q UsersQ) Get(ctx context.Context) (schemas.User, error) {
 	query, args, err := q.selector.Limit(1).ToSql()
 	if err != nil {
-		return models.UserRow{}, fmt.Errorf("building get query for %s: %w", usersTable, err)
+		return schemas.User{}, fmt.Errorf("building get query for %s: %w", usersTable, err)
 	}
 
 	var row *sql.Row
@@ -117,7 +120,7 @@ func (q UsersQ) Get(ctx context.Context) (models.UserRow, error) {
 		row = q.db.QueryRowContext(ctx, query, args...)
 	}
 
-	var acc models.UserRow
+	var acc schemas.User
 	err = row.Scan(
 		&acc.ID,
 		&acc.Role,
@@ -130,13 +133,17 @@ func (q UsersQ) Get(ctx context.Context) (models.UserRow, error) {
 		&acc.CreatedAt,
 	)
 	if err != nil {
-		return models.UserRow{}, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return schemas.User{}, nil
+		}
+
+		return schemas.User{}, err
 	}
 
 	return acc, nil
 }
 
-func (q UsersQ) Select(ctx context.Context) ([]models.UserRow, error) {
+func (q UsersQ) Select(ctx context.Context) ([]schemas.User, error) {
 	query, args, err := q.selector.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("building select query for %s: %w", usersTable, err)
@@ -154,9 +161,9 @@ func (q UsersQ) Select(ctx context.Context) ([]models.UserRow, error) {
 	}
 	defer rows.Close()
 
-	var users []models.UserRow
+	var users []schemas.User
 	for rows.Next() {
-		var acc models.UserRow
+		var acc schemas.User
 		err = rows.Scan(
 			&acc.ID,
 			&acc.Role,
@@ -195,7 +202,7 @@ func (q UsersQ) Delete(ctx context.Context) error {
 	return nil
 }
 
-func (q UsersQ) FilterID(id uuid.UUID) data.Users {
+func (q UsersQ) FilterID(id uuid.UUID) UsersQ {
 	q.selector = q.selector.Where(sq.Eq{"id": id})
 	q.counter = q.counter.Where(sq.Eq{"id": id})
 	q.deleter = q.deleter.Where(sq.Eq{"id": id})
@@ -204,7 +211,7 @@ func (q UsersQ) FilterID(id uuid.UUID) data.Users {
 	return q
 }
 
-func (q UsersQ) FilterEmail(email string) data.Users {
+func (q UsersQ) FilterEmail(email string) UsersQ {
 	q.selector = q.selector.Where(sq.Eq{"email": email})
 	q.counter = q.counter.Where(sq.Eq{"email": email})
 	q.deleter = q.deleter.Where(sq.Eq{"email": email})
@@ -213,7 +220,7 @@ func (q UsersQ) FilterEmail(email string) data.Users {
 	return q
 }
 
-func (q UsersQ) FilterRole(role string) data.Users {
+func (q UsersQ) FilterRole(role string) UsersQ {
 	q.selector = q.selector.Where(sq.Eq{"role": role})
 	q.counter = q.counter.Where(sq.Eq{"role": role})
 	q.deleter = q.deleter.Where(sq.Eq{"role": role})
@@ -222,7 +229,7 @@ func (q UsersQ) FilterRole(role string) data.Users {
 	return q
 }
 
-func (q UsersQ) FilterStatus(status string) data.Users {
+func (q UsersQ) FilterStatus(status string) UsersQ {
 	q.selector = q.selector.Where(sq.Eq{"status": status})
 	q.counter = q.counter.Where(sq.Eq{"status": status})
 	q.deleter = q.deleter.Where(sq.Eq{"status": status})
@@ -250,7 +257,7 @@ func (q UsersQ) Count(ctx context.Context) (uint, error) {
 	return count, nil
 }
 
-func (q UsersQ) Page(limit, offset uint) data.Users {
+func (q UsersQ) Page(limit, offset uint) UsersQ {
 	q.counter = q.counter.Limit(uint64(limit)).Offset(uint64(offset))
 
 	return q

@@ -19,7 +19,7 @@ func (s *Service) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.app.Session().DeleteOneForUser(r.Context(), initiator.ID, initiator.SessionID)
+	err = s.domain.Session.DeleteOneForUser(r.Context(), initiator.ID, initiator.SessionID)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to logout user")
 		switch {

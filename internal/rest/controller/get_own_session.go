@@ -35,7 +35,7 @@ func (s *Service) GetOwnSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := s.app.Session().GetForUser(r.Context(), initiator.ID, sessionId)
+	session, err := s.domain.Session.GetForUser(r.Context(), initiator.ID, sessionId)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to get own session")
 		switch {

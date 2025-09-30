@@ -1,12 +1,16 @@
 package password
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"unicode"
+
+	"github.com/chains-lab/sso-svc/internal/errx"
+	"golang.org/x/crypto/bcrypt"
 )
 
-func CheckPassword(password string) error {
+func ReliabilityCheck(password string) error {
 	if len(password) < 8 || len(password) > 32 {
 		return fmt.Errorf("password must be between 8 and 32 characters")
 	}
@@ -43,6 +47,24 @@ func CheckPassword(password string) error {
 	}
 	if !hasSpecial {
 		return fmt.Errorf("need at least one special character from %s", allowedSpecials)
+	}
+
+	return nil
+}
+
+var InvalidCredentialsError = fmt.Errorf("invalid credentials")
+
+func CheckPasswordMatch(password, hash string) error {
+	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)); err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return errx.ErrorInvalidLogin.Raise(
+				fmt.Errorf("invalid credentials, cause: %w", err),
+			)
+		}
+
+		return errx.ErrorInternal.Raise(
+			fmt.Errorf("comparing password hash, cause: %w", err),
+		)
 	}
 
 	return nil

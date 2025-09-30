@@ -36,7 +36,7 @@ func (s *Service) GetSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := s.app.Session().GetForUser(r.Context(), userID, sessionID)
+	session, err := s.domain.Session.GetForUser(r.Context(), userID, sessionID)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to get user session")
 		switch {

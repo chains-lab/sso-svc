@@ -8,7 +8,7 @@ import (
 )
 
 func (s Service) Delete(ctx context.Context, userID uuid.UUID) error {
-	err := s.db.Users().FilterID(userID).Delete(ctx)
+	err := s.db.DeleteUser(ctx, userID)
 	if err != nil {
 		return errx.ErrorInternal.Raise(err)
 	}

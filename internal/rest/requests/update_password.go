@@ -25,7 +25,7 @@ func UpdatePassword(r *http.Request) (req resources.UpdatePassword, err error) {
 		errs["data/attributes/confirm_password"] = fmt.Errorf("must match password")
 	}
 
-	if err = password.CheckPassword(req.Data.Attributes.NewPassword); err != nil {
+	if err = password.ReliabilityCheck(req.Data.Attributes.NewPassword); err != nil {
 		errs["data/attributes/new_password"] = err
 	}
 

@@ -61,7 +61,7 @@ func (s *Service) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokensPair, err := s.app.Session().LoginByGoogle(r.Context(), userInfo.Email)
+	tokensPair, err := s.domain.Auth.LoginByGoogle(r.Context(), userInfo.Email)
 	if err != nil {
 		s.log.WithError(err).Errorf("error logging in user: %s", userInfo.Email)
 		switch {

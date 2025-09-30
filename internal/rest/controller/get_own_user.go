@@ -20,7 +20,7 @@ func (s *Service) GetOwnUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := s.app.User().GetByID(r.Context(), initiator.ID)
+	user, err := s.domain.User.GetByID(r.Context(), initiator.ID)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to get user by id: %s", initiator.ID)
 		switch {

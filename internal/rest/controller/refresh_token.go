@@ -20,7 +20,7 @@ func (s *Service) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokensPair, err := s.app.Session().Refresh(r.Context(), req.Data.Attributes.RefreshToken)
+	tokensPair, err := s.domain.Auth.Refresh(r.Context(), req.Data.Attributes.RefreshToken)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to refresh session token")
 		switch {

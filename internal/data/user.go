@@ -4,28 +4,49 @@ import (
 	"context"
 	"time"
 
-	"github.com/chains-lab/sso-svc/internal/models"
+	"github.com/chains-lab/sso-svc/internal/data/schemas"
 	"github.com/google/uuid"
 )
 
-type Users interface {
-	Insert(ctx context.Context, input models.UserRow) error
-	Delete(ctx context.Context) error
-	Select(ctx context.Context) ([]models.UserRow, error)
-	Get(ctx context.Context) (models.UserRow, error)
+func (d *Database) CreateUser(ctx context.Context, user schemas.User) error {
+	return d.sql.users.New().Insert(ctx, user)
+}
 
-	FilterID(id uuid.UUID) Users
-	FilterRole(role string) Users
-	FilterEmail(email string) Users
+func (d *Database) GetUserByID(ctx context.Context, userID uuid.UUID) (schemas.User, error) {
+	return d.sql.users.New().FilterID(userID).Get(ctx)
+}
 
-	Update(ctx context.Context, updateAt time.Time) error
-	UpdateEmail(email string) Users
-	UpdateStatus(status string) Users
-	UpdatePassword(passwordHash string, passwordUpAt time.Time) Users
-	UpdateEmailVerified(emailVer bool) Users
+func (d *Database) GetUserByEmail(ctx context.Context, email string) (schemas.User, error) {
+	return d.sql.users.New().FilterEmail(email).Get(ctx)
+}
 
-	Page(limit, offset uint) Users
-	Count(ctx context.Context) (uint, error)
+func (d *Database) UpdateUserStatus(
+	ctx context.Context,
+	userID uuid.UUID,
+	status string,
+	updatedAt time.Time,
+) error {
+	return d.sql.users.New().FilterID(userID).UpdateStatus(status).Update(ctx, updatedAt)
+}
 
-	Transaction(ctx context.Context, fn func(ctx context.Context) error) error
+func (d *Database) UpdateUserEmailVerification(
+	ctx context.Context,
+	userID uuid.UUID,
+	verified bool,
+	updatedAt time.Time,
+) error {
+	return d.sql.users.New().FilterID(userID).UpdateEmailVerified(verified).Update(ctx, updatedAt)
+}
+
+func (d *Database) UpdateUserPassword(
+	ctx context.Context,
+	userID uuid.UUID,
+	passwordHash string,
+	updatedAt time.Time,
+) error {
+	return d.sql.users.New().FilterID(userID).UpdatePassword(passwordHash, updatedAt).Update(ctx, updatedAt)
+}
+
+func (d *Database) DeleteUser(ctx context.Context, userID uuid.UUID) error {
+	return d.sql.users.New().FilterID(userID).Delete(ctx)
 }

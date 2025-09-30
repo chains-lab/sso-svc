@@ -1,4 +1,4 @@
-package user
+package auth
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/chains-lab/enum"
+	"github.com/chains-lab/sso-svc/internal/data/schemas"
 	"github.com/chains-lab/sso-svc/internal/errx"
 	"github.com/chains-lab/sso-svc/internal/infra/password"
 	"github.com/google/uuid"
@@ -19,18 +20,26 @@ func (s Service) UpdatePassword(
 	userID uuid.UUID,
 	oldPassword, newPassword string,
 ) error {
-	user, err := s.GetInitiator(ctx, userID)
+	initiator, err := s.db.GetUserByID(ctx, userID)
 	if err != nil {
-		return err
+		return errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to get initiator with id '%s', cause: %w", userID, err),
+		)
 	}
 
-	if user.Status == enum.UserStatusBlocked {
+	if initiator == (schemas.User{}) {
+		return errx.ErrorUnauthenticated.Raise(
+			fmt.Errorf("initiator with id '%s' not found", userID),
+		)
+	}
+
+	if initiator.Status == enum.UserStatusBlocked {
 		return errx.ErrorInitiatorIsBlocked.Raise(
 			fmt.Errorf("user %s is blocked", userID),
 		)
 	}
 
-	userRow, err := s.db.Users().FilterID(userID).Get(ctx)
+	userRow, err := s.db.GetUserByID(ctx, userID)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -56,7 +65,7 @@ func (s Service) UpdatePassword(
 		)
 	}
 
-	err = password.CheckPassword(newPassword)
+	err = password.ReliabilityCheck(newPassword)
 	if err != nil {
 		return errx.ErrorPasswordIsInappropriate.Raise(err)
 	}
@@ -70,14 +79,13 @@ func (s Service) UpdatePassword(
 
 	hashStr := string(hash)
 
-	now := time.Now().UTC()
-	err = s.db.Users().Transaction(ctx, func(ctx context.Context) error {
-		err = s.db.Users().FilterID(userID).UpdatePassword(hashStr, now).Update(ctx, now)
+	err = s.db.Transaction(ctx, func(ctx context.Context) error {
+		err = s.db.UpdateUserPassword(ctx, userID, hashStr, time.Now().UTC())
 		if err != nil {
 			return err
 		}
 
-		err = s.db.Sessions().FilterUserID(userID).Delete(ctx)
+		err = s.db.DeleteAllSessionsForUser(ctx, userID)
 		if err != nil {
 			return err
 		}

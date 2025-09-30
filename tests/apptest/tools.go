@@ -4,15 +4,15 @@ import (
 	"context"
 	"testing"
 
-	"github.com/chains-lab/sso-svc/internal/models"
+	models2 "github.com/chains-lab/sso-svc/internal/domain/models"
 	"github.com/google/uuid"
 )
 
-func CreateUser(s Setup, t *testing.T, email, password, role string) models.User {
+func CreateUser(s Setup, t *testing.T, email, password, role string) models2.User {
 	t.Helper()
 	ctx := context.Background()
 
-	u, err := s.app.User().Register(ctx, email, password, role)
+	u, err := s.core.Auth.Register(ctx, email, password, role)
 	if err != nil {
 		t.Fatalf("CreateUser: %v", err)
 	}
@@ -20,21 +20,21 @@ func CreateUser(s Setup, t *testing.T, email, password, role string) models.User
 	return u
 }
 
-func CreateSession(s Setup, t *testing.T, userID uuid.UUID) models.Session {
+func CreateSession(s Setup, t *testing.T, userID uuid.UUID) models2.Session {
 	t.Helper()
 	ctx := context.Background()
 
-	u, err := s.app.User().GetByID(ctx, userID)
+	u, err := s.core.User.GetByID(ctx, userID)
 	if err != nil {
 		t.Fatalf("GetByID: %v", err)
 	}
 
-	tkn, err := s.app.Session().Create(ctx, u.ID, u.Role)
+	tkn, err := s.core.Auth.CreateSession(ctx, u.ID, u.Role)
 	if err != nil {
 		t.Fatalf("CreateSession: %v", err)
 	}
 
-	session, err := s.app.Session().Get(ctx, tkn.SessionID)
+	session, err := s.core.Session.Get(ctx, tkn.SessionID)
 	if err != nil {
 		t.Fatalf("GetByAccessToken: %v", err)
 	}

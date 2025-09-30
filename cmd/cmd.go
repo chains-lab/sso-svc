@@ -8,8 +8,7 @@ import (
 	"github.com/chains-lab/logium"
 	"github.com/chains-lab/sso-svc/internal"
 	"github.com/chains-lab/sso-svc/internal/data"
-	"github.com/chains-lab/sso-svc/internal/data/pgdb"
-	"github.com/chains-lab/sso-svc/internal/domain"
+	"github.com/chains-lab/sso-svc/internal/domain/services/auth"
 	"github.com/chains-lab/sso-svc/internal/domain/services/session"
 	"github.com/chains-lab/sso-svc/internal/domain/services/user"
 	"github.com/chains-lab/sso-svc/internal/infra/jwtmanager"
@@ -31,10 +30,7 @@ func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, 
 		log.Fatal("failed to connect to database", "error", err)
 	}
 
-	database := data.NewDatabase(
-		pgdb.NewUsers(pg),
-		pgdb.NewSessions(pg),
-	)
+	database := data.NewDatabase(pg)
 
 	jwtTokenManager := jwtmanager.NewManager(jwtmanager.Config{
 		AccessSK:   cfg.JWT.User.AccessToken.SecretKey,
@@ -44,12 +40,11 @@ func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, 
 		Iss:        cfg.Service.Name,
 	})
 
-	logic := domain.NewCore(
-		user.New(database),
-		session.New(database, jwtTokenManager),
-	)
+	userSvc := user.New(database)
+	sessionSvc := session.New(database)
+	authSvc := auth.New(database, jwtTokenManager)
 
-	ctrl := controller.NewService(log, cfg.GoogleOAuth(), logic)
+	ctrl := controller.NewService(log, cfg.GoogleOAuth(), userSvc, sessionSvc, authSvc)
 
 	run(func() { rest.Run(ctx, cfg, log, ctrl) })
 }

@@ -19,7 +19,7 @@ func (s *Service) DeleteOwnSessions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = s.app.Session().DeleteAllForUser(r.Context(), initiator.ID); err != nil {
+	if err = s.domain.Session.DeleteAllForUser(r.Context(), initiator.ID); err != nil {
 		s.log.WithError(err).Errorf("failed to delete own sessions")
 		switch {
 		case errors.Is(err, errx.ErrorUnauthenticated):

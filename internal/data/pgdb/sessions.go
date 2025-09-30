@@ -8,8 +8,7 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/chains-lab/sso-svc/internal/data"
-	"github.com/chains-lab/sso-svc/internal/models"
+	"github.com/chains-lab/sso-svc/internal/data/schemas"
 	"github.com/google/uuid"
 )
 
@@ -24,7 +23,7 @@ type SessionsQ struct {
 	counter  sq.SelectBuilder
 }
 
-func NewSessions(db *sql.DB) data.Sessions {
+func NewSessions(db *sql.DB) SessionsQ {
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	return SessionsQ{
 		db:       db,
@@ -36,7 +35,11 @@ func NewSessions(db *sql.DB) data.Sessions {
 	}
 }
 
-func (q SessionsQ) Insert(ctx context.Context, input models.SessionRow) error {
+func (q SessionsQ) New() SessionsQ {
+	return NewSessions(q.db)
+}
+
+func (q SessionsQ) Insert(ctx context.Context, input schemas.Session) error {
 	values := map[string]interface{}{
 		"id":         input.ID,
 		"user_id":    input.UserID,
@@ -72,23 +75,23 @@ func (q SessionsQ) Update(ctx context.Context) error {
 	return err
 }
 
-func (q SessionsQ) UpdateToken(token string) data.Sessions {
+func (q SessionsQ) UpdateToken(token string) SessionsQ {
 	q.updater = q.updater.Set("token", token)
 	return q
 }
 
-func (q SessionsQ) UpdateLastUsed(lastUsed time.Time) data.Sessions {
+func (q SessionsQ) UpdateLastUsed(lastUsed time.Time) SessionsQ {
 	q.updater = q.updater.Set("last_used", lastUsed)
 	return q
 }
 
-func (q SessionsQ) Get(ctx context.Context) (models.SessionRow, error) {
+func (q SessionsQ) Get(ctx context.Context) (schemas.Session, error) {
 	query, args, err := q.selector.Limit(1).ToSql()
 	if err != nil {
-		return models.SessionRow{}, fmt.Errorf("building get query for sessions: %w", err)
+		return schemas.Session{}, fmt.Errorf("building get query for sessions: %w", err)
 	}
 
-	var sess models.SessionRow
+	var sess schemas.Session
 	var row *sql.Row
 	if tx, ok := TxFromCtx(ctx); ok {
 		row = tx.QueryRowContext(ctx, query, args...)
@@ -103,12 +106,17 @@ func (q SessionsQ) Get(ctx context.Context) (models.SessionRow, error) {
 		&sess.LastUsed,
 	)
 	if err != nil {
-		return models.SessionRow{}, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return schemas.Session{}, nil
+		}
+
+		return schemas.Session{}, err
 	}
+
 	return sess, nil
 }
 
-func (q SessionsQ) Select(ctx context.Context) ([]models.SessionRow, error) {
+func (q SessionsQ) Select(ctx context.Context) ([]schemas.Session, error) {
 	query, args, err := q.selector.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("building select query for sessions: %w", err)
@@ -126,9 +134,9 @@ func (q SessionsQ) Select(ctx context.Context) ([]models.SessionRow, error) {
 	}
 	defer rows.Close()
 
-	var sessions []models.SessionRow
+	var sessions []schemas.Session
 	for rows.Next() {
-		var sess models.SessionRow
+		var sess schemas.Session
 		err = rows.Scan(
 			&sess.ID,
 			&sess.UserID,
@@ -159,7 +167,7 @@ func (q SessionsQ) Delete(ctx context.Context) error {
 	return err
 }
 
-func (q SessionsQ) FilterID(ID uuid.UUID) data.Sessions {
+func (q SessionsQ) FilterID(ID uuid.UUID) SessionsQ {
 	q.selector = q.selector.Where(sq.Eq{"id": ID})
 	q.deleter = q.deleter.Where(sq.Eq{"id": ID})
 	q.updater = q.updater.Where(sq.Eq{"id": ID})
@@ -168,7 +176,7 @@ func (q SessionsQ) FilterID(ID uuid.UUID) data.Sessions {
 	return q
 }
 
-func (q SessionsQ) FilterUserID(userID uuid.UUID) data.Sessions {
+func (q SessionsQ) FilterUserID(userID uuid.UUID) SessionsQ {
 	q.selector = q.selector.Where(sq.Eq{"user_id": userID})
 	q.deleter = q.deleter.Where(sq.Eq{"user_id": userID})
 	q.updater = q.updater.Where(sq.Eq{"user_id": userID})
@@ -177,7 +185,7 @@ func (q SessionsQ) FilterUserID(userID uuid.UUID) data.Sessions {
 	return q
 }
 
-func (q SessionsQ) OrderCreatedAt(ascending bool) data.Sessions {
+func (q SessionsQ) OrderCreatedAt(ascending bool) SessionsQ {
 	if ascending {
 		q.selector = q.selector.OrderBy("created_at ASC")
 	} else {
@@ -205,7 +213,7 @@ func (q SessionsQ) Count(ctx context.Context) (uint, error) {
 	return count, nil
 }
 
-func (q SessionsQ) Page(limit, offset uint) data.Sessions {
+func (q SessionsQ) Page(limit, offset uint) SessionsQ {
 	q.selector = q.selector.Limit(uint64(limit)).Offset(uint64(offset))
 
 	return q

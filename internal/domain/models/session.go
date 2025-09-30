@@ -6,14 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type SessionRow struct {
-	ID        uuid.UUID `db:"id"`
-	UserID    uuid.UUID `db:"user_id"`
-	Token     string    `db:"token"`
-	LastUsed  time.Time `db:"last_used"`
-	CreatedAt time.Time `db:"created_at"`
-}
-
 type Session struct {
 	ID        uuid.UUID `json:"id"`
 	UserID    uuid.UUID `json:"user_id"`

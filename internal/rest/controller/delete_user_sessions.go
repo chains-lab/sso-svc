@@ -25,7 +25,7 @@ func (s *Service) DeleteUserSessions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = s.app.Session().DeleteAllForUser(r.Context(), userID); err != nil {
+	if err = s.domain.Session.DeleteAllForUser(r.Context(), userID); err != nil {
 		s.log.WithError(err).Errorf("failed to delete user sessions")
 		switch {
 		case errors.Is(err, errx.ErrorUserNotFound):

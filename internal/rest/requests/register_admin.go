@@ -39,7 +39,7 @@ func RegisterAdmin(r *http.Request) (req resources.RegisterAdmin, err error) {
 		errs["data/attributes/confirm_password"] = fmt.Errorf("must match password")
 	}
 
-	if err = password.CheckPassword(req.Data.Attributes.Password); err != nil {
+	if err = password.ReliabilityCheck(req.Data.Attributes.Password); err != nil {
 		errs["data/attributes/password"] = err
 	}
 

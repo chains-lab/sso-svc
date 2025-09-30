@@ -1,4 +1,4 @@
-package models
+package schemas
 
 import (
 	"time"
@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserRow struct {
+type User struct {
 	ID     uuid.UUID `db:"id"`
 	Role   string    `db:"role"`
 	Status string    `db:"status"`
@@ -19,13 +19,4 @@ type UserRow struct {
 
 	UpdatedAt time.Time `db:"updated_at"`
 	CreatedAt time.Time `db:"created_at"`
-}
-
-type User struct {
-	ID        uuid.UUID `json:"id"`
-	Role      string    `json:"role"`
-	Status    string    `json:"status"`
-	Email     string    `json:"email"`
-	EmailVer  bool      `json:"email_verified"`
-	CreatedAt time.Time `json:"created_at"`
 }

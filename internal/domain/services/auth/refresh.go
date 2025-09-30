@@ -1,4 +1,4 @@
-package session
+package auth
 
 import (
 	"context"
@@ -7,9 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/chains-lab/sso-svc/internal/domain/models"
 	"github.com/chains-lab/sso-svc/internal/errx"
-	"github.com/chains-lab/sso-svc/internal/models"
-
 	"github.com/google/uuid"
 )
 
@@ -28,7 +27,7 @@ func (s Service) Refresh(ctx context.Context, oldRefreshToken string) (models.To
 		)
 	}
 
-	session, err := s.db.Sessions().FilterID(tokenData.SessionID).Get(ctx)
+	session, err := s.db.GetSession(ctx, tokenData.SessionID)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -76,10 +75,7 @@ func (s Service) Refresh(ctx context.Context, oldRefreshToken string) (models.To
 		)
 	}
 
-	err = s.db.Sessions().FilterID(tokenData.SessionID).
-		UpdateToken(refreshCrypto).
-		UpdateLastUsed(time.Now().UTC()).
-		Update(ctx)
+	err = s.db.UpdateSessionToken(ctx, tokenData.SessionID, refreshCrypto, time.Now().UTC())
 
 	return models.TokensPair{
 		SessionID: tokenData.SessionID,

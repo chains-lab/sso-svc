@@ -27,7 +27,7 @@ func (s *Service) SelectUserSessions(w http.ResponseWriter, r *http.Request) {
 
 	page, size := pagi.GetPagination(r)
 
-	sessions, err := s.app.Session().ListForUser(r.Context(), userID, page, size)
+	sessions, err := s.domain.Session.ListForUser(r.Context(), userID, page, size)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to select own sessions")
 		switch {

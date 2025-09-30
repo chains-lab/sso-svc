@@ -1,4 +1,4 @@
-package session
+package auth
 
 import (
 	"context"
@@ -8,14 +8,15 @@ import (
 	"time"
 
 	"github.com/chains-lab/enum"
+	"github.com/chains-lab/sso-svc/internal/data/schemas"
+	"github.com/chains-lab/sso-svc/internal/domain/models"
 	"github.com/chains-lab/sso-svc/internal/errx"
-	"github.com/chains-lab/sso-svc/internal/models"
+	"github.com/chains-lab/sso-svc/internal/infra/password"
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
-func (s Service) Login(ctx context.Context, email, password string) (models.TokensPair, error) {
-	user, err := s.db.Users().FilterEmail(email).Get(ctx)
+func (s Service) Login(ctx context.Context, email, pass string) (models.TokensPair, error) {
+	user, err := s.db.GetUserByEmail(ctx, email)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -35,22 +36,14 @@ func (s Service) Login(ctx context.Context, email, password string) (models.Toke
 		)
 	}
 
-	if err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			return models.TokensPair{}, errx.ErrorInvalidLogin.Raise(
-				fmt.Errorf("invalid credentials for user %s, cause: %w", user.ID, err),
-			)
-		}
-
-		return models.TokensPair{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("comparing password hash for user %s, cause: %w", user.ID, err),
-		)
+	if err = password.CheckPasswordMatch(pass, user.PasswordHash); err != nil {
+		return models.TokensPair{}, err
 	}
 
-	pair, err := s.Create(ctx, user.ID, user.Role)
+	pair, err := s.CreateSession(ctx, user.ID, user.Role)
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to Create session for user %s: %w", user.ID, err),
+			fmt.Errorf("failed to CreateSession session for user %s: %w", user.ID, err),
 		)
 	}
 
@@ -62,7 +55,7 @@ func (s Service) Login(ctx context.Context, email, password string) (models.Toke
 }
 
 func (s Service) LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error) {
-	user, err := s.db.Users().FilterEmail(email).Get(ctx)
+	user, err := s.db.GetUserByEmail(ctx, email)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -76,10 +69,10 @@ func (s Service) LoginByGoogle(ctx context.Context, email string) (models.Tokens
 		}
 	}
 
-	pair, err := s.Create(ctx, user.ID, user.Role)
+	pair, err := s.CreateSession(ctx, user.ID, user.Role)
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to Create session for user %s: %w", user.ID, err),
+			fmt.Errorf("failed to CreateSession session for user %s: %w", user.ID, err),
 		)
 	}
 
@@ -90,7 +83,7 @@ func (s Service) LoginByGoogle(ctx context.Context, email string) (models.Tokens
 	}, nil
 }
 
-func (s Service) Create(
+func (s Service) CreateSession(
 	ctx context.Context,
 	userID uuid.UUID,
 	role string,
@@ -115,18 +108,16 @@ func (s Service) Create(
 			fmt.Errorf("failed to encrypt refresh token for user %s, cause: %w", userID, err))
 	}
 
-	session := models.SessionRow{
+	err = s.db.CreateSession(ctx, schemas.Session{
 		ID:        sessionID,
 		UserID:    userID,
 		Token:     refreshCrypto,
 		LastUsed:  time.Now().UTC(),
 		CreatedAt: time.Now().UTC(),
-	}
-
-	err = s.db.Sessions().Insert(ctx, session)
+	})
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to Create session for user %s, cause: %w", userID, err),
+			fmt.Errorf("failed to CreateSession session for user %s, cause: %w", userID, err),
 		)
 	}
 

@@ -84,6 +84,7 @@ func Run(ctx context.Context, cfg internal.Config, log logium.Logger, s Controll
 
 				r.Route("/{user_id}", func(r chi.Router) {
 					r.Get("/", s.GetUser)
+					//TODO add ban, unban, user
 
 					r.Route("/sessions", func(r chi.Router) {
 						r.Get("/", s.SelectUserSessions)
@@ -98,7 +99,7 @@ func Run(ctx context.Context, cfg internal.Config, log logium.Logger, s Controll
 			})
 		})
 	})
-	
+
 	log.Infof("starting REST service on %s", cfg.Rest.Port)
 
 	<-ctx.Done()

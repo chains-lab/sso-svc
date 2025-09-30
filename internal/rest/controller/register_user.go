@@ -22,7 +22,7 @@ func (s *Service) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = s.app.User().Register(r.Context(),
+	_, err = s.domain.Auth.Register(r.Context(),
 		req.Data.Attributes.Email,
 		req.Data.Attributes.Password,
 		roles.User,

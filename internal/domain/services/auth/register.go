@@ -1,16 +1,16 @@
-package user
+package auth
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/chains-lab/enum"
 	"github.com/chains-lab/gatekit/roles"
+	"github.com/chains-lab/sso-svc/internal/data/schemas"
+	"github.com/chains-lab/sso-svc/internal/domain/models"
 	"github.com/chains-lab/sso-svc/internal/errx"
 	"github.com/chains-lab/sso-svc/internal/infra/password"
-	"github.com/chains-lab/sso-svc/internal/models"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -19,14 +19,16 @@ func (s Service) Register(
 	ctx context.Context,
 	email, pass, role string,
 ) (models.User, error) {
-	_, err := s.GetByEmail(ctx, email)
-	if err == nil {
-		return models.User{}, errx.ErrorUserAlreadyExists.Raise(
-			fmt.Errorf("user with email '%s' already exists", email),
-		)
-	} else if !errors.Is(err, errx.ErrorUserNotFound) {
+	check, err := s.db.GetUserByEmail(ctx, email)
+	if err != nil {
 		return models.User{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("checking existing user with email '%s': %w", email, err),
+			fmt.Errorf("failed to get user with email '%s', cause: %w", email, err),
+		)
+	}
+
+	if (check != schemas.User{}) {
+		return models.User{}, errx.ErrorUserAlreadyExists.Raise(
+			fmt.Errorf("user with email '%s' not found", email),
 		)
 	}
 
@@ -37,7 +39,7 @@ func (s Service) Register(
 		)
 	}
 
-	err = password.CheckPassword(pass)
+	err = password.ReliabilityCheck(pass)
 	if err != nil {
 		return models.User{}, errx.ErrorPasswordIsInappropriate.Raise(err)
 	}
@@ -52,7 +54,7 @@ func (s Service) Register(
 		)
 	}
 
-	err = s.db.Users().Insert(ctx, models.UserRow{
+	err = s.db.CreateUser(ctx, schemas.User{
 		ID:     id,
 		Role:   role,
 		Status: enum.UserStatusActive,
@@ -72,14 +74,14 @@ func (s Service) Register(
 		)
 	}
 
-	user, err := s.GetByID(ctx, id)
-	if err != nil {
-		return models.User{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("getting newly created user with email '%s', cause: %w", email, err),
-		)
-	}
-
-	return user, nil
+	return models.User{
+		ID:        id,
+		Role:      role,
+		Status:    enum.UserStatusActive,
+		Email:     email,
+		EmailVer:  false,
+		CreatedAt: now,
+	}, nil
 }
 
 func (s Service) RegisterAdmin(
@@ -87,32 +89,29 @@ func (s Service) RegisterAdmin(
 	initiatorID uuid.UUID,
 	email, pass, role string,
 ) (models.User, error) {
-	_, err := s.GetByEmail(ctx, email)
-	if !errors.Is(err, errx.ErrorUserNotFound) {
-		return models.User{}, err
+	initiator, err := s.db.GetUserByID(ctx, initiatorID)
+	if err != nil {
+		return models.User{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to get initiator with id '%s', cause: %w", initiatorID, err),
+		)
 	}
 
-	initiator, err := s.GetInitiator(ctx, initiatorID)
-	if err != nil {
-		return models.User{}, err
+	if initiator == (schemas.User{}) {
+		return models.User{}, errx.ErrorUnauthenticated.Raise(
+			fmt.Errorf("initiator with id '%s' not found", initiatorID),
+		)
 	}
 
 	if initiator.Status == enum.UserStatusBlocked {
 		return models.User{}, errx.ErrorInitiatorIsBlocked.Raise(
-			fmt.Errorf("initiator %s is blocked", initiator.ID),
+			fmt.Errorf("user %s is blocked", initiatorID),
 		)
 	}
 
-	if initiator.Role == roles.User || initiator.Role == roles.Moder {
-		return models.User{}, errx.ErrorNoPermissions.Raise(
-			fmt.Errorf("initiator with role %s is not allowed to create user", initiator.Role),
-		)
-	}
-
-	user, err := s.Register(ctx, email, pass, role)
+	res, err := s.Register(ctx, email, pass, role)
 	if err != nil {
 		return models.User{}, err
 	}
 
-	return user, nil
+	return res, nil
 }

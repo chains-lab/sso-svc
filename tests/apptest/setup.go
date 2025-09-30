@@ -1,36 +1,83 @@
 package apptest
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"testing"
 	"time"
 
-	"github.com/chains-lab/logium"
 	"github.com/chains-lab/sso-svc/cmd/migrations"
 	"github.com/chains-lab/sso-svc/internal"
 	"github.com/chains-lab/sso-svc/internal/data"
-	"github.com/chains-lab/sso-svc/internal/data/pgdb"
-	"github.com/chains-lab/sso-svc/internal/domain"
+	"github.com/chains-lab/sso-svc/internal/domain/models"
+	"github.com/chains-lab/sso-svc/internal/domain/services/auth"
 	"github.com/chains-lab/sso-svc/internal/domain/services/session"
 	"github.com/chains-lab/sso-svc/internal/domain/services/user"
 	"github.com/chains-lab/sso-svc/internal/infra/jwtmanager"
+	"github.com/google/uuid"
 )
 
 // TEST DATABASE CONNECTION
 const testDatabaseURL = "postgresql://postgres:postgres@localhost:7777/postgres?sslmode=disable"
 
-func mustExec(t *testing.T, db *sql.DB, q string, args ...any) {
-	t.Helper()
-	if _, err := db.Exec(q, args...); err != nil {
-		t.Fatalf("exec failed: %v", err)
-	}
+type SessionSvc interface {
+	Delete(ctx context.Context, sessionID uuid.UUID) error
+	DeleteOneForUser(ctx context.Context, userID, sessionID uuid.UUID) error
+	DeleteAllForUser(ctx context.Context, userID uuid.UUID) error
+
+	Get(ctx context.Context, sessionID uuid.UUID) (models.Session, error)
+	GetForUser(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error)
+
+	ListForUser(
+		ctx context.Context,
+		userID uuid.UUID,
+		page uint,
+		size uint,
+	) (models.SessionsCollection, error)
+}
+
+type UserSvc interface {
+	BlockUser(ctx context.Context, userID uuid.UUID) (models.User, error)
+	UnblockUser(ctx context.Context, userID uuid.UUID) (models.User, error)
+
+	GetByID(ctx context.Context, ID uuid.UUID) (models.User, error)
+	GetByEmail(ctx context.Context, email string) (models.User, error)
+}
+
+type AuthSvc interface {
+	Register(
+		ctx context.Context,
+		email, pass, role string,
+	) (models.User, error)
+	RegisterAdmin(
+		ctx context.Context,
+		initiatorID uuid.UUID,
+		email, pass, role string,
+	) (models.User, error)
+
+	UpdatePassword(
+		ctx context.Context,
+		userID uuid.UUID,
+		oldPassword, newPassword string,
+	) error
+
+	Login(ctx context.Context, email, password string) (models.TokensPair, error)
+	LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error)
+	CreateSession(ctx context.Context, userID uuid.UUID, role string) (models.TokensPair, error)
+
+	Refresh(ctx context.Context, oldRefreshToken string) (models.TokensPair, error)
+}
+
+type services struct {
+	Session SessionSvc
+	User    UserSvc
+	Auth    AuthSvc
 }
 
 type Setup struct {
-	app domain.Core
+	core services
 
-	Log logium.Logger
 	Cfg internal.Config
 }
 
@@ -91,10 +138,7 @@ func newSetup(t *testing.T) (Setup, error) {
 		log.Fatal("failed to connect to database", "error", err)
 	}
 
-	database := data.NewDatabase(
-		pgdb.NewUsers(pg),
-		pgdb.NewSessions(pg),
-	)
+	database := data.NewDatabase(pg)
 
 	jwtTokenManager := jwtmanager.NewManager(jwtmanager.Config{
 		AccessSK:   cfg.JWT.User.AccessToken.SecretKey,
@@ -104,12 +148,16 @@ func newSetup(t *testing.T) (Setup, error) {
 		Iss:        cfg.Service.Name,
 	})
 
-	logic := domain.NewCore(
-		user.New(database),
-		session.New(database, jwtTokenManager),
-	)
+	userSvc := user.New(database)
+	sessionSvc := session.New(database)
+	authSvc := auth.New(database, jwtTokenManager)
 
 	return Setup{
-		app: logic,
+		core: services{
+			User:    userSvc,
+			Session: sessionSvc,
+			Auth:    authSvc,
+		},
+		Cfg: cfg,
 	}, nil
 }

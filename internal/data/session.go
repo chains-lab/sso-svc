@@ -4,28 +4,57 @@ import (
 	"context"
 	"time"
 
-	"github.com/chains-lab/sso-svc/internal/models"
+	"github.com/chains-lab/sso-svc/internal/data/schemas"
 	"github.com/google/uuid"
 )
 
-type Sessions interface {
-	Insert(ctx context.Context, input models.SessionRow) error
+func (d *Database) CreateSession(ctx context.Context, session schemas.Session) error {
+	return d.sql.sessions.New().Insert(ctx, session)
+}
 
-	Update(ctx context.Context) error
-	UpdateLastUsed(lastUsed time.Time) Sessions
-	UpdateToken(token string) Sessions
+func (d *Database) GetSession(ctx context.Context, sessionID uuid.UUID) (schemas.Session, error) {
+	return d.sql.sessions.New().FilterID(sessionID).Get(ctx)
+}
 
-	Delete(ctx context.Context) error
-	Select(ctx context.Context) ([]models.SessionRow, error)
-	Get(ctx context.Context) (models.SessionRow, error)
+func (d *Database) GetOneSessionForUser(ctx context.Context, userID, sessionID uuid.UUID) (schemas.Session, error) {
+	return d.sql.sessions.New().FilterUserID(userID).FilterID(sessionID).Get(ctx)
+}
 
-	FilterID(id uuid.UUID) Sessions
-	FilterUserID(userID uuid.UUID) Sessions
+func (d *Database) GetAllSessionsForUser(
+	ctx context.Context,
+	userID uuid.UUID,
+	limit, offset uint,
+) ([]schemas.Session, uint, error) {
+	sessions, err := d.sql.sessions.New().FilterUserID(userID).Page(limit, offset).OrderCreatedAt(false).Select(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
 
-	Page(limit, offset uint) Sessions
-	Count(ctx context.Context) (uint, error)
+	count, err := d.sql.sessions.New().FilterUserID(userID).Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
 
-	OrderCreatedAt(ascending bool) Sessions
+	return sessions, count, nil
+}
 
-	Transaction(ctx context.Context, fn func(ctx context.Context) error) error
+func (d *Database) UpdateSessionToken(
+	ctx context.Context,
+	sessionID uuid.UUID,
+	token string,
+	lastUsedAt time.Time,
+) error {
+	return d.sql.sessions.New().FilterID(sessionID).UpdateToken(token).UpdateLastUsed(lastUsedAt).Update(ctx)
+}
+
+func (d *Database) DeleteSession(ctx context.Context, sessionID uuid.UUID) error {
+	return d.sql.sessions.New().FilterID(sessionID).Delete(ctx)
+}
+
+func (d *Database) DeleteOneSessionForUser(ctx context.Context, userID, sessionID uuid.UUID) error {
+	return d.sql.sessions.New().FilterUserID(userID).FilterID(sessionID).Delete(ctx)
+}
+
+func (d *Database) DeleteAllSessionsForUser(ctx context.Context, userID uuid.UUID) error {
+	return d.sql.sessions.New().FilterUserID(userID).Delete(ctx)
 }

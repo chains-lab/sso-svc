@@ -20,7 +20,7 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := s.app.Session().Login(r.Context(), req.Data.Attributes.Email, req.Data.Attributes.Password)
+	token, err := s.domain.Auth.Login(r.Context(), req.Data.Attributes.Email, req.Data.Attributes.Password)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to login user")
 		switch {

@@ -34,7 +34,7 @@ func (s *Service) DeleteOwnSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = s.app.Session().DeleteOneForUser(r.Context(), initiator.ID, sessionID); err != nil {
+	if err = s.domain.Session.DeleteOneForUser(r.Context(), initiator.ID, sessionID); err != nil {
 		s.log.WithError(err).Errorf("failed to delete own session")
 		switch {
 		case errors.Is(err, errx.ErrorSessionNotFound):

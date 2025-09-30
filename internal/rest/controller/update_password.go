@@ -30,7 +30,7 @@ func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.app.User().UpdatePassword(r.Context(), initiator.ID, req.Data.Attributes.OldPassword, req.Data.Attributes.NewPassword)
+	err = s.domain.Auth.UpdatePassword(r.Context(), initiator.ID, req.Data.Attributes.OldPassword, req.Data.Attributes.NewPassword)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to update password")
 		switch {

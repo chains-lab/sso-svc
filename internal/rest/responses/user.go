@@ -1,7 +1,7 @@
 package responses
 
 import (
-	"github.com/chains-lab/sso-svc/internal/models"
+	"github.com/chains-lab/sso-svc/internal/domain/models"
 	"github.com/chains-lab/sso-svc/resources"
 )
 
