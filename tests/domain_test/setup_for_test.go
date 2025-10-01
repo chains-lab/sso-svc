@@ -1,4 +1,4 @@
-package apptest
+package domain_test
 
 import (
 	"context"

@@ -1,14 +1,14 @@
-package apptest
+package domain_test
 
 import (
 	"context"
 	"testing"
 
-	models2 "github.com/chains-lab/sso-svc/internal/domain/models"
+	"github.com/chains-lab/sso-svc/internal/domain/models"
 	"github.com/google/uuid"
 )
 
-func CreateUser(s Setup, t *testing.T, email, password, role string) models2.User {
+func CreateUser(s Setup, t *testing.T, email, password, role string) models.User {
 	t.Helper()
 	ctx := context.Background()
 
@@ -20,7 +20,7 @@ func CreateUser(s Setup, t *testing.T, email, password, role string) models2.Use
 	return u
 }
 
-func CreateSession(s Setup, t *testing.T, userID uuid.UUID) models2.Session {
+func CreateSession(s Setup, t *testing.T, userID uuid.UUID) models.Session {
 	t.Helper()
 	ctx := context.Background()
 
