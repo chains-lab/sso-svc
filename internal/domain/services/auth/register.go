@@ -7,9 +7,8 @@ import (
 
 	"github.com/chains-lab/enum"
 	"github.com/chains-lab/gatekit/roles"
-	"github.com/chains-lab/sso-svc/internal/data/schemas"
+	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/chains-lab/sso-svc/internal/domain/models"
-	"github.com/chains-lab/sso-svc/internal/errx"
 	"github.com/chains-lab/sso-svc/internal/infra/password"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -26,7 +25,7 @@ func (s Service) Register(
 		)
 	}
 
-	if (check != schemas.User{}) {
+	if (check != models.User{}) {
 		return models.User{}, errx.ErrorUserAlreadyExists.Raise(
 			fmt.Errorf("user with email '%s' not found", email),
 		)
@@ -54,20 +53,24 @@ func (s Service) Register(
 		)
 	}
 
-	err = s.db.CreateUser(ctx, schemas.User{
+	user := models.User{
 		ID:     id,
 		Role:   role,
 		Status: enum.UserStatusActive,
-
-		PasswordHash: string(hash),
-		PasswordUpAt: now,
 
 		Email:    email,
 		EmailVer: false,
 
 		UpdatedAt: now,
 		CreatedAt: now,
-	})
+	}
+
+	passData := models.UserPassword{
+		Hash:      string(hash),
+		UpdatedAt: now,
+	}
+
+	err = s.db.CreateUser(ctx, user, passData)
 	if err != nil {
 		return models.User{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("inserting new user with email '%s', cause: %w", email, err),
@@ -96,7 +99,7 @@ func (s Service) RegisterAdmin(
 		)
 	}
 
-	if initiator == (schemas.User{}) {
+	if initiator == (models.User{}) {
 		return models.User{}, errx.ErrorUnauthenticated.Raise(
 			fmt.Errorf("initiator with id '%s' not found", initiatorID),
 		)

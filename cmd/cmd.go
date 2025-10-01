@@ -44,7 +44,7 @@ func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, 
 	sessionSvc := session.New(database)
 	authSvc := auth.New(database, jwtTokenManager)
 
-	ctrl := controller.NewService(log, cfg.GoogleOAuth(), userSvc, sessionSvc, authSvc)
+	ctrl := controller.New(log, cfg.GoogleOAuth(), userSvc, sessionSvc, authSvc)
 
 	run(func() { rest.Run(ctx, cfg, log, ctrl) })
 }

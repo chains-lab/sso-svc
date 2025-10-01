@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 
-	"github.com/chains-lab/sso-svc/internal/errx"
+	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/google/uuid"
 )
 

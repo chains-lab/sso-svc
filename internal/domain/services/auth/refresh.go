@@ -2,13 +2,11 @@ package auth
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"fmt"
 	"time"
 
+	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/chains-lab/sso-svc/internal/domain/models"
-	"github.com/chains-lab/sso-svc/internal/errx"
 	"github.com/google/uuid"
 )
 
@@ -27,21 +25,20 @@ func (s Service) Refresh(ctx context.Context, oldRefreshToken string) (models.To
 		)
 	}
 
-	session, err := s.db.GetSession(ctx, tokenData.SessionID)
+	token, err := s.db.GetSessionToken(ctx, tokenData.SessionID)
 	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return models.TokensPair{}, errx.ErrorSessionNotFound.Raise(
-				fmt.Errorf("session with id: %s not found for user %s, cause: %w", tokenData.SessionID, userID, err),
-			)
-		default:
-			return models.TokensPair{}, errx.ErrorInternal.Raise(
-				fmt.Errorf("failed to get session with id: %s for user %s, cause: %w", tokenData.SessionID, userID, err),
-			)
-		}
+		return models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to get session with id: %s for user %s, cause: %w", tokenData.SessionID, userID, err),
+		)
 	}
 
-	refresh, err := s.jwt.DecryptRefresh(session.Token)
+	if token == "" {
+		return models.TokensPair{}, errx.ErrorSessionNotFound.Raise(
+			fmt.Errorf("failed to find session with id %s for user %s, cause: %w", tokenData.SessionID, userID, err),
+		)
+	}
+
+	refresh, err := s.jwt.DecryptRefresh(token)
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to generate refresh token for user %s, cause: %w", userID, err),
@@ -50,7 +47,10 @@ func (s Service) Refresh(ctx context.Context, oldRefreshToken string) (models.To
 
 	if refresh != oldRefreshToken {
 		return models.TokensPair{}, errx.ErrorSessionTokenMismatch.Raise(
-			fmt.Errorf("refresh token does not match for session %s and user %s, cause: %w", session.ID, userID, err),
+			fmt.Errorf(
+				"refresh token does not match for session %s and user %s, cause: %w",
+				tokenData.SessionID, userID, err,
+			),
 		)
 	}
 

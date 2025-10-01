@@ -8,11 +8,18 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/chains-lab/sso-svc/internal/data/schemas"
 	"github.com/google/uuid"
 )
 
 const sessionsTable = "sessions"
+
+type Session struct {
+	ID        uuid.UUID `db:"id"`
+	UserID    uuid.UUID `db:"user_id"`
+	Token     string    `db:"token"`
+	LastUsed  time.Time `db:"last_used"`
+	CreatedAt time.Time `db:"created_at"`
+}
 
 type SessionsQ struct {
 	db       *sql.DB
@@ -39,7 +46,7 @@ func (q SessionsQ) New() SessionsQ {
 	return NewSessions(q.db)
 }
 
-func (q SessionsQ) Insert(ctx context.Context, input schemas.Session) error {
+func (q SessionsQ) Insert(ctx context.Context, input Session) error {
 	values := map[string]interface{}{
 		"id":         input.ID,
 		"user_id":    input.UserID,
@@ -85,13 +92,13 @@ func (q SessionsQ) UpdateLastUsed(lastUsed time.Time) SessionsQ {
 	return q
 }
 
-func (q SessionsQ) Get(ctx context.Context) (schemas.Session, error) {
+func (q SessionsQ) Get(ctx context.Context) (Session, error) {
 	query, args, err := q.selector.Limit(1).ToSql()
 	if err != nil {
-		return schemas.Session{}, fmt.Errorf("building get query for sessions: %w", err)
+		return Session{}, fmt.Errorf("building get query for sessions: %w", err)
 	}
 
-	var sess schemas.Session
+	var sess Session
 	var row *sql.Row
 	if tx, ok := TxFromCtx(ctx); ok {
 		row = tx.QueryRowContext(ctx, query, args...)
@@ -107,16 +114,16 @@ func (q SessionsQ) Get(ctx context.Context) (schemas.Session, error) {
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return schemas.Session{}, nil
+			return Session{}, nil
 		}
 
-		return schemas.Session{}, err
+		return Session{}, err
 	}
 
 	return sess, nil
 }
 
-func (q SessionsQ) Select(ctx context.Context) ([]schemas.Session, error) {
+func (q SessionsQ) Select(ctx context.Context) ([]Session, error) {
 	query, args, err := q.selector.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("building select query for sessions: %w", err)
@@ -134,9 +141,9 @@ func (q SessionsQ) Select(ctx context.Context) ([]schemas.Session, error) {
 	}
 	defer rows.Close()
 
-	var sessions []schemas.Session
+	var sessions []Session
 	for rows.Next() {
-		var sess schemas.Session
+		var sess Session
 		err = rows.Scan(
 			&sess.ID,
 			&sess.UserID,
@@ -194,13 +201,13 @@ func (q SessionsQ) OrderCreatedAt(ascending bool) SessionsQ {
 	return q
 }
 
-func (q SessionsQ) Count(ctx context.Context) (uint, error) {
+func (q SessionsQ) Count(ctx context.Context) (uint64, error) {
 	query, args, err := q.counter.ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("building count query for sessions: %w", err)
 	}
 
-	var count uint
+	var count uint64
 	if tx, ok := TxFromCtx(ctx); ok {
 		err = tx.QueryRowContext(ctx, query, args...).Scan(&count)
 	} else {
@@ -213,8 +220,8 @@ func (q SessionsQ) Count(ctx context.Context) (uint, error) {
 	return count, nil
 }
 
-func (q SessionsQ) Page(limit, offset uint) SessionsQ {
-	q.selector = q.selector.Limit(uint64(limit)).Offset(uint64(offset))
+func (q SessionsQ) Page(limit, offset uint64) SessionsQ {
+	q.selector = q.selector.Limit(limit).Offset(offset)
 
 	return q
 }

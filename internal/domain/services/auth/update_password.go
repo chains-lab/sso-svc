@@ -2,14 +2,13 @@ package auth
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/chains-lab/enum"
-	"github.com/chains-lab/sso-svc/internal/data/schemas"
-	"github.com/chains-lab/sso-svc/internal/errx"
+	"github.com/chains-lab/sso-svc/internal/domain/errx"
+	"github.com/chains-lab/sso-svc/internal/domain/models"
 	"github.com/chains-lab/sso-svc/internal/infra/password"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -27,7 +26,7 @@ func (s Service) UpdatePassword(
 		)
 	}
 
-	if initiator == (schemas.User{}) {
+	if initiator == (models.User{}) {
 		return errx.ErrorUnauthenticated.Raise(
 			fmt.Errorf("initiator with id '%s' not found", userID),
 		)
@@ -39,21 +38,20 @@ func (s Service) UpdatePassword(
 		)
 	}
 
-	userRow, err := s.db.GetUserByID(ctx, userID)
+	passData, err := s.db.GetUserPassword(ctx, userID)
 	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return errx.ErrorUserNotFound.Raise(
-				fmt.Errorf("password for user %s not found, cause: %w", userID, err),
-			)
-		default:
-			return errx.ErrorInternal.Raise(
-				fmt.Errorf("getting password for user %s, cause: %w", userID, err),
-			)
-		}
+		return errx.ErrorInternal.Raise(
+			fmt.Errorf("getting password for user %s, cause: %w", userID, err),
+		)
 	}
 
-	if err = bcrypt.CompareHashAndPassword([]byte(userRow.PasswordHash), []byte(oldPassword)); err != nil {
+	if (passData == models.UserPassword{}) {
+		return errx.ErrorUserNotFound.Raise(
+			fmt.Errorf("password for user %s not found, cause: %w", userID, err),
+		)
+	}
+
+	if err = bcrypt.CompareHashAndPassword([]byte(passData.Hash), []byte(oldPassword)); err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			return errx.ErrorInvalidLogin.Raise(
 				fmt.Errorf("invalid credentials for user %s, cause: %w", userID, err),

@@ -34,7 +34,7 @@ type Controllers interface {
 	DeleteUserSession(w http.ResponseWriter, r *http.Request)
 }
 
-func Run(ctx context.Context, cfg internal.Config, log logium.Logger, s Controllers) {
+func Run(ctx context.Context, cfg internal.Config, log logium.Logger, c Controllers) {
 	svcAuth := mdlv.ServiceGrant(enum.SsoSVC, cfg.JWT.Service.SecretKey)
 	userAuth := mdlv.Auth(meta.UserCtxKey, cfg.JWT.User.AccessToken.SecretKey)
 	sysadmin := mdlv.RoleGrant(meta.UserCtxKey, map[string]bool{
@@ -47,31 +47,31 @@ func Run(ctx context.Context, cfg internal.Config, log logium.Logger, s Controll
 		r.Use(svcAuth)
 
 		r.Route("/v1", func(r chi.Router) {
-			r.Post("/register", s.RegisterUser)
+			r.Post("/register", c.RegisterUser)
 
 			r.Route("/login", func(r chi.Router) {
-				r.Post("/", s.Login)
+				r.Post("/", c.Login)
 
 				r.Route("/Google", func(r chi.Router) {
-					r.Post("/", s.GoogleLogin)
-					r.Post("/callback", s.GoogleCallback)
+					r.Post("/", c.GoogleLogin)
+					r.Post("/callback", c.GoogleCallback)
 				})
 			})
 
-			r.Post("/refresh", s.RefreshToken)
+			r.Post("/refresh", c.RefreshToken)
 
 			r.With(userAuth).Route("/own", func(r chi.Router) {
-				r.With(userAuth).Get("/", s.GetOwnUser)
-				r.With(userAuth).Post("/logout", s.Logout)
-				r.With(userAuth).Post("/password", s.UpdatePassword)
+				r.With(userAuth).Get("/", c.GetOwnUser)
+				r.With(userAuth).Post("/logout", c.Logout)
+				r.With(userAuth).Post("/password", c.UpdatePassword)
 
 				r.With(userAuth).Route("/sessions", func(r chi.Router) {
-					r.Get("/", s.SelectOwnSessions)
-					r.Delete("/", s.DeleteOwnSessions)
+					r.Get("/", c.SelectOwnSessions)
+					r.Delete("/", c.DeleteOwnSessions)
 
 					r.Route("/{session_id}", func(r chi.Router) {
-						r.Get("/", s.GetOwnSession)
-						r.Delete("/", s.DeleteOwnSession)
+						r.Get("/", c.GetOwnSession)
+						r.Delete("/", c.DeleteOwnSession)
 					})
 				})
 			})
@@ -80,19 +80,19 @@ func Run(ctx context.Context, cfg internal.Config, log logium.Logger, s Controll
 				r.Use(userAuth)
 				r.Use(sysadmin)
 
-				r.Post("/", s.RegisterAdmin)
+				r.Post("/", c.RegisterAdmin)
 
 				r.Route("/{user_id}", func(r chi.Router) {
-					r.Get("/", s.GetUser)
+					r.Get("/", c.GetUser)
 					//TODO add ban, unban, user
 
 					r.Route("/sessions", func(r chi.Router) {
-						r.Get("/", s.SelectUserSessions)
-						r.Delete("/", s.DeleteUserSessions)
+						r.Get("/", c.SelectUserSessions)
+						r.Delete("/", c.DeleteUserSessions)
 
 						r.Route("/{session_id}", func(r chi.Router) {
-							r.Get("/", s.GetSession)
-							r.Delete("/", s.DeleteUserSession)
+							r.Get("/", c.GetSession)
+							r.Delete("/", c.DeleteUserSession)
 						})
 					})
 				})

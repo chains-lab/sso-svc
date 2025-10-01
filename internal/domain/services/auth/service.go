@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/chains-lab/gatekit/auth"
-	"github.com/chains-lab/sso-svc/internal/data/schemas"
+	"github.com/chains-lab/sso-svc/internal/domain/models"
 	"github.com/google/uuid"
 )
 
@@ -44,13 +44,16 @@ func New(db database, jwt JWTManager) Service {
 type database interface {
 	Transaction(ctx context.Context, fn func(ctx context.Context) error) error
 
-	GetUserByID(ctx context.Context, userID uuid.UUID) (schemas.User, error)
-	GetUserByEmail(ctx context.Context, email string) (schemas.User, error)
+	GetUserByID(ctx context.Context, userID uuid.UUID) (models.User, error)
+	GetUserByEmail(ctx context.Context, email string) (models.User, error)
 
-	CreateUser(ctx context.Context, user schemas.User) error
-	CreateSession(ctx context.Context, session schemas.Session) error
+	GetUserPassword(ctx context.Context, userID uuid.UUID) (models.UserPassword, error)
 
-	GetSession(ctx context.Context, sessionID uuid.UUID) (schemas.Session, error)
+	CreateUser(ctx context.Context, user models.User, pass models.UserPassword) error
+	CreateSession(ctx context.Context, session models.Session, token string) error
+
+	GetSession(ctx context.Context, sessionID uuid.UUID) (models.Session, error)
+	GetSessionToken(ctx context.Context, sessionID uuid.UUID) (string, error)
 
 	UpdateSessionToken(ctx context.Context, sessionID uuid.UUID, token string, updatedAt time.Time) error
 	UpdateUserPassword(ctx context.Context, userID uuid.UUID, passwordHash string, updatedAt time.Time) error

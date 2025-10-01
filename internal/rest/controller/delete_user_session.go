@@ -7,8 +7,7 @@ import (
 
 	"github.com/chains-lab/ape"
 	"github.com/chains-lab/ape/problems"
-	"github.com/chains-lab/sso-svc/internal/errx"
-
+	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/go-chi/chi/v5"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/google/uuid"

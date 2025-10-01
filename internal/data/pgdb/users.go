@@ -8,11 +8,25 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/chains-lab/sso-svc/internal/data/schemas"
 	"github.com/google/uuid"
 )
 
 const usersTable = "users"
+
+type User struct {
+	ID     uuid.UUID `db:"id"`
+	Role   string    `db:"role"`
+	Status string    `db:"status"`
+
+	PasswordHash string    `db:"password_hash"`
+	PasswordUpAt time.Time `db:"password_updated_at"`
+
+	Email    string `db:"email"`
+	EmailVer bool   `db:"email_verified"`
+
+	UpdatedAt time.Time `db:"updated_at"`
+	CreatedAt time.Time `db:"created_at"`
+}
 
 type UsersQ struct {
 	db       *sql.DB
@@ -39,7 +53,7 @@ func (q UsersQ) New() UsersQ {
 	return NewUsers(q.db)
 }
 
-func (q UsersQ) Insert(ctx context.Context, input schemas.User) error {
+func (q UsersQ) Insert(ctx context.Context, input User) error {
 	values := map[string]interface{}{
 		"id":     input.ID,
 		"role":   input.Role,
@@ -107,10 +121,10 @@ func (q UsersQ) UpdateEmail(email string) UsersQ {
 	return q
 }
 
-func (q UsersQ) Get(ctx context.Context) (schemas.User, error) {
+func (q UsersQ) Get(ctx context.Context) (User, error) {
 	query, args, err := q.selector.Limit(1).ToSql()
 	if err != nil {
-		return schemas.User{}, fmt.Errorf("building get query for %s: %w", usersTable, err)
+		return User{}, fmt.Errorf("building get query for %s: %w", usersTable, err)
 	}
 
 	var row *sql.Row
@@ -120,7 +134,7 @@ func (q UsersQ) Get(ctx context.Context) (schemas.User, error) {
 		row = q.db.QueryRowContext(ctx, query, args...)
 	}
 
-	var acc schemas.User
+	var acc User
 	err = row.Scan(
 		&acc.ID,
 		&acc.Role,
@@ -134,16 +148,16 @@ func (q UsersQ) Get(ctx context.Context) (schemas.User, error) {
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return schemas.User{}, nil
+			return User{}, nil
 		}
 
-		return schemas.User{}, err
+		return User{}, err
 	}
 
 	return acc, nil
 }
 
-func (q UsersQ) Select(ctx context.Context) ([]schemas.User, error) {
+func (q UsersQ) Select(ctx context.Context) ([]User, error) {
 	query, args, err := q.selector.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("building select query for %s: %w", usersTable, err)
@@ -161,9 +175,9 @@ func (q UsersQ) Select(ctx context.Context) ([]schemas.User, error) {
 	}
 	defer rows.Close()
 
-	var users []schemas.User
+	var users []User
 	for rows.Next() {
-		var acc schemas.User
+		var acc User
 		err = rows.Scan(
 			&acc.ID,
 			&acc.Role,
@@ -238,13 +252,13 @@ func (q UsersQ) FilterStatus(status string) UsersQ {
 	return q
 }
 
-func (q UsersQ) Count(ctx context.Context) (uint, error) {
+func (q UsersQ) Count(ctx context.Context) (uint64, error) {
 	query, args, err := q.counter.ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("building count query for %s: %w", usersTable, err)
 	}
 
-	var count uint
+	var count uint64
 	if tx, ok := TxFromCtx(ctx); ok {
 		err = tx.QueryRowContext(ctx, query, args...).Scan(&count)
 	} else {
@@ -257,8 +271,8 @@ func (q UsersQ) Count(ctx context.Context) (uint, error) {
 	return count, nil
 }
 
-func (q UsersQ) Page(limit, offset uint) UsersQ {
-	q.counter = q.counter.Limit(uint64(limit)).Offset(uint64(offset))
+func (q UsersQ) Page(limit, offset uint64) UsersQ {
+	q.counter = q.counter.Limit(limit).Offset(offset)
 
 	return q
 }

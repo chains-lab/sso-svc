@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/chains-lab/sso-svc/internal/data/schemas"
+	"github.com/chains-lab/sso-svc/internal/domain/models"
 	"github.com/google/uuid"
 )
 
@@ -21,8 +21,8 @@ func New(db database) Service {
 type database interface {
 	Transaction(ctx context.Context, fn func(ctx context.Context) error) error
 
-	GetUserByID(ctx context.Context, userID uuid.UUID) (schemas.User, error)
-	GetUserByEmail(ctx context.Context, email string) (schemas.User, error)
+	GetUserByID(ctx context.Context, userID uuid.UUID) (models.User, error)
+	GetUserByEmail(ctx context.Context, email string) (models.User, error)
 
 	UpdateUserStatus(ctx context.Context, userID uuid.UUID, status string, updatedAt time.Time) error
 	UpdateUserEmailVerification(ctx context.Context, userID uuid.UUID, verified bool, updatedAt time.Time) error

@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chains-lab/sso-svc/internal/data/schemas"
+	errx "github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/chains-lab/sso-svc/internal/domain/models"
-	"github.com/chains-lab/sso-svc/internal/errx"
 	"github.com/google/uuid"
 )
 
@@ -18,7 +17,7 @@ func (s Service) GetByID(ctx context.Context, ID uuid.UUID) (models.User, error)
 		)
 	}
 
-	if user == (schemas.User{}) {
+	if user == (models.User{}) {
 		return models.User{}, errx.ErrorUserNotFound.Raise(
 			fmt.Errorf("user with id '%s' not found", ID),
 		)
@@ -42,7 +41,7 @@ func (s Service) GetByEmail(ctx context.Context, email string) (models.User, err
 		)
 	}
 
-	if (user == schemas.User{}) {
+	if (user == models.User{}) {
 		return models.User{}, errx.ErrorUserNotFound.Raise(
 			fmt.Errorf("user with email '%s' not found", email),
 		)

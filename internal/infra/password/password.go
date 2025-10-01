@@ -6,7 +6,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/chains-lab/sso-svc/internal/errx"
+	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"golang.org/x/crypto/bcrypt"
 )
 

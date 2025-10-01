@@ -20,8 +20,8 @@ type SessionSvc interface {
 	ListForUser(
 		ctx context.Context,
 		userID uuid.UUID,
-		page uint,
-		size uint,
+		page uint64,
+		size uint64,
 	) (models.SessionsCollection, error)
 }
 
@@ -54,7 +54,7 @@ type AuthSvc interface {
 	Refresh(ctx context.Context, oldRefreshToken string) (models.TokensPair, error)
 }
 
-type services struct {
+type domain struct {
 	Session SessionSvc
 	User    UserSvc
 	Auth    AuthSvc
@@ -62,15 +62,15 @@ type services struct {
 
 type Service struct {
 	google oauth2.Config
-	domain services
+	domain domain
 	log    logium.Logger
 }
 
-func NewService(log logium.Logger, google oauth2.Config, user UserSvc, session SessionSvc, auth AuthSvc) *Service {
+func New(log logium.Logger, google oauth2.Config, user UserSvc, session SessionSvc, auth AuthSvc) *Service {
 	return &Service{
 		log:    log,
 		google: google,
-		domain: services{
+		domain: domain{
 			Session: session,
 			User:    user,
 			Auth:    auth,

@@ -2,15 +2,12 @@ package auth
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/chains-lab/enum"
-	"github.com/chains-lab/sso-svc/internal/data/schemas"
+	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/chains-lab/sso-svc/internal/domain/models"
-	"github.com/chains-lab/sso-svc/internal/errx"
 	"github.com/chains-lab/sso-svc/internal/infra/password"
 	"github.com/google/uuid"
 )
@@ -18,16 +15,15 @@ import (
 func (s Service) Login(ctx context.Context, email, pass string) (models.TokensPair, error) {
 	user, err := s.db.GetUserByEmail(ctx, email)
 	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return models.TokensPair{}, errx.ErrorUserNotFound.Raise(
-				fmt.Errorf("user with email '%s' not found, cause: %w", email, err),
-			)
-		default:
-			return models.TokensPair{}, errx.ErrorInternal.Raise(
-				fmt.Errorf("failed to get user with email '%s', cause: %w", email, err),
-			)
-		}
+		return models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to get user with email '%s', cause: %w", email, err),
+		)
+	}
+
+	if (user == models.User{}) {
+		return models.TokensPair{}, errx.ErrorUserNotFound.Raise(
+			fmt.Errorf("user with email '%s' not found, cause: %w", email, err),
+		)
 	}
 
 	if user.Status == enum.UserStatusBlocked {
@@ -36,7 +32,14 @@ func (s Service) Login(ctx context.Context, email, pass string) (models.TokensPa
 		)
 	}
 
-	if err = password.CheckPasswordMatch(pass, user.PasswordHash); err != nil {
+	passData, err := s.db.GetUserPassword(ctx, user.ID)
+	if err != nil {
+		return models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to get user password, cause: %w", err),
+		)
+	}
+
+	if err = password.CheckPasswordMatch(pass, passData.Hash); err != nil {
 		return models.TokensPair{}, err
 	}
 
@@ -57,16 +60,15 @@ func (s Service) Login(ctx context.Context, email, pass string) (models.TokensPa
 func (s Service) LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error) {
 	user, err := s.db.GetUserByEmail(ctx, email)
 	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return models.TokensPair{}, errx.ErrorUserNotFound.Raise(
-				fmt.Errorf("user with email '%s' not found, cause: %w", email, err),
-			)
-		default:
-			return models.TokensPair{}, errx.ErrorInternal.Raise(
-				fmt.Errorf("failed to get user with email '%s', cause: %w", email, err),
-			)
-		}
+		return models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to get user with email '%s', cause: %w", email, err),
+		)
+	}
+
+	if (user == models.User{}) {
+		return models.TokensPair{}, errx.ErrorUserNotFound.Raise(
+			fmt.Errorf("user with email '%s' not found, cause: %w", email, err),
+		)
 	}
 
 	pair, err := s.CreateSession(ctx, user.ID, user.Role)
@@ -102,19 +104,19 @@ func (s Service) CreateSession(
 			fmt.Errorf("failed to generate refresh token for user %s, cause: %w", userID, err))
 	}
 
-	refreshCrypto, err := s.jwt.EncryptRefresh(refresh)
+	refreshTokenCrypto, err := s.jwt.EncryptRefresh(refresh)
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to encrypt refresh token for user %s, cause: %w", userID, err))
+			fmt.Errorf("failed to encrypt refresh token for user %s, cause: %w", userID, err),
+		)
 	}
 
-	err = s.db.CreateSession(ctx, schemas.Session{
+	err = s.db.CreateSession(ctx, models.Session{
 		ID:        sessionID,
 		UserID:    userID,
-		Token:     refreshCrypto,
 		LastUsed:  time.Now().UTC(),
 		CreatedAt: time.Now().UTC(),
-	})
+	}, refreshTokenCrypto)
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to CreateSession session for user %s, cause: %w", userID, err),

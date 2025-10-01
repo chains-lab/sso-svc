@@ -11,7 +11,7 @@ require (
 	github.com/chains-lab/enum v0.1.6
 	github.com/chains-lab/gatekit v0.2.5
 	github.com/chains-lab/logium v0.1.1
-	github.com/chains-lab/pagi v0.1.5
+	github.com/chains-lab/pagi v0.1.6
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/google/uuid v1.6.0

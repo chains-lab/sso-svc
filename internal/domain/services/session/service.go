@@ -3,7 +3,7 @@ package session
 import (
 	"context"
 
-	"github.com/chains-lab/sso-svc/internal/data/schemas"
+	"github.com/chains-lab/sso-svc/internal/domain/models"
 	"github.com/google/uuid"
 )
 
@@ -20,14 +20,14 @@ func New(db database) Service {
 type database interface {
 	Transaction(ctx context.Context, fn func(ctx context.Context) error) error
 
-	GetSession(ctx context.Context, sessionID uuid.UUID) (schemas.Session, error)
-	GetOneSessionForUser(ctx context.Context, userID, sessionID uuid.UUID) (schemas.Session, error)
-	GetAllSessionsForUser(ctx context.Context, userID uuid.UUID, limit, offset uint) ([]schemas.Session, uint, error)
+	GetSession(ctx context.Context, sessionID uuid.UUID) (models.Session, error)
+	GetOneSessionForUser(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error)
+	GetAllSessionsForUser(ctx context.Context, userID uuid.UUID, page, size uint64) (models.SessionsCollection, error)
 
 	DeleteSession(ctx context.Context, sessionID uuid.UUID) error
 	DeleteOneSessionForUser(ctx context.Context, userID, sessionID uuid.UUID) error
 	DeleteAllSessionsForUser(ctx context.Context, userID uuid.UUID) error
 
-	GetUserByID(ctx context.Context, userID uuid.UUID) (schemas.User, error)
-	GetUserByEmail(ctx context.Context, email string) (schemas.User, error)
+	GetUserByID(ctx context.Context, userID uuid.UUID) (models.User, error)
+	GetUserByEmail(ctx context.Context, email string) (models.User, error)
 }

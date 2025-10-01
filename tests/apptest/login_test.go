@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/chains-lab/gatekit/roles"
-	"github.com/chains-lab/sso-svc/internal/errx"
+	"github.com/chains-lab/sso-svc/internal/domain/errx"
 )
 
 func TestUserRegistration(t *testing.T) {

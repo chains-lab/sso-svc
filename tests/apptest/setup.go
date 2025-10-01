@@ -32,8 +32,8 @@ type SessionSvc interface {
 	ListForUser(
 		ctx context.Context,
 		userID uuid.UUID,
-		page uint,
-		size uint,
+		page uint64,
+		size uint64,
 	) (models.SessionsCollection, error)
 }
 
