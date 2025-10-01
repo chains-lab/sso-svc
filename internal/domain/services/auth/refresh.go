@@ -76,6 +76,11 @@ func (s Service) Refresh(ctx context.Context, oldRefreshToken string) (models.To
 	}
 
 	err = s.db.UpdateSessionToken(ctx, tokenData.SessionID, refreshCrypto, time.Now().UTC())
+	if err != nil {
+		return models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to save refresh token for user %s, cause: %w", userID, err),
+		)
+	}
 
 	return models.TokensPair{
 		SessionID: tokenData.SessionID,

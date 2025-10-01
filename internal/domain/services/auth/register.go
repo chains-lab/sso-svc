@@ -24,8 +24,7 @@ func (s Service) Register(
 			fmt.Errorf("failed to get user with email '%s', cause: %w", email, err),
 		)
 	}
-
-	if (check != models.User{}) {
+	if (check == models.User{}) {
 		return models.User{}, errx.ErrorUserAlreadyExists.Raise(
 			fmt.Errorf("user with email '%s' not found", email),
 		)
@@ -46,13 +45,6 @@ func (s Service) Register(
 	id := uuid.New()
 	now := time.Now().UTC()
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
-	if err != nil {
-		return models.User{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("hashing password for user '%s', cause: %w", id, err),
-		)
-	}
-
 	user := models.User{
 		ID:     id,
 		Role:   role,
@@ -63,6 +55,13 @@ func (s Service) Register(
 
 		UpdatedAt: now,
 		CreatedAt: now,
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+	if err != nil {
+		return models.User{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("hashing password for user '%s', cause: %w", id, err),
+		)
 	}
 
 	passData := models.UserPassword{
@@ -77,14 +76,7 @@ func (s Service) Register(
 		)
 	}
 
-	return models.User{
-		ID:        id,
-		Role:      role,
-		Status:    enum.UserStatusActive,
-		Email:     email,
-		EmailVer:  false,
-		CreatedAt: now,
-	}, nil
+	return user, nil
 }
 
 func (s Service) RegisterAdmin(

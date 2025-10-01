@@ -75,10 +75,8 @@ func (s Service) UpdatePassword(
 		)
 	}
 
-	hashStr := string(hash)
-
 	err = s.db.Transaction(ctx, func(ctx context.Context) error {
-		err = s.db.UpdateUserPassword(ctx, userID, hashStr, time.Now().UTC())
+		err = s.db.UpdateUserPassword(ctx, userID, string(hash), time.Now().UTC())
 		if err != nil {
 			return err
 		}
