@@ -39,7 +39,7 @@ func (s Service) GetForUser(ctx context.Context, userID, sessionID uuid.UUID) (m
 		)
 	}
 
-	if session == (models.Session{}) {
+	if session.IsNil() {
 		return models.Session{}, errx.ErrorSessionNotFound.Raise(
 			fmt.Errorf("session with id: %s for user %s not found", sessionID, userID),
 		)

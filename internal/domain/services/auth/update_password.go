@@ -8,7 +8,6 @@ import (
 
 	"github.com/chains-lab/enum"
 	"github.com/chains-lab/sso-svc/internal/domain/errx"
-	"github.com/chains-lab/sso-svc/internal/domain/models"
 	"github.com/chains-lab/sso-svc/internal/infra/password"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -26,7 +25,7 @@ func (s Service) UpdatePassword(
 		)
 	}
 
-	if initiator == (models.User{}) {
+	if initiator.IsNil() {
 		return errx.ErrorUnauthenticated.Raise(
 			fmt.Errorf("initiator with id '%s' not found", userID),
 		)
@@ -45,7 +44,7 @@ func (s Service) UpdatePassword(
 		)
 	}
 
-	if (passData == models.UserPassword{}) {
+	if passData.IsNil() {
 		return errx.ErrorUserNotFound.Raise(
 			fmt.Errorf("password for user %s not found, cause: %w", userID, err),
 		)

@@ -24,7 +24,7 @@ func (s Service) BlockUser(ctx context.Context, userID uuid.UUID) (models.User, 
 			return err
 		}
 
-		err = enum.ParseUserStatus(enum.UserStatusBlocked)
+		err = enum.CheckUserStatus(enum.UserStatusBlocked)
 		if err != nil {
 			return errx.ErrorUserStatusNotSupported.Raise(
 				fmt.Errorf("parsing status for user %s, cause: %w", userID, err),
@@ -66,7 +66,7 @@ func (s Service) UnblockUser(ctx context.Context, userID uuid.UUID) (models.User
 			return err
 		}
 
-		err = enum.ParseUserStatus(enum.UserStatusActive)
+		err = enum.CheckUserStatus(enum.UserStatusActive)
 		if err != nil {
 			return errx.ErrorUserStatusNotSupported.Raise(
 				fmt.Errorf("parsing status for user %s, cause: %w", userID, err),

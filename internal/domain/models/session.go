@@ -13,6 +13,10 @@ type Session struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+func (s Session) IsNil() bool {
+	return s.ID == uuid.Nil
+}
+
 type SessionsCollection struct {
 	Data  []Session `json:"data"`
 	Page  uint64    `json:"page"`

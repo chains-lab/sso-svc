@@ -1,4 +1,4 @@
- OPENAPI_GENERATOR := java -jar ~/openapi-generator-cli.jar
+OPENAPI_GENERATOR := java -jar ~/openapi-generator-cli.jar
 CONFIG_FILE := ./config.yaml
 API_SRC := ./docs/api.yaml
 API_BUNDLED := ./docs/api-bundled.yaml

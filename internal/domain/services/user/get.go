@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	errx "github.com/chains-lab/sso-svc/internal/domain/errx"
+	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/chains-lab/sso-svc/internal/domain/models"
 	"github.com/google/uuid"
 )

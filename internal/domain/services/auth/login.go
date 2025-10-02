@@ -20,7 +20,7 @@ func (s Service) Login(ctx context.Context, email, pass string) (models.TokensPa
 		)
 	}
 
-	if (user == models.User{}) {
+	if user.IsNil() {
 		return models.TokensPair{}, errx.ErrorUserNotFound.Raise(
 			fmt.Errorf("user with email '%s' not found, cause: %w", email, err),
 		)
@@ -65,7 +65,7 @@ func (s Service) LoginByGoogle(ctx context.Context, email string) (models.Tokens
 		)
 	}
 
-	if (user == models.User{}) {
+	if user.IsNil() {
 		return models.TokensPair{}, errx.ErrorUserNotFound.Raise(
 			fmt.Errorf("user with email '%s' not found, cause: %w", email, err),
 		)

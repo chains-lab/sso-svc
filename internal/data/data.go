@@ -20,14 +20,6 @@ type SqlDB struct {
 	sessions pgdb.SessionsQ
 }
 
-func (d *SqlDB) Users() pgdb.UsersQ {
-	return d.users
-}
-
-func (d *SqlDB) Sessions() pgdb.SessionsQ {
-	return d.sessions
-}
-
 func NewDatabase(db *sql.DB) *Database {
 	usersSql := pgdb.NewUsers(db)
 	sessionsSql := pgdb.NewSessions(db)

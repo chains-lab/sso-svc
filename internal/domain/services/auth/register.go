@@ -24,7 +24,7 @@ func (s Service) Register(
 			fmt.Errorf("failed to get user with email '%s', cause: %w", email, err),
 		)
 	}
-	if (check == models.User{}) {
+	if !check.IsNil() {
 		return models.User{}, errx.ErrorUserAlreadyExists.Raise(
 			fmt.Errorf("user with email '%s' not found", email),
 		)
@@ -91,7 +91,7 @@ func (s Service) RegisterAdmin(
 		)
 	}
 
-	if initiator == (models.User{}) {
+	if initiator.IsNil() {
 		return models.User{}, errx.ErrorUnauthenticated.Raise(
 			fmt.Errorf("initiator with id '%s' not found", initiatorID),
 		)

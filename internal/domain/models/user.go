@@ -16,7 +16,15 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+func (u User) IsNil() bool {
+	return u.ID == uuid.Nil
+}
+
 type UserPassword struct {
 	Hash      string    `json:"hash"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func (u UserPassword) IsNil() bool {
+	return u.Hash == ""
 }
