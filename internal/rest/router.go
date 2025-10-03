@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/chains-lab/enum"
 	"github.com/chains-lab/gatekit/mdlv"
 	"github.com/chains-lab/gatekit/roles"
 	"github.com/chains-lab/logium"
@@ -35,7 +34,7 @@ type Controllers interface {
 }
 
 func Run(ctx context.Context, cfg internal.Config, log logium.Logger, c Controllers) {
-	svcAuth := mdlv.ServiceGrant(enum.SsoSVC, cfg.JWT.Service.SecretKey)
+	svcAuth := mdlv.ServiceGrant(cfg.Service.Name, cfg.JWT.Service.SecretKey)
 	userAuth := mdlv.Auth(meta.UserCtxKey, cfg.JWT.User.AccessToken.SecretKey)
 	sysadmin := mdlv.RoleGrant(meta.UserCtxKey, map[string]bool{
 		roles.Admin: true,

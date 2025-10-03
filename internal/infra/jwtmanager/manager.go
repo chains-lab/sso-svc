@@ -10,7 +10,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/chains-lab/enum"
 	"github.com/chains-lab/gatekit/auth"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -132,7 +131,7 @@ func (m Manager) GenerateRefresh(
 ) (string, error) {
 	return auth.GenerateUserJWT(auth.GenerateUserJwtRequest{
 		Issuer:   m.iss,
-		Audience: []string{enum.SsoSVC},
+		Audience: []string{"sso-svc", "api-gateway"}, //TODO
 		User:     userID,
 		Session:  sessionID,
 		Role:     role,

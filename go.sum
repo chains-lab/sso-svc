@@ -22,6 +22,8 @@ github.com/chains-lab/gatekit v0.2.5 h1:dWW/Pw6j1fcaWDHxaY10pRtm4iqipZvqE4JG/El7
 github.com/chains-lab/gatekit v0.2.5/go.mod h1:VG2r14E8Y4AP3KBX85MwtZ3+XJorVm5P9kJqdfDoevQ=
 github.com/chains-lab/logium v0.1.1 h1:C5ZroPavjzmqFxW6ajga++NhgpduudSd7uvgWiYZcxw=
 github.com/chains-lab/logium v0.1.1/go.mod h1:6FqyL1KnUmThTZpZt5UzvTSukH3vgz+bgWkODxa3hxw=
+github.com/chains-lab/logium v0.1.2 h1:qRG3MHRJdjNw14G6QrbPVMJR4TCVR2XY+9+Z/p0dxw0=
+github.com/chains-lab/logium v0.1.2/go.mod h1:TH/XJsvzOgSykI7adeU7AzYezai60EFFtzWC84ycLCU=
 github.com/chains-lab/pagi v0.1.5 h1:Aq64A5Ta+9aLxq5iiEmD16SgD8bEtds/FgFfcNd/7S4=
 github.com/chains-lab/pagi v0.1.5/go.mod h1:Sd6bQC+IlZBggk78qI76Beed3yf5Yp+qPIwUpFTfTC0=
 github.com/chains-lab/pagi v0.1.6 h1:ftfw6FYTBw21ZBU8kL037Aqe2skoe7DPY3XtO1K6VKU=

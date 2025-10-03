@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/chains-lab/enum"
+	"github.com/chains-lab/sso-svc/internal/domain/enum"
 	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/chains-lab/sso-svc/internal/infra/password"
 	"github.com/google/uuid"
