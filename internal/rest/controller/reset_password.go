@@ -13,7 +13,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
-func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
+func (s *Service) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	initiator, err := meta.User(r.Context())
 	if err != nil {
 		s.log.WithError(err).Error("failed to get user from context")

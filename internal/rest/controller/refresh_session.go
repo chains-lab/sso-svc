@@ -11,7 +11,7 @@ import (
 	"github.com/chains-lab/sso-svc/internal/rest/responses"
 )
 
-func (s *Service) RefreshToken(w http.ResponseWriter, r *http.Request) {
+func (s *Service) RefreshSession(w http.ResponseWriter, r *http.Request) {
 	req, err := requests.RefreshSession(r)
 	if err != nil {
 		s.log.WithError(err).Error("failed to parse refresh session request")
@@ -20,7 +20,7 @@ func (s *Service) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokensPair, err := s.domain.Auth.Refresh(r.Context(), req.Data.Attributes.RefreshToken)
+	tokensPair, err := s.domain.Session.Refresh(r.Context(), req.Data.Attributes.RefreshToken)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to refresh session token")
 		switch {

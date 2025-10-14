@@ -6,7 +6,7 @@ import (
 
 	"github.com/chains-lab/ape"
 	"github.com/chains-lab/ape/problems"
-	"github.com/chains-lab/pagi"
+	"github.com/chains-lab/restkit/pagi"
 	"github.com/chains-lab/sso-svc/internal/rest/responses"
 
 	"github.com/go-chi/chi/v5"
@@ -14,7 +14,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *Service) SelectUserSessions(w http.ResponseWriter, r *http.Request) {
+func (s *Service) GetUserSessions(w http.ResponseWriter, r *http.Request) {
 	userID, err := uuid.Parse(chi.URLParam(r, "user_id"))
 	if err != nil {
 		s.log.WithError(err).Errorf("invalid user id: %s", chi.URLParam(r, "user_id"))
@@ -29,7 +29,7 @@ func (s *Service) SelectUserSessions(w http.ResponseWriter, r *http.Request) {
 
 	sessions, err := s.domain.Session.ListForUser(r.Context(), userID, page, size)
 	if err != nil {
-		s.log.WithError(err).Errorf("failed to select own sessions")
+		s.log.WithError(err).Errorf("failed to select My sessions")
 		switch {
 		default:
 			ape.RenderErr(w, problems.InternalError())

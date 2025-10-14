@@ -8,9 +8,10 @@ import (
 	"github.com/chains-lab/ape/problems"
 	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/chains-lab/sso-svc/internal/rest/meta"
+	"github.com/chains-lab/sso-svc/internal/rest/responses"
 )
 
-func (s *Service) DeleteOwnSessions(w http.ResponseWriter, r *http.Request) {
+func (s *Service) GetMyUser(w http.ResponseWriter, r *http.Request) {
 	initiator, err := meta.User(r.Context())
 	if err != nil {
 		s.log.WithError(err).Error("failed to get user from context")
@@ -19,13 +20,12 @@ func (s *Service) DeleteOwnSessions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = s.domain.Session.DeleteAllForUser(r.Context(), initiator.ID); err != nil {
-		s.log.WithError(err).Errorf("failed to delete own sessions")
+	user, err := s.domain.User.GetByID(r.Context(), initiator.ID)
+	if err != nil {
+		s.log.WithError(err).Errorf("failed to get user by id: %s", initiator.ID)
 		switch {
-		case errors.Is(err, errx.ErrorUnauthenticated):
-			ape.RenderErr(w, problems.Unauthorized("failed to authenticate user"))
 		case errors.Is(err, errx.ErrorUserNotFound):
-			ape.RenderErr(w, problems.NotFound("user not found"))
+			ape.RenderErr(w, problems.Unauthorized("user not found by credentials"))
 		default:
 			ape.RenderErr(w, problems.InternalError())
 		}
@@ -33,5 +33,5 @@ func (s *Service) DeleteOwnSessions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	ape.Render(w, http.StatusOK, responses.User(user))
 }

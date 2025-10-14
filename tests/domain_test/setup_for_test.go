@@ -26,6 +26,8 @@ type SessionSvc interface {
 	DeleteOneForUser(ctx context.Context, userID, sessionID uuid.UUID) error
 	DeleteAllForUser(ctx context.Context, userID uuid.UUID) error
 
+	Refresh(ctx context.Context, oldRefreshToken string) (models.TokensPair, error)
+
 	Get(ctx context.Context, sessionID uuid.UUID) (models.Session, error)
 	GetForUser(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error)
 
@@ -65,8 +67,6 @@ type AuthSvc interface {
 	Login(ctx context.Context, email, password string) (models.TokensPair, error)
 	LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error)
 	CreateSession(ctx context.Context, userID uuid.UUID, role string) (models.TokensPair, error)
-
-	Refresh(ctx context.Context, oldRefreshToken string) (models.TokensPair, error)
 }
 
 type services struct {
@@ -149,7 +149,7 @@ func newSetup(t *testing.T) (Setup, error) {
 	})
 
 	userSvc := user.New(database)
-	sessionSvc := session.New(database)
+	sessionSvc := session.New(database, jwtTokenManager)
 	authSvc := auth.New(database, jwtTokenManager)
 
 	return Setup{

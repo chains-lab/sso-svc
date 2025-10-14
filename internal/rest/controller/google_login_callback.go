@@ -15,7 +15,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
-func (s *Service) GoogleCallback(w http.ResponseWriter, r *http.Request) {
+func (s *Service) GoogleLoginCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 	if code == "" {
 		ape.RenderErr(w, problems.BadRequest(validation.Errors{

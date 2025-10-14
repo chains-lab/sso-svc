@@ -4,39 +4,44 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/chains-lab/gatekit/mdlv"
-	"github.com/chains-lab/gatekit/roles"
 	"github.com/chains-lab/logium"
+	"github.com/chains-lab/restkit/roles"
 	"github.com/chains-lab/sso-svc/internal"
 	"github.com/chains-lab/sso-svc/internal/rest/meta"
 	"github.com/go-chi/chi/v5"
 )
 
-type Controllers interface {
+type Handlers interface {
 	RegisterUser(w http.ResponseWriter, r *http.Request)
 	Login(w http.ResponseWriter, r *http.Request)
 	GoogleLogin(w http.ResponseWriter, r *http.Request)
-	GoogleCallback(w http.ResponseWriter, r *http.Request)
-	RefreshToken(w http.ResponseWriter, r *http.Request)
-	GetOwnUser(w http.ResponseWriter, r *http.Request)
+	GoogleLoginCallback(w http.ResponseWriter, r *http.Request)
+	RefreshSession(w http.ResponseWriter, r *http.Request)
+	GetMyUser(w http.ResponseWriter, r *http.Request)
 	Logout(w http.ResponseWriter, r *http.Request)
-	UpdatePassword(w http.ResponseWriter, r *http.Request)
-	SelectOwnSessions(w http.ResponseWriter, r *http.Request)
-	DeleteOwnSessions(w http.ResponseWriter, r *http.Request)
-	GetOwnSession(w http.ResponseWriter, r *http.Request)
-	DeleteOwnSession(w http.ResponseWriter, r *http.Request)
+	ResetPassword(w http.ResponseWriter, r *http.Request)
+	GetMySessions(w http.ResponseWriter, r *http.Request)
+	DeleteMySessions(w http.ResponseWriter, r *http.Request)
+	GetMySession(w http.ResponseWriter, r *http.Request)
+	DeleteMySession(w http.ResponseWriter, r *http.Request)
 	RegisterAdmin(w http.ResponseWriter, r *http.Request)
 	GetUser(w http.ResponseWriter, r *http.Request)
-	SelectUserSessions(w http.ResponseWriter, r *http.Request)
+	GetUserSessions(w http.ResponseWriter, r *http.Request)
 	DeleteUserSessions(w http.ResponseWriter, r *http.Request)
 	GetSession(w http.ResponseWriter, r *http.Request)
 	DeleteUserSession(w http.ResponseWriter, r *http.Request)
 }
 
-func Run(ctx context.Context, cfg internal.Config, log logium.Logger, c Controllers) {
-	svcAuth := mdlv.ServiceGrant(cfg.Service.Name, cfg.JWT.Service.SecretKey)
-	userAuth := mdlv.Auth(meta.UserCtxKey, cfg.JWT.User.AccessToken.SecretKey)
-	sysadmin := mdlv.RoleGrant(meta.UserCtxKey, map[string]bool{
+type Middlewares interface {
+	ServiceGrant(serviceName, skService string) func(http.Handler) http.Handler
+	Auth(userCtxKey interface{}, skUser string) func(http.Handler) http.Handler
+	RoleGrant(userCtxKey interface{}, allowedRoles map[string]bool) func(http.Handler) http.Handler
+}
+
+func Run(ctx context.Context, cfg internal.Config, log logium.Logger, m Middlewares, h Handlers) {
+	svcAuth := m.ServiceGrant(cfg.Service.Name, cfg.JWT.Service.SecretKey)
+	userAuth := m.Auth(meta.UserCtxKey, cfg.JWT.User.AccessToken.SecretKey)
+	sysadmin := m.RoleGrant(meta.UserCtxKey, map[string]bool{
 		roles.Admin: true,
 	})
 
@@ -46,31 +51,31 @@ func Run(ctx context.Context, cfg internal.Config, log logium.Logger, c Controll
 		r.Use(svcAuth)
 
 		r.Route("/v1", func(r chi.Router) {
-			r.Post("/register", c.RegisterUser)
+			r.Post("/register", h.RegisterUser)
 
 			r.Route("/login", func(r chi.Router) {
-				r.Post("/", c.Login)
+				r.Post("/", h.Login)
 
-				r.Route("/Google", func(r chi.Router) {
-					r.Post("/", c.GoogleLogin)
-					r.Post("/callback", c.GoogleCallback)
+				r.Route("/google", func(r chi.Router) {
+					r.Post("/", h.GoogleLogin)
+					r.Post("/callback", h.GoogleLoginCallback)
 				})
 			})
 
-			r.Post("/refresh", c.RefreshToken)
+			r.Post("/refresh", h.RefreshSession)
 
-			r.With(userAuth).Route("/own", func(r chi.Router) {
-				r.With(userAuth).Get("/", c.GetOwnUser)
-				r.With(userAuth).Post("/logout", c.Logout)
-				r.With(userAuth).Post("/password", c.UpdatePassword)
+			r.With(userAuth).Route("/me", func(r chi.Router) {
+				r.With(userAuth).Get("/", h.GetMyUser)
+				r.With(userAuth).Post("/logout", h.Logout)
+				r.With(userAuth).Post("/password", h.ResetPassword)
 
 				r.With(userAuth).Route("/sessions", func(r chi.Router) {
-					r.Get("/", c.SelectOwnSessions)
-					r.Delete("/", c.DeleteOwnSessions)
+					r.Get("/", h.GetMySessions)
+					r.Delete("/", h.DeleteMySessions)
 
 					r.Route("/{session_id}", func(r chi.Router) {
-						r.Get("/", c.GetOwnSession)
-						r.Delete("/", c.DeleteOwnSession)
+						r.Get("/", h.GetMySession)
+						r.Delete("/", h.DeleteMySession)
 					})
 				})
 			})
@@ -79,19 +84,18 @@ func Run(ctx context.Context, cfg internal.Config, log logium.Logger, c Controll
 				r.Use(userAuth)
 				r.Use(sysadmin)
 
-				r.Post("/", c.RegisterAdmin)
+				r.Post("/", h.RegisterAdmin)
 
 				r.Route("/{user_id}", func(r chi.Router) {
-					r.Get("/", c.GetUser)
-					//TODO add ban, unban, user
+					r.Get("/", h.GetUser)
 
 					r.Route("/sessions", func(r chi.Router) {
-						r.Get("/", c.SelectUserSessions)
-						r.Delete("/", c.DeleteUserSessions)
+						r.Get("/", h.GetUserSessions)
+						r.Delete("/", h.DeleteUserSessions)
 
 						r.Route("/{session_id}", func(r chi.Router) {
-							r.Get("/", c.GetSession)
-							r.Delete("/", c.DeleteUserSession)
+							r.Get("/", h.GetSession)
+							r.Delete("/", h.DeleteUserSession)
 						})
 					})
 				})

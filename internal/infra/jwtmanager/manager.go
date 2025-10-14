@@ -10,7 +10,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/chains-lab/gatekit/auth"
+	"github.com/chains-lab/restkit/auth"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )

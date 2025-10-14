@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/chains-lab/gatekit/roles"
+	"github.com/chains-lab/restkit/roles"
 )
 
 func TestAdminBlockUser(t *testing.T) {
@@ -28,10 +28,10 @@ func TestAdminBlockUser(t *testing.T) {
 
 	sess, err := s.core.Session.ListForUser(ctx, user.ID, 0, 100)
 	if err != nil {
-		t.Fatalf("ListOwnSessions: unexpected error: %v", err)
+		t.Fatalf("ListMySessions: unexpected error: %v", err)
 	}
 	if len(sess.Data) != 3 {
-		t.Fatalf("ListOwnSessions: expected 3 sessions, got %d", len(sess.Data))
+		t.Fatalf("ListMySessions: expected 3 sessions, got %d", len(sess.Data))
 	}
 
 	_, err = s.core.User.BlockUser(ctx, user.ID)
@@ -41,17 +41,17 @@ func TestAdminBlockUser(t *testing.T) {
 
 	sess, err = s.core.Session.ListForUser(ctx, user.ID, 0, 100)
 	if err != nil {
-		t.Fatalf("ListOwnSessions: unexpected error: %v", err)
+		t.Fatalf("ListMySessions: unexpected error: %v", err)
 	}
 	if len(sess.Data) != 0 {
-		t.Fatalf("ListOwnSessions: expected 0 sessions, got %d", len(sess.Data))
+		t.Fatalf("ListMySessions: expected 0 sessions, got %d", len(sess.Data))
 	}
 
 	sess, err = s.core.Session.ListForUser(ctx, admin.ID, 0, 100)
 	if err != nil {
-		t.Fatalf("ListOwnSessions: unexpected error: %v", err)
+		t.Fatalf("ListMySessions: unexpected error: %v", err)
 	}
 	if len(sess.Data) != 3 {
-		t.Fatalf("ListOwnSessions: expected 3 sessions, got %d", len(sess.Data))
+		t.Fatalf("ListMySessions: expected 3 sessions, got %d", len(sess.Data))
 	}
 }

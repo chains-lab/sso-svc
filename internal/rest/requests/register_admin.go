@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/chains-lab/gatekit/roles"
+	"github.com/chains-lab/restkit/roles"
 	"github.com/chains-lab/sso-svc/internal/infra/password"
 	"github.com/chains-lab/sso-svc/resources"
 	validation "github.com/go-ozzo/ozzo-validation/v4"

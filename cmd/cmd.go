@@ -14,6 +14,7 @@ import (
 	"github.com/chains-lab/sso-svc/internal/infra/jwtmanager"
 	"github.com/chains-lab/sso-svc/internal/rest"
 	"github.com/chains-lab/sso-svc/internal/rest/controller"
+	"github.com/chains-lab/sso-svc/internal/rest/middlewares"
 )
 
 func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, wg *sync.WaitGroup) {
@@ -41,10 +42,11 @@ func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, 
 	})
 
 	userSvc := user.New(database)
-	sessionSvc := session.New(database)
+	sessionSvc := session.New(database, jwtTokenManager)
 	authSvc := auth.New(database, jwtTokenManager)
 
 	ctrl := controller.New(log, cfg.GoogleOAuth(), userSvc, sessionSvc, authSvc)
+	mdlv := middlewares.New(log)
 
-	run(func() { rest.Run(ctx, cfg, log, ctrl) })
+	run(func() { rest.Run(ctx, cfg, log, mdlv, ctrl) })
 }

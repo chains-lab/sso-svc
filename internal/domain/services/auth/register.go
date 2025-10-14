@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/chains-lab/gatekit/roles"
+	"github.com/chains-lab/restkit/roles"
 	"github.com/chains-lab/sso-svc/internal/domain/enum"
 	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/chains-lab/sso-svc/internal/domain/models"

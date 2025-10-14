@@ -6,7 +6,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/chains-lab/pagi"
+	"github.com/chains-lab/restkit/pagi"
 	"github.com/chains-lab/sso-svc/internal/data/pgdb"
 	"github.com/chains-lab/sso-svc/internal/domain/models"
 	"github.com/google/uuid"

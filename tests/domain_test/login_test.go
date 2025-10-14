@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/chains-lab/gatekit/roles"
+	"github.com/chains-lab/restkit/roles"
 	"github.com/chains-lab/sso-svc/internal/domain/errx"
 )
 
@@ -43,23 +43,23 @@ func TestUserRegistration(t *testing.T) {
 
 	res, err := s.core.Session.ListForUser(ctx, userFirst.ID, 0, 10)
 	if err != nil {
-		t.Fatalf("ListOwnSessions: %v", err)
+		t.Fatalf("ListMySessions: %v", err)
 	}
 	if res.Total != 1 || len(res.Data) != 1 {
-		t.Fatalf("ListOwnSessions: expected 1 session, got %d", res.Total)
+		t.Fatalf("ListMySessions: expected 1 session, got %d", res.Total)
 	}
 
 	err = s.core.Session.DeleteAllForUser(ctx, userFirst.ID)
 	if err != nil {
-		t.Fatalf("DeleteOwnSessions: %v", err)
+		t.Fatalf("DeleteMySessions: %v", err)
 	}
 
 	res, err = s.core.Session.ListForUser(ctx, userFirst.ID, 0, 10)
 	if err != nil {
-		t.Fatalf("ListOwnSessions after delete: %v", err)
+		t.Fatalf("ListMySessions after delete: %v", err)
 	}
 	if res.Total != 0 || len(res.Data) != 0 {
-		t.Fatalf("ListOwnSessions after delete: expected 0 sessions, got %d", res.Total)
+		t.Fatalf("ListMySessions after delete: expected 0 sessions, got %d", res.Total)
 	}
 
 	_, err = s.core.Auth.Login(ctx, firstEmail, password)
@@ -73,10 +73,10 @@ func TestUserRegistration(t *testing.T) {
 
 	res, err = s.core.Session.ListForUser(ctx, userFirst.ID, 0, 10)
 	if err != nil {
-		t.Fatalf("ListOwnSessions: %v", err)
+		t.Fatalf("ListMySessions: %v", err)
 	}
 	if res.Total != 2 || len(res.Data) != 2 {
-		t.Fatalf("ListOwnSessions: expected 2 session, got %d", res.Total)
+		t.Fatalf("ListMySessions: expected 2 session, got %d", res.Total)
 	}
 }
 
@@ -114,17 +114,17 @@ func TestUpdateUserPassword(t *testing.T) {
 
 	res, err := s.core.Session.ListForUser(ctx, userFirst.ID, 0, 10)
 	if err != nil {
-		t.Fatalf("ListOwnSessions: %v", err)
+		t.Fatalf("ListMySessions: %v", err)
 	}
 	if res.Total != 1 || len(res.Data) != 1 {
-		t.Fatalf("ListOwnSessions: expected 1 session, got %d", res.Total)
+		t.Fatalf("ListMySessions: expected 1 session, got %d", res.Total)
 	}
 
 	newPassword := "Test2@1234"
 
 	err = s.core.Auth.UpdatePassword(ctx, userFirst.ID, password, newPassword)
 	if err != nil {
-		t.Fatalf("UpdatePassword: %v", err)
+		t.Fatalf("ResetPassword: %v", err)
 	}
 
 	_, err = s.core.Auth.Login(ctx, firstEmail, password)

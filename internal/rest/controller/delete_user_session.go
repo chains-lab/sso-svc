@@ -39,8 +39,6 @@ func (s *Service) DeleteUserSession(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, errx.ErrorSessionNotFound):
 			ape.RenderErr(w, problems.NotFound("session for user not found"))
-		case errors.Is(err, errx.ErrorNoPermissions):
-			ape.RenderErr(w, problems.Forbidden("no permissions to delete session"))
 		default:
 			ape.RenderErr(w, problems.InternalError())
 		}

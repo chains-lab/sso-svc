@@ -6,7 +6,7 @@ import (
 
 	"github.com/chains-lab/ape"
 	"github.com/chains-lab/ape/problems"
-	"github.com/chains-lab/gatekit/roles"
+	"github.com/chains-lab/restkit/roles"
 	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/chains-lab/sso-svc/internal/rest/requests"
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/chains-lab/gatekit/auth"
+	"github.com/chains-lab/restkit/auth"
 	"github.com/chains-lab/sso-svc/internal/domain/models"
 	"github.com/google/uuid"
 )
