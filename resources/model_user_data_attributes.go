@@ -12,6 +12,7 @@ package resources
 
 import (
 	"encoding/json"
+	"github.com/google/uuid"
 	"time"
 	"bytes"
 	"fmt"
@@ -30,6 +31,16 @@ type UserDataAttributes struct {
 	EmailVerified bool `json:"email_verified"`
 	// Created At
 	CreatedAt time.Time `json:"created_at"`
+	// City ID
+	CityId *uuid.UUID `json:"city_id,omitempty"`
+	// Admin
+	CityRole *string `json:"city_role,omitempty"`
+	// Company ID
+	CompanyId *uuid.UUID `json:"company_id,omitempty"`
+	// Moder
+	CompanyRole *string `json:"company_role,omitempty"`
+	// Updated At
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type _UserDataAttributes UserDataAttributes
@@ -38,12 +49,13 @@ type _UserDataAttributes UserDataAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewUserDataAttributes(email string, role string, emailVerified bool, createdAt time.Time) *UserDataAttributes {
+func NewUserDataAttributes(email string, role string, emailVerified bool, createdAt time.Time, updatedAt time.Time) *UserDataAttributes {
 	this := UserDataAttributes{}
 	this.Email = email
 	this.Role = role
 	this.EmailVerified = emailVerified
 	this.CreatedAt = createdAt
+	this.UpdatedAt = updatedAt
 	return &this
 }
 
@@ -151,6 +163,158 @@ func (o *UserDataAttributes) SetCreatedAt(v time.Time) {
 	o.CreatedAt = v
 }
 
+// GetCityId returns the CityId field value if set, zero value otherwise.
+func (o *UserDataAttributes) GetCityId() uuid.UUID {
+	if o == nil || IsNil(o.CityId) {
+		var ret uuid.UUID
+		return ret
+	}
+	return *o.CityId
+}
+
+// GetCityIdOk returns a tuple with the CityId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *UserDataAttributes) GetCityIdOk() (*uuid.UUID, bool) {
+	if o == nil || IsNil(o.CityId) {
+		return nil, false
+	}
+	return o.CityId, true
+}
+
+// HasCityId returns a boolean if a field has been set.
+func (o *UserDataAttributes) HasCityId() bool {
+	if o != nil && !IsNil(o.CityId) {
+		return true
+	}
+
+	return false
+}
+
+// SetCityId gets a reference to the given uuid.UUID and assigns it to the CityId field.
+func (o *UserDataAttributes) SetCityId(v uuid.UUID) {
+	o.CityId = &v
+}
+
+// GetCityRole returns the CityRole field value if set, zero value otherwise.
+func (o *UserDataAttributes) GetCityRole() string {
+	if o == nil || IsNil(o.CityRole) {
+		var ret string
+		return ret
+	}
+	return *o.CityRole
+}
+
+// GetCityRoleOk returns a tuple with the CityRole field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *UserDataAttributes) GetCityRoleOk() (*string, bool) {
+	if o == nil || IsNil(o.CityRole) {
+		return nil, false
+	}
+	return o.CityRole, true
+}
+
+// HasCityRole returns a boolean if a field has been set.
+func (o *UserDataAttributes) HasCityRole() bool {
+	if o != nil && !IsNil(o.CityRole) {
+		return true
+	}
+
+	return false
+}
+
+// SetCityRole gets a reference to the given string and assigns it to the CityRole field.
+func (o *UserDataAttributes) SetCityRole(v string) {
+	o.CityRole = &v
+}
+
+// GetCompanyId returns the CompanyId field value if set, zero value otherwise.
+func (o *UserDataAttributes) GetCompanyId() uuid.UUID {
+	if o == nil || IsNil(o.CompanyId) {
+		var ret uuid.UUID
+		return ret
+	}
+	return *o.CompanyId
+}
+
+// GetCompanyIdOk returns a tuple with the CompanyId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *UserDataAttributes) GetCompanyIdOk() (*uuid.UUID, bool) {
+	if o == nil || IsNil(o.CompanyId) {
+		return nil, false
+	}
+	return o.CompanyId, true
+}
+
+// HasCompanyId returns a boolean if a field has been set.
+func (o *UserDataAttributes) HasCompanyId() bool {
+	if o != nil && !IsNil(o.CompanyId) {
+		return true
+	}
+
+	return false
+}
+
+// SetCompanyId gets a reference to the given uuid.UUID and assigns it to the CompanyId field.
+func (o *UserDataAttributes) SetCompanyId(v uuid.UUID) {
+	o.CompanyId = &v
+}
+
+// GetCompanyRole returns the CompanyRole field value if set, zero value otherwise.
+func (o *UserDataAttributes) GetCompanyRole() string {
+	if o == nil || IsNil(o.CompanyRole) {
+		var ret string
+		return ret
+	}
+	return *o.CompanyRole
+}
+
+// GetCompanyRoleOk returns a tuple with the CompanyRole field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *UserDataAttributes) GetCompanyRoleOk() (*string, bool) {
+	if o == nil || IsNil(o.CompanyRole) {
+		return nil, false
+	}
+	return o.CompanyRole, true
+}
+
+// HasCompanyRole returns a boolean if a field has been set.
+func (o *UserDataAttributes) HasCompanyRole() bool {
+	if o != nil && !IsNil(o.CompanyRole) {
+		return true
+	}
+
+	return false
+}
+
+// SetCompanyRole gets a reference to the given string and assigns it to the CompanyRole field.
+func (o *UserDataAttributes) SetCompanyRole(v string) {
+	o.CompanyRole = &v
+}
+
+// GetUpdatedAt returns the UpdatedAt field value
+func (o *UserDataAttributes) GetUpdatedAt() time.Time {
+	if o == nil {
+		var ret time.Time
+		return ret
+	}
+
+	return o.UpdatedAt
+}
+
+// GetUpdatedAtOk returns a tuple with the UpdatedAt field value
+// and a boolean to check if the value has been set.
+func (o *UserDataAttributes) GetUpdatedAtOk() (*time.Time, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.UpdatedAt, true
+}
+
+// SetUpdatedAt sets field value
+func (o *UserDataAttributes) SetUpdatedAt(v time.Time) {
+	o.UpdatedAt = v
+}
+
 func (o UserDataAttributes) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -165,6 +329,19 @@ func (o UserDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize["role"] = o.Role
 	toSerialize["email_verified"] = o.EmailVerified
 	toSerialize["created_at"] = o.CreatedAt
+	if !IsNil(o.CityId) {
+		toSerialize["city_id"] = o.CityId
+	}
+	if !IsNil(o.CityRole) {
+		toSerialize["city_role"] = o.CityRole
+	}
+	if !IsNil(o.CompanyId) {
+		toSerialize["company_id"] = o.CompanyId
+	}
+	if !IsNil(o.CompanyRole) {
+		toSerialize["company_role"] = o.CompanyRole
+	}
+	toSerialize["updated_at"] = o.UpdatedAt
 	return toSerialize, nil
 }
 
@@ -177,6 +354,7 @@ func (o *UserDataAttributes) UnmarshalJSON(data []byte) (err error) {
 		"role",
 		"email_verified",
 		"created_at",
+		"updated_at",
 	}
 
 	allProperties := make(map[string]interface{})

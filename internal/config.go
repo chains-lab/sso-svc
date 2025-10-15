@@ -60,9 +60,6 @@ type JWTConfig struct {
 			TokenLifetime time.Duration `mapstructure:"token_lifetime"`
 		} `mapstructure:"refresh_token"`
 	} `mapstructure:"user"`
-	Service struct {
-		SecretKey string `mapstructure:"secret_key"`
-	} `mapstructure:"service"`
 }
 
 type SwaggerConfig struct {

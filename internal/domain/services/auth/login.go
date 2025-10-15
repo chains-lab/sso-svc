@@ -43,7 +43,7 @@ func (s Service) Login(ctx context.Context, email, pass string) (models.TokensPa
 		return models.TokensPair{}, err
 	}
 
-	pair, err := s.CreateSession(ctx, user.ID, user.Role)
+	pair, err := s.CreateSession(ctx, user)
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to CreateSession session for user %s: %w", user.ID, err),
@@ -71,7 +71,7 @@ func (s Service) LoginByGoogle(ctx context.Context, email string) (models.Tokens
 		)
 	}
 
-	pair, err := s.CreateSession(ctx, user.ID, user.Role)
+	pair, err := s.CreateSession(ctx, user)
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to CreateSession session for user %s: %w", user.ID, err),
@@ -87,39 +87,38 @@ func (s Service) LoginByGoogle(ctx context.Context, email string) (models.Tokens
 
 func (s Service) CreateSession(
 	ctx context.Context,
-	userID uuid.UUID,
-	role string,
+	user models.User,
 ) (models.TokensPair, error) {
 	sessionID := uuid.New()
 
-	access, err := s.jwt.GenerateAccess(userID, sessionID, role)
+	access, err := s.jwt.GenerateAccess(user, sessionID)
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to generate access token for user %s, cause: %w", userID, err))
+			fmt.Errorf("failed to generate access token for user %s, cause: %w", user.ID, err))
 	}
 
-	refresh, err := s.jwt.GenerateRefresh(userID, sessionID, role)
+	refresh, err := s.jwt.GenerateRefresh(user, sessionID)
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to generate refresh token for user %s, cause: %w", userID, err))
+			fmt.Errorf("failed to generate refresh token for user %s, cause: %w", user.ID, err))
 	}
 
 	refreshTokenCrypto, err := s.jwt.EncryptRefresh(refresh)
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to encrypt refresh token for user %s, cause: %w", userID, err),
+			fmt.Errorf("failed to encrypt refresh token for user %s, cause: %w", user.ID, err),
 		)
 	}
 
 	err = s.db.CreateSession(ctx, models.Session{
 		ID:        sessionID,
-		UserID:    userID,
+		UserID:    user.ID,
 		LastUsed:  time.Now().UTC(),
 		CreatedAt: time.Now().UTC(),
 	}, refreshTokenCrypto)
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to CreateSession session for user %s, cause: %w", userID, err),
+			fmt.Errorf("failed to CreateSession session for user %s, cause: %w", user.ID, err),
 		)
 	}
 

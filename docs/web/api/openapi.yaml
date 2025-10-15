@@ -387,16 +387,36 @@ components:
           description: Created At
           format: date-time
           type: string
+        city_id:
+          description: City ID
+          format: uuid
+          type: string
+        city_role:
+          description: Admin
+          type: string
+        company_id:
+          description: Company ID
+          format: uuid
+          type: string
+        company_role:
+          description: Moder
+          type: string
+        updated_at:
+          description: Updated At
+          format: date-time
+          type: string
       required:
       - created_at
       - email
       - email_verified
       - role
+      - updated_at
       type: object
     User_data:
       properties:
         id:
           description: User ID
+          format: uuid
           type: string
         type:
           enum:

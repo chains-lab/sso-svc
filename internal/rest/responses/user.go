@@ -8,12 +8,17 @@ import (
 func User(m models.User) resources.User {
 	resp := resources.User{
 		Data: resources.UserData{
-			Id:   m.ID.String(),
+			Id:   m.ID,
 			Type: resources.UserTepe,
 			Attributes: resources.UserDataAttributes{
-				Email:     m.Email,
-				Role:      m.Role,
-				CreatedAt: m.CreatedAt,
+				Email:       m.Email,
+				Role:        m.SysRole,
+				CreatedAt:   m.CreatedAt,
+				CityId:      m.CityID,
+				CityRole:    m.CityRole,
+				CompanyId:   m.CompanyID,
+				CompanyRole: m.CompanyRole,
+				UpdatedAt:   m.UpdatedAt,
 			},
 		},
 	}

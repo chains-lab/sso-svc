@@ -66,7 +66,7 @@ type AuthSvc interface {
 
 	Login(ctx context.Context, email, password string) (models.TokensPair, error)
 	LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error)
-	CreateSession(ctx context.Context, userID uuid.UUID, role string) (models.TokensPair, error)
+	CreateSession(ctx context.Context, user models.User) (models.TokensPair, error)
 }
 
 type services struct {

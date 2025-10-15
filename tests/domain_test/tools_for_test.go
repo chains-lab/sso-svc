@@ -29,7 +29,7 @@ func CreateSession(s Setup, t *testing.T, userID uuid.UUID) models.Session {
 		t.Fatalf("GetByID: %v", err)
 	}
 
-	tkn, err := s.core.Auth.CreateSession(ctx, u.ID, u.Role)
+	tkn, err := s.core.Auth.CreateSession(ctx, u)
 	if err != nil {
 		t.Fatalf("CreateSession: %v", err)
 	}

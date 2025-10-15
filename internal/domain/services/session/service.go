@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/chains-lab/restkit/auth"
+	"github.com/chains-lab/restkit/token"
 	"github.com/chains-lab/sso-svc/internal/domain/models"
 	"github.com/google/uuid"
 )
@@ -14,19 +14,11 @@ type JWTManager interface {
 	EncryptRefresh(token string) (string, error)
 	DecryptRefresh(encryptedToken string) (string, error)
 
-	ParseRefreshClaims(enc string) (auth.UsersClaims, error)
+	ParseRefreshClaims(enc string) (token.UsersClaims, error)
 
-	GenerateAccess(
-		userID uuid.UUID,
-		sessionID uuid.UUID,
-		idn string,
-	) (string, error)
+	GenerateAccess(user models.User, sessionID uuid.UUID) (string, error)
 
-	GenerateRefresh(
-		userID uuid.UUID,
-		sessionID uuid.UUID,
-		role string,
-	) (string, error)
+	GenerateRefresh(user models.User, sessionID uuid.UUID) (string, error)
 }
 
 type Service struct {

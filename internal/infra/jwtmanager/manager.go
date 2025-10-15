@@ -1,7 +1,6 @@
 package jwtmanager
 
 import (
-	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -10,7 +9,8 @@ import (
 	"io"
 	"time"
 
-	"github.com/chains-lab/restkit/auth"
+	"github.com/chains-lab/restkit/token"
+	"github.com/chains-lab/sso-svc/internal/domain/models"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
@@ -106,35 +106,35 @@ func (m Manager) DecryptRefresh(encryptedToken string) (string, error) {
 	return raw, nil
 }
 
-func (m Manager) ParseRefreshClaims(token string) (auth.UsersClaims, error) {
-	return auth.VerifyUserJWT(context.Background(), token, m.refreshSK)
+func (m Manager) ParseRefreshClaims(tokenStr string) (token.UsersClaims, error) {
+	return token.VerifyUserJWT(tokenStr, m.refreshSK)
 }
 
-func (m Manager) GenerateAccess(
-	userID uuid.UUID,
-	sessionID uuid.UUID,
-	idn string,
-) (string, error) {
-	return auth.GenerateUserJWT(auth.GenerateUserJwtRequest{
-		Issuer:  m.iss,
-		User:    userID,
-		Session: sessionID,
-		Role:    idn,
-		Ttl:     m.accessTTL,
+func (m Manager) GenerateAccess(user models.User, sessionID uuid.UUID) (string, error) {
+	return token.GenerateUserJWT(token.GenerateUserJwtRequest{
+		Issuer:      m.iss,
+		User:        user.ID,
+		Session:     sessionID,
+		Role:        user.SysRole,
+		CityID:      user.CityID,
+		CityRole:    user.CityRole,
+		CompanyID:   user.CompanyID,
+		CompanyRole: user.CompanyRole,
+		Ttl:         m.accessTTL,
 	}, m.accessSK)
 }
 
-func (m Manager) GenerateRefresh(
-	userID uuid.UUID,
-	sessionID uuid.UUID,
-	role string,
-) (string, error) {
-	return auth.GenerateUserJWT(auth.GenerateUserJwtRequest{
-		Issuer:   m.iss,
-		Audience: []string{"sso-svc", "api-gateway"}, //TODO
-		User:     userID,
-		Session:  sessionID,
-		Role:     role,
-		Ttl:      m.refreshTTL,
+func (m Manager) GenerateRefresh(user models.User, sessionID uuid.UUID) (string, error) {
+	return token.GenerateUserJWT(token.GenerateUserJwtRequest{
+		Issuer:      m.iss,
+		Audience:    []string{""}, //TODO
+		User:        user.ID,
+		Session:     sessionID,
+		Role:        user.SysRole,
+		CityID:      user.CityID,
+		CityRole:    user.CityRole,
+		CompanyID:   user.CompanyID,
+		CompanyRole: user.CompanyRole,
+		Ttl:         m.refreshTTL,
 	}, m.refreshSK)
 }

@@ -2,7 +2,9 @@ package rest
 
 import (
 	"context"
+	"errors"
 	"net/http"
+	"time"
 
 	"github.com/chains-lab/logium"
 	"github.com/chains-lab/restkit/roles"
@@ -33,14 +35,12 @@ type Handlers interface {
 }
 
 type Middlewares interface {
-	ServiceGrant(serviceName, skService string) func(http.Handler) http.Handler
 	Auth(userCtxKey interface{}, skUser string) func(http.Handler) http.Handler
 	RoleGrant(userCtxKey interface{}, allowedRoles map[string]bool) func(http.Handler) http.Handler
 }
 
 func Run(ctx context.Context, cfg internal.Config, log logium.Logger, m Middlewares, h Handlers) {
-	svcAuth := m.ServiceGrant(cfg.Service.Name, cfg.JWT.Service.SecretKey)
-	userAuth := m.Auth(meta.UserCtxKey, cfg.JWT.User.AccessToken.SecretKey)
+	auth := m.Auth(meta.UserCtxKey, cfg.JWT.User.AccessToken.SecretKey)
 	sysadmin := m.RoleGrant(meta.UserCtxKey, map[string]bool{
 		roles.Admin: true,
 	})
@@ -48,8 +48,6 @@ func Run(ctx context.Context, cfg internal.Config, log logium.Logger, m Middlewa
 	r := chi.NewRouter()
 
 	r.Route("/sso-svc", func(r chi.Router) {
-		r.Use(svcAuth)
-
 		r.Route("/v1", func(r chi.Router) {
 			r.Post("/register", h.RegisterUser)
 
@@ -64,12 +62,12 @@ func Run(ctx context.Context, cfg internal.Config, log logium.Logger, m Middlewa
 
 			r.Post("/refresh", h.RefreshSession)
 
-			r.With(userAuth).Route("/me", func(r chi.Router) {
-				r.With(userAuth).Get("/", h.GetMyUser)
-				r.With(userAuth).Post("/logout", h.Logout)
-				r.With(userAuth).Post("/password", h.ResetPassword)
+			r.With(auth).Route("/me", func(r chi.Router) {
+				r.With(auth).Get("/", h.GetMyUser)
+				r.With(auth).Post("/logout", h.Logout)
+				r.With(auth).Post("/password", h.ResetPassword)
 
-				r.With(userAuth).Route("/sessions", func(r chi.Router) {
+				r.With(auth).Route("/sessions", func(r chi.Router) {
 					r.Get("/", h.GetMySessions)
 					r.Delete("/", h.DeleteMySessions)
 
@@ -81,7 +79,7 @@ func Run(ctx context.Context, cfg internal.Config, log logium.Logger, m Middlewa
 			})
 
 			r.Route("/admin", func(r chi.Router) {
-				r.Use(userAuth)
+				r.Use(auth)
 				r.Use(sysadmin)
 
 				r.Post("/", h.RegisterAdmin)
@@ -103,9 +101,40 @@ func Run(ctx context.Context, cfg internal.Config, log logium.Logger, m Middlewa
 		})
 	})
 
+	srv := &http.Server{
+		Addr:              cfg.Rest.Port,
+		Handler:           r,
+		ReadTimeout:       cfg.Rest.Timeouts.Read,
+		ReadHeaderTimeout: cfg.Rest.Timeouts.ReadHeader,
+		WriteTimeout:      cfg.Rest.Timeouts.Write,
+		IdleTimeout:       cfg.Rest.Timeouts.Idle,
+	}
+
 	log.Infof("starting REST service on %s", cfg.Rest.Port)
 
-	<-ctx.Done()
+	errCh := make(chan error, 1)
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			errCh <- err
+		} else {
+			errCh <- nil
+		}
+	}()
 
-	log.Info("shutting down REST service")
+	select {
+	case <-ctx.Done():
+		log.Info("shutting down REST service...")
+	case err := <-errCh:
+		if err != nil {
+			log.Errorf("REST server error: %v", err)
+		}
+	}
+
+	shCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shCtx); err != nil {
+		log.Errorf("REST shutdown error: %v", err)
+	} else {
+		log.Info("REST server stopped")
+	}
 }

@@ -7,9 +7,15 @@ import (
 )
 
 type User struct {
-	ID        uuid.UUID `json:"id"`
-	Role      string    `json:"role"`
-	Status    string    `json:"status"`
+	ID      uuid.UUID `json:"id"`
+	SysRole string    `json:"role"`
+	Status  string    `json:"status"`
+
+	CityID      *uuid.UUID `json:"city_id,omitempty"`
+	CityRole    *string    `json:"city_role,omitempty"`
+	CompanyID   *uuid.UUID `json:"company_id,omitempty"`
+	CompanyRole *string    `json:"company_role,omitempty"`
+
 	Email     string    `json:"email"`
 	EmailVer  bool      `json:"email_verified"`
 	UpdatedAt time.Time `json:"updated_at"`

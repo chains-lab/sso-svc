@@ -25,6 +25,19 @@ func (s Service) Refresh(ctx context.Context, oldRefreshToken string) (models.To
 		)
 	}
 
+	user, err := s.db.GetUserByID(ctx, userID)
+	if err != nil {
+		return models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to get user with id: %s, cause: %w", userID, err),
+		)
+	}
+
+	if user.IsNil() {
+		return models.TokensPair{}, errx.ErrorUserNotFound.Raise(
+			fmt.Errorf("user with id %s not found", userID),
+		)
+	}
+
 	token, err := s.db.GetSessionToken(ctx, tokenData.SessionID)
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorInternal.Raise(
@@ -54,7 +67,7 @@ func (s Service) Refresh(ctx context.Context, oldRefreshToken string) (models.To
 		)
 	}
 
-	refresh, err = s.jwt.GenerateRefresh(userID, tokenData.SessionID, tokenData.Role)
+	refresh, err = s.jwt.GenerateRefresh(user, tokenData.SessionID)
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to generate refresh token for user %s, cause: %w", userID, err),
@@ -68,7 +81,7 @@ func (s Service) Refresh(ctx context.Context, oldRefreshToken string) (models.To
 		)
 	}
 
-	access, err := s.jwt.GenerateAccess(userID, tokenData.SessionID, tokenData.Role)
+	access, err := s.jwt.GenerateAccess(user, tokenData.SessionID)
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to generate access token for user %s, cause: %w", userID, err),

@@ -13,7 +13,7 @@ type SessionSvc interface {
 	Delete(ctx context.Context, sessionID uuid.UUID) error
 	DeleteOneForUser(ctx context.Context, userID, sessionID uuid.UUID) error
 	DeleteAllForUser(ctx context.Context, userID uuid.UUID) error
-	
+
 	Refresh(ctx context.Context, oldRefreshToken string) (models.TokensPair, error)
 
 	Get(ctx context.Context, sessionID uuid.UUID) (models.Session, error)
@@ -51,7 +51,6 @@ type AuthSvc interface {
 
 	Login(ctx context.Context, email, password string) (models.TokensPair, error)
 	LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error)
-	CreateSession(ctx context.Context, userID uuid.UUID, role string) (models.TokensPair, error)
 }
 
 type domain struct {

@@ -18,6 +18,11 @@ CREATE TABLE users (
     role                user_role   DEFAULT 'user'   NOT NULL,
     status              user_status DEFAULT 'active' NOT NULL,
 
+    city_id      UUID,
+    city_role    TEXT,
+    company_id   UUID,
+    company_role TEXT,
+
     password_hash       TEXT        NOT NULL,
     password_updated_at TIMESTAMP   NOT NULL DEFAULT now(),
 
@@ -30,8 +35,6 @@ CREATE TABLE users (
 
 -- +migrate Down
 DROP TABLE IF EXISTS users CASCADE;
--- DROP TABLE IF EXISTS users_password CASCADE;
--- DROP TABLE IF EXISTS users_email CASCADE;
 
 DROP TYPE IF EXISTS user_role;
 DROP TYPE IF EXISTS user_status;

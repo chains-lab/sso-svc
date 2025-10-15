@@ -46,9 +46,9 @@ func (s Service) Register(
 	now := time.Now().UTC()
 
 	user := models.User{
-		ID:     id,
-		Role:   role,
-		Status: enum.UserStatusActive,
+		ID:      id,
+		SysRole: role,
+		Status:  enum.UserStatusActive,
 
 		Email:    email,
 		EmailVer: false,

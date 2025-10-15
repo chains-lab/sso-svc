@@ -265,7 +265,7 @@ func (c *APIClient) callAPI(request *http.Request) (*http.Response, error) {
 	return resp, err
 }
 
-// Allow modification of underlying comfig for alternate implementations and testing
+// Allow modification of underlying config for alternate implementations and testing
 // Caution: modifying the configuration while live can cause data races and potentially unwanted behavior
 func (c *APIClient) GetConfig() *Configuration {
 	return c.cfg

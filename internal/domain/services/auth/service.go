@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/chains-lab/restkit/auth"
+	"github.com/chains-lab/restkit/token"
 	"github.com/chains-lab/sso-svc/internal/domain/models"
 	"github.com/google/uuid"
 )
@@ -14,18 +14,14 @@ type JWTManager interface {
 	EncryptRefresh(token string) (string, error)
 	DecryptRefresh(encryptedToken string) (string, error)
 
-	ParseRefreshClaims(enc string) (auth.UsersClaims, error)
+	ParseRefreshClaims(enc string) (token.UsersClaims, error)
 
 	GenerateAccess(
-		userID uuid.UUID,
-		sessionID uuid.UUID,
-		idn string,
+		user models.User, sessionID uuid.UUID,
 	) (string, error)
 
 	GenerateRefresh(
-		userID uuid.UUID,
-		sessionID uuid.UUID,
-		role string,
+		user models.User, sessionID uuid.UUID,
 	) (string, error)
 }
 
@@ -57,6 +53,22 @@ type database interface {
 
 	UpdateSessionToken(ctx context.Context, sessionID uuid.UUID, token string, updatedAt time.Time) error
 	UpdateUserPassword(ctx context.Context, userID uuid.UUID, passwordHash string, updatedAt time.Time) error
+
+	UpdateUserCity(
+		ctx context.Context,
+		userID uuid.UUID,
+		cityID *uuid.UUID,
+		cityRole *string,
+		updatedAt time.Time,
+	) error
+
+	UpdateUserCompany(
+		ctx context.Context,
+		userID uuid.UUID,
+		companyID *uuid.UUID,
+		companyRole *string,
+		updatedAt time.Time,
+	) error
 
 	DeleteAllSessionsForUser(ctx context.Context, userID uuid.UUID) error
 }

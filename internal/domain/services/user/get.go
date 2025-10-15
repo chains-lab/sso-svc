@@ -25,7 +25,7 @@ func (s Service) GetByID(ctx context.Context, ID uuid.UUID) (models.User, error)
 
 	return models.User{
 		ID:        user.ID,
-		Role:      user.Role,
+		SysRole:   user.SysRole,
 		Status:    user.Status,
 		Email:     user.Email,
 		EmailVer:  user.EmailVer,
@@ -49,7 +49,7 @@ func (s Service) GetByEmail(ctx context.Context, email string) (models.User, err
 
 	return models.User{
 		ID:        user.ID,
-		Role:      user.Role,
+		SysRole:   user.SysRole,
 		Status:    user.Status,
 		Email:     user.Email,
 		EmailVer:  user.EmailVer,
