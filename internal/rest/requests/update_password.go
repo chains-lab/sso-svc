@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/chains-lab/sso-svc/internal/infra/password"
 	"github.com/chains-lab/sso-svc/resources"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
@@ -25,9 +24,10 @@ func UpdatePassword(r *http.Request) (req resources.UpdatePassword, err error) {
 		errs["data/attributes/confirm_password"] = fmt.Errorf("must match password")
 	}
 
-	if err = password.ReliabilityCheck(req.Data.Attributes.NewPassword); err != nil {
-		errs["data/attributes/new_password"] = err
-	}
+	//TODO
+	//if err = passmanager.New().ReliabilityCheck(req.Data.Attributes.NewPassword); err != nil {
+	//	errs["data/attributes/new_password"] = err
+	//}
 
 	return req, errs.Filter()
 }

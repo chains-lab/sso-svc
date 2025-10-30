@@ -8,7 +8,6 @@ import (
 
 	"github.com/chains-lab/sso-svc/internal/domain/enum"
 	"github.com/chains-lab/sso-svc/internal/domain/errx"
-	"github.com/chains-lab/sso-svc/internal/infra/password"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -62,7 +61,7 @@ func (s Service) UpdatePassword(
 		)
 	}
 
-	err = password.ReliabilityCheck(newPassword)
+	err = s.pass.ReliabilityCheck(newPassword)
 	if err != nil {
 		return errx.ErrorPasswordIsInappropriate.Raise(err)
 	}

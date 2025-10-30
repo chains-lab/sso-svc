@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/chains-lab/restkit/roles"
-	"github.com/chains-lab/sso-svc/internal/infra/password"
 	"github.com/chains-lab/sso-svc/resources"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
@@ -39,9 +38,10 @@ func RegisterAdmin(r *http.Request) (req resources.RegisterAdmin, err error) {
 		errs["data/attributes/confirm_password"] = fmt.Errorf("must match password")
 	}
 
-	if err = password.ReliabilityCheck(req.Data.Attributes.Password); err != nil {
-		errs["data/attributes/password"] = err
-	}
+	//TODO
+	//if err = passmanager.New().ReliabilityCheck(req.Data.Attributes.Password); err != nil {
+	//	errs["data/attributes/password"] = err
+	//}
 
 	return req, errs.Filter()
 }

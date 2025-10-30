@@ -9,7 +9,6 @@ import (
 	"github.com/chains-lab/sso-svc/internal/domain/enum"
 	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/chains-lab/sso-svc/internal/domain/models"
-	"github.com/chains-lab/sso-svc/internal/infra/password"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -37,7 +36,7 @@ func (s Service) Register(
 		)
 	}
 
-	err = password.ReliabilityCheck(pass)
+	err = s.pass.ReliabilityCheck(pass)
 	if err != nil {
 		return models.User{}, errx.ErrorPasswordIsInappropriate.Raise(err)
 	}

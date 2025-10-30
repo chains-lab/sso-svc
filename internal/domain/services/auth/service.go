@@ -25,15 +25,22 @@ type JWTManager interface {
 	) (string, error)
 }
 
-type Service struct {
-	jwt JWTManager
-	db  database
+type passwordManager interface {
+	ReliabilityCheck(password string) error
+	CheckPasswordMatch(password, hash string) error
 }
 
-func New(db database, jwt JWTManager) Service {
+type Service struct {
+	jwt  JWTManager
+	db   database
+	pass passwordManager
+}
+
+func New(db database, jwt JWTManager, pass passwordManager) Service {
 	return Service{
-		jwt: jwt,
-		db:  db,
+		jwt:  jwt,
+		db:   db,
+		pass: pass,
 	}
 }
 

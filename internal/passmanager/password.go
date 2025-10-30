@@ -1,4 +1,4 @@
-package password
+package passmanager
 
 import (
 	"errors"
@@ -10,7 +10,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func ReliabilityCheck(password string) error {
+type Service struct{}
+
+func New() Service {
+	return Service{}
+}
+
+func (s Service) ReliabilityCheck(password string) error {
 	if len(password) < 8 || len(password) > 32 {
 		return fmt.Errorf("password must be between 8 and 32 characters")
 	}
@@ -52,9 +58,7 @@ func ReliabilityCheck(password string) error {
 	return nil
 }
 
-var InvalidCredentialsError = fmt.Errorf("invalid credentials")
-
-func CheckPasswordMatch(password, hash string) error {
+func (s Service) CheckPasswordMatch(password, hash string) error {
 	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)); err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			return errx.ErrorInvalidLogin.Raise(

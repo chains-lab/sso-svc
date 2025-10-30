@@ -34,8 +34,7 @@ jwt:
       token_lifetime: 604800
 
 kafka:
-  brokers:
-    - "re-news-kafka:29092"
+  broker: "kafka-setup:19092"
 
 swagger:
   enabled: true

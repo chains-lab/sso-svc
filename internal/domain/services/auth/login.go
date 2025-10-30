@@ -8,7 +8,6 @@ import (
 	"github.com/chains-lab/sso-svc/internal/domain/enum"
 	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/chains-lab/sso-svc/internal/domain/models"
-	"github.com/chains-lab/sso-svc/internal/infra/password"
 	"github.com/google/uuid"
 )
 
@@ -39,7 +38,7 @@ func (s Service) Login(ctx context.Context, email, pass string) (models.TokensPa
 		)
 	}
 
-	if err = password.CheckPasswordMatch(pass, passData.Hash); err != nil {
+	if err = s.pass.CheckPasswordMatch(pass, passData.Hash); err != nil {
 		return models.TokensPair{}, err
 	}
 

@@ -14,7 +14,7 @@ import (
 	"github.com/chains-lab/sso-svc/internal/domain/services/auth"
 	"github.com/chains-lab/sso-svc/internal/domain/services/session"
 	"github.com/chains-lab/sso-svc/internal/domain/services/user"
-	"github.com/chains-lab/sso-svc/internal/infra/jwtmanager"
+	"github.com/chains-lab/sso-svc/internal/jwtmanager"
 	"github.com/google/uuid"
 )
 
