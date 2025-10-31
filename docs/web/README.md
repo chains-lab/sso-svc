@@ -100,7 +100,6 @@ Class | Method | HTTP request | Description
  - [RegisterAdminDataAttributes](docs/RegisterAdminDataAttributes.md)
  - [RegisterUser](docs/RegisterUser.md)
  - [RegisterUserData](docs/RegisterUserData.md)
- - [RegisterUserDataAttributes](docs/RegisterUserDataAttributes.md)
  - [TokensPair](docs/TokensPair.md)
  - [TokensPairData](docs/TokensPairData.md)
  - [TokensPairDataAttributes](docs/TokensPairDataAttributes.md)

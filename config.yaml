@@ -15,7 +15,7 @@ log:
 
 database:
   sql:
-    url: "postgresql://postgres:postgres@localhost:7777/postgres?sslmode=disable"
+    url: "postgresql://postgres:postgres@localhost:7001/postgres?sslmode=disable"
 
 oauth:
   google:
@@ -34,7 +34,7 @@ jwt:
       token_lifetime: 604800
 
 kafka:
-  broker: "kafka-setup:19092"
+  broker: "localhost:19092"
 
 swagger:
   enabled: true

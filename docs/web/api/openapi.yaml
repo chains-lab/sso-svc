@@ -188,29 +188,6 @@ components:
       - attributes
       - type
       type: object
-    RegisterUser_data_attributes:
-      properties:
-        email:
-          description: The user's email address.
-          example: example1312@gmail.com
-          format: email
-          type: string
-        password:
-          description: The user's password.
-          example: StrongP@ssw0rd!
-          format: password
-          type: string
-        confirm_password:
-          description: Confirmation of the user's password. Must match the password
-            field.
-          example: StrongP@ssw0rd!
-          format: password
-          type: string
-      required:
-      - confirm_password
-      - email
-      - password
-      type: object
     RegisterUser_data:
       properties:
         type:
@@ -218,7 +195,7 @@ components:
           - register_user
           type: string
         attributes:
-          $ref: '#/components/schemas/RegisterUser_data_attributes'
+          $ref: '#/components/schemas/Login_data_attributes'
       required:
       - attributes
       - type
@@ -235,12 +212,6 @@ components:
           example: StrongP@ssw0rd!
           format: password
           type: string
-        confirm_password:
-          description: Confirmation of the user's password. Must match the password
-            field.
-          example: StrongP@ssw0rd!
-          format: password
-          type: string
         role:
           description: The role assigned to the registering user.
           enum:
@@ -249,7 +220,6 @@ components:
           example: admin
           type: string
       required:
-      - confirm_password
       - email
       - password
       - role

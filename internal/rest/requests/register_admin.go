@@ -34,10 +34,6 @@ func RegisterAdmin(r *http.Request) (req resources.RegisterAdmin, err error) {
 			req.Data.Attributes.Role, validation.Required, validation.In(roles.GetAllRoles())),
 	}
 
-	if req.Data.Attributes.Password != req.Data.Attributes.ConfirmPassword {
-		errs["data/attributes/confirm_password"] = fmt.Errorf("must match password")
-	}
-
 	//TODO
 	//if err = passmanager.New().ReliabilityCheck(req.Data.Attributes.Password); err != nil {
 	//	errs["data/attributes/password"] = err

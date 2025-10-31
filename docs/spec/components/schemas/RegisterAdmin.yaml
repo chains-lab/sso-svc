@@ -16,7 +16,6 @@ properties:
         required:
           - email
           - password
-          - confirm_password
           - role
         properties:
           email:
@@ -28,11 +27,6 @@ properties:
             type: string
             format: password
             description: The user's password.
-            example: StrongP@ssw0rd!
-          confirm_password:
-            type: string
-            format: password
-            description: Confirmation of the user's password. Must match the password field.
             example: StrongP@ssw0rd!
           role:
             type: string

@@ -25,8 +25,6 @@ type RegisterAdminDataAttributes struct {
 	Email string `json:"email"`
 	// The user's password.
 	Password string `json:"password"`
-	// Confirmation of the user's password. Must match the password field.
-	ConfirmPassword string `json:"confirm_password"`
 	// The role assigned to the registering user.
 	Role string `json:"role"`
 }
@@ -37,11 +35,10 @@ type _RegisterAdminDataAttributes RegisterAdminDataAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewRegisterAdminDataAttributes(email string, password string, confirmPassword string, role string) *RegisterAdminDataAttributes {
+func NewRegisterAdminDataAttributes(email string, password string, role string) *RegisterAdminDataAttributes {
 	this := RegisterAdminDataAttributes{}
 	this.Email = email
 	this.Password = password
-	this.ConfirmPassword = confirmPassword
 	this.Role = role
 	return &this
 }
@@ -102,30 +99,6 @@ func (o *RegisterAdminDataAttributes) SetPassword(v string) {
 	o.Password = v
 }
 
-// GetConfirmPassword returns the ConfirmPassword field value
-func (o *RegisterAdminDataAttributes) GetConfirmPassword() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.ConfirmPassword
-}
-
-// GetConfirmPasswordOk returns a tuple with the ConfirmPassword field value
-// and a boolean to check if the value has been set.
-func (o *RegisterAdminDataAttributes) GetConfirmPasswordOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.ConfirmPassword, true
-}
-
-// SetConfirmPassword sets field value
-func (o *RegisterAdminDataAttributes) SetConfirmPassword(v string) {
-	o.ConfirmPassword = v
-}
-
 // GetRole returns the Role field value
 func (o *RegisterAdminDataAttributes) GetRole() string {
 	if o == nil {
@@ -162,7 +135,6 @@ func (o RegisterAdminDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["email"] = o.Email
 	toSerialize["password"] = o.Password
-	toSerialize["confirm_password"] = o.ConfirmPassword
 	toSerialize["role"] = o.Role
 	return toSerialize, nil
 }
@@ -174,7 +146,6 @@ func (o *RegisterAdminDataAttributes) UnmarshalJSON(data []byte) (err error) {
 	requiredProperties := []string{
 		"email",
 		"password",
-		"confirm_password",
 		"role",
 	}
 

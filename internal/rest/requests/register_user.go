@@ -2,7 +2,6 @@ package requests
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/chains-lab/sso-svc/resources"
@@ -22,10 +21,6 @@ func RegisterUser(r *http.Request) (req resources.RegisterUser, err error) {
 
 		"data/attributes/email": validation.Validate(
 			req.Data.Attributes.Email, validation.Required, validation.Length(5, 255), is.Email),
-	}
-
-	if req.Data.Attributes.Password != req.Data.Attributes.ConfirmPassword {
-		errs["data/attributes/confirm_password"] = fmt.Errorf("must match password")
 	}
 
 	//TODO

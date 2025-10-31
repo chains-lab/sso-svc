@@ -28,7 +28,7 @@ func (s *Service) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		roles.User,
 	)
 	if err != nil {
-		s.log.WithError(err).Errorf("failed to register admin")
+		s.log.WithError(err).Errorf("failed to register user")
 		switch {
 		case errors.Is(err, errx.ErrorUserAlreadyExists):
 			ape.RenderErr(w, problems.Conflict("user with this email already exists"))

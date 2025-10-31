@@ -37,7 +37,7 @@ func (s *Service) RegisterAdmin(w http.ResponseWriter, r *http.Request) {
 		req.Data.Attributes.Role,
 	)
 	if err != nil {
-		s.log.WithError(err).Errorf("failed to register admin")
+		s.log.WithError(err).Errorf("failed to register by admin")
 		switch {
 		case errors.Is(err, errx.ErrorInitiatorIsBlocked):
 			ape.RenderErr(w, problems.Forbidden("initiator is blocked"))

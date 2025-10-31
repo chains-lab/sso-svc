@@ -22,7 +22,6 @@ docs/RegisterAdminData.md
 docs/RegisterAdminDataAttributes.md
 docs/RegisterUser.md
 docs/RegisterUserData.md
-docs/RegisterUserDataAttributes.md
 docs/TestAPI.md
 docs/TokensPair.md
 docs/TokensPairData.md
@@ -57,7 +56,6 @@ model_register_admin_data.go
 model_register_admin_data_attributes.go
 model_register_user.go
 model_register_user_data.go
-model_register_user_data_attributes.go
 model_tokens_pair.go
 model_tokens_pair_data.go
 model_tokens_pair_data_attributes.go
