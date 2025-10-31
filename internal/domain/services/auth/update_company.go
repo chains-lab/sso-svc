@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s Service) UpdateCompany(
+func (s Service) UpdateEmployeeCompany(
 	ctx context.Context,
 	userID uuid.UUID,
 	companyID *uuid.UUID,

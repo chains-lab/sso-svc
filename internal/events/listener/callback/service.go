@@ -9,17 +9,18 @@ import (
 )
 
 type AuthSvc interface {
-	UpdateCompany(
+	UpdateEmployeeCompany(
 		ctx context.Context,
 		userID uuid.UUID,
 		companyID *uuid.UUID,
 		role *string,
 	) error
 
-	UpdatePassword(
+	UpdateCityAdmin(
 		ctx context.Context,
 		userID uuid.UUID,
-		oldPassword, newPassword string,
+		cityID *uuid.UUID,
+		role *string,
 	) error
 }
 

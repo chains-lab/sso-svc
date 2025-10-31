@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s Service) UpdateCity(
+func (s Service) UpdateCityAdmin(
 	ctx context.Context,
 	userID uuid.UUID,
 	cityID *uuid.UUID,

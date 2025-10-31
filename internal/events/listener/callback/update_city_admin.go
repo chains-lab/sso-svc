@@ -19,7 +19,7 @@ func (s Service) UpdateCityAdmin(ctx context.Context, event kafka.Message) error
 	}
 
 	role := env.Data.Role
-	if err := s.auth.UpdateCompany(ctx, env.Data.UserID, nil, &role); err != nil {
+	if err = s.auth.UpdateEmployeeCompany(ctx, env.Data.UserID, nil, &role); err != nil {
 		return err
 	}
 
