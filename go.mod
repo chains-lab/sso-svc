@@ -9,10 +9,9 @@ require (
 	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/chains-lab/ape v0.4.14
 	github.com/chains-lab/logium v0.1.2
-	github.com/chains-lab/restkit v0.3.0
+	github.com/chains-lab/restkit v0.4.0
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
-	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
 	github.com/pkg/errors v0.9.1

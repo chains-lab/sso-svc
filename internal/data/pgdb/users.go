@@ -18,11 +18,6 @@ type User struct {
 	Role   string    `db:"role"`
 	Status string    `db:"status"`
 
-	CityID      uuid.NullUUID  `db:"city_id,omitempty"`
-	CityRole    sql.NullString `db:"city_role,omitempty"`
-	CompanyID   uuid.NullUUID  `db:"company_id,omitempty"`
-	CompanyRole sql.NullString `db:"company_role,omitempty"`
-
 	PasswordHash string    `db:"password_hash"`
 	PasswordUpAt time.Time `db:"password_updated_at"`
 
@@ -63,11 +58,6 @@ func (q UsersQ) Insert(ctx context.Context, input User) error {
 		"id":     input.ID,
 		"role":   input.Role,
 		"status": input.Status,
-
-		"city_id":      input.CityID,
-		"city_role":    input.CityRole,
-		"company_id":   input.CompanyID,
-		"company_role": input.CompanyRole,
 
 		"password_hash":       input.PasswordHash,
 		"password_updated_at": input.PasswordUpAt,
@@ -131,20 +121,6 @@ func (q UsersQ) UpdateEmail(email string) UsersQ {
 	return q
 }
 
-func (q UsersQ) UpdateCity(cityID *uuid.UUID, cityRole *string) UsersQ {
-	q.updater = q.updater.
-		Set("city_id", cityID).
-		Set("city_role", cityRole)
-	return q
-}
-
-func (q UsersQ) UpdateCompany(companyID *uuid.UUID, companyRole *string) UsersQ {
-	q.updater = q.updater.
-		Set("company_id", companyID).
-		Set("company_role", companyRole)
-	return q
-}
-
 func (q UsersQ) Get(ctx context.Context) (User, error) {
 	query, args, err := q.selector.Limit(1).ToSql()
 	if err != nil {
@@ -163,10 +139,6 @@ func (q UsersQ) Get(ctx context.Context) (User, error) {
 		&acc.ID,
 		&acc.Role,
 		&acc.Status,
-		&acc.CityID,
-		&acc.CityRole,
-		&acc.CompanyID,
-		&acc.CompanyRole,
 		&acc.PasswordHash,
 		&acc.PasswordUpAt,
 		&acc.Email,
@@ -210,10 +182,6 @@ func (q UsersQ) Select(ctx context.Context) ([]User, error) {
 			&acc.ID,
 			&acc.Role,
 			&acc.Status,
-			&acc.CityID,
-			&acc.CityRole,
-			&acc.CompanyID,
-			&acc.CompanyRole,
 			&acc.PasswordHash,
 			&acc.PasswordUpAt,
 			&acc.Email,

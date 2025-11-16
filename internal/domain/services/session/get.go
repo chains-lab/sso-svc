@@ -16,8 +16,7 @@ func (s Service) Get(ctx context.Context, sessionID uuid.UUID) (models.Session, 
 			fmt.Errorf("failed to get session with id: %s cause: %w", sessionID, err),
 		)
 	}
-
-	if session == (models.Session{}) {
+	if session.IsNil() {
 		return models.Session{}, errx.ErrorSessionNotFound.Raise(
 			fmt.Errorf("session with id: %s not found", sessionID),
 		)

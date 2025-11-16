@@ -42,18 +42,7 @@ func (s Service) Login(ctx context.Context, email, pass string) (models.TokensPa
 		return models.TokensPair{}, err
 	}
 
-	pair, err := s.CreateSession(ctx, user)
-	if err != nil {
-		return models.TokensPair{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to CreateSession session for user %s: %w", user.ID, err),
-		)
-	}
-
-	return models.TokensPair{
-		SessionID: pair.SessionID,
-		Refresh:   pair.Refresh,
-		Access:    pair.Access,
-	}, nil
+	return s.CreateSession(ctx, user)
 }
 
 func (s Service) LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error) {
@@ -70,18 +59,7 @@ func (s Service) LoginByGoogle(ctx context.Context, email string) (models.Tokens
 		)
 	}
 
-	pair, err := s.CreateSession(ctx, user)
-	if err != nil {
-		return models.TokensPair{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to CreateSession session for user %s: %w", user.ID, err),
-		)
-	}
-
-	return models.TokensPair{
-		SessionID: pair.SessionID,
-		Refresh:   pair.Refresh,
-		Access:    pair.Access,
-	}, nil
+	return s.CreateSession(ctx, user)
 }
 
 func (s Service) CreateSession(
@@ -118,6 +96,13 @@ func (s Service) CreateSession(
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to CreateSession session for user %s, cause: %w", user.ID, err),
+		)
+	}
+
+	err = s.event.PublishUserLogin(ctx, user)
+	if err != nil {
+		return models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to publish user login event for user %s: %w", user.ID, err),
 		)
 	}
 

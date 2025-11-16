@@ -12,14 +12,10 @@ func (s Service) EncryptAccess(token string) (string, error) {
 
 func (s Service) GenerateAccess(user models.User, sessionID uuid.UUID) (string, error) {
 	return token.GenerateUserJWT(token.GenerateUserJwtRequest{
-		Issuer:      s.iss,
-		User:        user.ID,
-		Session:     sessionID,
-		Role:        user.SysRole,
-		CityID:      user.CityID,
-		CityRole:    user.CityRole,
-		CompanyID:   user.CompanyID,
-		CompanyRole: user.CompanyRole,
-		Ttl:         s.accessTTL,
+		Issuer:    s.iss,
+		UserID:    user.ID,
+		SessionID: sessionID,
+		Role:      user.SysRole,
+		Ttl:       s.accessTTL,
 	}, s.accessSK)
 }

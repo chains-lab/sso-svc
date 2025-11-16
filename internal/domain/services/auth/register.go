@@ -29,7 +29,7 @@ func (s Service) Register(
 		)
 	}
 
-	err = roles.ParseRole(role)
+	err = roles.ValidateUserSystemRole(role)
 	if err != nil {
 		return models.User{}, errx.ErrorRoleNotSupported.Raise(
 			fmt.Errorf("parsing role for new user with email '%s', cause: %w", email, err),
@@ -75,6 +75,13 @@ func (s Service) Register(
 		)
 	}
 
+	err = s.event.PublishUserCreated(ctx, user)
+	if err != nil {
+		return models.User{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to publish user created event for user '%s', cause: %w", id, err),
+		)
+	}
+
 	return user, nil
 }
 
@@ -105,6 +112,13 @@ func (s Service) RegisterAdmin(
 	res, err := s.Register(ctx, email, pass, role)
 	if err != nil {
 		return models.User{}, err
+	}
+
+	err = s.event.PublishUserCreated(ctx, res)
+	if err != nil {
+		return models.User{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to publish admin created event for user '%s', cause: %w", res.ID, err),
+		)
 	}
 
 	return res, nil

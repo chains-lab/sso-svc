@@ -11,8 +11,7 @@ import (
 	"github.com/chains-lab/sso-svc/internal/domain/services/auth"
 	"github.com/chains-lab/sso-svc/internal/domain/services/session"
 	"github.com/chains-lab/sso-svc/internal/domain/services/user"
-	"github.com/chains-lab/sso-svc/internal/events/listener"
-	"github.com/chains-lab/sso-svc/internal/events/listener/callback"
+	"github.com/chains-lab/sso-svc/internal/events/publisher"
 	"github.com/chains-lab/sso-svc/internal/jwtmanager"
 	"github.com/chains-lab/sso-svc/internal/passmanager"
 	"github.com/chains-lab/sso-svc/internal/rest"
@@ -45,18 +44,14 @@ func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, 
 	})
 	passManager := passmanager.New()
 
-	//eventPublisher := publisher.New(cfg.Kafka.Broker)
+	eventPublisher := publisher.New(cfg.Kafka.Broker)
 
 	userSvc := user.New(database)
 	sessionSvc := session.New(database, jwtTokenManager)
-	authSvc := auth.New(database, jwtTokenManager, passManager)
+	authSvc := auth.New(database, jwtTokenManager, passManager, eventPublisher)
 
 	ctrl := controller.New(log, cfg.GoogleOAuth(), userSvc, sessionSvc, authSvc)
 	mdlv := middlewares.New(log)
 
-	eventCallbacks := callback.NewService(authSvc)
-
 	run(func() { rest.Run(ctx, cfg, log, mdlv, ctrl) })
-
-	run(func() { listener.Run(ctx, log, cfg.Kafka.Broker, eventCallbacks) })
 }

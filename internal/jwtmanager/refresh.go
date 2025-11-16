@@ -10,16 +10,10 @@ import (
 
 func (s Service) GenerateRefresh(user models.User, sessionID uuid.UUID) (string, error) {
 	return token.GenerateUserJWT(token.GenerateUserJwtRequest{
-		Issuer:      s.iss,
-		Audience:    []string{""}, //TODO
-		User:        user.ID,
-		Session:     sessionID,
-		Role:        user.SysRole,
-		CityID:      user.CityID,
-		CityRole:    user.CityRole,
-		CompanyID:   user.CompanyID,
-		CompanyRole: user.CompanyRole,
-		Ttl:         s.refreshTTL,
+		Issuer:   s.iss,
+		Audience: []string{""}, //TODO: need be om;y api-gateway while we have dev stage this field must be empty
+		Role:     user.SysRole,
+		Ttl:      s.refreshTTL,
 	}, s.refreshSK)
 }
 

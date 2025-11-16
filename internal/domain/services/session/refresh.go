@@ -31,7 +31,6 @@ func (s Service) Refresh(ctx context.Context, oldRefreshToken string) (models.To
 			fmt.Errorf("failed to get user with id: %s, cause: %w", userID, err),
 		)
 	}
-
 	if user.IsNil() {
 		return models.TokensPair{}, errx.ErrorUserNotFound.Raise(
 			fmt.Errorf("user with id %s not found", userID),

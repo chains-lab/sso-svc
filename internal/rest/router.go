@@ -42,7 +42,7 @@ type Middlewares interface {
 func Run(ctx context.Context, cfg internal.Config, log logium.Logger, m Middlewares, h Handlers) {
 	auth := m.Auth(meta.UserCtxKey, cfg.JWT.User.AccessToken.SecretKey)
 	sysadmin := m.RoleGrant(meta.UserCtxKey, map[string]bool{
-		roles.Admin: true,
+		roles.SystemAdmin: true,
 	})
 
 	r := chi.NewRouter()

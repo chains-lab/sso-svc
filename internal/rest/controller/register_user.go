@@ -25,7 +25,7 @@ func (s *Service) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	_, err = s.domain.Auth.Register(r.Context(),
 		req.Data.Attributes.Email,
 		req.Data.Attributes.Password,
-		roles.User,
+		roles.SystemUser,
 	)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to register user")

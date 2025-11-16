@@ -19,56 +19,56 @@ components:
     Login:
       properties:
         data:
-          $ref: '#/components/schemas/Login_data'
+          $ref: "#/components/schemas/Login_data"
       required:
       - data
       type: object
     RegisterUser:
       properties:
         data:
-          $ref: '#/components/schemas/RegisterUser_data'
+          $ref: "#/components/schemas/RegisterUser_data"
       required:
       - data
       type: object
     RegisterAdmin:
       properties:
         data:
-          $ref: '#/components/schemas/RegisterAdmin_data'
+          $ref: "#/components/schemas/RegisterAdmin_data"
       required:
       - data
       type: object
     RefreshSession:
       properties:
         data:
-          $ref: '#/components/schemas/RefreshSession_data'
+          $ref: "#/components/schemas/RefreshSession_data"
       required:
       - data
       type: object
     UpdatePassword:
       properties:
         data:
-          $ref: '#/components/schemas/UpdatePassword_data'
+          $ref: "#/components/schemas/UpdatePassword_data"
       required:
       - data
       type: object
     TokensPair:
       properties:
         data:
-          $ref: '#/components/schemas/TokensPair_data'
+          $ref: "#/components/schemas/TokensPair_data"
       required:
       - data
       type: object
     AccessToken:
       properties:
         data:
-          $ref: '#/components/schemas/AccessToken_data'
+          $ref: "#/components/schemas/AccessToken_data"
       required:
       - data
       type: object
     UserSession:
       properties:
         data:
-          $ref: '#/components/schemas/UserSessionData'
+          $ref: "#/components/schemas/UserSessionData"
       required:
       - data
       type: object
@@ -83,7 +83,7 @@ components:
           - user_session
           type: string
         attributes:
-          $ref: '#/components/schemas/UserSessionAttributes'
+          $ref: "#/components/schemas/UserSessionAttributes"
       required:
       - attributes
       - id
@@ -112,10 +112,10 @@ components:
       properties:
         data:
           items:
-            $ref: '#/components/schemas/UserSessionData'
+            $ref: "#/components/schemas/UserSessionData"
           type: array
         links:
-          $ref: '#/components/schemas/PaginationData'
+          $ref: "#/components/schemas/PaginationData"
       required:
       - data
       - links
@@ -123,7 +123,7 @@ components:
     User:
       properties:
         data:
-          $ref: '#/components/schemas/User_data'
+          $ref: "#/components/schemas/User_data"
       required:
       - data
       type: object
@@ -133,7 +133,7 @@ components:
         errors:
           description: Non empty array of errors occurred during request processing
           items:
-            $ref: '#/components/schemas/Errors_errors_inner'
+            $ref: "#/components/schemas/Errors_errors_inner"
           type: array
       required:
       - errors
@@ -183,7 +183,7 @@ components:
           - login
           type: string
         attributes:
-          $ref: '#/components/schemas/Login_data_attributes'
+          $ref: "#/components/schemas/Login_data_attributes"
       required:
       - attributes
       - type
@@ -195,7 +195,7 @@ components:
           - register_user
           type: string
         attributes:
-          $ref: '#/components/schemas/Login_data_attributes'
+          $ref: "#/components/schemas/Login_data_attributes"
       required:
       - attributes
       - type
@@ -231,7 +231,7 @@ components:
           - register_admin
           type: string
         attributes:
-          $ref: '#/components/schemas/RegisterAdmin_data_attributes'
+          $ref: "#/components/schemas/RegisterAdmin_data_attributes"
       required:
       - attributes
       - type
@@ -252,7 +252,7 @@ components:
           - refresh_session
           type: string
         attributes:
-          $ref: '#/components/schemas/RefreshSession_data_attributes'
+          $ref: "#/components/schemas/RefreshSession_data_attributes"
       required:
       - attributes
       - type
@@ -287,7 +287,7 @@ components:
           - update_password
           type: string
         attributes:
-          $ref: '#/components/schemas/UpdatePassword_data_attributes'
+          $ref: "#/components/schemas/UpdatePassword_data_attributes"
       required:
       - attributes
       - type
@@ -315,7 +315,7 @@ components:
           - tokens_pair
           type: string
         attributes:
-          $ref: '#/components/schemas/TokensPair_data_attributes'
+          $ref: "#/components/schemas/TokensPair_data_attributes"
       required:
       - attributes
       - id
@@ -337,7 +337,7 @@ components:
           - access_token
           type: string
         attributes:
-          $ref: '#/components/schemas/AccessToken_data_attributes'
+          $ref: "#/components/schemas/AccessToken_data_attributes"
       required:
       - attributes
       - type
@@ -356,20 +356,6 @@ components:
         created_at:
           description: Created At
           format: date-time
-          type: string
-        city_id:
-          description: City ID
-          format: uuid
-          type: string
-        city_role:
-          description: Admin
-          type: string
-        company_id:
-          description: Company ID
-          format: uuid
-          type: string
-        company_role:
-          description: Moder
           type: string
         updated_at:
           description: Updated At
@@ -393,7 +379,7 @@ components:
           - user
           type: string
         attributes:
-          $ref: '#/components/schemas/User_data_attributes'
+          $ref: "#/components/schemas/User_data_attributes"
       required:
       - attributes
       - id

@@ -8,10 +8,6 @@ Name | Type | Description | Notes
 **Role** | **string** | Role | 
 **EmailVerified** | **bool** | Email Verified | 
 **CreatedAt** | **time.Time** | Created At | 
-**CityId** | Pointer to [**uuid.UUID**](uuid.UUID.md) | City ID | [optional] 
-**CityRole** | Pointer to **string** | Admin | [optional] 
-**CompanyId** | Pointer to [**uuid.UUID**](uuid.UUID.md) | Company ID | [optional] 
-**CompanyRole** | Pointer to **string** | Moder | [optional] 
 **UpdatedAt** | **time.Time** | Updated At | 
 
 ## Methods
@@ -112,106 +108,6 @@ and a boolean to check if the value has been set.
 
 SetCreatedAt sets CreatedAt field to given value.
 
-
-### GetCityId
-
-`func (o *UserDataAttributes) GetCityId() uuid.UUID`
-
-GetCityId returns the CityId field if non-nil, zero value otherwise.
-
-### GetCityIdOk
-
-`func (o *UserDataAttributes) GetCityIdOk() (*uuid.UUID, bool)`
-
-GetCityIdOk returns a tuple with the CityId field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetCityId
-
-`func (o *UserDataAttributes) SetCityId(v uuid.UUID)`
-
-SetCityId sets CityId field to given value.
-
-### HasCityId
-
-`func (o *UserDataAttributes) HasCityId() bool`
-
-HasCityId returns a boolean if a field has been set.
-
-### GetCityRole
-
-`func (o *UserDataAttributes) GetCityRole() string`
-
-GetCityRole returns the CityRole field if non-nil, zero value otherwise.
-
-### GetCityRoleOk
-
-`func (o *UserDataAttributes) GetCityRoleOk() (*string, bool)`
-
-GetCityRoleOk returns a tuple with the CityRole field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetCityRole
-
-`func (o *UserDataAttributes) SetCityRole(v string)`
-
-SetCityRole sets CityRole field to given value.
-
-### HasCityRole
-
-`func (o *UserDataAttributes) HasCityRole() bool`
-
-HasCityRole returns a boolean if a field has been set.
-
-### GetCompanyId
-
-`func (o *UserDataAttributes) GetCompanyId() uuid.UUID`
-
-GetCompanyId returns the CompanyId field if non-nil, zero value otherwise.
-
-### GetCompanyIdOk
-
-`func (o *UserDataAttributes) GetCompanyIdOk() (*uuid.UUID, bool)`
-
-GetCompanyIdOk returns a tuple with the CompanyId field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetCompanyId
-
-`func (o *UserDataAttributes) SetCompanyId(v uuid.UUID)`
-
-SetCompanyId sets CompanyId field to given value.
-
-### HasCompanyId
-
-`func (o *UserDataAttributes) HasCompanyId() bool`
-
-HasCompanyId returns a boolean if a field has been set.
-
-### GetCompanyRole
-
-`func (o *UserDataAttributes) GetCompanyRole() string`
-
-GetCompanyRole returns the CompanyRole field if non-nil, zero value otherwise.
-
-### GetCompanyRoleOk
-
-`func (o *UserDataAttributes) GetCompanyRoleOk() (*string, bool)`
-
-GetCompanyRoleOk returns a tuple with the CompanyRole field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetCompanyRole
-
-`func (o *UserDataAttributes) SetCompanyRole(v string)`
-
-SetCompanyRole sets CompanyRole field to given value.
-
-### HasCompanyRole
-
-`func (o *UserDataAttributes) HasCompanyRole() bool`
-
-HasCompanyRole returns a boolean if a field has been set.
 
 ### GetUpdatedAt
 

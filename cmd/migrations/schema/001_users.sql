@@ -2,7 +2,6 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TYPE "user_role" AS ENUM (
-    'super_user',
     'admin',
     'moderator',
     'user'
@@ -17,11 +16,6 @@ CREATE TABLE users (
     id                  UUID        PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     role                user_role   DEFAULT 'user'   NOT NULL,
     status              user_status DEFAULT 'active' NOT NULL,
-
-    city_id      UUID,
-    city_role    TEXT,
-    company_id   UUID,
-    company_role TEXT,
 
     password_hash       TEXT        NOT NULL,
     password_updated_at TIMESTAMP   NOT NULL DEFAULT now(),

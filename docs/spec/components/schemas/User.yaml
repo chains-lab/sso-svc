@@ -38,20 +38,6 @@ properties:
             type: string
             format: date-time
             description: "Created At"
-          city_id:
-            type: string
-            format: uuid
-            description: "City ID"
-          city_role:
-            type: string
-            description: "Admin"
-          company_id:
-            type: string
-            format: uuid
-            description: "Company ID"
-          company_role:
-            type: string
-            description: "Moder"
           updated_at:
             type: string
             format: date-time

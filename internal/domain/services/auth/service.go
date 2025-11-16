@@ -30,17 +30,25 @@ type passwordManager interface {
 	CheckPasswordMatch(password, hash string) error
 }
 
-type Service struct {
-	jwt  JWTManager
-	db   database
-	pass passwordManager
+type EventPublisher interface {
+	PublishUserCreated(ctx context.Context, user models.User) error
+	PublishUserPasswordChanged(ctx context.Context, user models.User) error
+	PublishUserLogin(ctx context.Context, user models.User) error
 }
 
-func New(db database, jwt JWTManager, pass passwordManager) Service {
+type Service struct {
+	jwt   JWTManager
+	db    database
+	pass  passwordManager
+	event EventPublisher
+}
+
+func New(db database, jwt JWTManager, pass passwordManager, publisher EventPublisher) Service {
 	return Service{
-		jwt:  jwt,
-		db:   db,
-		pass: pass,
+		jwt:   jwt,
+		db:    db,
+		pass:  pass,
+		event: publisher,
 	}
 }
 
@@ -60,22 +68,6 @@ type database interface {
 
 	UpdateSessionToken(ctx context.Context, sessionID uuid.UUID, token string, updatedAt time.Time) error
 	UpdateUserPassword(ctx context.Context, userID uuid.UUID, passwordHash string, updatedAt time.Time) error
-
-	UpdateUserCity(
-		ctx context.Context,
-		userID uuid.UUID,
-		cityID *uuid.UUID,
-		cityRole *string,
-		updatedAt time.Time,
-	) error
-
-	UpdateUserCompany(
-		ctx context.Context,
-		userID uuid.UUID,
-		companyID *uuid.UUID,
-		companyRole *string,
-		updatedAt time.Time,
-	) error
 
 	DeleteAllSessionsForUser(ctx context.Context, userID uuid.UUID) error
 }

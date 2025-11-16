@@ -11,14 +11,10 @@ func User(m models.User) resources.User {
 			Id:   m.ID,
 			Type: resources.UserTepe,
 			Attributes: resources.UserDataAttributes{
-				Email:       m.Email,
-				Role:        m.SysRole,
-				CreatedAt:   m.CreatedAt,
-				CityId:      m.CityID,
-				CityRole:    m.CityRole,
-				CompanyId:   m.CompanyID,
-				CompanyRole: m.CompanyRole,
-				UpdatedAt:   m.UpdatedAt,
+				Email:     m.Email,
+				Role:      m.SysRole,
+				CreatedAt: m.CreatedAt,
+				UpdatedAt: m.UpdatedAt,
 			},
 		},
 	}

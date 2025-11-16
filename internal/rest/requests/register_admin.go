@@ -31,7 +31,7 @@ func RegisterAdmin(r *http.Request) (req resources.RegisterAdmin, err error) {
 			req.Data.Attributes.Email, validation.Required, validation.Length(5, 255), is.Email),
 
 		"data/attributes/role": validation.Validate(
-			req.Data.Attributes.Role, validation.Required, validation.In(roles.GetAllRoles())),
+			req.Data.Attributes.Role, validation.Required, validation.In(roles.GetAllSystemUserRoles())),
 	}
 
 	//TODO

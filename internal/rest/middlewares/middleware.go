@@ -22,5 +22,5 @@ func (s Service) Auth(userCtxKey interface{}, skUser string) func(http.Handler) 
 }
 
 func (s Service) RoleGrant(userCtxKey interface{}, allowedRoles map[string]bool) func(http.Handler) http.Handler {
-	return mdlv.RoleGrant(userCtxKey, allowedRoles)
+	return mdlv.SystemRoleGrant(userCtxKey, allowedRoles)
 }
