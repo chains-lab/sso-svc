@@ -1,0 +1,19 @@
+type: object
+required:
+  - account_id
+  - created_at
+  - last_used
+properties:
+  account_id:
+    type: string
+    format: uuid
+    description: "account id"
+  created_at:
+    type: string
+    format: date-time
+    description: "session creation date"
+  last_used:
+    type: string
+    format: date-time
+    description: "last used date"
+

@@ -4,7 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Id** | [**uuid.UUID**](uuid.UUID.md) | user id | 
+**Id** | [**uuid.UUID**](uuid.UUID.md) | account id | 
 **Type** | **string** |  | 
 **Attributes** | [**TokensPairDataAttributes**](TokensPairDataAttributes.md) |  | 
 

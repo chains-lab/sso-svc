@@ -17,32 +17,38 @@ paths:
 components:
   schemas:
     #requests
-    Login:
-      $ref: './spec/components/schemas/Login.yaml'
-    RegisterUser:
-      $ref: './spec/components/schemas/RegisterUser.yaml'
-    RegisterAdmin:
-      $ref: './spec/components/schemas/RegisterAdmin.yaml'
+    LoginByEmail:
+      $ref: './spec/components/schemas/LoginByEmail.yaml'
+    LoginByUsername:
+      $ref: './spec/components/schemas/LoginByUsername.yaml'
+    Registration:
+      $ref: './spec/components/schemas/Registration.yaml'
+    RegistrationAdmin:
+      $ref: './spec/components/schemas/RegistrationAdmin.yaml'
     RefreshSession:
       $ref: './spec/components/schemas/RefreshSession.yaml'
     UpdatePassword:
       $ref: './spec/components/schemas/UpdatePassword.yaml'
+    UpdateUsername:
+      $ref: './spec/components/schemas/UpdateUsername.yaml'
 
     #responses
     TokensPair:
         $ref: './spec/components/schemas/TokensPair.yaml'
     AccessToken:
       $ref: './spec/components/schemas/AccessToken.yaml'
-    UserSession:
-      $ref: './spec/components/schemas/UserSession.yaml'
-    UserSessionData:
-      $ref: './spec/components/schemas/UserSessionData.yaml'
-    UserSessionAttributes:
-      $ref: './spec/components/schemas/UserSessionAttributes.yaml'
-    UserSessionsCollection:
-      $ref: './spec/components/schemas/UserSessionsCollection.yaml'
-    User:
-      $ref: './spec/components/schemas/User.yaml'
+    AccountSession:
+      $ref: './spec/components/schemas/AccountSession.yaml'
+    AccountSessionData:
+      $ref: './spec/components/schemas/AccountSessionData.yaml'
+    AccountSessionAttributes:
+      $ref: './spec/components/schemas/AccountSessionAttributes.yaml'
+    AccountSessionsCollection:
+      $ref: './spec/components/schemas/AccountSessionsCollection.yaml'
+    Account:
+      $ref: './spec/components/schemas/Account.yaml'
+    AccountEmail:
+      $ref: './spec/components/schemas/AccountEmail.yaml'
     Errors:
       $ref: './spec/components/schemas/Errors.yaml'
     PaginationData:

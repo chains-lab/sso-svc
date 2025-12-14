@@ -7,10 +7,12 @@ const (
 	LoginType = "login"
 
 	UpdatePasswordType = "update_password"
+	UpdateUsernameType = "update_username"
 
-	RegisterUserType  = "register_user"
-	RegisterAdminType = "register_admin"
+	RegistrationType      = "registration"
+	RegistrationAdminType = "registration_admin"
 
-	UserTepe        = "user"
-	UserSessionType = "user_session"
+	AccountType        = "account"
+	AccountEmailType   = "account_email"
+	AccountSessionType = "account_session"
 )

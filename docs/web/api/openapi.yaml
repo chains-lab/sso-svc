@@ -16,24 +16,31 @@ paths:
       - Test
 components:
   schemas:
-    Login:
+    LoginByEmail:
       properties:
         data:
-          $ref: "#/components/schemas/Login_data"
+          $ref: "#/components/schemas/LoginByEmail_data"
       required:
       - data
       type: object
-    RegisterUser:
+    LoginByUsername:
       properties:
         data:
-          $ref: "#/components/schemas/RegisterUser_data"
+          $ref: "#/components/schemas/LoginByUsername_data"
       required:
       - data
       type: object
-    RegisterAdmin:
+    Registration:
       properties:
         data:
-          $ref: "#/components/schemas/RegisterAdmin_data"
+          $ref: "#/components/schemas/Registration_data"
+      required:
+      - data
+      type: object
+    RegistrationAdmin:
+      properties:
+        data:
+          $ref: "#/components/schemas/RegistrationAdmin_data"
       required:
       - data
       type: object
@@ -51,6 +58,13 @@ components:
       required:
       - data
       type: object
+    UpdateUsername:
+      properties:
+        data:
+          $ref: "#/components/schemas/UpdateUsername_data"
+      required:
+      - data
+      type: object
     TokensPair:
       properties:
         data:
@@ -65,14 +79,14 @@ components:
       required:
       - data
       type: object
-    UserSession:
+    AccountSession:
       properties:
         data:
-          $ref: "#/components/schemas/UserSessionData"
+          $ref: "#/components/schemas/AccountSessionData"
       required:
       - data
       type: object
-    UserSessionData:
+    AccountSessionData:
       properties:
         id:
           description: session id
@@ -80,19 +94,19 @@ components:
           type: string
         type:
           enum:
-          - user_session
+          - account_session
           type: string
         attributes:
-          $ref: "#/components/schemas/UserSessionAttributes"
+          $ref: "#/components/schemas/AccountSessionAttributes"
       required:
       - attributes
       - id
       - type
       type: object
-    UserSessionAttributes:
+    AccountSessionAttributes:
       properties:
-        user_id:
-          description: user id
+        account_id:
+          description: account id
           format: uuid
           type: string
         created_at:
@@ -104,15 +118,15 @@ components:
           format: date-time
           type: string
       required:
+      - account_id
       - created_at
       - last_used
-      - user_id
       type: object
-    UserSessionsCollection:
+    AccountSessionsCollection:
       properties:
         data:
           items:
-            $ref: "#/components/schemas/UserSessionData"
+            $ref: "#/components/schemas/AccountSessionData"
           type: array
         links:
           $ref: "#/components/schemas/PaginationData"
@@ -120,10 +134,17 @@ components:
       - data
       - links
       type: object
-    User:
+    Account:
       properties:
         data:
-          $ref: "#/components/schemas/User_data"
+          $ref: "#/components/schemas/Account_data"
+      required:
+      - data
+      type: object
+    AccountEmail:
+      properties:
+        data:
+          $ref: "#/components/schemas/AccountEmail_data"
       required:
       - data
       type: object
@@ -160,15 +181,15 @@ components:
       - page_size
       - total_items
       type: object
-    Login_data_attributes:
+    LoginByEmail_data_attributes:
       properties:
         email:
-          description: The user's email address.
+          description: The account's email address.
           example: example1312@gmail.com
           format: email
           type: string
         password:
-          description: The user's password.
+          description: The account's password.
           example: StrongP@ssw0rd!
           format: password
           type: string
@@ -176,44 +197,96 @@ components:
       - email
       - password
       type: object
-    Login_data:
+    LoginByEmail_data:
       properties:
         type:
           enum:
           - login
           type: string
         attributes:
-          $ref: "#/components/schemas/Login_data_attributes"
+          $ref: "#/components/schemas/LoginByEmail_data_attributes"
       required:
       - attributes
       - type
       type: object
-    RegisterUser_data:
+    LoginByUsername_data_attributes:
+      properties:
+        username:
+          description: The account's username.
+          example: user123
+          type: string
+        password:
+          description: The account's password.
+          example: StrongP@ssw0rd!
+          format: password
+          type: string
+      required:
+      - password
+      - username
+      type: object
+    LoginByUsername_data:
       properties:
         type:
           enum:
-          - register_user
+          - login
           type: string
         attributes:
-          $ref: "#/components/schemas/Login_data_attributes"
+          $ref: "#/components/schemas/LoginByUsername_data_attributes"
       required:
       - attributes
       - type
       type: object
-    RegisterAdmin_data_attributes:
+    Registration_data_attributes:
       properties:
         email:
-          description: The user's email address.
+          description: The account's email address.
           example: example1312@gmail.com
           format: email
           type: string
         password:
-          description: The user's password.
+          description: The account's password.
           example: StrongP@ssw0rd!
           format: password
           type: string
+        username:
+          description: The account's username.
+          example: example_user
+          type: string
+      required:
+      - email
+      - password
+      - username
+      type: object
+    Registration_data:
+      properties:
+        type:
+          enum:
+          - register_account
+          type: string
+        attributes:
+          $ref: "#/components/schemas/Registration_data_attributes"
+      required:
+      - attributes
+      - type
+      type: object
+    RegistrationAdmin_data_attributes:
+      properties:
+        email:
+          description: The account's email address.
+          example: example1312@gmail.com
+          format: email
+          type: string
+        password:
+          description: The account's password.
+          example: StrongP@ssw0rd!
+          format: password
+          type: string
+        username:
+          description: The account's username.
+          example: admin
+          type: string
         role:
-          description: The role assigned to the registering user.
+          description: The role assigned to the registering account.
           enum:
           - admin
           - moderator
@@ -223,15 +296,16 @@ components:
       - email
       - password
       - role
+      - username
       type: object
-    RegisterAdmin_data:
+    RegistrationAdmin_data:
       properties:
         type:
           enum:
           - register_admin
           type: string
         attributes:
-          $ref: "#/components/schemas/RegisterAdmin_data_attributes"
+          $ref: "#/components/schemas/RegistrationAdmin_data_attributes"
       required:
       - attributes
       - type
@@ -260,23 +334,16 @@ components:
     UpdatePassword_data_attributes:
       properties:
         old_password:
-          description: The user's current password.
+          description: The account's current password.
           example: OldP@ssw0rd!
           format: password
           type: string
         new_password:
-          description: The user's password.
-          example: StrongP@ssw0rd!
-          format: password
-          type: string
-        confirm_password:
-          description: Confirmation of the user's password. Must match the password
-            field.
+          description: The account's password.
           example: StrongP@ssw0rd!
           format: password
           type: string
       required:
-      - confirm_password
       - new_password
       - old_password
       type: object
@@ -288,6 +355,33 @@ components:
           type: string
         attributes:
           $ref: "#/components/schemas/UpdatePassword_data_attributes"
+      required:
+      - attributes
+      - type
+      type: object
+    UpdateUsername_data_attributes:
+      properties:
+        new_username:
+          description: The account's new username.
+          example: new_username123
+          type: string
+        password:
+          description: The account's current password.
+          example: CurrentP@ssw0rd!
+          format: password
+          type: string
+      required:
+      - new_username
+      - password
+      type: object
+    UpdateUsername_data:
+      properties:
+        type:
+          enum:
+          - update_username
+          type: string
+        attributes:
+          $ref: "#/components/schemas/UpdateUsername_data_attributes"
       required:
       - attributes
       - type
@@ -307,7 +401,7 @@ components:
     TokensPair_data:
       properties:
         id:
-          description: user id
+          description: account id
           format: uuid
           type: string
         type:
@@ -342,44 +436,79 @@ components:
       - attributes
       - type
       type: object
-    User_data_attributes:
+    Account_data_attributes:
       properties:
-        email:
-          description: Email
+        username:
+          description: The username of the account
           type: string
         role:
-          description: Role
+          description: The role assigned to the account
           type: string
-        email_verified:
-          description: Email Verified
-          type: boolean
+        status:
+          description: The current status of the account
+          type: string
         created_at:
-          description: Created At
+          description: The date and time when the account was created
           format: date-time
           type: string
         updated_at:
-          description: Updated At
+          description: The date and time when the account was last updated
           format: date-time
           type: string
       required:
       - created_at
-      - email
-      - email_verified
       - role
+      - status
       - updated_at
+      - username
       type: object
-    User_data:
+    Account_data:
       properties:
         id:
-          description: User ID
+          description: account ID
           format: uuid
           type: string
         type:
           enum:
-          - user
+          - account
           type: string
         attributes:
-          $ref: "#/components/schemas/User_data_attributes"
+          $ref: "#/components/schemas/Account_data_attributes"
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+    AccountEmail_data_attributes:
+      properties:
+        email:
+          description: The email address associated with the account
+          format: email
+          type: string
+        verified:
+          description: Indicates whether the email address has been verified
+          type: boolean
+        updated_at:
+          description: The date and time when the email information was last updated
+          format: date-time
+          type: string
+      required:
+      - email
+      - updated_at
+      - verified
+      type: object
+    AccountEmail_data:
+      properties:
+        id:
+          description: account ID
+          format: uuid
+          type: string
+        type:
+          enum:
+          - account_email
+          type: string
+        attributes:
+          $ref: "#/components/schemas/AccountEmail_data_attributes"
       required:
       - attributes
       - id

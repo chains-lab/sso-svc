@@ -4,15 +4,14 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**OldPassword** | **string** | The user&#39;s current password. | 
-**NewPassword** | **string** | The user&#39;s password. | 
-**ConfirmPassword** | **string** | Confirmation of the user&#39;s password. Must match the password field. | 
+**OldPassword** | **string** | The account&#39;s current password. | 
+**NewPassword** | **string** | The account&#39;s password. | 
 
 ## Methods
 
 ### NewUpdatePasswordDataAttributes
 
-`func NewUpdatePasswordDataAttributes(oldPassword string, newPassword string, confirmPassword string, ) *UpdatePasswordDataAttributes`
+`func NewUpdatePasswordDataAttributes(oldPassword string, newPassword string, ) *UpdatePasswordDataAttributes`
 
 NewUpdatePasswordDataAttributes instantiates a new UpdatePasswordDataAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -65,26 +64,6 @@ and a boolean to check if the value has been set.
 `func (o *UpdatePasswordDataAttributes) SetNewPassword(v string)`
 
 SetNewPassword sets NewPassword field to given value.
-
-
-### GetConfirmPassword
-
-`func (o *UpdatePasswordDataAttributes) GetConfirmPassword() string`
-
-GetConfirmPassword returns the ConfirmPassword field if non-nil, zero value otherwise.
-
-### GetConfirmPasswordOk
-
-`func (o *UpdatePasswordDataAttributes) GetConfirmPasswordOk() (*string, bool)`
-
-GetConfirmPasswordOk returns a tuple with the ConfirmPassword field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetConfirmPassword
-
-`func (o *UpdatePasswordDataAttributes) SetConfirmPassword(v string)`
-
-SetConfirmPassword sets ConfirmPassword field to given value.
 
 
 

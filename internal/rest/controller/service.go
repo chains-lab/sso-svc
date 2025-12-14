@@ -4,75 +4,68 @@ import (
 	"context"
 
 	"github.com/chains-lab/logium"
-	"github.com/chains-lab/sso-svc/internal/domain/models"
+	"github.com/chains-lab/sso-svc/internal/domain"
+	"github.com/chains-lab/sso-svc/internal/domain/entity"
 	"github.com/google/uuid"
 	"golang.org/x/oauth2"
 )
 
-type SessionSvc interface {
-	Delete(ctx context.Context, sessionID uuid.UUID) error
-	DeleteOneForUser(ctx context.Context, userID, sessionID uuid.UUID) error
-	DeleteAllForUser(ctx context.Context, userID uuid.UUID) error
-
-	Refresh(ctx context.Context, oldRefreshToken string) (models.TokensPair, error)
-
-	Get(ctx context.Context, sessionID uuid.UUID) (models.Session, error)
-	GetForUser(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error)
-
-	ListForUser(
+type core interface {
+	Registration(
 		ctx context.Context,
-		userID uuid.UUID,
-		page uint64,
-		size uint64,
-	) (models.SessionsCollection, error)
-}
-
-type UserSvc interface {
-	GetByID(ctx context.Context, ID uuid.UUID) (models.User, error)
-	GetByEmail(ctx context.Context, email string) (models.User, error)
-}
-
-type AuthSvc interface {
-	Register(
-		ctx context.Context,
-		email, pass, role string,
-	) (models.User, error)
-	RegisterAdmin(
+		params domain.RegistrationParams,
+	) (entity.Account, error)
+	RegistrationByAdmin(
 		ctx context.Context,
 		initiatorID uuid.UUID,
-		email, pass, role string,
-	) (models.User, error)
+		params domain.RegistrationParams,
+	) (entity.Account, error)
+
+	LoginByEmail(ctx context.Context, email, password string) (entity.TokensPair, error)
+	LoginByUsername(ctx context.Context, username, password string) (entity.TokensPair, error)
+	LoginByGoogle(ctx context.Context, email string) (entity.TokensPair, error)
+
+	Refresh(ctx context.Context, oldRefreshToken string) (entity.TokensPair, error)
 
 	UpdatePassword(
 		ctx context.Context,
-		userID uuid.UUID,
+		accountID uuid.UUID,
 		oldPassword, newPassword string,
 	) error
+	UpdateUsername(
+		ctx context.Context,
+		accountID uuid.UUID,
+		password string,
+		newUsername string,
+	) (entity.Account, error)
 
-	Login(ctx context.Context, email, password string) (models.TokensPair, error)
-	LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error)
-}
+	GetAccountByID(ctx context.Context, ID uuid.UUID) (entity.Account, error)
+	GetSessionForAccount(ctx context.Context, accountID, sessionID uuid.UUID) (entity.Session, error)
+	GetSessionsForAccount(
+		ctx context.Context,
+		accountID uuid.UUID,
+		page int32,
+		size int32,
+	) (entity.SessionsCollection, error)
 
-type domain struct {
-	Session SessionSvc
-	User    UserSvc
-	Auth    AuthSvc
+	GetAccountEmailData(ctx context.Context, ID uuid.UUID) (entity.AccountEmail, error)
+
+	DeleteOwnAccount(ctx context.Context, accountID uuid.UUID) error
+	DeleteOwnSession(ctx context.Context, accountID, sessionID uuid.UUID) error
+	DeleteOwnSessions(ctx context.Context, accountID uuid.UUID) error
+	Logout(ctx context.Context, accountID, sessionID uuid.UUID) error
 }
 
 type Service struct {
 	google oauth2.Config
-	domain domain
+	domain core
 	log    logium.Logger
 }
 
-func New(log logium.Logger, google oauth2.Config, user UserSvc, session SessionSvc, auth AuthSvc) *Service {
+func New(log logium.Logger, google oauth2.Config, domain core) *Service {
 	return &Service{
 		log:    log,
 		google: google,
-		domain: domain{
-			Session: session,
-			User:    user,
-			Auth:    auth,
-		},
+		domain: domain,
 	}
 }

@@ -7,16 +7,13 @@ import (
 
 	"github.com/chains-lab/logium"
 	"github.com/chains-lab/sso-svc/internal"
-	"github.com/chains-lab/sso-svc/internal/data"
-	"github.com/chains-lab/sso-svc/internal/domain/services/auth"
-	"github.com/chains-lab/sso-svc/internal/domain/services/session"
-	"github.com/chains-lab/sso-svc/internal/domain/services/user"
+	"github.com/chains-lab/sso-svc/internal/domain"
 	"github.com/chains-lab/sso-svc/internal/events/publisher"
-	"github.com/chains-lab/sso-svc/internal/jwtmanager"
-	"github.com/chains-lab/sso-svc/internal/passmanager"
+	"github.com/chains-lab/sso-svc/internal/repo"
 	"github.com/chains-lab/sso-svc/internal/rest"
 	"github.com/chains-lab/sso-svc/internal/rest/controller"
 	"github.com/chains-lab/sso-svc/internal/rest/middlewares"
+	"github.com/chains-lab/sso-svc/internal/token"
 )
 
 func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, wg *sync.WaitGroup) {
@@ -33,24 +30,21 @@ func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, 
 		log.Fatal("failed to connect to database", "error", err)
 	}
 
-	database := data.NewDatabase(pg)
+	database := repo.New(pg)
 
-	jwtTokenManager := jwtmanager.NewManager(jwtmanager.Config{
+	jwtTokenManager := token.NewManager(token.Config{
 		AccessSK:   cfg.JWT.User.AccessToken.SecretKey,
 		RefreshSK:  cfg.JWT.User.RefreshToken.SecretKey,
 		AccessTTL:  cfg.JWT.User.AccessToken.TokenLifetime,
 		RefreshTTL: cfg.JWT.User.RefreshToken.TokenLifetime,
 		Iss:        cfg.Service.Name,
 	})
-	passManager := passmanager.New()
 
 	eventPublisher := publisher.New(cfg.Kafka.Broker)
 
-	userSvc := user.New(database)
-	sessionSvc := session.New(database, jwtTokenManager)
-	authSvc := auth.New(database, jwtTokenManager, passManager, eventPublisher)
+	core := domain.NewService(database, jwtTokenManager, eventPublisher)
 
-	ctrl := controller.New(log, cfg.GoogleOAuth(), userSvc, sessionSvc, authSvc)
+	ctrl := controller.New(log, cfg.GoogleOAuth(), core)
 	mdlv := middlewares.New(log)
 
 	run(func() { rest.Run(ctx, cfg, log, mdlv, ctrl) })

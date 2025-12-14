@@ -20,14 +20,18 @@ func (s *Service) RefreshSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokensPair, err := s.domain.Session.Refresh(r.Context(), req.Data.Attributes.RefreshToken)
+	tokensPair, err := s.domain.Refresh(r.Context(), req.Data.Attributes.RefreshToken)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to refresh session token")
 		switch {
+		case errors.Is(err, errx.ErrorInitiatorNotFound):
+			ape.RenderErr(w, problems.Unauthorized("account not found"))
+		case errors.Is(err, errx.ErrorInitiatorIsNotActive):
+			ape.RenderErr(w, problems.Forbidden("account is not active"))
 		case errors.Is(err, errx.ErrorSessionNotFound):
 			ape.RenderErr(w, problems.Unauthorized("session not found"))
 		case errors.Is(err, errx.ErrorSessionTokenMismatch):
-			ape.RenderErr(w, problems.Unauthorized("refresh session token mismatch"))
+			ape.RenderErr(w, problems.Forbidden("refresh session token mismatch"))
 		default:
 			ape.RenderErr(w, problems.InternalError())
 		}

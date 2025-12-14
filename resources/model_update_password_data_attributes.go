@@ -21,12 +21,10 @@ var _ MappedNullable = &UpdatePasswordDataAttributes{}
 
 // UpdatePasswordDataAttributes struct for UpdatePasswordDataAttributes
 type UpdatePasswordDataAttributes struct {
-	// The user's current password.
+	// The account's current password.
 	OldPassword string `json:"old_password"`
-	// The user's password.
+	// The account's password.
 	NewPassword string `json:"new_password"`
-	// Confirmation of the user's password. Must match the password field.
-	ConfirmPassword string `json:"confirm_password"`
 }
 
 type _UpdatePasswordDataAttributes UpdatePasswordDataAttributes
@@ -35,11 +33,10 @@ type _UpdatePasswordDataAttributes UpdatePasswordDataAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewUpdatePasswordDataAttributes(oldPassword string, newPassword string, confirmPassword string) *UpdatePasswordDataAttributes {
+func NewUpdatePasswordDataAttributes(oldPassword string, newPassword string) *UpdatePasswordDataAttributes {
 	this := UpdatePasswordDataAttributes{}
 	this.OldPassword = oldPassword
 	this.NewPassword = newPassword
-	this.ConfirmPassword = confirmPassword
 	return &this
 }
 
@@ -99,30 +96,6 @@ func (o *UpdatePasswordDataAttributes) SetNewPassword(v string) {
 	o.NewPassword = v
 }
 
-// GetConfirmPassword returns the ConfirmPassword field value
-func (o *UpdatePasswordDataAttributes) GetConfirmPassword() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.ConfirmPassword
-}
-
-// GetConfirmPasswordOk returns a tuple with the ConfirmPassword field value
-// and a boolean to check if the value has been set.
-func (o *UpdatePasswordDataAttributes) GetConfirmPasswordOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.ConfirmPassword, true
-}
-
-// SetConfirmPassword sets field value
-func (o *UpdatePasswordDataAttributes) SetConfirmPassword(v string) {
-	o.ConfirmPassword = v
-}
-
 func (o UpdatePasswordDataAttributes) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -135,7 +108,6 @@ func (o UpdatePasswordDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["old_password"] = o.OldPassword
 	toSerialize["new_password"] = o.NewPassword
-	toSerialize["confirm_password"] = o.ConfirmPassword
 	return toSerialize, nil
 }
 
@@ -146,7 +118,6 @@ func (o *UpdatePasswordDataAttributes) UnmarshalJSON(data []byte) (err error) {
 	requiredProperties := []string{
 		"old_password",
 		"new_password",
-		"confirm_password",
 	}
 
 	allProperties := make(map[string]interface{})

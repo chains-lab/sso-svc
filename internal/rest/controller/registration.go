@@ -1,0 +1,57 @@
+package controller
+
+import (
+	"errors"
+	"net/http"
+
+	"github.com/chains-lab/ape"
+	"github.com/chains-lab/ape/problems"
+	"github.com/chains-lab/restkit/roles"
+	"github.com/chains-lab/sso-svc/internal/domain"
+	"github.com/chains-lab/sso-svc/internal/domain/errx"
+	"github.com/chains-lab/sso-svc/internal/rest/requests"
+
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+)
+
+func (s *Service) Registration(w http.ResponseWriter, r *http.Request) {
+	req, err := requests.Registration(r)
+	if err != nil {
+		s.log.WithError(err).Error("failed to decode register request")
+		ape.RenderErr(w, problems.BadRequest(err)...)
+
+		return
+	}
+
+	_, err = s.domain.Registration(r.Context(), domain.RegistrationParams{
+		Username: req.Data.Attributes.Username,
+		Email:    req.Data.Attributes.Email,
+		Password: req.Data.Attributes.Password,
+		Role:     roles.SystemUser,
+	})
+	if err != nil {
+		s.log.WithError(err).Errorf("failed to register user")
+		switch {
+		case errors.Is(err, errx.ErrorEmailAlreadyExist):
+			ape.RenderErr(w, problems.Conflict("user with this email already exists"))
+		case errors.Is(err, errx.ErrorUsernameAlreadyTaken):
+			ape.RenderErr(w, problems.Conflict("user with this username already exists"))
+		case errors.Is(err, errx.ErrorUsernameIsNotAllowed):
+			ape.RenderErr(w, problems.BadRequest(validation.Errors{
+				"repo/attributes/username": err,
+			})...)
+		case errors.Is(err, errx.ErrorPasswordIsNotAllowed):
+			ape.RenderErr(w, problems.BadRequest(validation.Errors{
+				"repo/attributes/password": err,
+			})...)
+		default:
+			ape.RenderErr(w, problems.InternalError())
+		}
+
+		return
+	}
+
+	s.log.Infof("user %s registered successfully", req.Data.Attributes.Email)
+
+	w.WriteHeader(http.StatusCreated)
+}

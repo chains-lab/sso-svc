@@ -10,17 +10,17 @@ import (
 type ctxKey int
 
 const (
-	UserCtxKey ctxKey = iota
+	AccountDataCtxKey ctxKey = iota
 )
 
-func User(ctx context.Context) (token.UserData, error) {
+func AccountData(ctx context.Context) (token.AccountData, error) {
 	if ctx == nil {
-		return token.UserData{}, fmt.Errorf("mising context")
+		return token.AccountData{}, fmt.Errorf("missing context")
 	}
 
-	userData, ok := ctx.Value(UserCtxKey).(token.UserData)
+	userData, ok := ctx.Value(AccountDataCtxKey).(token.AccountData)
 	if !ok {
-		return token.UserData{}, fmt.Errorf("mising context")
+		return token.AccountData{}, fmt.Errorf("missing context")
 	}
 
 	return userData, nil

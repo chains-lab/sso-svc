@@ -15,7 +15,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
-func (s *Service) GoogleLoginCallback(w http.ResponseWriter, r *http.Request) {
+func (s *Service) LoginByGoogleOAuthCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 	if code == "" {
 		ape.RenderErr(w, problems.BadRequest(validation.Errors{
@@ -61,11 +61,13 @@ func (s *Service) GoogleLoginCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokensPair, err := s.domain.Auth.LoginByGoogle(r.Context(), userInfo.Email)
+	tokensPair, err := s.domain.LoginByGoogle(r.Context(), userInfo.Email)
 	if err != nil {
 		s.log.WithError(err).Errorf("error logging in user: %s", userInfo.Email)
 		switch {
-		case errors.Is(err, errx.ErrorUserNotFound):
+		case errors.Is(err, errx.ErrorInitiatorIsNotActive):
+			ape.RenderErr(w, problems.Forbidden("account is not active"))
+		case errors.Is(err, errx.ErrorInitiatorNotFound):
 			ape.RenderErr(w, problems.NotFound("user with this email not found"))
 		default:
 			ape.RenderErr(w, problems.InternalError())
@@ -75,7 +77,7 @@ func (s *Service) GoogleLoginCallback(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	s.log.Infof("User %s logged in with Google", userInfo.Email)
+	s.log.Infof("Account %s logged in with Google", userInfo.Email)
 
 	ape.Render(w, http.StatusOK, responses.TokensPair(tokensPair))
 }

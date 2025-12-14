@@ -1,0 +1,44 @@
+type: object
+required:
+  - data
+properties:
+  data:
+    type: object
+    required:
+      - id
+      - type
+      - attributes
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: "account ID"
+      type:
+        type: string
+        enum: [ account ]
+      attributes:
+        type: object
+        required:
+          - username
+          - role
+          - status
+          - created_at
+          - updated_at
+        properties:
+          username:
+            type: string
+            description: "The username of the account"
+          role:
+            type: string
+            description: "The role assigned to the account"
+          status:
+            type: string
+            description: "The current status of the account"
+          created_at:
+            type: string
+            format: date-time
+            description: "The date and time when the account was created"
+          updated_at:
+            type: string
+            format: date-time
+            description: "The date and time when the account was last updated"

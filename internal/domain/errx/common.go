@@ -6,4 +6,6 @@ import (
 
 var ErrorInternal = ape.DeclareError("INTERNAL_ERROR")
 
-var ErrorUnauthenticated = ape.DeclareError("UNAUTHENTICATED")
+var ErrorForbidden = ape.DeclareError("FORBIDDEN")
+
+var ErrorNotEnoughRights = ape.DeclareError("NOT_ENOUGH_RIGHTS")

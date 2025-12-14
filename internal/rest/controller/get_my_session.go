@@ -17,7 +17,7 @@ import (
 )
 
 func (s *Service) GetMySession(w http.ResponseWriter, r *http.Request) {
-	initiator, err := meta.User(r.Context())
+	initiator, err := meta.AccountData(r.Context())
 	if err != nil {
 		s.log.WithError(err).Error("failed to get user from context")
 		ape.RenderErr(w, problems.Unauthorized("failed to get user from context"))
@@ -35,10 +35,14 @@ func (s *Service) GetMySession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := s.domain.Session.GetForUser(r.Context(), initiator.ID, sessionId)
+	session, err := s.domain.GetSessionForAccount(r.Context(), initiator.ID, sessionId)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to get My session")
 		switch {
+		case errors.Is(err, errx.ErrorInitiatorNotFound):
+			ape.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))
+		case errors.Is(err, errx.ErrorInitiatorIsNotActive):
+			ape.RenderErr(w, problems.Forbidden("initiator is blocked"))
 		case errors.Is(err, errx.ErrorSessionNotFound):
 			ape.RenderErr(w, problems.Unauthorized("session not found"))
 		default:
@@ -48,5 +52,5 @@ func (s *Service) GetMySession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ape.Render(w, http.StatusOK, responses.UserSession(session))
+	ape.Render(w, http.StatusOK, responses.AccountSession(session))
 }

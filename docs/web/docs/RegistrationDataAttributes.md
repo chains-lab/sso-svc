@@ -4,15 +4,15 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Email** | **string** | The user&#39;s email address. | 
-**Password** | **string** | The user&#39;s password. | 
-**ConfirmPassword** | **string** | Confirmation of the user&#39;s password. Must match the password field. | 
+**Email** | **string** | The account&#39;s email address. | 
+**Password** | **string** | The account&#39;s password. | 
+**Username** | **string** | The account&#39;s username. | 
 
 ## Methods
 
 ### NewRegistrationDataAttributes
 
-`func NewRegistrationDataAttributes(email string, password string, confirmPassword string, ) *RegistrationDataAttributes`
+`func NewRegistrationDataAttributes(email string, password string, username string, ) *RegistrationDataAttributes`
 
 NewRegistrationDataAttributes instantiates a new RegistrationDataAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -67,24 +67,24 @@ and a boolean to check if the value has been set.
 SetPassword sets Password field to given value.
 
 
-### GetConfirmPassword
+### GetUsername
 
-`func (o *RegistrationDataAttributes) GetConfirmPassword() string`
+`func (o *RegistrationDataAttributes) GetUsername() string`
 
-GetConfirmPassword returns the ConfirmPassword field if non-nil, zero value otherwise.
+GetUsername returns the Username field if non-nil, zero value otherwise.
 
-### GetConfirmPasswordOk
+### GetUsernameOk
 
-`func (o *RegistrationDataAttributes) GetConfirmPasswordOk() (*string, bool)`
+`func (o *RegistrationDataAttributes) GetUsernameOk() (*string, bool)`
 
-GetConfirmPasswordOk returns a tuple with the ConfirmPassword field if it's non-nil, zero value otherwise
+GetUsernameOk returns a tuple with the Username field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
-### SetConfirmPassword
+### SetUsername
 
-`func (o *RegistrationDataAttributes) SetConfirmPassword(v string)`
+`func (o *RegistrationDataAttributes) SetUsername(v string)`
 
-SetConfirmPassword sets ConfirmPassword field to given value.
+SetUsername sets Username field to given value.
 
 
 

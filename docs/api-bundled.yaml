@@ -14,7 +14,7 @@ paths:
           description: successfully
 components:
   schemas:
-    Login:
+    LoginByEmail:
       type: object
       required:
         - data
@@ -38,14 +38,14 @@ components:
                 email:
                   type: string
                   format: email
-                  description: The user's email address.
+                  description: The account's email address.
                   example: example1312@gmail.com
                 password:
                   type: string
                   format: password
-                  description: The user's password.
+                  description: The account's password.
                   example: StrongP@ssw0rd!
-    RegisterUser:
+    LoginByUsername:
       type: object
       required:
         - data
@@ -59,24 +59,59 @@ components:
             type:
               type: string
               enum:
-                - register_user
+                - login
+            attributes:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  description: The account's username.
+                  example: user123
+                password:
+                  type: string
+                  format: password
+                  description: The account's password.
+                  example: StrongP@ssw0rd!
+    Registration:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - type
+            - attributes
+          properties:
+            type:
+              type: string
+              enum:
+                - register_account
             attributes:
               type: object
               required:
                 - email
                 - password
+                - username
               properties:
                 email:
                   type: string
                   format: email
-                  description: The user's email address.
+                  description: The account's email address.
                   example: example1312@gmail.com
                 password:
                   type: string
                   format: password
-                  description: The user's password.
+                  description: The account's password.
                   example: StrongP@ssw0rd!
-    RegisterAdmin:
+                username:
+                  type: string
+                  description: The account's username.
+                  example: example_user
+    RegistrationAdmin:
       type: object
       required:
         - data
@@ -96,21 +131,26 @@ components:
               required:
                 - email
                 - password
+                - username
                 - role
               properties:
                 email:
                   type: string
                   format: email
-                  description: The user's email address.
+                  description: The account's email address.
                   example: example1312@gmail.com
                 password:
                   type: string
                   format: password
-                  description: The user's password.
+                  description: The account's password.
                   example: StrongP@ssw0rd!
+                username:
+                  type: string
+                  description: The account's username.
+                  example: admin
                 role:
                   type: string
-                  description: The role assigned to the registering user.
+                  description: The role assigned to the registering account.
                   enum:
                     - admin
                     - moderator
@@ -159,23 +199,47 @@ components:
               required:
                 - old_password
                 - new_password
-                - confirm_password
               properties:
                 old_password:
                   type: string
                   format: password
-                  description: The user's current password.
+                  description: The account's current password.
                   example: OldP@ssw0rd!
                 new_password:
                   type: string
                   format: password
-                  description: The user's password.
+                  description: The account's password.
                   example: StrongP@ssw0rd!
-                confirm_password:
+    UpdateUsername:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - type
+            - attributes
+          properties:
+            type:
+              type: string
+              enum:
+                - update_username
+            attributes:
+              type: object
+              required:
+                - new_username
+                - password
+              properties:
+                new_username:
+                  type: string
+                  description: The account's new username.
+                  example: new_username123
+                password:
                   type: string
                   format: password
-                  description: Confirmation of the user's password. Must match the password field.
-                  example: StrongP@ssw0rd!
+                  description: The account's current password.
+                  example: CurrentP@ssw0rd!
     TokensPair:
       type: object
       required:
@@ -191,7 +255,7 @@ components:
             id:
               type: string
               format: uuid
-              description: user id
+              description: account id
             type:
               type: string
               enum:
@@ -232,14 +296,14 @@ components:
                   type: string
                   description: The access token to generate a new access token.
                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-    UserSession:
+    AccountSession:
       type: object
       required:
         - data
       properties:
         data:
-          $ref: '#/components/schemas/UserSessionData'
-    UserSessionData:
+          $ref: '#/components/schemas/AccountSessionData'
+    AccountSessionData:
       type: object
       required:
         - id
@@ -253,20 +317,20 @@ components:
         type:
           type: string
           enum:
-            - user_session
+            - account_session
         attributes:
-          $ref: '#/components/schemas/UserSessionAttributes'
-    UserSessionAttributes:
+          $ref: '#/components/schemas/AccountSessionAttributes'
+    AccountSessionAttributes:
       type: object
       required:
-        - user_id
+        - account_id
         - created_at
         - last_used
       properties:
-        user_id:
+        account_id:
           type: string
           format: uuid
-          description: user id
+          description: account id
         created_at:
           type: string
           format: date-time
@@ -275,7 +339,7 @@ components:
           type: string
           format: date-time
           description: last used date
-    UserSessionsCollection:
+    AccountSessionsCollection:
       type: object
       required:
         - data
@@ -284,10 +348,10 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/UserSessionData'
+            $ref: '#/components/schemas/AccountSessionData'
         links:
           $ref: '#/components/schemas/PaginationData'
-    User:
+    Account:
       type: object
       required:
         - data
@@ -302,37 +366,75 @@ components:
             id:
               type: string
               format: uuid
-              description: User ID
+              description: account ID
             type:
               type: string
               enum:
-                - user
+                - account
             attributes:
               type: object
               required:
+                - username
                 - role
-                - email
-                - email_verified
+                - status
                 - created_at
+                - updated_at
+              properties:
+                username:
+                  type: string
+                  description: The username of the account
+                role:
+                  type: string
+                  description: The role assigned to the account
+                status:
+                  type: string
+                  description: The current status of the account
+                created_at:
+                  type: string
+                  format: date-time
+                  description: The date and time when the account was created
+                updated_at:
+                  type: string
+                  format: date-time
+                  description: The date and time when the account was last updated
+    AccountEmail:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - id
+            - type
+            - attributes
+          properties:
+            id:
+              type: string
+              format: uuid
+              description: account ID
+            type:
+              type: string
+              enum:
+                - account_email
+            attributes:
+              type: object
+              required:
+                - email
+                - verified
                 - updated_at
               properties:
                 email:
                   type: string
-                  description: Email
-                role:
-                  type: string
-                  description: Role
-                email_verified:
+                  format: email
+                  description: The email address associated with the account
+                verified:
                   type: boolean
-                  description: Email Verified
-                created_at:
-                  type: string
-                  format: date-time
-                  description: Created At
+                  description: Indicates whether the email address has been verified
                 updated_at:
                   type: string
                   format: date-time
-                  description: Updated At
+                  description: The date and time when the email information was last updated
     Errors:
       description: 'Standard JSON:API error'
       type: object

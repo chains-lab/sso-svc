@@ -5,13 +5,13 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Type** | **string** |  | 
-**Attributes** | [**RegistrationUserDataAttributes**](RegistrationUserDataAttributes.md) |  | 
+**Attributes** | [**RegistrationAdminDataAttributes**](RegistrationAdminDataAttributes.md) |  | 
 
 ## Methods
 
 ### NewRegistrationAdminData
 
-`func NewRegistrationAdminData(type_ string, attributes RegistrationUserDataAttributes, ) *RegistrationAdminData`
+`func NewRegistrationAdminData(type_ string, attributes RegistrationAdminDataAttributes, ) *RegistrationAdminData`
 
 NewRegistrationAdminData instantiates a new RegistrationAdminData object
 This constructor will assign default values to properties that have it defined,
@@ -48,20 +48,20 @@ SetType sets Type field to given value.
 
 ### GetAttributes
 
-`func (o *RegistrationAdminData) GetAttributes() RegistrationUserDataAttributes`
+`func (o *RegistrationAdminData) GetAttributes() RegistrationAdminDataAttributes`
 
 GetAttributes returns the Attributes field if non-nil, zero value otherwise.
 
 ### GetAttributesOk
 
-`func (o *RegistrationAdminData) GetAttributesOk() (*RegistrationUserDataAttributes, bool)`
+`func (o *RegistrationAdminData) GetAttributesOk() (*RegistrationAdminDataAttributes, bool)`
 
 GetAttributesOk returns a tuple with the Attributes field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetAttributes
 
-`func (o *RegistrationAdminData) SetAttributes(v RegistrationUserDataAttributes)`
+`func (o *RegistrationAdminData) SetAttributes(v RegistrationAdminDataAttributes)`
 
 SetAttributes sets Attributes field to given value.
 

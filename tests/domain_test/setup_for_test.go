@@ -9,12 +9,9 @@ import (
 
 	"github.com/chains-lab/sso-svc/cmd/migrations"
 	"github.com/chains-lab/sso-svc/internal"
-	"github.com/chains-lab/sso-svc/internal/data"
-	"github.com/chains-lab/sso-svc/internal/domain/models"
-	"github.com/chains-lab/sso-svc/internal/domain/services/auth"
-	"github.com/chains-lab/sso-svc/internal/domain/services/session"
-	"github.com/chains-lab/sso-svc/internal/domain/services/user"
-	"github.com/chains-lab/sso-svc/internal/jwtmanager"
+	"github.com/chains-lab/sso-svc/internal/domain/entity"
+	"github.com/chains-lab/sso-svc/internal/repo"
+	"github.com/chains-lab/sso-svc/internal/token"
 	"github.com/google/uuid"
 )
 
@@ -26,37 +23,37 @@ type SessionSvc interface {
 	DeleteOneForUser(ctx context.Context, userID, sessionID uuid.UUID) error
 	DeleteAllForUser(ctx context.Context, userID uuid.UUID) error
 
-	Refresh(ctx context.Context, oldRefreshToken string) (models.TokensPair, error)
+	Refresh(ctx context.Context, oldRefreshToken string) (entity.TokensPair, error)
 
-	Get(ctx context.Context, sessionID uuid.UUID) (models.Session, error)
-	GetForUser(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error)
+	Get(ctx context.Context, sessionID uuid.UUID) (entity.Session, error)
+	GetForUser(ctx context.Context, userID, sessionID uuid.UUID) (entity.Session, error)
 
 	ListForUser(
 		ctx context.Context,
 		userID uuid.UUID,
 		page uint64,
 		size uint64,
-	) (models.SessionsCollection, error)
+	) (entity.SessionsCollection, error)
 }
 
 type UserSvc interface {
-	BlockUser(ctx context.Context, userID uuid.UUID) (models.User, error)
-	UnblockUser(ctx context.Context, userID uuid.UUID) (models.User, error)
+	BlockUser(ctx context.Context, userID uuid.UUID) (entity.User, error)
+	UnblockUser(ctx context.Context, userID uuid.UUID) (entity.User, error)
 
-	GetByID(ctx context.Context, ID uuid.UUID) (models.User, error)
-	GetByEmail(ctx context.Context, email string) (models.User, error)
+	GetByID(ctx context.Context, ID uuid.UUID) (entity.User, error)
+	GetByEmail(ctx context.Context, email string) (entity.User, error)
 }
 
 type AuthSvc interface {
 	Register(
 		ctx context.Context,
 		email, pass, role string,
-	) (models.User, error)
+	) (entity.User, error)
 	RegisterAdmin(
 		ctx context.Context,
 		initiatorID uuid.UUID,
 		email, pass, role string,
-	) (models.User, error)
+	) (entity.User, error)
 
 	UpdatePassword(
 		ctx context.Context,
@@ -64,9 +61,9 @@ type AuthSvc interface {
 		oldPassword, newPassword string,
 	) error
 
-	Login(ctx context.Context, email, password string) (models.TokensPair, error)
-	LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error)
-	CreateSession(ctx context.Context, user models.User) (models.TokensPair, error)
+	Login(ctx context.Context, email, password string) (entity.TokensPair, error)
+	LoginByGoogle(ctx context.Context, email string) (entity.TokensPair, error)
+	CreateSession(ctx context.Context, user entity.User) (entity.TokensPair, error)
 }
 
 type services struct {
@@ -138,9 +135,9 @@ func newSetup(t *testing.T) (Setup, error) {
 		log.Fatal("failed to connect to database", "error", err)
 	}
 
-	database := data.NewDatabase(pg)
+	database := repo.New(pg)
 
-	jwtTokenManager := jwtmanager.NewManager(jwtmanager.Config{
+	jwtTokenManager := token.NewManager(token.Config{
 		AccessSK:   cfg.JWT.User.AccessToken.SecretKey,
 		RefreshSK:  cfg.JWT.User.RefreshToken.SecretKey,
 		AccessTTL:  cfg.JWT.User.AccessToken.TokenLifetime,

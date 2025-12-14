@@ -14,24 +14,29 @@ import (
 )
 
 type Handlers interface {
-	RegisterUser(w http.ResponseWriter, r *http.Request)
-	Login(w http.ResponseWriter, r *http.Request)
-	GoogleLogin(w http.ResponseWriter, r *http.Request)
-	GoogleLoginCallback(w http.ResponseWriter, r *http.Request)
-	RefreshSession(w http.ResponseWriter, r *http.Request)
-	GetMyUser(w http.ResponseWriter, r *http.Request)
+	Registration(w http.ResponseWriter, r *http.Request)
+	RegistrationAdmin(w http.ResponseWriter, r *http.Request)
+
+	LoginByEmail(w http.ResponseWriter, r *http.Request)
+	LoginByUsername(w http.ResponseWriter, r *http.Request)
+	LoginByGoogleOAuth(w http.ResponseWriter, r *http.Request)
+	LoginByGoogleOAuthCallback(w http.ResponseWriter, r *http.Request)
+
 	Logout(w http.ResponseWriter, r *http.Request)
-	ResetPassword(w http.ResponseWriter, r *http.Request)
-	GetMySessions(w http.ResponseWriter, r *http.Request)
-	DeleteMySessions(w http.ResponseWriter, r *http.Request)
+
+	RefreshSession(w http.ResponseWriter, r *http.Request)
+
+	GetMyAccount(w http.ResponseWriter, r *http.Request)
 	GetMySession(w http.ResponseWriter, r *http.Request)
+	GetMySessions(w http.ResponseWriter, r *http.Request)
+	GetMyEmailData(w http.ResponseWriter, r *http.Request)
+
+	UpdatePassword(w http.ResponseWriter, r *http.Request)
+	UpdateUsername(w http.ResponseWriter, r *http.Request)
+
+	DeleteMyAccount(w http.ResponseWriter, r *http.Request)
 	DeleteMySession(w http.ResponseWriter, r *http.Request)
-	RegisterAdmin(w http.ResponseWriter, r *http.Request)
-	GetUser(w http.ResponseWriter, r *http.Request)
-	GetUserSessions(w http.ResponseWriter, r *http.Request)
-	DeleteUserSessions(w http.ResponseWriter, r *http.Request)
-	GetSession(w http.ResponseWriter, r *http.Request)
-	DeleteUserSession(w http.ResponseWriter, r *http.Request)
+	DeleteMySessions(w http.ResponseWriter, r *http.Request)
 }
 
 type Middlewares interface {
@@ -40,8 +45,8 @@ type Middlewares interface {
 }
 
 func Run(ctx context.Context, cfg internal.Config, log logium.Logger, m Middlewares, h Handlers) {
-	auth := m.Auth(meta.UserCtxKey, cfg.JWT.User.AccessToken.SecretKey)
-	sysadmin := m.RoleGrant(meta.UserCtxKey, map[string]bool{
+	auth := m.Auth(meta.AccountDataCtxKey, cfg.JWT.User.AccessToken.SecretKey)
+	sysadmin := m.RoleGrant(meta.AccountDataCtxKey, map[string]bool{
 		roles.SystemAdmin: true,
 	})
 
@@ -49,23 +54,28 @@ func Run(ctx context.Context, cfg internal.Config, log logium.Logger, m Middlewa
 
 	r.Route("/sso-svc", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
-			r.Post("/register", h.RegisterUser)
+			r.Post("/registration", h.Registration)
 
 			r.Route("/login", func(r chi.Router) {
-				r.Post("/", h.Login)
+				r.Post("/email", h.LoginByEmail)
+				r.Post("/username", h.LoginByUsername)
 
 				r.Route("/google", func(r chi.Router) {
-					r.Post("/", h.GoogleLogin)
-					r.Post("/callback", h.GoogleLoginCallback)
+					r.Post("/", h.LoginByGoogleOAuth)
+					r.Post("/callback", h.LoginByGoogleOAuthCallback)
 				})
 			})
 
 			r.Post("/refresh", h.RefreshSession)
 
 			r.With(auth).Route("/me", func(r chi.Router) {
-				r.With(auth).Get("/", h.GetMyUser)
+				r.With(auth).Get("/", h.GetMyAccount)
+				r.With(auth).Delete("/", h.DeleteMyAccount)
+
+				r.With(auth).Get("/email", h.GetMyEmailData)
 				r.With(auth).Post("/logout", h.Logout)
-				r.With(auth).Post("/password", h.ResetPassword)
+				r.With(auth).Post("/password", h.UpdatePassword)
+				r.With(auth).Post("/username", h.UpdateUsername)
 
 				r.With(auth).Route("/sessions", func(r chi.Router) {
 					r.Get("/", h.GetMySessions)
@@ -82,21 +92,7 @@ func Run(ctx context.Context, cfg internal.Config, log logium.Logger, m Middlewa
 				r.Use(auth)
 				r.Use(sysadmin)
 
-				r.Post("/", h.RegisterAdmin)
-
-				r.Route("/{user_id}", func(r chi.Router) {
-					r.Get("/", h.GetUser)
-
-					r.Route("/sessions", func(r chi.Router) {
-						r.Get("/", h.GetUserSessions)
-						r.Delete("/", h.DeleteUserSessions)
-
-						r.Route("/{session_id}", func(r chi.Router) {
-							r.Get("/", h.GetSession)
-							r.Delete("/", h.DeleteUserSession)
-						})
-					})
-				})
+				r.Post("/", h.RegistrationAdmin)
 			})
 		})
 	})

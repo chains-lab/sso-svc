@@ -28,7 +28,7 @@ func TestUserRegistration(t *testing.T) {
 		roles.User,
 	)
 	if err != nil {
-		t.Fatalf("Register: %v", err)
+		t.Fatalf("Registration: %v", err)
 	}
 
 	_, err = s.core.Auth.Login(ctx, firstEmail, password)
@@ -99,7 +99,7 @@ func TestUpdateUserPassword(t *testing.T) {
 		roles.User,
 	)
 	if err != nil {
-		t.Fatalf("Register: %v", err)
+		t.Fatalf("Registration: %v", err)
 	}
 
 	_, err = s.core.Auth.Login(ctx, firstEmail, password)

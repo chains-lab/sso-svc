@@ -22,7 +22,7 @@ var _ MappedNullable = &TokensPairData{}
 
 // TokensPairData struct for TokensPairData
 type TokensPairData struct {
-	// user id
+	// account id
 	Id uuid.UUID `json:"id"`
 	Type string `json:"type"`
 	Attributes TokensPairDataAttributes `json:"attributes"`

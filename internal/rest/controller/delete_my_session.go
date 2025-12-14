@@ -16,7 +16,7 @@ import (
 )
 
 func (s *Service) DeleteMySession(w http.ResponseWriter, r *http.Request) {
-	initiator, err := meta.User(r.Context())
+	initiator, err := meta.AccountData(r.Context())
 	if err != nil {
 		s.log.WithError(err).Error("failed to get user from context")
 		ape.RenderErr(w, problems.Unauthorized("failed to get user from context"))
@@ -34,11 +34,13 @@ func (s *Service) DeleteMySession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = s.domain.Session.DeleteOneForUser(r.Context(), initiator.ID, sessionID); err != nil {
+	if err = s.domain.DeleteOwnSession(r.Context(), initiator.ID, sessionID); err != nil {
 		s.log.WithError(err).Errorf("failed to delete My session")
 		switch {
-		case errors.Is(err, errx.ErrorSessionNotFound):
-			ape.RenderErr(w, problems.NotFound("session not found"))
+		case errors.Is(err, errx.ErrorInitiatorNotFound):
+			ape.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))
+		case errors.Is(err, errx.ErrorInitiatorIsNotActive):
+			ape.RenderErr(w, problems.Forbidden("initiator is not active"))
 		default:
 			ape.RenderErr(w, problems.InternalError())
 		}

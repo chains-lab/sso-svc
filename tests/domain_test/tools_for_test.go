@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/chains-lab/sso-svc/internal/domain/models"
+	"github.com/chains-lab/sso-svc/internal/domain/entity"
 	"github.com/google/uuid"
 )
 
-func CreateUser(s Setup, t *testing.T, email, password, role string) models.User {
+func CreateUser(s Setup, t *testing.T, email, password, role string) entity.User {
 	t.Helper()
 	ctx := context.Background()
 
@@ -20,7 +20,7 @@ func CreateUser(s Setup, t *testing.T, email, password, role string) models.User
 	return u
 }
 
-func CreateSession(s Setup, t *testing.T, userID uuid.UUID) models.Session {
+func CreateSession(s Setup, t *testing.T, userID uuid.UUID) entity.Session {
 	t.Helper()
 	ctx := context.Background()
 

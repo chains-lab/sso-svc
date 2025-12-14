@@ -1,3 +1,3 @@
 package contracts
 
-const UsersTopicV1 = "users.v1"
+const AccountsTopicV1 = "accounts.v1"
