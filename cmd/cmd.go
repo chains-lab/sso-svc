@@ -8,7 +8,8 @@ import (
 	"github.com/chains-lab/logium"
 	"github.com/chains-lab/sso-svc/internal"
 	"github.com/chains-lab/sso-svc/internal/domain"
-	"github.com/chains-lab/sso-svc/internal/events/publisher"
+	"github.com/chains-lab/sso-svc/internal/events/outbox"
+	"github.com/chains-lab/sso-svc/internal/events/writer"
 	"github.com/chains-lab/sso-svc/internal/repo"
 	"github.com/chains-lab/sso-svc/internal/rest"
 	"github.com/chains-lab/sso-svc/internal/rest/controller"
@@ -30,7 +31,7 @@ func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, 
 		log.Fatal("failed to connect to database", "error", err)
 	}
 
-	database := repo.New(pg)
+	repository := repo.New(pg)
 
 	jwtTokenManager := token.NewManager(token.Config{
 		AccessSK:   cfg.JWT.User.AccessToken.SecretKey,
@@ -40,12 +41,15 @@ func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, 
 		Iss:        cfg.Service.Name,
 	})
 
-	eventPublisher := publisher.New(cfg.Kafka.Broker)
+	eventWriter := writer.New(cfg.Kafka.Broker, repository)
+	eventOutbox := outbox.New(log, eventWriter, repository)
 
-	core := domain.NewService(database, jwtTokenManager, eventPublisher)
+	core := domain.NewService(repository, jwtTokenManager, eventWriter)
 
 	ctrl := controller.New(log, cfg.GoogleOAuth(), core)
 	mdlv := middlewares.New(log)
 
 	run(func() { rest.Run(ctx, cfg, log, mdlv, ctrl) })
+
+	run(func() { eventOutbox.Run(ctx) })
 }

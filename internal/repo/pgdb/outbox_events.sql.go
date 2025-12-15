@@ -9,6 +9,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -16,15 +17,14 @@ import (
 
 const createOutboxEvent = `-- name: CreateOutboxEvent :one
 INSERT INTO outbox_events (
-    id, topic, event_type, event_version, key, payload
+    topic, event_type, event_version, key, payload
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
+    $1, $2, $3, $4, $5
 )
 RETURNING id, topic, event_type, event_version, key, payload, status, attempts, next_retry_at, created_at, sent_at
 `
 
 type CreateOutboxEventParams struct {
-	ID           uuid.UUID
 	Topic        string
 	EventType    string
 	EventVersion int32
@@ -34,7 +34,6 @@ type CreateOutboxEventParams struct {
 
 func (q *Queries) CreateOutboxEvent(ctx context.Context, arg CreateOutboxEventParams) (OutboxEvent, error) {
 	row := q.db.QueryRowContext(ctx, createOutboxEvent,
-		arg.ID,
 		arg.Topic,
 		arg.EventType,
 		arg.EventVersion,
@@ -56,6 +55,23 @@ func (q *Queries) CreateOutboxEvent(ctx context.Context, arg CreateOutboxEventPa
 		&i.SentAt,
 	)
 	return i, err
+}
+
+const delayOutboxEvents = `-- name: DelayOutboxEvents :exec
+UPDATE outbox_events
+SET attempts = attempts + 1,
+    next_retry_at = $2
+WHERE id = ANY($1::uuid[])
+`
+
+type DelayOutboxEventsParams struct {
+	Column1     []uuid.UUID
+	NextRetryAt time.Time
+}
+
+func (q *Queries) DelayOutboxEvents(ctx context.Context, arg DelayOutboxEventsParams) error {
+	_, err := q.db.ExecContext(ctx, delayOutboxEvents, pq.Array(arg.Column1), arg.NextRetryAt)
+	return err
 }
 
 const getPendingOutboxEvents = `-- name: GetPendingOutboxEvents :many

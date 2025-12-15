@@ -46,5 +46,15 @@ func (s Service) UpdateUsername(
 		)
 	}
 
+	email, err := s.GetAccountEmailData(ctx, account.ID)
+	if err != nil {
+		return entity.Account{}, err
+	}
+
+	err = s.event.WriteAccountPasswordChanged(ctx, account, email.Email)
+	if err != nil {
+		return entity.Account{}, err
+	}
+
 	return account, nil
 }

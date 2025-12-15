@@ -14,7 +14,7 @@ func (s Service) UpdatePassword(
 	accountID uuid.UUID,
 	oldPassword, newPassword string,
 ) error {
-	_, err := s.GetInitiator(ctx, accountID)
+	account, err := s.GetInitiator(ctx, accountID)
 	if err != nil {
 		return err
 	}
@@ -50,6 +50,16 @@ func (s Service) UpdatePassword(
 	}
 
 	err = s.db.UpdateAccountPassword(ctx, accountID, string(hash))
+	if err != nil {
+		return err
+	}
+
+	email, err := s.GetAccountEmailData(ctx, account.ID)
+	if err != nil {
+		return err
+	}
+
+	err = s.event.WriteAccountPasswordChanged(ctx, account, email.Email)
 	if err != nil {
 		return err
 	}

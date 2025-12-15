@@ -1,8 +1,7 @@
-package publisher
+package writer
 
 import (
 	"context"
-	"time"
 
 	"github.com/chains-lab/sso-svc/internal/domain/entity"
 	"github.com/chains-lab/sso-svc/internal/events/contracts"
@@ -15,20 +14,18 @@ type AccountCreatedPayload struct {
 	Email   string         `json:"email,omitempty"`
 }
 
-func (p Service) PublishAccountCreated(
+func (s Service) WriteAccountCreated(
 	ctx context.Context,
 	account entity.Account,
 	email string,
 ) error {
-	return p.publish(
+	return s.addToOutbox(
 		ctx,
-		contracts.AccountsTopicV1,
-		account.ID.String(),
-		contracts.Envelope[AccountCreatedPayload]{
-			Event:     AccountCreatedEvent,
-			Version:   "1",
-			Timestamp: time.Now().UTC(),
-			Data: AccountCreatedPayload{
+		contracts.Event{
+			Topic:     contracts.AccountsTopicV1,
+			EventType: AccountCreatedEvent,
+			Key:       account.ID.String(),
+			Payload: AccountCreatedPayload{
 				Account: account,
 				Email:   email,
 			},

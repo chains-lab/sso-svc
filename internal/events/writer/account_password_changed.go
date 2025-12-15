@@ -1,8 +1,7 @@
-package publisher
+package writer
 
 import (
 	"context"
-	"time"
 
 	"github.com/chains-lab/sso-svc/internal/domain/entity"
 	"github.com/chains-lab/sso-svc/internal/events/contracts"
@@ -14,19 +13,18 @@ type AccountPasswordChangePayload struct {
 	Account entity.Account `json:"account"`
 }
 
-func (p Service) PublishAccountPasswordChanged(
+func (s Service) WriteAccountPasswordChanged(
 	ctx context.Context,
 	account entity.Account,
+	email string,
 ) error {
-	return p.publish(
+	return s.addToOutbox(
 		ctx,
-		contracts.AccountsTopicV1,
-		account.ID.String(),
-		contracts.Envelope[AccountPasswordChangePayload]{
-			Event:     AccountPasswordChangeEvent,
-			Version:   "1",
-			Timestamp: time.Now().UTC(),
-			Data: AccountPasswordChangePayload{
+		contracts.Event{
+			Topic:     contracts.AccountsTopicV1,
+			EventType: AccountPasswordChangeEvent,
+			Key:       account.ID.String(),
+			Payload: AccountPasswordChangePayload{
 				Account: account,
 			},
 		},

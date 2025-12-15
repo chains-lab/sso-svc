@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/chains-lab/sso-svc/internal/events/outbox"
@@ -12,7 +13,6 @@ import (
 )
 
 type CreateOutboxEventParams struct {
-	ID           uuid.UUID
 	Topic        string
 	EventType    string
 	EventVersion int32
@@ -25,7 +25,6 @@ func (r *Repository) CreateOutboxEvent(
 	params CreateOutboxEventParams,
 ) (outbox.OutboxEvent, error) {
 	res, err := r.sql.CreateOutboxEvent(ctx, pgdb.CreateOutboxEventParams{
-		ID:           params.ID,
 		Topic:        params.Topic,
 		EventType:    params.EventType,
 		EventVersion: params.EventVersion,
@@ -45,6 +44,9 @@ func (r *Repository) GetPendingOutboxEvents(
 ) ([]outbox.OutboxEvent, error) {
 	res, err := r.sql.GetPendingOutboxEvents(ctx, limit)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return []outbox.OutboxEvent{}, nil
+		}
 		return nil, err
 	}
 
@@ -66,6 +68,19 @@ func (r *Repository) MarkOutboxEventsSent(
 			Valid: true,
 			Time:  time.Now().UTC(),
 		},
+	})
+
+	return res
+}
+
+func (r *Repository) DelayOutboxEvents(
+	ctx context.Context,
+	ids []uuid.UUID,
+	delay time.Duration,
+) error {
+	res := r.sql.DelayOutboxEvents(ctx, pgdb.DelayOutboxEventsParams{
+		Column1:     ids,
+		NextRetryAt: time.Now().Add(delay),
 	})
 
 	return res

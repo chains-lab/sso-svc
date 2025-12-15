@@ -29,10 +29,10 @@ type JWTManager interface {
 }
 
 type EventPublisher interface {
-	PublishAccountCreated(ctx context.Context, account entity.Account, email string) error
-	PublishAccountPasswordChanged(ctx context.Context, account entity.Account) error
-	PublishAccountUsernameChanged(ctx context.Context, account entity.Account) error
-	PublishAccountLogin(ctx context.Context, account entity.Account) error
+	WriteAccountCreated(ctx context.Context, account entity.Account, email string) error
+	WriteAccountPasswordChanged(ctx context.Context, account entity.Account, email string) error
+	WriteAccountUsernameChanged(ctx context.Context, account entity.Account, email string) error
+	WriteAccountLogin(ctx context.Context, account entity.Account, email string) error
 }
 
 type CreateAccountParams struct {

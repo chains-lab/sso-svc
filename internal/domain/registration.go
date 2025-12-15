@@ -78,7 +78,7 @@ func (s Service) Registration(
 		)
 	}
 
-	err = s.event.PublishAccountCreated(ctx, account, params.Email)
+	err = s.event.WriteAccountCreated(ctx, account, params.Email)
 	if err != nil {
 		return entity.Account{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to publish account created event for account '%s', cause: %w", account.ID, err),
@@ -120,7 +120,7 @@ func (s Service) RegistrationByAdmin(
 		return entity.Account{}, err
 	}
 
-	err = s.event.PublishAccountCreated(ctx, account, params.Email)
+	err = s.event.WriteAccountCreated(ctx, account, params.Email)
 	if err != nil {
 		return entity.Account{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to publish admin created event for account '%s', cause: %w", account.ID, err),

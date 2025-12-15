@@ -1,8 +1,8 @@
 -- name: CreateOutboxEvent :one
 INSERT INTO outbox_events (
-    id, topic, event_type, event_version, key, payload
+    topic, event_type, event_version, key, payload
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
+    $1, $2, $3, $4, $5
 )
 RETURNING *;
 
@@ -19,3 +19,8 @@ SET status = 'sent',
     sent_at = $2
 WHERE id = ANY($1::uuid[]);
 
+-- name: DelayOutboxEvents :exec
+UPDATE outbox_events
+SET attempts = attempts + 1,
+    next_retry_at = $2
+WHERE id = ANY($1::uuid[]);

@@ -59,7 +59,12 @@ func (s Service) CreateSession(
 		)
 	}
 
-	err = s.event.PublishAccountLogin(ctx, account)
+	email, err := s.GetAccountEmailData(ctx, account.ID)
+	if err != nil {
+		return entity.TokensPair{}, err
+	}
+
+	err = s.event.WriteAccountLogin(ctx, account, email.Email)
 	if err != nil {
 		return entity.TokensPair{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to publish account login event for account %s: %w", account.ID, err),
