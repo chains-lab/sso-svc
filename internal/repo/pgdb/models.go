@@ -5,7 +5,9 @@
 package pgdb
 
 import (
+	"database/sql"
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -98,6 +100,49 @@ func (ns NullAccountStatus) Value() (driver.Value, error) {
 	return string(ns.AccountStatus), nil
 }
 
+type OutboxEventStatus string
+
+const (
+	OutboxEventStatusPending OutboxEventStatus = "pending"
+	OutboxEventStatusSent    OutboxEventStatus = "sent"
+	OutboxEventStatusFailed  OutboxEventStatus = "failed"
+)
+
+func (e *OutboxEventStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = OutboxEventStatus(s)
+	case string:
+		*e = OutboxEventStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for OutboxEventStatus: %T", src)
+	}
+	return nil
+}
+
+type NullOutboxEventStatus struct {
+	OutboxEventStatus OutboxEventStatus
+	Valid             bool // Valid is true if OutboxEventStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullOutboxEventStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.OutboxEventStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.OutboxEventStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullOutboxEventStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.OutboxEventStatus), nil
+}
+
 type Account struct {
 	ID                uuid.UUID
 	Username          string
@@ -121,6 +166,20 @@ type AccountPassword struct {
 	Hash      string
 	UpdatedAt time.Time
 	CreatedAt time.Time
+}
+
+type OutboxEvent struct {
+	ID           uuid.UUID
+	Topic        string
+	EventType    string
+	EventVersion int32
+	Key          string
+	Payload      json.RawMessage
+	Status       OutboxEventStatus
+	Attempts     int32
+	NextRetryAt  time.Time
+	CreatedAt    time.Time
+	SentAt       sql.NullTime
 }
 
 type Session struct {

@@ -2,16 +2,8 @@ package pgdb
 
 import (
 	"github.com/chains-lab/sso-svc/internal/domain/entity"
+	"github.com/chains-lab/sso-svc/internal/events/outbox"
 )
-
-//type txKeyType struct{}
-//
-//var TxKey = txKeyType{}
-//
-//func TxFromCtx(ctx context.Context) (*sql.Tx, bool) {
-//	tx, ok := ctx.Value(TxKey).(*sql.Tx)
-//	return tx, ok
-//}
 
 func (s Session) ToModel() entity.Session {
 	return entity.Session{
@@ -55,4 +47,25 @@ func (ap AccountPassword) ToModel() entity.AccountPassword {
 		UpdatedAt: ap.UpdatedAt,
 		CreatedAt: ap.CreatedAt,
 	}
+}
+
+func (eo OutboxEvent) ToModel() outbox.OutboxEvent {
+	res := outbox.OutboxEvent{
+		ID:           eo.ID,
+		Topic:        eo.Topic,
+		EventType:    eo.EventType,
+		EventVersion: eo.EventVersion,
+		Key:          eo.Key,
+		Payload:      eo.Payload,
+		Status:       string(eo.Status),
+		Attempts:     eo.Attempts,
+		NextRetryAt:  eo.NextRetryAt,
+		CreatedAt:    eo.CreatedAt,
+	}
+	if eo.SentAt.Valid {
+		t := eo.SentAt.Time
+		res.SentAt = &t
+	}
+
+	return res
 }

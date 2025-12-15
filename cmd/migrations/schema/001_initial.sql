@@ -19,32 +19,54 @@ CREATE TABLE accounts (
     role       account_role   DEFAULT 'user'   NOT NULL,
     status     account_status DEFAULT 'active' NOT NULL,
 
-    created_at TIMESTAMP NOT NULL DEFAULT now(),
-    updated_at TIMESTAMP NOT NULL DEFAULT now(),
-    username_updated_at TIMESTAMP NOT NULL DEFAULT now()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    username_updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE account_emails (
     account_id UUID        NOT NULL PRIMARY KEY NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
     email      VARCHAR(32) NOT NULL UNIQUE,
     verified   BOOLEAN     NOT NULL DEFAULT FALSE,
-    updated_at TIMESTAMP   NOT NULL DEFAULT now(),
-    created_at TIMESTAMP   NOT NULL DEFAULT now()
+    updated_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    created_at TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
 CREATE TABLE account_passwords (
     account_id UUID      NOT NULL PRIMARY KEY NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
     hash       TEXT      NOT NULL,
-    updated_at TIMESTAMP NOT NULL DEFAULT now(),
-    created_at TIMESTAMP NOT NULL DEFAULT now()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE sessions (
-    id         UUID      PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    account_id UUID      NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    hash_token TEXT      NOT NULL,
-    last_used  TIMESTAMP NOT NULL DEFAULT now(),
-    created_at TIMESTAMP NOT NULL DEFAULT now()
+    id         UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    hash_token TEXT NOT NULL,
+    last_used  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TYPE outbox_event_status AS ENUM (
+    'pending',
+    'sent',
+    'failed'
+);
+
+CREATE TABLE outbox_events (
+    id            UUID  PRIMARY KEY,
+    topic         TEXT  NOT NULL,
+    event_type    TEXT  NOT NULL,
+    event_version INT   NOT NULL,
+    key           TEXT  NOT NULL,
+    payload       JSONB NOT NULL,
+
+    status        outbox_event_status NOT NULL DEFAULT 'pending', -- pending | sent | failed
+    attempts      INT       NOT NULL DEFAULT 0,
+    next_retry_at TIMESTAMPTZ NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
+
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
+    sent_at       TIMESTAMPTZ NULL
 );
 
 -- +migrate Down
@@ -52,8 +74,10 @@ DROP TABLE IF EXISTS sessions CASCADE;
 DROP TABLE IF EXISTS account_passwords CASCADE;
 DROP TABLE IF EXISTS account_emails CASCADE;
 DROP TABLE IF EXISTS accounts CASCADE;
+DROP TABLE IF EXISTS outbox_events CASCADE;
 
 DROP TYPE IF EXISTS account_role;
 DROP TYPE IF EXISTS account_status;
+DROP TYPE IF EXISTS outbox_event_status;
 
 DROP EXTENSION IF EXISTS "uuid-ossp";
