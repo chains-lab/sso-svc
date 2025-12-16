@@ -1,6 +1,7 @@
 package contracts
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,25 +16,26 @@ type Message struct {
 }
 
 type OutboxEvent struct {
-	ID           uuid.UUID
-	Topic        string
-	EventType    string
-	EventVersion int32
-	Key          string
-	Payload      interface{}
-	Status       string
-	Attempts     int32
-	NextRetryAt  time.Time
-	CreatedAt    time.Time
-	SentAt       *time.Time
+	ID           uuid.UUID `db:"id"`
+	Topic        string    `db:"topic"`
+	EventType    string    `db:"event_type"`
+	EventVersion int       `db:"event_version"`
+	Key          string    `db:"key"`
+	Payload      []byte    `db:"payload"`
+
+	Status      string     `db:"status"`
+	Attempts    int        `db:"attempts"`
+	NextRetryAt time.Time  `db:"next_retry_at"`
+	CreatedAt   time.Time  `db:"created_at"`
+	SentAt      *time.Time `db:"sent_at"`
 }
 
-func (e OutboxEvent) ToEventData() Message {
+func (e OutboxEvent) ToMessage() Message {
 	return Message{
 		Topic:        e.Topic,
 		EventType:    e.EventType,
-		EventVersion: e.EventVersion,
+		EventVersion: int32(e.EventVersion),
 		Key:          e.Key,
-		Payload:      e.Payload,
+		Payload:      json.RawMessage(e.Payload),
 	}
 }

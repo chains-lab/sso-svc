@@ -1,4 +1,4 @@
-package domain
+package auth
 
 import (
 	"context"
@@ -75,7 +75,7 @@ type database interface {
 		ctx context.Context,
 		accountID uuid.UUID,
 		passwordHash string,
-	) error
+	) (entity.AccountPassword, error)
 	DeleteAccount(ctx context.Context, accountID uuid.UUID) error
 
 	CreateSession(ctx context.Context, sessionID, accountID uuid.UUID, hashToken string) (entity.Session, error)

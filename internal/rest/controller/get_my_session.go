@@ -7,8 +7,8 @@ import (
 
 	"github.com/chains-lab/ape"
 	"github.com/chains-lab/ape/problems"
-	"github.com/chains-lab/sso-svc/internal/domain"
 	"github.com/chains-lab/sso-svc/internal/domain/errx"
+	"github.com/chains-lab/sso-svc/internal/domain/modules/auth"
 	"github.com/chains-lab/sso-svc/internal/rest/meta"
 	"github.com/chains-lab/sso-svc/internal/rest/responses"
 
@@ -36,7 +36,7 @@ func (s *Service) GetMySession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := s.domain.GetOwnSession(r.Context(), domain.InitiatorData{
+	session, err := s.domain.GetOwnSession(r.Context(), auth.InitiatorData{
 		AccountID: initiator.ID,
 		SessionID: initiator.SessionID,
 	}, sessionId)

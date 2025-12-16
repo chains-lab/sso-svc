@@ -6,8 +6,8 @@ import (
 
 	"github.com/chains-lab/ape"
 	"github.com/chains-lab/ape/problems"
-	"github.com/chains-lab/sso-svc/internal/domain"
 	"github.com/chains-lab/sso-svc/internal/domain/errx"
+	"github.com/chains-lab/sso-svc/internal/domain/modules/auth"
 	"github.com/chains-lab/sso-svc/internal/rest/meta"
 	"github.com/chains-lab/sso-svc/internal/rest/requests"
 	"github.com/chains-lab/sso-svc/internal/rest/responses"
@@ -32,7 +32,7 @@ func (s *Service) RegistrationAdmin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := s.domain.Registration(r.Context(), domain.RegistrationParams{
+	u, err := s.domain.Registration(r.Context(), auth.RegistrationParams{
 		Username: req.Data.Attributes.Username,
 		Email:    req.Data.Attributes.Email,
 		Password: req.Data.Attributes.Password,

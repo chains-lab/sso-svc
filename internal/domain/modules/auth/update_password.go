@@ -1,4 +1,4 @@
-package domain
+package auth
 
 import (
 	"context"
@@ -49,7 +49,7 @@ func (s Service) UpdatePassword(
 		)
 	}
 
-	err = s.db.UpdateAccountPassword(ctx, initiator.AccountID, string(hash))
+	_, err = s.db.UpdateAccountPassword(ctx, initiator.AccountID, string(hash))
 	if err != nil {
 		return err
 	}

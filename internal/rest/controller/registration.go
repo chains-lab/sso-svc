@@ -7,8 +7,8 @@ import (
 	"github.com/chains-lab/ape"
 	"github.com/chains-lab/ape/problems"
 	"github.com/chains-lab/restkit/roles"
-	"github.com/chains-lab/sso-svc/internal/domain"
 	"github.com/chains-lab/sso-svc/internal/domain/errx"
+	"github.com/chains-lab/sso-svc/internal/domain/modules/auth"
 	"github.com/chains-lab/sso-svc/internal/rest/requests"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -23,7 +23,7 @@ func (s *Service) Registration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = s.domain.Registration(r.Context(), domain.RegistrationParams{
+	_, err = s.domain.Registration(r.Context(), auth.RegistrationParams{
 		Username: req.Data.Attributes.Username,
 		Email:    req.Data.Attributes.Email,
 		Password: req.Data.Attributes.Password,

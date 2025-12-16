@@ -24,7 +24,7 @@ func (s *Service) LoginByUsername(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to login user")
 		switch {
-		case errors.Is(err, errx.ErrorPasswordInvalid) || errors.Is(err, errx.ErrorInitiatorNotFound):
+		case errors.Is(err, errx.ErrorPasswordInvalid) || errors.Is(err, errx.ErrorAccountNotFound):
 			ape.RenderErr(w, problems.Unauthorized("invalid login or password"))
 		case errors.Is(err, errx.ErrorInitiatorIsNotActive):
 			ape.RenderErr(w, problems.Forbidden("account is not active"))

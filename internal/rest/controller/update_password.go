@@ -6,8 +6,8 @@ import (
 
 	"github.com/chains-lab/ape"
 	"github.com/chains-lab/ape/problems"
-	"github.com/chains-lab/sso-svc/internal/domain"
 	"github.com/chains-lab/sso-svc/internal/domain/errx"
+	"github.com/chains-lab/sso-svc/internal/domain/modules/auth"
 	"github.com/chains-lab/sso-svc/internal/rest/meta"
 	"github.com/chains-lab/sso-svc/internal/rest/requests"
 
@@ -31,7 +31,7 @@ func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.domain.UpdatePassword(r.Context(), domain.InitiatorData{
+	err = s.domain.UpdatePassword(r.Context(), auth.InitiatorData{
 		AccountID: initiator.ID,
 		SessionID: initiator.SessionID,
 	}, req.Data.Attributes.OldPassword, req.Data.Attributes.NewPassword)

@@ -67,7 +67,7 @@ func (s *Service) LoginByGoogleOAuthCallback(w http.ResponseWriter, r *http.Requ
 		switch {
 		case errors.Is(err, errx.ErrorInitiatorIsNotActive):
 			ape.RenderErr(w, problems.Forbidden("account is not active"))
-		case errors.Is(err, errx.ErrorInitiatorNotFound):
+		case errors.Is(err, errx.ErrorAccountNotFound):
 			ape.RenderErr(w, problems.NotFound("user with this email not found"))
 		default:
 			ape.RenderErr(w, problems.InternalError())

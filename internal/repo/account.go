@@ -4,45 +4,70 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"time"
 
-	"github.com/chains-lab/sso-svc/internal/domain"
 	"github.com/chains-lab/sso-svc/internal/domain/entity"
+	"github.com/chains-lab/sso-svc/internal/domain/modules/auth"
 	"github.com/chains-lab/sso-svc/internal/repo/pgdb"
 	"github.com/google/uuid"
 )
 
-func (r *Repository) CreateAccount(ctx context.Context, params domain.CreateAccountParams) (entity.Account, error) {
-	acc, err := r.sql.CreateAccount(ctx, pgdb.CreateAccountParams{
-		Username: params.Username,
-		Role:     pgdb.AccountRole(params.Role),
-		Status:   pgdb.AccountStatusActive,
+func (r *Repository) CreateAccount(ctx context.Context, params auth.CreateAccountParams) (entity.Account, error) {
+	var account entity.Account
+
+	err := r.sql.accounts.Transaction(ctx, func(ctx context.Context) error {
+		now := time.Now().UTC()
+		accountID := uuid.New()
+
+		acc := pgdb.Account{
+			ID:                accountID,
+			Username:          params.Username,
+			Role:              params.Role,
+			Status:            entity.AccountStatusActive,
+			CreatedAt:         now,
+			UpdatedAt:         now,
+			UsernameUpdatedAt: now,
+		}
+
+		account = acc.ToEntity()
+
+		err := r.sql.accounts.Insert(ctx, acc)
+		if err != nil {
+			return err
+		}
+
+		emailRow := pgdb.AccountEmail{
+			AccountID: accountID,
+			Email:     params.Email,
+			Verified:  false,
+			CreatedAt: now,
+			UpdatedAt: now,
+		}
+
+		err = r.sql.emails.Insert(ctx, emailRow)
+		if err != nil {
+			return err
+		}
+
+		passwordRow := pgdb.AccountPassword{
+			AccountID: accountID,
+			Hash:      params.PasswordHash,
+			CreatedAt: now,
+			UpdatedAt: now,
+		}
+
+		return r.sql.passwords.Insert(ctx, passwordRow)
 	})
 	if err != nil {
 		return entity.Account{}, err
 	}
 
-	_, err = r.sql.CreateAccountEmail(ctx, pgdb.CreateAccountEmailParams{
-		AccountID: acc.ID,
-		Email:     params.Email,
-		Verified:  false,
-	})
-	if err != nil {
-		return entity.Account{}, err
-	}
-
-	_, err = r.sql.CreateAccountPassword(ctx, pgdb.CreateAccountPasswordParams{
-		AccountID: acc.ID,
-		Hash:      params.PasswordHash,
-	})
-	if err != nil {
-		return entity.Account{}, err
-	}
-
-	return acc.ToEntity(), err
+	return account, err
 }
 
 func (r *Repository) GetAccountByID(ctx context.Context, accountID uuid.UUID) (entity.Account, error) {
-	acc, err := r.sql.GetAccountByID(ctx, accountID)
+	acc, err := r.sql.accounts.New().FilterID(accountID).Get(ctx)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
 		return entity.Account{}, nil
@@ -54,7 +79,7 @@ func (r *Repository) GetAccountByID(ctx context.Context, accountID uuid.UUID) (e
 }
 
 func (r *Repository) GetAccountByUsername(ctx context.Context, username string) (entity.Account, error) {
-	acc, err := r.sql.GetAccountByUsername(ctx, username)
+	acc, err := r.sql.accounts.New().FilterUsername(username).Get(ctx)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
 		return entity.Account{}, nil
@@ -66,7 +91,7 @@ func (r *Repository) GetAccountByUsername(ctx context.Context, username string) 
 }
 
 func (r *Repository) GetAccountByEmail(ctx context.Context, email string) (entity.Account, error) {
-	acc, err := r.sql.GetAccountByEmail(ctx, email)
+	acc, err := r.sql.accounts.New().FilterEmail(email).Get(ctx)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
 		return entity.Account{}, nil
@@ -77,28 +102,28 @@ func (r *Repository) GetAccountByEmail(ctx context.Context, email string) (entit
 	return acc.ToEntity(), nil
 }
 
-func (r *Repository) UpdateAccountUsername(
-	ctx context.Context,
-	accountID uuid.UUID,
-	newUsername string,
-) (entity.Account, error) {
+func (r *Repository) UpdateAccountUsername(ctx context.Context, accountID uuid.UUID, newUsername string) (entity.Account, error) {
 	var account entity.Account
 
-	err := r.Transaction(ctx, func(ctx context.Context) error {
-		row, err := r.sql.UpdateAccountUsername(ctx, pgdb.UpdateAccountUsernameParams{
-			ID:       accountID,
-			Username: newUsername,
-		})
+	err := r.sql.accounts.Transaction(ctx, func(ctx context.Context) error {
+		accs, err := r.sql.accounts.New().
+			FilterID(accountID).
+			UpdateUsername(newUsername, time.Now().UTC()).
+			Update(ctx)
 		if err != nil {
 			return err
+		}
+
+		if len(accs) == 1 {
+			account = accs[0].ToEntity()
+		} else {
+			return fmt.Errorf("expected to update 1 account, updated %d", len(accs))
 		}
 
 		err = r.DeleteSessionsForAccount(ctx, accountID)
 		if err != nil {
 			return err
 		}
-
-		account = row.ToEntity()
 
 		return nil
 	})
@@ -106,24 +131,23 @@ func (r *Repository) UpdateAccountUsername(
 	return account, err
 }
 
-func (r *Repository) UpdateAccountStatus(
-	ctx context.Context,
-	accountID uuid.UUID,
-	status string,
-) (entity.Account, error) {
-	acc, err := r.sql.UpdateAccountStatus(ctx, pgdb.UpdateAccountStatusParams{
-		ID:     accountID,
-		Status: pgdb.AccountStatus(status),
-	})
+func (r *Repository) UpdateAccountStatus(ctx context.Context, accountID uuid.UUID, status string) (entity.Account, error) {
+	accs, err := r.sql.accounts.New().
+		FilterID(accountID).
+		UpdateStatus(status).
+		Update(ctx)
 	if err != nil {
 		return entity.Account{}, err
 	}
 
-	return acc.ToEntity(), nil
+	if len(accs) != 1 {
+		return entity.Account{}, fmt.Errorf("expected to update 1 account, updated %d", len(accs))
+	}
+	return accs[0].ToEntity(), nil
 }
 
 func (r *Repository) GetAccountEmail(ctx context.Context, accountID uuid.UUID) (entity.AccountEmail, error) {
-	email, err := r.sql.GetAccountEmail(ctx, accountID)
+	acc, err := r.sql.emails.New().FilterAccountID(accountID).Get(ctx)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
 		return entity.AccountEmail{}, nil
@@ -131,7 +155,7 @@ func (r *Repository) GetAccountEmail(ctx context.Context, accountID uuid.UUID) (
 		return entity.AccountEmail{}, err
 	}
 
-	return email.ToEntity(), nil
+	return acc.ToEntity(), nil
 }
 
 func (r *Repository) UpdateAccountEmailVerification(
@@ -139,19 +163,22 @@ func (r *Repository) UpdateAccountEmailVerification(
 	accountID uuid.UUID,
 	verified bool,
 ) (entity.AccountEmail, error) {
-	email, err := r.sql.UpdateVerifiedEmail(ctx, pgdb.UpdateVerifiedEmailParams{
-		AccountID: accountID,
-		Verified:  verified,
-	})
+	accs, err := r.sql.emails.New().
+		FilterAccountID(accountID).
+		UpdateVerified(verified).
+		Update(ctx)
 	if err != nil {
 		return entity.AccountEmail{}, err
 	}
 
-	return email.ToEntity(), nil
+	if len(accs) != 1 {
+		return entity.AccountEmail{}, fmt.Errorf("expected to update 1 account, updated %d", len(accs))
+	}
+	return accs[0].ToEntity(), nil
 }
 
 func (r *Repository) GetAccountPassword(ctx context.Context, accountID uuid.UUID) (entity.AccountPassword, error) {
-	u, err := r.sql.GetAccountPassword(ctx, accountID)
+	acc, err := r.sql.passwords.New().FilterAccountID(accountID).Get(ctx)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
 		return entity.AccountPassword{}, nil
@@ -159,37 +186,40 @@ func (r *Repository) GetAccountPassword(ctx context.Context, accountID uuid.UUID
 		return entity.AccountPassword{}, err
 	}
 
-	return u.ToEntity(), nil
+	return acc.ToEntity(), nil
 }
 
 func (r *Repository) UpdateAccountPassword(
 	ctx context.Context,
 	accountID uuid.UUID,
 	passwordHash string,
-) error {
-	return r.Transaction(ctx, func(ctx context.Context) error {
-		_, err := r.sql.UpdateAccountPassword(ctx, pgdb.UpdateAccountPasswordParams{
-			AccountID: accountID,
-			Hash:      passwordHash,
-		})
+) (entity.AccountPassword, error) {
+	var password entity.AccountPassword
+
+	err := r.sql.accounts.Transaction(ctx, func(ctx context.Context) error {
+		accs, err := r.sql.passwords.New().
+			FilterAccountID(accountID).
+			UpdateHash(passwordHash).
+			Update(ctx)
 		if err != nil {
 			return err
 		}
 
-		err = r.DeleteSessionsForAccount(ctx, accountID)
-		if err != nil {
-			return err
+		if len(accs) != 1 {
+			return fmt.Errorf("expected to update 1 account, updated %d", len(accs))
 		}
 
-		return nil
+		password = accs[0].ToEntity()
+
+		return r.DeleteSessionsForAccount(ctx, accountID)
 	})
+	if err != nil {
+		return entity.AccountPassword{}, err
+	}
+
+	return password, nil
 }
 
 func (r *Repository) DeleteAccount(ctx context.Context, accountID uuid.UUID) error {
-	err := r.sql.DeleteAccount(ctx, accountID)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return r.sql.accounts.New().FilterID(accountID).Delete(ctx)
 }

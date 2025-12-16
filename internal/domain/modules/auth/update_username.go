@@ -1,4 +1,4 @@
-package domain
+package auth
 
 import (
 	"context"
@@ -37,11 +37,6 @@ func (s Service) UpdateUsername(
 	if err != nil {
 		return entity.Account{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("updating username for account %s, cause: %w", initiator.AccountID, err),
-		)
-	}
-	if account.IsNil() {
-		return entity.Account{}, errx.ErrorInitiatorNotFound.Raise(
-			fmt.Errorf("account %s not found when updating username, cause: %w", initiator.AccountID, err),
 		)
 	}
 

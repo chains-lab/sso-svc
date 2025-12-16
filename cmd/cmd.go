@@ -7,7 +7,7 @@ import (
 
 	"github.com/chains-lab/logium"
 	"github.com/chains-lab/sso-svc/internal"
-	"github.com/chains-lab/sso-svc/internal/domain"
+	"github.com/chains-lab/sso-svc/internal/domain/modules/auth"
 	"github.com/chains-lab/sso-svc/internal/events/producer"
 	"github.com/chains-lab/sso-svc/internal/repo"
 	"github.com/chains-lab/sso-svc/internal/rest"
@@ -42,7 +42,7 @@ func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, 
 
 	kafkaProducer := producer.New(log, cfg.Kafka.Broker, repository)
 
-	core := domain.NewService(repository, jwtTokenManager, kafkaProducer)
+	core := auth.NewService(repository, jwtTokenManager, kafkaProducer)
 
 	ctrl := controller.New(log, cfg.GoogleOAuth(), core)
 	mdlv := middlewares.New(log)

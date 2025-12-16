@@ -7,8 +7,8 @@ import (
 	"github.com/chains-lab/ape"
 	"github.com/chains-lab/ape/problems"
 	"github.com/chains-lab/restkit/pagi"
-	"github.com/chains-lab/sso-svc/internal/domain"
 	"github.com/chains-lab/sso-svc/internal/domain/errx"
+	"github.com/chains-lab/sso-svc/internal/domain/modules/auth"
 	"github.com/chains-lab/sso-svc/internal/rest/meta"
 	"github.com/chains-lab/sso-svc/internal/rest/responses"
 )
@@ -23,7 +23,7 @@ func (s *Service) GetMySessions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	page, size := pagi.GetPagination(r)
-	sessions, err := s.domain.GetOwnSessions(r.Context(), domain.InitiatorData{
+	sessions, err := s.domain.GetOwnSessions(r.Context(), auth.InitiatorData{
 		AccountID: initiator.ID,
 		SessionID: initiator.SessionID,
 	}, page, size)

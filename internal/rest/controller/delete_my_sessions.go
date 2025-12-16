@@ -6,8 +6,8 @@ import (
 
 	"github.com/chains-lab/ape"
 	"github.com/chains-lab/ape/problems"
-	"github.com/chains-lab/sso-svc/internal/domain"
 	"github.com/chains-lab/sso-svc/internal/domain/errx"
+	"github.com/chains-lab/sso-svc/internal/domain/modules/auth"
 	"github.com/chains-lab/sso-svc/internal/rest/meta"
 )
 
@@ -20,7 +20,7 @@ func (s *Service) DeleteMySessions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = s.domain.DeleteOwnSessions(r.Context(), domain.InitiatorData{
+	if err = s.domain.DeleteOwnSessions(r.Context(), auth.InitiatorData{
 		AccountID: initiator.ID,
 		SessionID: initiator.SessionID,
 	}); err != nil {

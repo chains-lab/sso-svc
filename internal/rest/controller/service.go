@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/chains-lab/logium"
-	"github.com/chains-lab/sso-svc/internal/domain"
 	"github.com/chains-lab/sso-svc/internal/domain/entity"
+	"github.com/chains-lab/sso-svc/internal/domain/modules/auth"
 	"github.com/google/uuid"
 	"golang.org/x/oauth2"
 )
@@ -13,12 +13,12 @@ import (
 type core interface {
 	Registration(
 		ctx context.Context,
-		params domain.RegistrationParams,
+		params auth.RegistrationParams,
 	) (entity.Account, error)
 	RegistrationByAdmin(
 		ctx context.Context,
 		initiatorID uuid.UUID,
-		params domain.RegistrationParams,
+		params auth.RegistrationParams,
 	) (entity.Account, error)
 
 	LoginByEmail(ctx context.Context, email, password string) (entity.TokensPair, error)
@@ -29,12 +29,12 @@ type core interface {
 
 	UpdatePassword(
 		ctx context.Context,
-		initiator domain.InitiatorData,
+		initiator auth.InitiatorData,
 		oldPassword, newPassword string,
 	) error
 	UpdateUsername(
 		ctx context.Context,
-		initiator domain.InitiatorData,
+		initiator auth.InitiatorData,
 		password string,
 		newUsername string,
 	) (entity.Account, error)
@@ -42,19 +42,19 @@ type core interface {
 	GetAccountByID(ctx context.Context, ID uuid.UUID) (entity.Account, error)
 	GetAccountEmail(ctx context.Context, ID uuid.UUID) (entity.AccountEmail, error)
 
-	GetOwnSession(ctx context.Context, initiator domain.InitiatorData, sessionID uuid.UUID) (entity.Session, error)
+	GetOwnSession(ctx context.Context, initiator auth.InitiatorData, sessionID uuid.UUID) (entity.Session, error)
 	GetOwnSessions(
 		ctx context.Context,
-		initiator domain.InitiatorData,
+		initiator auth.InitiatorData,
 		page int32,
 		size int32,
 	) (entity.SessionsCollection, error)
 
-	DeleteOwnAccount(ctx context.Context, initiator domain.InitiatorData) error
+	DeleteOwnAccount(ctx context.Context, initiator auth.InitiatorData) error
 
-	Logout(ctx context.Context, initiator domain.InitiatorData) error
-	DeleteOwnSession(ctx context.Context, initiator domain.InitiatorData, sessionID uuid.UUID) error
-	DeleteOwnSessions(ctx context.Context, initiator domain.InitiatorData) error
+	Logout(ctx context.Context, initiator auth.InitiatorData) error
+	DeleteOwnSession(ctx context.Context, initiator auth.InitiatorData, sessionID uuid.UUID) error
+	DeleteOwnSessions(ctx context.Context, initiator auth.InitiatorData) error
 }
 
 type Service struct {

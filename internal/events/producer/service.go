@@ -108,7 +108,7 @@ func (s Service) Run(ctx context.Context) {
 			var sentIDs []uuid.UUID
 			var NonSentIDs []uuid.UUID
 			for _, eventData := range events {
-				err = s.Publish(ctx, eventData.ToEventData())
+				err = s.Publish(ctx, eventData.ToMessage())
 				if err != nil {
 					NonSentIDs = append(NonSentIDs, eventData.ID)
 					s.log.Printf("outbox: publish event ID %s: %v", eventData.ID, err)
