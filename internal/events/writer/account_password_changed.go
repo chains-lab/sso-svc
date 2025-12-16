@@ -11,6 +11,7 @@ const AccountPasswordChangeEvent = "account.password.change"
 
 type AccountPasswordChangePayload struct {
 	Account entity.Account `json:"account"`
+	Email   string         `json:"email"`
 }
 
 func (s Service) WriteAccountPasswordChanged(
@@ -18,7 +19,7 @@ func (s Service) WriteAccountPasswordChanged(
 	account entity.Account,
 	email string,
 ) error {
-	return s.addToOutbox(
+	return s.repo.CreateOutboxEvent(
 		ctx,
 		contracts.Event{
 			Topic:     contracts.AccountsTopicV1,
@@ -26,6 +27,7 @@ func (s Service) WriteAccountPasswordChanged(
 			Key:       account.ID.String(),
 			Payload: AccountPasswordChangePayload{
 				Account: account,
+				Email:   email,
 			},
 		},
 	)

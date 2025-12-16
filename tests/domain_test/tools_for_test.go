@@ -31,7 +31,7 @@ func CreateSession(s Setup, t *testing.T, userID uuid.UUID) entity.Session {
 
 	tkn, err := s.core.Auth.CreateSession(ctx, u)
 	if err != nil {
-		t.Fatalf("CreateSession: %v", err)
+		t.Fatalf("createSession: %v", err)
 	}
 
 	session, err := s.core.Session.Get(ctx, tkn.SessionID)

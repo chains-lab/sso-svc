@@ -107,6 +107,18 @@ type Service struct {
 	event EventPublisher
 }
 
+func NewService(
+	db database,
+	jwt JWTManager,
+	event EventPublisher,
+) *Service {
+	return &Service{
+		db:    db,
+		jwt:   jwt,
+		event: event,
+	}
+}
+
 func (s Service) CheckPasswordRequirements(password string) error {
 	if len(password) < 8 || len(password) > 32 {
 		return errx.ErrorPasswordIsNotAllowed.Raise(
@@ -179,14 +191,7 @@ func (s Service) CheckUsernameRequirements(username string) error {
 	return nil
 }
 
-func NewService(
-	db database,
-	jwt JWTManager,
-	event EventPublisher,
-) *Service {
-	return &Service{
-		db:    db,
-		jwt:   jwt,
-		event: event,
-	}
+type InitiatorData struct {
+	AccountID uuid.UUID
+	SessionID uuid.UUID
 }

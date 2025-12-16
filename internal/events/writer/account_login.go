@@ -11,6 +11,7 @@ const AccountLoginEvent = "account.login"
 
 type AccountLoginPayload struct {
 	Account entity.Account `json:"account"`
+	Email   string         `json:"email"`
 }
 
 func (s Service) WriteAccountLogin(
@@ -18,7 +19,7 @@ func (s Service) WriteAccountLogin(
 	account entity.Account,
 	email string,
 ) error {
-	return s.addToOutbox(
+	return s.repo.CreateOutboxEvent(
 		ctx,
 		contracts.Event{
 			Topic:     contracts.AccountsTopicV1,
@@ -26,6 +27,7 @@ func (s Service) WriteAccountLogin(
 			Key:       account.ID.String(),
 			Payload: AccountLoginPayload{
 				Account: account,
+				Email:   email,
 			},
 		},
 	)

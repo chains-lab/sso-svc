@@ -245,7 +245,7 @@ func (q *Queries) UpdateAccountStatus(ctx context.Context, arg UpdateAccountStat
 
 const updateAccountUsername = `-- name: UpdateAccountUsername :one
 UPDATE accounts
-SET username = $2, updated_at = NOW(), username_set_at = NOW()
+SET username = $2, updated_at = NOW(), username_updated_at = NOW()
 WHERE id = $1
 RETURNING id, username, role, status, created_at, updated_at, username_updated_at
 `

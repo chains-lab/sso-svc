@@ -24,7 +24,7 @@ func (q *Queries) CountSessionsByAccountID(ctx context.Context, accountID uuid.U
 	return count, err
 }
 
-const createSession = `-- name: CreateSession :one
+const createSession = `-- name: createSession :one
 INSERT INTO sessions (id, account_id, hash_token)
 VALUES ($1, $2, $3)
 RETURNING id, account_id, hash_token, last_used, created_at

@@ -7,6 +7,7 @@ import (
 
 	"github.com/chains-lab/ape"
 	"github.com/chains-lab/ape/problems"
+	"github.com/chains-lab/sso-svc/internal/domain"
 	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/chains-lab/sso-svc/internal/rest/meta"
 	"github.com/chains-lab/sso-svc/internal/rest/responses"
@@ -35,7 +36,10 @@ func (s *Service) GetMySession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := s.domain.GetSessionForAccount(r.Context(), initiator.ID, sessionId)
+	session, err := s.domain.GetOwnSession(r.Context(), domain.InitiatorData{
+		AccountID: initiator.ID,
+		SessionID: initiator.SessionID,
+	}, sessionId)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to get My session")
 		switch {
@@ -45,6 +49,8 @@ func (s *Service) GetMySession(w http.ResponseWriter, r *http.Request) {
 			ape.RenderErr(w, problems.Forbidden("initiator is blocked"))
 		case errors.Is(err, errx.ErrorSessionNotFound):
 			ape.RenderErr(w, problems.Unauthorized("session not found"))
+		case errors.Is(err, errx.ErrorInitiatorInvalidSession):
+			ape.RenderErr(w, problems.Unauthorized("initiator session is invalid"))
 		default:
 			ape.RenderErr(w, problems.InternalError())
 		}

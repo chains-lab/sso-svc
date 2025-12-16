@@ -19,7 +19,7 @@ func (s Service) WriteAccountCreated(
 	account entity.Account,
 	email string,
 ) error {
-	return s.addToOutbox(
+	return s.repo.CreateOutboxEvent(
 		ctx,
 		contracts.Event{
 			Topic:     contracts.AccountsTopicV1,

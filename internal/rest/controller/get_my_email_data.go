@@ -20,7 +20,7 @@ func (s *Service) GetMyEmailData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emailData, err := s.domain.GetAccountEmailData(r.Context(), initiator.ID)
+	emailData, err := s.domain.GetAccountEmail(r.Context(), initiator.ID)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to get email repo by id: %s", initiator.ID)
 		switch {

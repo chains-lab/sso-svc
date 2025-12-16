@@ -26,23 +26,6 @@ func (s Service) GetAccountByID(ctx context.Context, ID uuid.UUID) (entity.Accou
 	return account, nil
 }
 
-func (s Service) GetAccountEmailData(ctx context.Context, ID uuid.UUID) (entity.AccountEmail, error) {
-	accountEmail, err := s.db.GetAccountEmail(ctx, ID)
-	if err != nil {
-		return entity.AccountEmail{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to get account email repo with id '%s', cause: %w", ID, err),
-		)
-	}
-
-	if accountEmail.IsNil() {
-		return entity.AccountEmail{}, errx.ErrorInitiatorNotFound.Raise(
-			fmt.Errorf("account email repo with id '%s' not found", ID),
-		)
-	}
-
-	return accountEmail, nil
-}
-
 func (s Service) GetAccountByEmail(ctx context.Context, email string) (entity.Account, error) {
 	account, err := s.db.GetAccountByEmail(ctx, email)
 	if err != nil {
@@ -52,7 +35,7 @@ func (s Service) GetAccountByEmail(ctx context.Context, email string) (entity.Ac
 	}
 
 	if account.IsNil() {
-		return entity.Account{}, errx.ErrorInitiatorNotFound.Raise(
+		return entity.Account{}, errx.ErrorAccountNotFound.Raise(
 			fmt.Errorf("account with email '%s' not found", email),
 		)
 	}
@@ -80,7 +63,7 @@ func (s Service) GetAccountByUsername(ctx context.Context, username string) (ent
 	}
 
 	if account.IsNil() {
-		return entity.Account{}, errx.ErrorInitiatorNotFound.Raise(
+		return entity.Account{}, errx.ErrorAccountNotFound.Raise(
 			fmt.Errorf("account with username '%s' not found", username),
 		)
 	}
@@ -99,45 +82,19 @@ func (s Service) AccountExistsByUsername(ctx context.Context, username string) (
 	return !account.IsNil(), nil
 }
 
-func (s Service) GetInitiator(ctx context.Context, accountID uuid.UUID) (entity.Account, error) {
-	initiator, err := s.db.GetAccountByID(ctx, accountID)
+func (s Service) GetAccountEmail(ctx context.Context, ID uuid.UUID) (entity.AccountEmail, error) {
+	accountEmail, err := s.db.GetAccountEmail(ctx, ID)
 	if err != nil {
-		return entity.Account{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to get initiator with id '%s', cause: %w", accountID, err),
+		return entity.AccountEmail{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to get account email repo with id '%s', cause: %w", ID, err),
 		)
 	}
 
-	if initiator.IsNil() {
-		return entity.Account{}, errx.ErrorInitiatorNotFound.Raise(
-			fmt.Errorf("initiator with id '%s' not found", accountID),
+	if accountEmail.IsNil() {
+		return entity.AccountEmail{}, errx.ErrorAccountNotFound.Raise(
+			fmt.Errorf("account email repo with id '%s' not found", ID),
 		)
 	}
 
-	if err = initiator.CanInteract(); err != nil {
-		return entity.Account{}, errx.ErrorInitiatorNotFound.Raise(
-			fmt.Errorf("initiator with id '%s' is deactivated", accountID),
-		)
-	}
-
-	return initiator, nil
-}
-
-func (s Service) DeleteOwnAccount(ctx context.Context, accountID uuid.UUID) error {
-	account, err := s.GetAccountByID(ctx, accountID)
-	if err != nil {
-		return err
-	}
-
-	if err = account.CanInteract(); err != nil {
-		return err
-	}
-
-	err = s.db.DeleteAccount(ctx, accountID)
-	if err != nil {
-		return errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to delete account with id: %s, cause: %w", accountID, err),
-		)
-	}
-
-	return nil
+	return accountEmail, nil
 }

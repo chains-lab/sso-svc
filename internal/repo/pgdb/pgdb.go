@@ -49,8 +49,8 @@ func (ap AccountPassword) ToModel() entity.AccountPassword {
 	}
 }
 
-func (eo OutboxEvent) ToModel() outbox.OutboxEvent {
-	res := outbox.OutboxEvent{
+func (eo OutboxEvent) ToModel() outbox.EventData {
+	res := outbox.EventData{
 		ID:           eo.ID,
 		Topic:        eo.Topic,
 		EventType:    eo.EventType,

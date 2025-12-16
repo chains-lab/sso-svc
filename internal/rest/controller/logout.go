@@ -5,6 +5,7 @@ import (
 
 	"github.com/chains-lab/ape"
 	"github.com/chains-lab/ape/problems"
+	"github.com/chains-lab/sso-svc/internal/domain"
 	"github.com/chains-lab/sso-svc/internal/rest/meta"
 )
 
@@ -17,7 +18,10 @@ func (s *Service) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.domain.Logout(r.Context(), initiator.ID, initiator.SessionID)
+	err = s.domain.Logout(r.Context(), domain.InitiatorData{
+		AccountID: initiator.ID,
+		SessionID: initiator.SessionID,
+	})
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to logout user")
 		switch {

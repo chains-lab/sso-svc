@@ -7,6 +7,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/chains-lab/sso-svc/internal/events/contracts"
 	"github.com/chains-lab/sso-svc/internal/events/outbox"
 	"github.com/chains-lab/sso-svc/internal/repo/pgdb"
 	"github.com/google/uuid"
@@ -22,35 +23,40 @@ type CreateOutboxEventParams struct {
 
 func (r *Repository) CreateOutboxEvent(
 	ctx context.Context,
-	params CreateOutboxEventParams,
-) (outbox.OutboxEvent, error) {
-	res, err := r.sql.CreateOutboxEvent(ctx, pgdb.CreateOutboxEventParams{
-		Topic:        params.Topic,
-		EventType:    params.EventType,
-		EventVersion: params.EventVersion,
-		Key:          params.Key,
-		Payload:      params.Payload,
-	})
+	event contracts.Event,
+) error {
+	payloadBytes, err := json.Marshal(event.Payload)
 	if err != nil {
-		return outbox.OutboxEvent{}, err
+		return err
 	}
 
-	return res.ToModel(), nil
+	_, err = r.sql.CreateOutboxEvent(ctx, pgdb.CreateOutboxEventParams{
+		Topic:        event.Topic,
+		EventType:    event.EventType,
+		EventVersion: event.EventVersion,
+		Key:          event.Key,
+		Payload:      payloadBytes,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *Repository) GetPendingOutboxEvents(
 	ctx context.Context,
 	limit int32,
-) ([]outbox.OutboxEvent, error) {
+) ([]outbox.EventData, error) {
 	res, err := r.sql.GetPendingOutboxEvents(ctx, limit)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return []outbox.OutboxEvent{}, nil
+			return []outbox.EventData{}, nil
 		}
 		return nil, err
 	}
 
-	events := make([]outbox.OutboxEvent, len(res))
+	events := make([]outbox.EventData, len(res))
 	for i, e := range res {
 		events[i] = e.ToModel()
 	}

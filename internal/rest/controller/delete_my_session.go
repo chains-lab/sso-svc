@@ -7,6 +7,7 @@ import (
 
 	"github.com/chains-lab/ape"
 	"github.com/chains-lab/ape/problems"
+	"github.com/chains-lab/sso-svc/internal/domain"
 	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/chains-lab/sso-svc/internal/rest/meta"
 
@@ -34,13 +35,18 @@ func (s *Service) DeleteMySession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = s.domain.DeleteOwnSession(r.Context(), initiator.ID, sessionID); err != nil {
+	if err = s.domain.DeleteOwnSession(r.Context(), domain.InitiatorData{
+		AccountID: initiator.ID,
+		SessionID: initiator.SessionID,
+	}, sessionID); err != nil {
 		s.log.WithError(err).Errorf("failed to delete My session")
 		switch {
 		case errors.Is(err, errx.ErrorInitiatorNotFound):
 			ape.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))
 		case errors.Is(err, errx.ErrorInitiatorIsNotActive):
 			ape.RenderErr(w, problems.Forbidden("initiator is not active"))
+		case errors.Is(err, errx.ErrorInitiatorInvalidSession):
+			ape.RenderErr(w, problems.Unauthorized("initiator session is invalid"))
 		default:
 			ape.RenderErr(w, problems.InternalError())
 		}

@@ -19,12 +19,12 @@ func (s Service) LoginByEmail(ctx context.Context, email, password string) (enti
 		return entity.TokensPair{}, err
 	}
 
-	err = s.CheckAccountPassword(ctx, account.ID, password)
+	err = s.checkAccountPassword(ctx, account.ID, password)
 	if err != nil {
 		return entity.TokensPair{}, err
 	}
 
-	return s.CreateSession(ctx, account)
+	return s.createSession(ctx, account)
 }
 
 func (s Service) LoginByUsername(ctx context.Context, username, password string) (entity.TokensPair, error) {
@@ -37,12 +37,12 @@ func (s Service) LoginByUsername(ctx context.Context, username, password string)
 		return entity.TokensPair{}, err
 	}
 
-	err = s.CheckAccountPassword(ctx, account.ID, password)
+	err = s.checkAccountPassword(ctx, account.ID, password)
 	if err != nil {
 		return entity.TokensPair{}, err
 	}
 
-	return s.CreateSession(ctx, account)
+	return s.createSession(ctx, account)
 }
 
 func (s Service) LoginByGoogle(ctx context.Context, email string) (entity.TokensPair, error) {
@@ -55,10 +55,10 @@ func (s Service) LoginByGoogle(ctx context.Context, email string) (entity.Tokens
 		return entity.TokensPair{}, err
 	}
 
-	return s.CreateSession(ctx, account)
+	return s.createSession(ctx, account)
 }
 
-func (s Service) CheckAccountPassword(
+func (s Service) checkAccountPassword(
 	ctx context.Context,
 	accountID uuid.UUID,
 	password string,
@@ -75,4 +75,73 @@ func (s Service) CheckAccountPassword(
 	}
 
 	return nil
+}
+
+func (s Service) createSession(
+	ctx context.Context,
+	account entity.Account,
+) (entity.TokensPair, error) {
+	sessionID := uuid.New()
+
+	pair, err := s.createTokensPair(sessionID, account)
+	if err != nil {
+		return entity.TokensPair{}, err
+	}
+
+	refreshTokenCrypto, err := s.jwt.EncryptRefresh(pair.Refresh)
+	if err != nil {
+		return entity.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to encrypt refresh token for account %s, cause: %w", account.ID, err),
+		)
+	}
+
+	_, err = s.db.CreateSession(ctx, sessionID, account.ID, refreshTokenCrypto)
+	if err != nil {
+		return entity.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to createSession session for account %s, cause: %w", account.ID, err),
+		)
+	}
+
+	email, err := s.GetAccountEmail(ctx, account.ID)
+	if err != nil {
+		return entity.TokensPair{}, err
+	}
+
+	err = s.event.WriteAccountLogin(ctx, account, email.Email)
+	if err != nil {
+		return entity.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to publish account login event for account %s: %w", account.ID, err),
+		)
+	}
+
+	return entity.TokensPair{
+		SessionID: pair.SessionID,
+		Refresh:   pair.Refresh,
+		Access:    pair.Access,
+	}, nil
+}
+
+func (s Service) createTokensPair(
+	sessionID uuid.UUID,
+	account entity.Account,
+) (entity.TokensPair, error) {
+	access, err := s.jwt.GenerateAccess(account, sessionID)
+	if err != nil {
+		return entity.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to generate access token for account %s, cause: %w", account.ID, err),
+		)
+	}
+
+	refresh, err := s.jwt.GenerateRefresh(account, sessionID)
+	if err != nil {
+		return entity.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to generate refresh token for account %s, cause: %w", account.ID, err),
+		)
+	}
+
+	return entity.TokensPair{
+		SessionID: sessionID,
+		Refresh:   refresh,
+		Access:    access,
+	}, nil
 }

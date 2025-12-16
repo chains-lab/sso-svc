@@ -29,31 +29,32 @@ type core interface {
 
 	UpdatePassword(
 		ctx context.Context,
-		accountID uuid.UUID,
+		initiator domain.InitiatorData,
 		oldPassword, newPassword string,
 	) error
 	UpdateUsername(
 		ctx context.Context,
-		accountID uuid.UUID,
+		initiator domain.InitiatorData,
 		password string,
 		newUsername string,
 	) (entity.Account, error)
 
 	GetAccountByID(ctx context.Context, ID uuid.UUID) (entity.Account, error)
-	GetSessionForAccount(ctx context.Context, accountID, sessionID uuid.UUID) (entity.Session, error)
-	GetSessionsForAccount(
+	GetAccountEmail(ctx context.Context, ID uuid.UUID) (entity.AccountEmail, error)
+
+	GetOwnSession(ctx context.Context, initiator domain.InitiatorData, sessionID uuid.UUID) (entity.Session, error)
+	GetOwnSessions(
 		ctx context.Context,
-		accountID uuid.UUID,
+		initiator domain.InitiatorData,
 		page int32,
 		size int32,
 	) (entity.SessionsCollection, error)
 
-	GetAccountEmailData(ctx context.Context, ID uuid.UUID) (entity.AccountEmail, error)
+	DeleteOwnAccount(ctx context.Context, initiator domain.InitiatorData) error
 
-	DeleteOwnAccount(ctx context.Context, accountID uuid.UUID) error
-	DeleteOwnSession(ctx context.Context, accountID, sessionID uuid.UUID) error
-	DeleteOwnSessions(ctx context.Context, accountID uuid.UUID) error
-	Logout(ctx context.Context, accountID, sessionID uuid.UUID) error
+	Logout(ctx context.Context, initiator domain.InitiatorData) error
+	DeleteOwnSession(ctx context.Context, initiator domain.InitiatorData, sessionID uuid.UUID) error
+	DeleteOwnSessions(ctx context.Context, initiator domain.InitiatorData) error
 }
 
 type Service struct {

@@ -39,7 +39,6 @@ func (s Service) Refresh(ctx context.Context, oldRefreshToken string) (entity.To
 			fmt.Errorf("failed to get session with id: %s for account %s, cause: %w", tokenData.SessionID, accountID, err),
 		)
 	}
-
 	if token == "" {
 		return entity.TokensPair{}, errx.ErrorSessionNotFound.Raise(
 			fmt.Errorf("failed to find session with id %s for account %s, cause: %w", tokenData.SessionID, accountID, err),
@@ -52,7 +51,6 @@ func (s Service) Refresh(ctx context.Context, oldRefreshToken string) (entity.To
 			fmt.Errorf("failed to generate refresh token for account %s, cause: %w", accountID, err),
 		)
 	}
-
 	if refresh != oldRefreshToken {
 		return entity.TokensPair{}, errx.ErrorSessionTokenMismatch.Raise(
 			fmt.Errorf(

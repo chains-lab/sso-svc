@@ -6,6 +6,7 @@ import (
 
 	"github.com/chains-lab/ape"
 	"github.com/chains-lab/ape/problems"
+	"github.com/chains-lab/sso-svc/internal/domain"
 	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/chains-lab/sso-svc/internal/rest/meta"
 	"github.com/chains-lab/sso-svc/internal/rest/requests"
@@ -31,7 +32,10 @@ func (s *Service) UpdateUsername(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := s.domain.UpdateUsername(r.Context(), initiator.ID, req.Data.Attributes.Password, req.Data.Attributes.NewUsername)
+	res, err := s.domain.UpdateUsername(r.Context(), domain.InitiatorData{
+		AccountID: initiator.ID,
+		SessionID: initiator.SessionID,
+	}, req.Data.Attributes.Password, req.Data.Attributes.NewUsername)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to update username")
 		switch {
@@ -39,10 +43,14 @@ func (s *Service) UpdateUsername(w http.ResponseWriter, r *http.Request) {
 			ape.RenderErr(w, problems.Unauthorized("failed to update password user not found"))
 		case errors.Is(err, errx.ErrorInitiatorIsNotActive):
 			ape.RenderErr(w, problems.Forbidden("initiator is blocked"))
+		case errors.Is(err, errx.ErrorInitiatorInvalidSession):
+			ape.RenderErr(w, problems.Unauthorized("initiator session is invalid"))
 		case errors.Is(err, errx.ErrorPasswordInvalid):
 			ape.RenderErr(w, problems.Unauthorized("invalid password"))
 		case errors.Is(err, errx.ErrorUsernameAlreadyTaken):
 			ape.RenderErr(w, problems.Conflict("user with this username already exists"))
+		case errors.Is(err, errx.ErrorCannotChangeUsernameYet):
+			ape.RenderErr(w, problems.Forbidden("cannot change username due to cooldown"))
 		case errors.Is(err, errx.ErrorUsernameIsNotAllowed):
 			ape.RenderErr(w, problems.BadRequest(validation.Errors{
 				"repo/attributes/new_username": err,

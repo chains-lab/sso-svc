@@ -6,6 +6,7 @@ import (
 
 	"github.com/chains-lab/ape"
 	"github.com/chains-lab/ape/problems"
+	"github.com/chains-lab/sso-svc/internal/domain"
 	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/chains-lab/sso-svc/internal/rest/meta"
 	"github.com/chains-lab/sso-svc/internal/rest/requests"
@@ -30,7 +31,10 @@ func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.domain.UpdatePassword(r.Context(), initiator.ID, req.Data.Attributes.OldPassword, req.Data.Attributes.NewPassword)
+	err = s.domain.UpdatePassword(r.Context(), domain.InitiatorData{
+		AccountID: initiator.ID,
+		SessionID: initiator.SessionID,
+	}, req.Data.Attributes.OldPassword, req.Data.Attributes.NewPassword)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to update password")
 		switch {
@@ -38,8 +42,12 @@ func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 			ape.RenderErr(w, problems.Unauthorized("failed to update password user not found"))
 		case errors.Is(err, errx.ErrorInitiatorIsNotActive):
 			ape.RenderErr(w, problems.Forbidden("initiator is blocked"))
+		case errors.Is(err, errx.ErrorInitiatorInvalidSession):
+			ape.RenderErr(w, problems.Unauthorized("initiator session is invalid"))
 		case errors.Is(err, errx.ErrorPasswordInvalid):
 			ape.RenderErr(w, problems.Unauthorized("invalid password"))
+		case errors.Is(err, errx.ErrorCannotChangePasswordYet):
+			ape.RenderErr(w, problems.Forbidden("cannot change password yet"))
 		case errors.Is(err, errx.ErrorPasswordIsNotAllowed):
 			ape.RenderErr(w, problems.BadRequest(validation.Errors{
 				"repo/attributes/password": err,

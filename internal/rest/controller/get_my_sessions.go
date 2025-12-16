@@ -7,6 +7,7 @@ import (
 	"github.com/chains-lab/ape"
 	"github.com/chains-lab/ape/problems"
 	"github.com/chains-lab/restkit/pagi"
+	"github.com/chains-lab/sso-svc/internal/domain"
 	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/chains-lab/sso-svc/internal/rest/meta"
 	"github.com/chains-lab/sso-svc/internal/rest/responses"
@@ -22,7 +23,10 @@ func (s *Service) GetMySessions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	page, size := pagi.GetPagination(r)
-	sessions, err := s.domain.GetSessionsForAccount(r.Context(), initiator.ID, page, size)
+	sessions, err := s.domain.GetOwnSessions(r.Context(), domain.InitiatorData{
+		AccountID: initiator.ID,
+		SessionID: initiator.SessionID,
+	}, page, size)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to select My sessions")
 		switch {
@@ -30,6 +34,8 @@ func (s *Service) GetMySessions(w http.ResponseWriter, r *http.Request) {
 			ape.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))
 		case errors.Is(err, errx.ErrorInitiatorIsNotActive):
 			ape.RenderErr(w, problems.Forbidden("initiator is blocked"))
+		case errors.Is(err, errx.ErrorInitiatorInvalidSession):
+			ape.RenderErr(w, problems.Unauthorized("initiator session is invalid"))
 		default:
 			ape.RenderErr(w, problems.InternalError())
 		}
