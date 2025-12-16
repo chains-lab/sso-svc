@@ -38,7 +38,7 @@ func (r *Repository) CreateAccount(ctx context.Context, params domain.CreateAcco
 		return entity.Account{}, err
 	}
 
-	return acc.ToModel(), err
+	return acc.ToEntity(), err
 }
 
 func (r *Repository) GetAccountByID(ctx context.Context, accountID uuid.UUID) (entity.Account, error) {
@@ -50,7 +50,7 @@ func (r *Repository) GetAccountByID(ctx context.Context, accountID uuid.UUID) (e
 		return entity.Account{}, err
 	}
 
-	return acc.ToModel(), nil
+	return acc.ToEntity(), nil
 }
 
 func (r *Repository) GetAccountByUsername(ctx context.Context, username string) (entity.Account, error) {
@@ -62,7 +62,7 @@ func (r *Repository) GetAccountByUsername(ctx context.Context, username string) 
 		return entity.Account{}, err
 	}
 
-	return acc.ToModel(), nil
+	return acc.ToEntity(), nil
 }
 
 func (r *Repository) GetAccountByEmail(ctx context.Context, email string) (entity.Account, error) {
@@ -74,7 +74,7 @@ func (r *Repository) GetAccountByEmail(ctx context.Context, email string) (entit
 		return entity.Account{}, err
 	}
 
-	return acc.ToModel(), nil
+	return acc.ToEntity(), nil
 }
 
 func (r *Repository) UpdateAccountUsername(
@@ -98,7 +98,7 @@ func (r *Repository) UpdateAccountUsername(
 			return err
 		}
 
-		account = row.ToModel()
+		account = row.ToEntity()
 
 		return nil
 	})
@@ -119,7 +119,7 @@ func (r *Repository) UpdateAccountStatus(
 		return entity.Account{}, err
 	}
 
-	return acc.ToModel(), nil
+	return acc.ToEntity(), nil
 }
 
 func (r *Repository) GetAccountEmail(ctx context.Context, accountID uuid.UUID) (entity.AccountEmail, error) {
@@ -131,7 +131,7 @@ func (r *Repository) GetAccountEmail(ctx context.Context, accountID uuid.UUID) (
 		return entity.AccountEmail{}, err
 	}
 
-	return email.ToModel(), nil
+	return email.ToEntity(), nil
 }
 
 func (r *Repository) UpdateAccountEmailVerification(
@@ -147,7 +147,7 @@ func (r *Repository) UpdateAccountEmailVerification(
 		return entity.AccountEmail{}, err
 	}
 
-	return email.ToModel(), nil
+	return email.ToEntity(), nil
 }
 
 func (r *Repository) GetAccountPassword(ctx context.Context, accountID uuid.UUID) (entity.AccountPassword, error) {
@@ -159,7 +159,7 @@ func (r *Repository) GetAccountPassword(ctx context.Context, accountID uuid.UUID
 		return entity.AccountPassword{}, err
 	}
 
-	return u.ToModel(), nil
+	return u.ToEntity(), nil
 }
 
 func (r *Repository) UpdateAccountPassword(

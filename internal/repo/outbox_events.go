@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/chains-lab/sso-svc/internal/events/contracts"
-	"github.com/chains-lab/sso-svc/internal/events/outbox"
 	"github.com/chains-lab/sso-svc/internal/repo/pgdb"
 	"github.com/google/uuid"
 )
@@ -23,7 +22,7 @@ type CreateOutboxEventParams struct {
 
 func (r *Repository) CreateOutboxEvent(
 	ctx context.Context,
-	event contracts.Event,
+	event contracts.Message,
 ) error {
 	payloadBytes, err := json.Marshal(event.Payload)
 	if err != nil {
@@ -47,18 +46,18 @@ func (r *Repository) CreateOutboxEvent(
 func (r *Repository) GetPendingOutboxEvents(
 	ctx context.Context,
 	limit int32,
-) ([]outbox.EventData, error) {
+) ([]contracts.OutboxEvent, error) {
 	res, err := r.sql.GetPendingOutboxEvents(ctx, limit)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return []outbox.EventData{}, nil
+			return []contracts.OutboxEvent{}, nil
 		}
 		return nil, err
 	}
 
-	events := make([]outbox.EventData, len(res))
+	events := make([]contracts.OutboxEvent, len(res))
 	for i, e := range res {
-		events[i] = e.ToModel()
+		events[i] = e.ToEntity()
 	}
 
 	return events, nil
@@ -68,15 +67,13 @@ func (r *Repository) MarkOutboxEventsSent(
 	ctx context.Context,
 	ids []uuid.UUID,
 ) error {
-	res := r.sql.MarkOutboxEventsSent(ctx, pgdb.MarkOutboxEventsSentParams{
+	return r.sql.MarkOutboxEventsSent(ctx, pgdb.MarkOutboxEventsSentParams{
 		Column1: ids,
 		SentAt: sql.NullTime{
 			Valid: true,
 			Time:  time.Now().UTC(),
 		},
 	})
-
-	return res
 }
 
 func (r *Repository) DelayOutboxEvents(
@@ -84,10 +81,8 @@ func (r *Repository) DelayOutboxEvents(
 	ids []uuid.UUID,
 	delay time.Duration,
 ) error {
-	res := r.sql.DelayOutboxEvents(ctx, pgdb.DelayOutboxEventsParams{
+	return r.sql.DelayOutboxEvents(ctx, pgdb.DelayOutboxEventsParams{
 		Column1:     ids,
 		NextRetryAt: time.Now().Add(delay),
 	})
-
-	return res
 }

@@ -2,10 +2,10 @@ package pgdb
 
 import (
 	"github.com/chains-lab/sso-svc/internal/domain/entity"
-	"github.com/chains-lab/sso-svc/internal/events/outbox"
+	"github.com/chains-lab/sso-svc/internal/events/contracts"
 )
 
-func (s Session) ToModel() entity.Session {
+func (s Session) ToEntity() entity.Session {
 	return entity.Session{
 		ID:        s.ID,
 		AccountID: s.AccountID,
@@ -18,7 +18,7 @@ func (s Session) GetHashToken() string {
 	return s.HashToken
 }
 
-func (a Account) ToModel() entity.Account {
+func (a Account) ToEntity() entity.Account {
 	return entity.Account{
 		ID:                a.ID,
 		Username:          a.Username,
@@ -30,7 +30,7 @@ func (a Account) ToModel() entity.Account {
 	}
 }
 
-func (ae AccountEmail) ToModel() entity.AccountEmail {
+func (ae AccountEmail) ToEntity() entity.AccountEmail {
 	return entity.AccountEmail{
 		AccountID: ae.AccountID,
 		Email:     ae.Email,
@@ -40,7 +40,7 @@ func (ae AccountEmail) ToModel() entity.AccountEmail {
 	}
 }
 
-func (ap AccountPassword) ToModel() entity.AccountPassword {
+func (ap AccountPassword) ToEntity() entity.AccountPassword {
 	return entity.AccountPassword{
 		AccountID: ap.AccountID,
 		Hash:      ap.Hash,
@@ -49,8 +49,8 @@ func (ap AccountPassword) ToModel() entity.AccountPassword {
 	}
 }
 
-func (eo OutboxEvent) ToModel() outbox.EventData {
-	res := outbox.EventData{
+func (eo OutboxEvent) ToEntity() contracts.OutboxEvent {
+	res := contracts.OutboxEvent{
 		ID:           eo.ID,
 		Topic:        eo.Topic,
 		EventType:    eo.EventType,

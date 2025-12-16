@@ -1,4 +1,4 @@
-package writer
+package producer
 
 import (
 	"context"
@@ -14,19 +14,12 @@ import (
 )
 
 type Service struct {
-	addr      string
-	outbox    outbox
-	publisher publish
-	log       logium.Logger
+	addr   string
+	outbox outbox
+	log    logium.Logger
 }
 
-type publish interface {
-	Publish(
-		ctx context.Context,
-		event contracts.Message,
-		headers ...kafka.Header,
-	) error
-
+type outbox interface {
 	CreateOutboxEvent(
 		ctx context.Context,
 		event contracts.Message,
@@ -49,27 +42,21 @@ type publish interface {
 	) error
 }
 
-type outbox interface {
-	CreateOutboxEvent(
-		ctx context.Context,
-		event contracts.Message,
-	) error
-}
-
-func New(writer publish, outbox outbox) *Service {
+func New(log logium.Logger, addr string, outbox outbox) *Service {
 	return &Service{
-		outbox:    outbox,
-		publisher: writer,
+		addr:   addr,
+		outbox: outbox,
+		log:    log,
 	}
 }
 
-func (p Service) Publish(
+func (s Service) Publish(
 	ctx context.Context,
 	event contracts.Message,
 	headers ...kafka.Header,
 ) error {
 	writer := kafka.Writer{
-		Addr:         kafka.TCP(p.addr),
+		Addr:         kafka.TCP(s.addr),
 		Topic:        event.Topic,
 		Balancer:     &kafka.LeastBytes{},
 		RequiredAcks: kafka.RequireAll,
@@ -101,9 +88,9 @@ func (p Service) Publish(
 	return writer.WriteMessages(ctx, msg)
 }
 
-const eventRetryDelay = 1 * time.Minute
+const eventOutboxRetryDelay = 1 * time.Minute
 
-func (p Service) Run(ctx context.Context) {
+func (s Service) Run(ctx context.Context) {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
@@ -112,7 +99,7 @@ func (p Service) Run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			events, err := p.outbox.GetPendingOutboxEvents(ctx, 100)
+			events, err := s.outbox.GetPendingOutboxEvents(ctx, 100)
 			if err != nil {
 
 				continue
@@ -121,26 +108,26 @@ func (p Service) Run(ctx context.Context) {
 			var sentIDs []uuid.UUID
 			var NonSentIDs []uuid.UUID
 			for _, eventData := range events {
-				err = p.Publish(ctx, eventData.ToEventData())
+				err = s.Publish(ctx, eventData.ToEventData())
 				if err != nil {
 					NonSentIDs = append(NonSentIDs, eventData.ID)
-					p.log.Printf("outbox: publish event ID %p: %v", eventData.ID, err)
+					s.log.Printf("outbox: publish event ID %s: %v", eventData.ID, err)
 					continue
 				}
 				sentIDs = append(sentIDs, eventData.ID)
 			}
 
 			if len(sentIDs) > 0 {
-				err = p.outbox.MarkOutboxEventsSent(ctx, sentIDs)
+				err = s.outbox.MarkOutboxEventsSent(ctx, sentIDs)
 				if err != nil {
-					p.log.Printf("outbox: mark events as sent: %v", err)
+					s.log.Printf("outbox: mark events as sent: %v", err)
 				}
 			}
 
 			if len(NonSentIDs) > 0 {
-				err = p.outbox.DelayOutboxEvents(ctx, NonSentIDs, eventRetryDelay)
+				err = s.outbox.DelayOutboxEvents(ctx, NonSentIDs, eventOutboxRetryDelay)
 				if err != nil {
-					p.log.Printf("outbox: delay events: %v", err)
+					s.log.Printf("outbox: delay events: %v", err)
 				}
 			}
 		}

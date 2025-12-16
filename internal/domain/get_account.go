@@ -18,7 +18,7 @@ func (s Service) GetAccountByID(ctx context.Context, ID uuid.UUID) (entity.Accou
 	}
 
 	if account.IsNil() {
-		return entity.Account{}, errx.ErrorInitiatorNotFound.Raise(
+		return entity.Account{}, errx.ErrorAccountNotFound.Raise(
 			fmt.Errorf("account with id '%s' not found", ID),
 		)
 	}

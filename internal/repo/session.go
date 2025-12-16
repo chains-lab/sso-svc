@@ -21,7 +21,7 @@ func (r *Repository) CreateSession(ctx context.Context, sessionID, accountID uui
 		return entity.Session{}, err
 	}
 
-	return res.ToModel(), nil
+	return res.ToEntity(), nil
 }
 
 func (r *Repository) GetSession(ctx context.Context, sessionID uuid.UUID) (entity.Session, error) {
@@ -33,7 +33,7 @@ func (r *Repository) GetSession(ctx context.Context, sessionID uuid.UUID) (entit
 		return entity.Session{}, err
 	}
 
-	return res.ToModel(), nil
+	return res.ToEntity(), nil
 }
 
 func (r *Repository) GetAccountSession(
@@ -51,7 +51,7 @@ func (r *Repository) GetAccountSession(
 		return entity.Session{}, err
 	}
 
-	return res.ToModel(), nil
+	return res.ToEntity(), nil
 }
 
 func (r *Repository) GetSessionsForAccount(
@@ -77,7 +77,7 @@ func (r *Repository) GetSessionsForAccount(
 
 	result := make([]entity.Session, 0, len(sessions))
 	for _, s := range sessions {
-		result = append(result, s.ToModel())
+		result = append(result, s.ToEntity())
 	}
 
 	return entity.SessionsCollection{
@@ -113,7 +113,7 @@ func (r *Repository) UpdateSessionToken(
 		return entity.Session{}, err
 	}
 
-	return ses.ToModel(), nil
+	return ses.ToEntity(), nil
 }
 
 func (r *Repository) DeleteSession(ctx context.Context, sessionID uuid.UUID) error {

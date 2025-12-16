@@ -44,25 +44,3 @@ func (s Service) ValidateSession(
 
 	return account, session, nil
 }
-
-func (s Service) GetInitiatorEmail(ctx context.Context, initiator InitiatorData) (entity.AccountEmail, error) {
-	_, _, err := s.ValidateSession(ctx, initiator)
-	if err != nil {
-		return entity.AccountEmail{}, err
-	}
-
-	accountEmail, err := s.db.GetAccountEmail(ctx, initiator.AccountID)
-	if err != nil {
-		return entity.AccountEmail{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to get account email repo with id '%s', cause: %w", initiator.AccountID, err),
-		)
-	}
-
-	if accountEmail.IsNil() {
-		return entity.AccountEmail{}, errx.ErrorInitiatorNotFound.Raise(
-			fmt.Errorf("account email repo with id '%s' not found", initiator.AccountID),
-		)
-	}
-
-	return accountEmail, nil
-}
