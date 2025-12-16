@@ -7,25 +7,25 @@ import (
 	"github.com/chains-lab/sso-svc/internal/events/contracts"
 )
 
-const AccountUsernameChangeEvent = "account.username.change"
+const AccountLoginEvent = "account.login"
 
-type AccountUsernameChangePayload struct {
+type AccountLoginPayload struct {
 	Account entity.Account `json:"account"`
 	Email   string         `json:"email"`
 }
 
-func (s Service) WriteAccountUsernameChanged(
+func (s Service) WriteAccountLogin(
 	ctx context.Context,
 	account entity.Account,
 	email string,
 ) error {
-	return s.repo.CreateOutboxEvent(
+	return s.outbox.CreateOutboxEvent(
 		ctx,
-		contracts.Event{
+		contracts.Message{
 			Topic:     contracts.AccountsTopicV1,
-			EventType: AccountUsernameChangeEvent,
+			EventType: AccountLoginEvent,
 			Key:       account.ID.String(),
-			Payload: AccountUsernameChangePayload{
+			Payload: AccountLoginPayload{
 				Account: account,
 				Email:   email,
 			},

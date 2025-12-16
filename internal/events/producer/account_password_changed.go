@@ -19,9 +19,9 @@ func (s Service) WriteAccountPasswordChanged(
 	account entity.Account,
 	email string,
 ) error {
-	return s.repo.CreateOutboxEvent(
+	return s.outbox.CreateOutboxEvent(
 		ctx,
-		contracts.Event{
+		contracts.Message{
 			Topic:     contracts.AccountsTopicV1,
 			EventType: AccountPasswordChangeEvent,
 			Key:       account.ID.String(),
