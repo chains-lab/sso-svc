@@ -54,7 +54,7 @@ CREATE TYPE outbox_event_status AS ENUM (
 );
 
 CREATE TABLE outbox_events (
-    id            UUID  PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    id            UUID  NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     topic         TEXT  NOT NULL,
     event_type    TEXT  NOT NULL,
     event_version INT   NOT NULL,
@@ -76,7 +76,7 @@ CREATE TYPE inbox_event_status AS ENUM (
 );
 
 CREATE TABLE inbox_events (
-    id            UUID  PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    id            UUID  NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     topic         TEXT  NOT NULL,
     event_type    TEXT  NOT NULL,
     event_version INT   NOT NULL,

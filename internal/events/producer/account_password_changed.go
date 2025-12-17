@@ -22,9 +22,10 @@ func (s Service) WriteAccountPasswordChanged(
 	return s.outbox.CreateOutboxEvent(
 		ctx,
 		contracts.Message{
-			Topic:     contracts.AccountsTopicV1,
-			EventType: AccountPasswordChangeEvent,
-			Key:       account.ID.String(),
+			Topic:        contracts.AccountsTopicV1,
+			EventType:    AccountPasswordChangeEvent,
+			EventVersion: 1,
+			Key:          account.ID.String(),
 			Payload: AccountPasswordChangePayload{
 				Account: account,
 				Email:   email,

@@ -19,11 +19,9 @@ func (s Service) UpdateUsername(
 		return entity.Account{}, err
 	}
 
-	if account.CanChangeUsername() != nil {
-		return entity.Account{}, errx.ErrorCannotChangeUsernameYet.Raise(
-			fmt.Errorf("account %s cannot change username due to cooldown, cause: %w", initiator.AccountID, err),
-		)
-	}
+	//if err = account.CanChangeUsername(); err != nil {
+	//	return entity.Account{}, err
+	//}
 
 	if err = s.CheckUsernameRequirements(newUsername); err != nil {
 		return entity.Account{}, err

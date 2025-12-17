@@ -22,9 +22,10 @@ func (s Service) WriteAccountCreated(
 	return s.outbox.CreateOutboxEvent(
 		ctx,
 		contracts.Message{
-			Topic:     contracts.AccountsTopicV1,
-			EventType: AccountCreatedEvent,
-			Key:       account.ID.String(),
+			Topic:        contracts.AccountsTopicV1,
+			EventType:    AccountCreatedEvent,
+			EventVersion: 1,
+			Key:          account.ID.String(),
 			Payload: AccountCreatedPayload{
 				Account: account,
 				Email:   email,

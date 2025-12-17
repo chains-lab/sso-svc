@@ -101,12 +101,13 @@ func (s Service) Run(ctx context.Context) {
 		case <-ticker.C:
 			events, err := s.outbox.GetPendingOutboxEvents(ctx, 100)
 			if err != nil {
-
+				s.log.Errorf("outbox.GetPendingOutboxEvents: %v", err)
 				continue
 			}
 
 			var sentIDs []uuid.UUID
 			var NonSentIDs []uuid.UUID
+
 			for _, eventData := range events {
 				err = s.Publish(ctx, eventData.ToMessage())
 				if err != nil {

@@ -22,9 +22,10 @@ func (s Service) WriteAccountLogin(
 	return s.outbox.CreateOutboxEvent(
 		ctx,
 		contracts.Message{
-			Topic:     contracts.AccountsTopicV1,
-			EventType: AccountLoginEvent,
-			Key:       account.ID.String(),
+			Topic:        contracts.AccountsTopicV1,
+			EventType:    AccountLoginEvent,
+			EventVersion: 1,
+			Key:          account.ID.String(),
 			Payload: AccountLoginPayload{
 				Account: account,
 				Email:   email,
