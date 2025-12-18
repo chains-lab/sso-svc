@@ -44,7 +44,7 @@ func (s Service) WriteAccountUsernameChanged(
 				{Key: "event_id", Value: []byte(eventID.String())}, // Outbox will fill this
 				{Key: "event_type", Value: []byte(AccountUsernameChangeEvent)},
 				{Key: "event_version", Value: []byte("1")},
-				{Key: "producer", Value: []byte("sso-svc")},
+				{Key: "producer", Value: []byte(contracts.SsoSvcProducer)},
 				{Key: "content_type", Value: []byte("application/json")},
 			},
 		},
