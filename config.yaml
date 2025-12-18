@@ -34,7 +34,7 @@ jwt:
       token_lifetime: 604800
 
 kafka:
-  broker:
+  brokers:
     - "localhost:9092"
 
 swagger:

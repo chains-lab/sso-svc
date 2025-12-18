@@ -95,7 +95,6 @@ CREATE TABLE inbox_events (
     processed_at  TIMESTAMPTZ
 );
 
-
 -- +migrate Down
 DROP TABLE IF EXISTS sessions CASCADE;
 DROP TABLE IF EXISTS account_passwords CASCADE;

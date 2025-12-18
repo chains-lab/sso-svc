@@ -43,7 +43,7 @@ func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, 
 		Iss:        cfg.Service.Name,
 	})
 
-	kafkaProducer := producer.New(log, cfg.Kafka.Broker, kafkaBox)
+	kafkaProducer := producer.New(log, cfg.Kafka.Brokers, kafkaBox)
 
 	core := auth.NewService(repository, jwtTokenManager, kafkaProducer)
 

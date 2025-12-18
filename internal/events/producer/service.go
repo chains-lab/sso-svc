@@ -2,7 +2,6 @@ package producer
 
 import (
 	"context"
-	"net"
 	"time"
 
 	"github.com/chains-lab/kafkakit/box"
@@ -13,7 +12,7 @@ import (
 
 type Service struct {
 	log    logium.Logger
-	addr   net.Addr
+	addr   []string
 	outbox outbox
 }
 
@@ -34,7 +33,7 @@ type outbox interface {
 func New(log logium.Logger, addr []string, outbox outbox) *Service {
 	return &Service{
 		log:    log,
-		addr:   kafka.TCP(addr...),
+		addr:   addr,
 		outbox: outbox,
 	}
 }
@@ -46,7 +45,7 @@ func (s Service) Run(ctx context.Context) {
 	defer ticker.Stop()
 
 	publisher := kafka.Writer{
-		Addr:         s.addr,
+		Addr:         kafka.TCP(s.addr...),
 		Balancer:     &kafka.LeastBytes{},
 		RequiredAcks: kafka.RequireAll,
 		Compression:  kafka.Snappy,
