@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"sync"
 
+	"github.com/chains-lab/kafkakit/box"
 	"github.com/chains-lab/logium"
 	"github.com/chains-lab/sso-svc/internal"
 	"github.com/chains-lab/sso-svc/internal/domain/modules/auth"
@@ -32,6 +33,8 @@ func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, 
 
 	repository := repo.New(pg)
 
+	kafkaBox := box.New(pg)
+
 	jwtTokenManager := token.NewManager(token.Config{
 		AccessSK:   cfg.JWT.User.AccessToken.SecretKey,
 		RefreshSK:  cfg.JWT.User.RefreshToken.SecretKey,
@@ -40,7 +43,7 @@ func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, 
 		Iss:        cfg.Service.Name,
 	})
 
-	kafkaProducer := producer.New(log, cfg.Kafka.Broker, repository)
+	kafkaProducer := producer.New(log, cfg.Kafka.Broker, kafkaBox)
 
 	core := auth.NewService(repository, jwtTokenManager, kafkaProducer)
 

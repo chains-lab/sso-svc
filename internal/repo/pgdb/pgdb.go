@@ -5,7 +5,6 @@ import (
 	"database/sql"
 
 	"github.com/chains-lab/sso-svc/internal/domain/entity"
-	"github.com/chains-lab/sso-svc/internal/events/contracts"
 )
 
 type txKeyType struct{}
@@ -55,22 +54,4 @@ func (s Session) ToEntity() entity.Session {
 		LastUsed:  s.LastUsed,
 		CreatedAt: s.CreatedAt,
 	}
-}
-
-func (eo OutboxEvent) ToModel() contracts.OutboxEvent {
-	res := contracts.OutboxEvent{
-		ID:           eo.ID,
-		Topic:        eo.Topic,
-		EventType:    eo.EventType,
-		EventVersion: eo.EventVersion,
-		Key:          eo.Key,
-		Payload:      eo.Payload,
-		Status:       eo.Status,
-		Attempts:     eo.Attempts,
-		NextRetryAt:  eo.NextRetryAt,
-		CreatedAt:    eo.CreatedAt,
-		SentAt:       eo.SentAt,
-	}
-
-	return res
 }

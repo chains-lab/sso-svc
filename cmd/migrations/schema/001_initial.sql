@@ -49,47 +49,52 @@ CREATE TABLE sessions (
 
 CREATE TYPE outbox_event_status AS ENUM (
     'pending',
+    'processing',
     'sent',
     'failed'
 );
 
 CREATE TABLE outbox_events (
-    id            UUID  NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
-    topic         TEXT  NOT NULL,
-    event_type    TEXT  NOT NULL,
-    event_version INT   NOT NULL,
-    key           TEXT  NOT NULL,
-    payload       JSONB NOT NULL,
+    id       UUID  PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    topic    TEXT  NOT NULL,
+    key      TEXT  NOT NULL,
+    type     TEXT  NOT NULL,
+    version  INT   NOT NULL,
+    producer TEXT  NOT NULL,
+    payload  JSONB NOT NULL,
 
     status        outbox_event_status NOT NULL DEFAULT 'pending', -- pending | sent | failed
     attempts      INT         NOT NULL DEFAULT 0,
-    next_retry_at TIMESTAMPTZ NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
 
     created_at    TIMESTAMPTZ NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
-    sent_at       TIMESTAMPTZ NULL
+    next_retry_at TIMESTAMPTZ,
+    sent_at       TIMESTAMPTZ
 );
 
 CREATE TYPE inbox_event_status AS ENUM (
     'pending',
+    'processing',
     'processed',
     'failed'
 );
 
 CREATE TABLE inbox_events (
-    id            UUID  NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
-    topic         TEXT  NOT NULL,
-    event_type    TEXT  NOT NULL,
-    event_version INT   NOT NULL,
-    key           TEXT  NOT NULL,
-    payload       JSONB NOT NULL,
+    id       UUID  PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    topic    TEXT  NOT NULL,
+    key      TEXT  NOT NULL,
+    type     TEXT  NOT NULL,
+    version  INT   NOT NULL,
+    producer TEXT  NOT NULL,
+    payload  JSONB NOT NULL,
 
     status        inbox_event_status NOT NULL DEFAULT 'pending', -- pending | processed | failed
     attempts      INT         NOT NULL DEFAULT 0,
-    next_retry_at TIMESTAMPTZ NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
 
-    processed_at  TIMESTAMPTZ NULL,
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT (now() AT TIME ZONE 'UTC')
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
+    next_retry_at TIMESTAMPTZ,
+    processed_at  TIMESTAMPTZ
 );
+
 
 -- +migrate Down
 DROP TABLE IF EXISTS sessions CASCADE;

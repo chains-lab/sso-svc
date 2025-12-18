@@ -1,13 +1,12 @@
 module github.com/chains-lab/sso-svc
 
-go 1.24.6
-
-toolchain go1.24.7
+go 1.25.4
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/chains-lab/ape v0.4.14
+	github.com/chains-lab/kafkakit v0.1.3
 	github.com/chains-lab/logium v0.1.2
 	github.com/chains-lab/restkit v0.4.1
 	github.com/go-chi/chi/v5 v5.2.2

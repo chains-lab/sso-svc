@@ -45,7 +45,7 @@ type OAuthConfig struct {
 }
 
 type KafkaConfig struct {
-	Broker string `mapstructure:"broker"`
+	Broker []string `mapstructure:"broker"`
 }
 
 type JWTConfig struct {
