@@ -27,7 +27,7 @@ type outbox interface {
 	GetPendingOutboxEvents(ctx context.Context, limit int32) ([]box.OutboxEvent, error)
 	MarkOutboxEventsSent(ctx context.Context, ids []uuid.UUID) ([]box.OutboxEvent, error)
 	MarkOutboxEventsAsFailed(ctx context.Context, ids []uuid.UUID) ([]box.OutboxEvent, error)
-	DelayOutboxEvents(ctx context.Context, ids []uuid.UUID, delay time.Duration) ([]box.OutboxEvent, error)
+	MarkOutboxEventsAsPending(ctx context.Context, ids []uuid.UUID, delay time.Duration) ([]box.OutboxEvent, error)
 }
 
 func New(log logium.Logger, addr []string, outbox outbox) *Service {
@@ -70,7 +70,7 @@ func (s Service) Run(ctx context.Context) {
 				err = publisher.WriteMessages(ctx, event.ToMessage())
 				if err != nil {
 					NonSentIDs = append(NonSentIDs, event.ID)
-					s.log.Printf("outbox: publish event ID %s: %v", event.ID, err)
+					s.log.Debugf("outbox: publish event ID %s: %v", event.ID, err)
 					continue
 				}
 				sentIDs = append(sentIDs, event.ID)
@@ -79,14 +79,14 @@ func (s Service) Run(ctx context.Context) {
 			if len(sentIDs) > 0 {
 				_, err = s.outbox.MarkOutboxEventsSent(ctx, sentIDs)
 				if err != nil {
-					s.log.Printf("outbox: mark events as sent: %v", err)
+					s.log.Debugf("outbox: mark events as sent: %v", err)
 				}
 			}
 
 			if len(NonSentIDs) > 0 {
-				_, err = s.outbox.DelayOutboxEvents(ctx, NonSentIDs, eventOutboxRetryDelay)
+				_, err = s.outbox.MarkOutboxEventsAsPending(ctx, NonSentIDs, eventOutboxRetryDelay)
 				if err != nil {
-					s.log.Printf("outbox: delay events: %v", err)
+					s.log.Debugf("outbox: delay events: %v", err)
 				}
 			}
 		}

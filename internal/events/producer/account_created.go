@@ -5,25 +5,19 @@ import (
 	"encoding/json"
 
 	"github.com/chains-lab/kafkakit/box"
+	"github.com/chains-lab/kafkakit/header"
 	"github.com/chains-lab/sso-svc/internal/domain/entity"
 	"github.com/chains-lab/sso-svc/internal/events/contracts"
 	"github.com/google/uuid"
 	"github.com/segmentio/kafka-go"
 )
 
-const AccountCreatedEvent = "account.created"
-
-type AccountCreatedPayload struct {
-	Account entity.Account `json:"account"`
-	Email   string         `json:"email,omitempty"`
-}
-
 func (s Service) WriteAccountCreated(
 	ctx context.Context,
 	account entity.Account,
 	email string,
 ) error {
-	payload, err := json.Marshal(AccountCreatedPayload{
+	payload, err := json.Marshal(contracts.AccountCreatedPayload{
 		Account: account,
 		Email:   email,
 	})
@@ -41,11 +35,11 @@ func (s Service) WriteAccountCreated(
 			Key:   []byte(account.ID.String()),
 			Value: payload,
 			Headers: []kafka.Header{
-				{Key: "event_id", Value: []byte(eventID.String())}, // Outbox will fill this
-				{Key: "event_type", Value: []byte(AccountCreatedEvent)},
-				{Key: "event_version", Value: []byte("1")},
-				{Key: "producer", Value: []byte(contracts.SsoSvcProducer)},
-				{Key: "content_type", Value: []byte("application/json")},
+				{Key: header.EventID, Value: []byte(eventID.String())}, // Outbox will fill this
+				{Key: header.EventType, Value: []byte(contracts.AccountUsernameChangeEvent)},
+				{Key: header.EventVersion, Value: []byte("1")},
+				{Key: header.Producer, Value: []byte(contracts.SsoSvcProducer)},
+				{Key: header.ContentType, Value: []byte("application/json")},
 			},
 		},
 	)
