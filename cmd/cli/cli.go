@@ -8,10 +8,10 @@ import (
 	"syscall"
 
 	"github.com/alecthomas/kingpin"
-	"github.com/chains-lab/logium"
-	"github.com/chains-lab/sso-svc/cmd"
-	"github.com/chains-lab/sso-svc/cmd/migrations"
-	"github.com/chains-lab/sso-svc/internal"
+	"github.com/umisto/logium"
+	"github.com/umisto/sso-svc/cmd"
+	"github.com/umisto/sso-svc/cmd/migrations"
+	"github.com/umisto/sso-svc/internal"
 )
 
 func Run(args []string) bool {

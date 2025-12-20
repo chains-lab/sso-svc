@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/chains-lab/sso-svc/resources"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
+	"github.com/umisto/sso-svc/resources"
 )
 
 func Registration(r *http.Request) (req resources.Registration, err error) {

@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chains-lab/sso-svc/internal/domain/entity"
-	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/google/uuid"
+	"github.com/umisto/sso-svc/internal/domain/entity"
+	"github.com/umisto/sso-svc/internal/domain/errx"
 )
 
 func (s Service) GetOwnSession(ctx context.Context, initiator InitiatorData, sessionID uuid.UUID) (entity.Session, error) {

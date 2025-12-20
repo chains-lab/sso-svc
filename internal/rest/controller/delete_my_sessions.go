@@ -4,11 +4,11 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/chains-lab/ape"
-	"github.com/chains-lab/ape/problems"
-	"github.com/chains-lab/sso-svc/internal/domain/errx"
-	"github.com/chains-lab/sso-svc/internal/domain/modules/auth"
-	"github.com/chains-lab/sso-svc/internal/rest/meta"
+	"github.com/umisto/ape"
+	"github.com/umisto/ape/problems"
+	"github.com/umisto/sso-svc/internal/domain/errx"
+	"github.com/umisto/sso-svc/internal/domain/modules/auth"
+	"github.com/umisto/sso-svc/internal/rest/meta"
 )
 
 func (s *Service) DeleteMySessions(w http.ResponseWriter, r *http.Request) {

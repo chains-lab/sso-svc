@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/chains-lab/sso-svc/resources"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/umisto/sso-svc/resources"
 )
 
 func UpdatePassword(r *http.Request) (req resources.UpdatePassword, err error) {

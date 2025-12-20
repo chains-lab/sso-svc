@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/chains-lab/kafkakit/box"
-	"github.com/chains-lab/kafkakit/header"
-	"github.com/chains-lab/sso-svc/internal/domain/entity"
-	"github.com/chains-lab/sso-svc/internal/events/contracts"
 	"github.com/google/uuid"
 	"github.com/segmentio/kafka-go"
+	"github.com/umisto/kafkakit/box"
+	"github.com/umisto/kafkakit/header"
+	"github.com/umisto/sso-svc/internal/domain/entity"
+	"github.com/umisto/sso-svc/internal/events/contracts"
 )
 
 func (s Service) WriteAccountLogin(

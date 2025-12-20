@@ -1,6 +1,6 @@
 package contracts
 
-import "github.com/chains-lab/sso-svc/internal/domain/entity"
+import "github.com/umisto/sso-svc/internal/domain/entity"
 
 type AccountCreatedPayload struct {
 	Account entity.Account `json:"account"`

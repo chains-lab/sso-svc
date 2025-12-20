@@ -1,7 +1,7 @@
 package errx
 
 import (
-	"github.com/chains-lab/ape"
+	"github.com/umisto/ape"
 )
 
 var ErrorAccountNotFound = ape.DeclareError("ACCOUNT_NOT_FOUND")

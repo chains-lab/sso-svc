@@ -6,10 +6,10 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/chains-lab/restkit/token"
-	"github.com/chains-lab/sso-svc/internal/domain/entity"
-	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/google/uuid"
+	"github.com/umisto/restkit/token"
+	"github.com/umisto/sso-svc/internal/domain/entity"
+	"github.com/umisto/sso-svc/internal/domain/errx"
 )
 
 type JWTManager interface {

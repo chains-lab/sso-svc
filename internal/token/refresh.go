@@ -3,9 +3,9 @@ package token
 import (
 	"fmt"
 
-	"github.com/chains-lab/restkit/token"
-	"github.com/chains-lab/sso-svc/internal/domain/entity"
 	"github.com/google/uuid"
+	"github.com/umisto/restkit/token"
+	"github.com/umisto/sso-svc/internal/domain/entity"
 )
 
 func (s Service) GenerateRefresh(account entity.Account, sessionID uuid.UUID) (string, error) {

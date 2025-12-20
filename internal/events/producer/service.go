@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/chains-lab/kafkakit/box"
-	"github.com/chains-lab/logium"
 	"github.com/google/uuid"
 	"github.com/segmentio/kafka-go"
+	"github.com/umisto/kafkakit/box"
+	"github.com/umisto/logium"
 )
 
 type Service struct {

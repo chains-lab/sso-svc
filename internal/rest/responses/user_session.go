@@ -1,8 +1,8 @@
 package responses
 
 import (
-	"github.com/chains-lab/sso-svc/internal/domain/entity"
-	"github.com/chains-lab/sso-svc/resources"
+	"github.com/umisto/sso-svc/internal/domain/entity"
+	"github.com/umisto/sso-svc/resources"
 )
 
 func AccountSession(m entity.Session) resources.AccountSession {

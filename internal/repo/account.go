@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/chains-lab/sso-svc/internal/domain/entity"
-	"github.com/chains-lab/sso-svc/internal/domain/modules/auth"
-	"github.com/chains-lab/sso-svc/internal/repo/pgdb"
 	"github.com/google/uuid"
+	"github.com/umisto/sso-svc/internal/domain/entity"
+	"github.com/umisto/sso-svc/internal/domain/modules/auth"
+	"github.com/umisto/sso-svc/internal/repo/pgdb"
 )
 
 func (r *Repository) CreateAccount(ctx context.Context, params auth.CreateAccountParams) (entity.Account, error) {

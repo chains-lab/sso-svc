@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/chains-lab/restkit/pagi"
-	"github.com/chains-lab/sso-svc/internal/domain/entity"
-	"github.com/chains-lab/sso-svc/internal/repo/pgdb"
 	"github.com/google/uuid"
+	"github.com/umisto/restkit/pagi"
+	"github.com/umisto/sso-svc/internal/domain/entity"
+	"github.com/umisto/sso-svc/internal/repo/pgdb"
 )
 
 func (r *Repository) CreateSession(ctx context.Context, sessionID, accountID uuid.UUID, hashToken string) (entity.Session, error) {

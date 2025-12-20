@@ -3,10 +3,10 @@ package controller
 import (
 	"context"
 
-	"github.com/chains-lab/logium"
-	"github.com/chains-lab/sso-svc/internal/domain/entity"
-	"github.com/chains-lab/sso-svc/internal/domain/modules/auth"
 	"github.com/google/uuid"
+	"github.com/umisto/logium"
+	"github.com/umisto/sso-svc/internal/domain/entity"
+	"github.com/umisto/sso-svc/internal/domain/modules/auth"
 	"golang.org/x/oauth2"
 )
 

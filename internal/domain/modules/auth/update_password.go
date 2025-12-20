@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chains-lab/sso-svc/internal/domain/errx"
+	"github.com/umisto/sso-svc/internal/domain/errx"
 	"golang.org/x/crypto/bcrypt"
 )
 

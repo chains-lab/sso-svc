@@ -1,7 +1,7 @@
 package errx
 
 import (
-	"github.com/chains-lab/ape"
+	"github.com/umisto/ape"
 )
 
 var ErrorSessionNotFound = ape.DeclareError("SESSION_NOT_FOUND")

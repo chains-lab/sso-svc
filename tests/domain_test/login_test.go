@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/chains-lab/restkit/roles"
-	"github.com/chains-lab/sso-svc/internal/domain/errx"
+	"github.com/umisto/restkit/roles"
+	"github.com/umisto/sso-svc/internal/domain/errx"
 )
 
 func TestUserRegistration(t *testing.T) {

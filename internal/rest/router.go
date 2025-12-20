@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/chains-lab/logium"
-	"github.com/chains-lab/restkit/roles"
-	"github.com/chains-lab/sso-svc/internal"
-	"github.com/chains-lab/sso-svc/internal/rest/meta"
 	"github.com/go-chi/chi/v5"
+	"github.com/umisto/logium"
+	"github.com/umisto/restkit/roles"
+	"github.com/umisto/sso-svc/internal"
+	"github.com/umisto/sso-svc/internal/rest/meta"
 )
 
 type Handlers interface {

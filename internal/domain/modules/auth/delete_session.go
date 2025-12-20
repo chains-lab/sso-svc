@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/google/uuid"
+	"github.com/umisto/sso-svc/internal/domain/errx"
 )
 
 func (s Service) Logout(ctx context.Context, initiator InitiatorData) error {

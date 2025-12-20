@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chains-lab/restkit/roles"
-	"github.com/chains-lab/sso-svc/internal/domain/entity"
-	"github.com/chains-lab/sso-svc/internal/domain/errx"
 	"github.com/google/uuid"
+	"github.com/umisto/restkit/roles"
+	"github.com/umisto/sso-svc/internal/domain/entity"
+	"github.com/umisto/sso-svc/internal/domain/errx"
 	"golang.org/x/crypto/bcrypt"
 )
 

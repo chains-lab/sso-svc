@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chains-lab/sso-svc/internal/domain/entity"
-	"github.com/chains-lab/sso-svc/internal/domain/errx"
+	"github.com/umisto/sso-svc/internal/domain/entity"
+	"github.com/umisto/sso-svc/internal/domain/errx"
 )
 
 // VerifyEmail is a callback function to verify email addresses, which we should use in Kafka consumer

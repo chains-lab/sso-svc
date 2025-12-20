@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/chains-lab/restkit/roles"
-	"github.com/chains-lab/sso-svc/resources"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
+	"github.com/umisto/restkit/roles"
+	"github.com/umisto/sso-svc/resources"
 )
 
 func newDecodeError(what string, err error) error {

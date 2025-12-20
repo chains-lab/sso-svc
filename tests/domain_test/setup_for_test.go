@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/chains-lab/sso-svc/cmd/migrations"
-	"github.com/chains-lab/sso-svc/internal"
-	"github.com/chains-lab/sso-svc/internal/domain/entity"
-	"github.com/chains-lab/sso-svc/internal/repo"
-	"github.com/chains-lab/sso-svc/internal/token"
 	"github.com/google/uuid"
+	"github.com/umisto/sso-svc/cmd/migrations"
+	"github.com/umisto/sso-svc/internal"
+	"github.com/umisto/sso-svc/internal/domain/entity"
+	"github.com/umisto/sso-svc/internal/repo"
+	"github.com/umisto/sso-svc/internal/token"
 )
 
 // TEST DATABASE CONNECTION

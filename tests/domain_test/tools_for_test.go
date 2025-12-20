@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/chains-lab/sso-svc/internal/domain/entity"
 	"github.com/google/uuid"
+	"github.com/umisto/sso-svc/internal/domain/entity"
 )
 
 func CreateUser(s Setup, t *testing.T, email, password, role string) entity.User {

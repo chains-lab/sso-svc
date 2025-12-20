@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chains-lab/restkit/token"
+	"github.com/umisto/restkit/token"
 )
 
 type ctxKey int
